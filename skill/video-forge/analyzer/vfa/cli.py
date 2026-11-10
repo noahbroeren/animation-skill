@@ -5,6 +5,8 @@
   vfa analyze   VIDEO [--out DIR] [--width 512] [--sheets auto|all|sampled|none] [--speech auto|whisper|subs|off]
   vfa compare   REF OURS [--out gap.md]                      fingerprint gap -> ranked to-do list
   vfa aggregate DIR_OR_FP... [--out DIR]                     median style fingerprint across many videos
+  vfa breakdown ANALYSIS_DIR [--out md]                       sentence-by-sentence script x picture table
+  vfa batch     VIDEO_DIR --out DIR [--workers 3] [--meta selection.json --group-key era]   parallel channel study
   vfa qa        VIDEO [--min-class 2k|4k] [--fps 30] [--duration S] [--plan timeline.json] [--ref FP]
   vfa sbs       --ref A.jpg,B.jpg --ours C.jpg,D.jpg --out sbs.jpg   side-by-side judge sheet
   vfa probe     VIDEO
@@ -57,6 +59,18 @@ def main(argv=None):
     p.add_argument("inputs", nargs="+")
     p.add_argument("--out", default="style")
 
+    p = sub.add_parser("breakdown")
+    p.add_argument("analysis_dir")
+    p.add_argument("--out")
+
+    p = sub.add_parser("batch")
+    p.add_argument("video_dir")
+    p.add_argument("--out", required=True)
+    p.add_argument("--workers", type=int, default=3)
+    p.add_argument("--meta")
+    p.add_argument("--group-key")
+    p.add_argument("--speech", default="auto", choices=["auto", "whisper", "subs", "off"])
+
     p = sub.add_parser("qa")
     p.add_argument("video")
     p.add_argument("--out")
@@ -66,6 +80,8 @@ def main(argv=None):
     p.add_argument("--plan", help="timeline.json written by the engine (planned cuts)")
     p.add_argument("--ref", help="reference fingerprint.json / analysis dir / aggregate")
     p.add_argument("--lufs", type=float, default=-14.0)
+    p.add_argument("--freeze", type=float, help="min frozen seconds to flag (default 0.4 for shorts, 2.5 otherwise)")
+    p.add_argument("--mixreport", help="*_mixreport.json from audio/mix.py (speech-over-bed margin)")
 
     p = sub.add_parser("sbs")
     p.add_argument("--ref", required=True)
@@ -115,10 +131,16 @@ def main(argv=None):
         json.dump(agg, open(os.path.join(a.out, "fingerprint_aggregate.json"), "w"), indent=1)
         open(os.path.join(a.out, "style_fingerprint.md"), "w", encoding="utf-8").write(aggregate_md(agg))
         print(os.path.join(a.out, "style_fingerprint.md"))
+    elif a.cmd == "breakdown":
+        from .breakdown import breakdown
+        print(breakdown(a.analysis_dir, a.out))
+    elif a.cmd == "batch":
+        from .batch import run_batch
+        run_batch(a.video_dir, a.out, a.workers, a.meta, a.group_key, a.speech)
     elif a.cmd == "qa":
         from .qa import run_qa
         out = a.out or os.path.splitext(a.video)[0] + "_qa"
-        r = run_qa(a.video, out, a.min_class, a.fps, a.duration, a.plan, a.ref, a.lufs)
+        r = run_qa(a.video, out, a.min_class, a.fps, a.duration, a.plan, a.ref, a.lufs, a.freeze, a.mixreport)
         print(open(os.path.join(out, "qa.md"), encoding="utf-8").read())
         sys.exit(1 if r["verdict"] == "FAIL" else 0)
     elif a.cmd == "sbs":
@@ -151,9 +173,9 @@ def _channel(a):
         return
     from .analyze import analyze
     for it in pick:
-        vid = ytdlp_download(it["url"], os.path.join(a.out, "videos"), a.max_height)
+        vid = ytdlp_download(it["url"], os.path.join(a.out, "videos"), max(a.max_height, 2560) if "/shorts" in url or a.tab == "shorts" else a.max_height)
         if a.analyze:
-            analyze(vid, os.path.join(a.out, "analysis", it["id"]), sheets="all")
+            analyze(vid, os.path.join(a.out, "analysis", it["id"]), sheets="all", quiet=True)
     if a.analyze:
         from .compare import aggregate, aggregate_md, load
         fps = [load(os.path.join(a.out, "analysis", it["id"])) for it in pick]

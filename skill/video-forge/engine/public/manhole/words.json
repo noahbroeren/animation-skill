@@ -1,0 +1,842 @@
+[
+ {
+  "word": "He",
+  "start": 0.0,
+  "end": 0.08
+ },
+ {
+  "word": "made",
+  "start": 0.08,
+  "end": 0.22
+ },
+ {
+  "word": "every",
+  "start": 0.22,
+  "end": 0.44
+ },
+ {
+  "word": "manhole",
+  "start": 0.44,
+  "end": 0.74
+ },
+ {
+  "word": "cover",
+  "start": 0.74,
+  "end": 0.94
+ },
+ {
+  "word": "in",
+  "start": 0.94,
+  "end": 1.14
+ },
+ {
+  "word": "town",
+  "start": 1.14,
+  "end": 1.3
+ },
+ {
+  "word": "perfectly",
+  "start": 1.3,
+  "end": 1.7
+ },
+ {
+  "word": "square.",
+  "start": 1.7,
+  "end": 1.98
+ },
+ {
+  "word": "You",
+  "start": 2.44,
+  "end": 2.56
+ },
+ {
+  "word": "see,",
+  "start": 2.56,
+  "end": 2.74
+ },
+ {
+  "word": "the",
+  "start": 3.06,
+  "end": 3.18
+ },
+ {
+  "word": "new",
+  "start": 3.18,
+  "end": 3.32
+ },
+ {
+  "word": "mayor",
+  "start": 3.32,
+  "end": 3.48
+ },
+ {
+  "word": "wants",
+  "start": 3.48,
+  "end": 3.72
+ },
+ {
+  "word": "the",
+  "start": 3.72,
+  "end": 3.88
+ },
+ {
+  "word": "streets",
+  "start": 3.88,
+  "end": 4.08
+ },
+ {
+  "word": "to",
+  "start": 4.08,
+  "end": 4.26
+ },
+ {
+  "word": "look",
+  "start": 4.26,
+  "end": 4.4
+ },
+ {
+  "word": "modern,",
+  "start": 4.4,
+  "end": 4.68
+ },
+ {
+  "word": "and",
+  "start": 5.0,
+  "end": 5.16
+ },
+ {
+  "word": "square",
+  "start": 5.16,
+  "end": 5.38
+ },
+ {
+  "word": "covers",
+  "start": 5.38,
+  "end": 5.64
+ },
+ {
+  "word": "match",
+  "start": 5.64,
+  "end": 5.86
+ },
+ {
+  "word": "the",
+  "start": 5.86,
+  "end": 6.04
+ },
+ {
+  "word": "square",
+  "start": 6.04,
+  "end": 6.2
+ },
+ {
+  "word": "tiles.",
+  "start": 6.2,
+  "end": 6.52
+ },
+ {
+  "word": "The",
+  "start": 6.98,
+  "end": 7.08
+ },
+ {
+  "word": "old",
+  "start": 7.08,
+  "end": 7.26
+ },
+ {
+  "word": "foundry",
+  "start": 7.26,
+  "end": 7.62
+ },
+ {
+  "word": "laughs",
+  "start": 7.62,
+  "end": 7.8
+ },
+ {
+  "word": "at",
+  "start": 7.8,
+  "end": 7.96
+ },
+ {
+  "word": "him.",
+  "start": 7.96,
+  "end": 8.12
+ },
+ {
+  "word": "Square?",
+  "start": 8.5,
+  "end": 8.8
+ },
+ {
+  "word": "Good",
+  "start": 9.26,
+  "end": 9.42
+ },
+ {
+  "word": "luck",
+  "start": 9.42,
+  "end": 9.58
+ },
+ {
+  "word": "with",
+  "start": 9.58,
+  "end": 9.76
+ },
+ {
+  "word": "that.",
+  "start": 9.76,
+  "end": 9.92
+ },
+ {
+  "word": "But",
+  "start": 10.26,
+  "end": 10.4
+ },
+ {
+  "word": "square",
+  "start": 10.4,
+  "end": 10.62
+ },
+ {
+  "word": "covers",
+  "start": 10.62,
+  "end": 10.88
+ },
+ {
+  "word": "are",
+  "start": 10.88,
+  "end": 11.02
+ },
+ {
+  "word": "cheaper,",
+  "start": 11.02,
+  "end": 11.26
+ },
+ {
+  "word": "they",
+  "start": 11.66,
+  "end": 11.78
+ },
+ {
+  "word": "stack",
+  "start": 11.78,
+  "end": 12.0
+ },
+ {
+  "word": "neatly",
+  "start": 12.0,
+  "end": 12.18
+ },
+ {
+  "word": "on",
+  "start": 12.18,
+  "end": 12.42
+ },
+ {
+  "word": "a",
+  "start": 12.42,
+  "end": 12.48
+ },
+ {
+  "word": "cart,",
+  "start": 12.48,
+  "end": 12.66
+ },
+ {
+  "word": "and",
+  "start": 12.96,
+  "end": 13.1
+ },
+ {
+  "word": "the",
+  "start": 13.1,
+  "end": 13.18
+ },
+ {
+  "word": "mayor",
+  "start": 13.18,
+  "end": 13.34
+ },
+ {
+  "word": "loves",
+  "start": 13.34,
+  "end": 13.6
+ },
+ {
+  "word": "them.",
+  "start": 13.6,
+  "end": 13.82
+ },
+ {
+  "word": "So",
+  "start": 14.16,
+  "end": 14.36
+ },
+ {
+  "word": "by",
+  "start": 14.36,
+  "end": 14.52
+ },
+ {
+  "word": "spring,",
+  "start": 14.52,
+  "end": 14.74
+ },
+ {
+  "word": "half",
+  "start": 15.12,
+  "end": 15.32
+ },
+ {
+  "word": "the",
+  "start": 15.32,
+  "end": 15.44
+ },
+ {
+  "word": "town",
+  "start": 15.44,
+  "end": 15.64
+ },
+ {
+  "word": "has",
+  "start": 15.64,
+  "end": 15.8
+ },
+ {
+  "word": "square",
+  "start": 15.8,
+  "end": 16.02
+ },
+ {
+  "word": "holes.",
+  "start": 16.02,
+  "end": 16.28
+ },
+ {
+  "word": "Then",
+  "start": 16.66,
+  "end": 16.86
+ },
+ {
+  "word": "one",
+  "start": 16.86,
+  "end": 17.0
+ },
+ {
+  "word": "morning,",
+  "start": 17.0,
+  "end": 17.26
+ },
+ {
+  "word": "a",
+  "start": 17.6,
+  "end": 17.7
+ },
+ {
+  "word": "worker",
+  "start": 17.7,
+  "end": 17.86
+ },
+ {
+  "word": "lifts",
+  "start": 17.86,
+  "end": 18.12
+ },
+ {
+  "word": "a",
+  "start": 18.12,
+  "end": 18.24
+ },
+ {
+  "word": "cover",
+  "start": 18.24,
+  "end": 18.4
+ },
+ {
+  "word": "to",
+  "start": 18.4,
+  "end": 18.56
+ },
+ {
+  "word": "check",
+  "start": 18.56,
+  "end": 18.72
+ },
+ {
+  "word": "a",
+  "start": 18.72,
+  "end": 18.82
+ },
+ {
+  "word": "pipe,",
+  "start": 18.82,
+  "end": 19.04
+ },
+ {
+  "word": "turns",
+  "start": 19.32,
+  "end": 19.52
+ },
+ {
+  "word": "it",
+  "start": 19.52,
+  "end": 19.66
+ },
+ {
+  "word": "to",
+  "start": 19.66,
+  "end": 19.78
+ },
+ {
+  "word": "set",
+  "start": 19.78,
+  "end": 19.9
+ },
+ {
+  "word": "it",
+  "start": 19.9,
+  "end": 19.98
+ },
+ {
+  "word": "down,",
+  "start": 19.98,
+  "end": 20.2
+ },
+ {
+  "word": "and",
+  "start": 20.52,
+  "end": 20.64
+ },
+ {
+  "word": "it",
+  "start": 20.64,
+  "end": 20.74
+ },
+ {
+  "word": "slips.",
+  "start": 20.74,
+  "end": 20.96
+ },
+ {
+  "word": "Straight",
+  "start": 21.44,
+  "end": 21.72
+ },
+ {
+  "word": "down",
+  "start": 21.72,
+  "end": 21.92
+ },
+ {
+  "word": "the",
+  "start": 21.92,
+  "end": 22.06
+ },
+ {
+  "word": "hole.",
+  "start": 22.06,
+  "end": 22.26
+ },
+ {
+  "word": "Wait,",
+  "start": 22.62,
+  "end": 22.84
+ },
+ {
+  "word": "what?",
+  "start": 23.14,
+  "end": 23.36
+ },
+ {
+  "word": "The",
+  "start": 23.76,
+  "end": 23.88
+ },
+ {
+  "word": "cover",
+  "start": 23.88,
+  "end": 24.04
+ },
+ {
+  "word": "is",
+  "start": 24.04,
+  "end": 24.22
+ },
+ {
+  "word": "bigger",
+  "start": 24.22,
+  "end": 24.38
+ },
+ {
+  "word": "than",
+  "start": 24.38,
+  "end": 24.54
+ },
+ {
+  "word": "the",
+  "start": 24.54,
+  "end": 24.64
+ },
+ {
+  "word": "hole.",
+  "start": 24.64,
+  "end": 24.82
+ },
+ {
+  "word": "How",
+  "start": 25.2,
+  "end": 25.34
+ },
+ {
+  "word": "did",
+  "start": 25.34,
+  "end": 25.46
+ },
+ {
+  "word": "it",
+  "start": 25.46,
+  "end": 25.58
+ },
+ {
+  "word": "fit?",
+  "start": 25.58,
+  "end": 25.74
+ },
+ {
+  "word": "You",
+  "start": 26.14,
+  "end": 26.28
+ },
+ {
+  "word": "see,",
+  "start": 26.28,
+  "end": 26.46
+ },
+ {
+  "word": "a",
+  "start": 26.78,
+  "end": 26.9
+ },
+ {
+  "word": "square",
+  "start": 26.9,
+  "end": 27.04
+ },
+ {
+  "word": "is",
+  "start": 27.04,
+  "end": 27.24
+ },
+ {
+  "word": "wider",
+  "start": 27.24,
+  "end": 27.42
+ },
+ {
+  "word": "from",
+  "start": 27.42,
+  "end": 27.62
+ },
+ {
+  "word": "corner",
+  "start": 27.62,
+  "end": 27.86
+ },
+ {
+  "word": "to",
+  "start": 27.86,
+  "end": 28.0
+ },
+ {
+  "word": "corner",
+  "start": 28.0,
+  "end": 28.24
+ },
+ {
+  "word": "than",
+  "start": 28.24,
+  "end": 28.38
+ },
+ {
+  "word": "it",
+  "start": 28.38,
+  "end": 28.48
+ },
+ {
+  "word": "is",
+  "start": 28.48,
+  "end": 28.56
+ },
+ {
+  "word": "from",
+  "start": 28.56,
+  "end": 28.7
+ },
+ {
+  "word": "side",
+  "start": 28.7,
+  "end": 28.94
+ },
+ {
+  "word": "to",
+  "start": 28.94,
+  "end": 29.06
+ },
+ {
+  "word": "side.",
+  "start": 29.06,
+  "end": 29.28
+ },
+ {
+  "word": "Turn",
+  "start": 29.28,
+  "end": 29.76
+ },
+ {
+  "word": "the",
+  "start": 29.76,
+  "end": 29.9
+ },
+ {
+  "word": "cover",
+  "start": 29.9,
+  "end": 30.06
+ },
+ {
+  "word": "on",
+  "start": 30.06,
+  "end": 30.24
+ },
+ {
+  "word": "its",
+  "start": 30.24,
+  "end": 30.36
+ },
+ {
+  "word": "diagonal,",
+  "start": 30.36,
+  "end": 30.7
+ },
+ {
+  "word": "and",
+  "start": 31.08,
+  "end": 31.2
+ },
+ {
+  "word": "it",
+  "start": 31.2,
+  "end": 31.3
+ },
+ {
+  "word": "slides",
+  "start": 31.3,
+  "end": 31.46
+ },
+ {
+  "word": "right",
+  "start": 31.46,
+  "end": 31.72
+ },
+ {
+  "word": "through.",
+  "start": 31.72,
+  "end": 31.94
+ },
+ {
+  "word": "A",
+  "start": 32.4,
+  "end": 32.48
+ },
+ {
+  "word": "circle",
+  "start": 32.48,
+  "end": 32.7
+ },
+ {
+  "word": "is",
+  "start": 32.7,
+  "end": 32.9
+ },
+ {
+  "word": "the",
+  "start": 32.9,
+  "end": 33.0
+ },
+ {
+  "word": "same",
+  "start": 33.0,
+  "end": 33.2
+ },
+ {
+  "word": "width",
+  "start": 33.2,
+  "end": 33.36
+ },
+ {
+  "word": "whichever",
+  "start": 33.36,
+  "end": 33.62
+ },
+ {
+  "word": "way",
+  "start": 33.62,
+  "end": 33.88
+ },
+ {
+  "word": "you",
+  "start": 33.88,
+  "end": 33.98
+ },
+ {
+  "word": "turn",
+  "start": 33.98,
+  "end": 34.16
+ },
+ {
+  "word": "it,",
+  "start": 34.16,
+  "end": 34.32
+ },
+ {
+  "word": "so",
+  "start": 34.58,
+  "end": 34.8
+ },
+ {
+  "word": "a",
+  "start": 34.8,
+  "end": 34.92
+ },
+ {
+  "word": "round",
+  "start": 34.92,
+  "end": 35.06
+ },
+ {
+  "word": "cover",
+  "start": 35.06,
+  "end": 35.28
+ },
+ {
+  "word": "can",
+  "start": 35.28,
+  "end": 35.44
+ },
+ {
+  "word": "never",
+  "start": 35.44,
+  "end": 35.6
+ },
+ {
+  "word": "fall",
+  "start": 35.6,
+  "end": 35.82
+ },
+ {
+  "word": "into",
+  "start": 35.82,
+  "end": 36.0
+ },
+ {
+  "word": "its",
+  "start": 36.0,
+  "end": 36.16
+ },
+ {
+  "word": "own",
+  "start": 36.16,
+  "end": 36.28
+ },
+ {
+  "word": "hole.",
+  "start": 36.28,
+  "end": 36.5
+ },
+ {
+  "word": "By",
+  "start": 36.88,
+  "end": 37.0
+ },
+ {
+  "word": "summer,",
+  "start": 37.0,
+  "end": 37.24
+ },
+ {
+  "word": "the",
+  "start": 37.6,
+  "end": 37.7
+ },
+ {
+  "word": "town",
+  "start": 37.7,
+  "end": 37.92
+ },
+ {
+  "word": "quietly",
+  "start": 37.92,
+  "end": 38.22
+ },
+ {
+  "word": "swaps",
+  "start": 38.22,
+  "end": 38.62
+ },
+ {
+  "word": "every",
+  "start": 38.62,
+  "end": 38.8
+ },
+ {
+  "word": "cover",
+  "start": 38.8,
+  "end": 39.02
+ },
+ {
+  "word": "back.",
+  "start": 39.02,
+  "end": 39.26
+ },
+ {
+  "word": "And",
+  "start": 39.62,
+  "end": 39.76
+ },
+ {
+  "word": "the",
+  "start": 39.76,
+  "end": 39.86
+ },
+ {
+  "word": "old",
+  "start": 39.86,
+  "end": 40.02
+ },
+ {
+  "word": "foundry?",
+  "start": 40.02,
+  "end": 40.42
+ },
+ {
+  "word": "They",
+  "start": 40.74,
+  "end": 40.88
+ },
+ {
+  "word": "doubled",
+  "start": 40.88,
+  "end": 41.04
+ },
+ {
+  "word": "their",
+  "start": 41.04,
+  "end": 41.22
+ },
+ {
+  "word": "prices.",
+  "start": 41.22,
+  "end": 41.52
+ }
+]

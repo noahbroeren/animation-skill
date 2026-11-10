@@ -73,7 +73,7 @@ def place(buf, start, x, gain=1.0):
     buf[a:b] += x[a - start:b - start] * gain
 
 
-def render(mood="warm", bpm=96, seconds=60.0, seed=1, hits=()):
+def render(mood="warm", bpm=96, seconds=60.0, seed=1, hits=(), layers=("pad", "pluck", "kick"), normalize=True):
     m = MOODS[mood]
     rng = np.random.default_rng(seed)
     beat = 60.0 / bpm
@@ -86,9 +86,10 @@ def render(mood="warm", bpm=96, seconds=60.0, seed=1, hits=()):
         chord = m["prog"][b % len(m["prog"])]
         st = int(b * bar * SR)
         p = pad([mtof(m["root"] + c) for c in chord], bar + 0.4, rng)
-        place(L, st, p, 0.5)
-        place(R, st, np.roll(p, 240), 0.5)
-        if m["pluck"]:
+        if "pad" in layers:
+            place(L, st, p, 0.5)
+            place(R, st, np.roll(p, 240), 0.5)
+        if m["pluck"] and "pluck" in layers:
             for k in range(8):
                 note = m["root"] + 12 + chord[(k * 2 + b) % len(chord)]
                 s2 = st + int(k * beat / 2 * SR)
@@ -96,7 +97,7 @@ def render(mood="warm", bpm=96, seconds=60.0, seed=1, hits=()):
                 pan = 0.3 if k % 2 else -0.3
                 place(L, s2, pl, 1 - pan)
                 place(R, s2, pl, 1 + pan)
-        if m["kick"]:
+        if m["kick"] and "kick" in layers:
             for k in range(4):
                 s3 = st + int(k * beat * SR)
                 kk = kick() * (0.55 if k % 2 == 0 else 0.3)
@@ -110,6 +111,43 @@ def render(mood="warm", bpm=96, seconds=60.0, seed=1, hits=()):
     L, R = lp(L, m["bright"]), lp(R, m["bright"])
     fade = np.minimum(1, np.arange(n) / (SR * 1.0)) * np.minimum(1, (n - np.arange(n)) / (SR * 2.0))
     out = np.stack([L * fade, R * fade], 1)
+    return out / (np.abs(out).max() + 1e-9) * 0.7 if normalize else out
+
+
+def render_sections(mood, bpm, seconds, seed, sections, hits=()):
+    """Arrangement by story section (adapted from claude-animated-shorts music.py, MIT):
+    sections = [{"a": 0, "b": 4.3, "layers": ["pad","pluck","kick"], "end": "stop"|"button"|None}, ...]
+    - layers switch per section (20 ms ramps), "stop" = hard music stop at b (12 ms fade) -> silence under the big
+      moment, "button" = a hit right AFTER the section (never on the last word). Uncovered time = silence."""
+    n = int(SR * seconds)
+    stems = {ly: render(mood, bpm, seconds, seed, (), (ly,), normalize=False) for ly in ("pad", "pluck", "kick")}
+    out = np.zeros((n, 2))
+    ramp = int(0.02 * SR)
+    for sec in sections:
+        a, b = int(sec["a"] * SR), min(n, int(sec["b"] * SR))
+        if b <= a:
+            continue
+        mask = np.zeros(n)
+        mask[a:b] = 1.0
+        if a > 0:
+            mask[a:a + ramp] = np.linspace(0, 1, min(ramp, b - a))[: len(mask[a:a + ramp])]
+        k = int(0.012 * SR) if sec.get("end") == "stop" else ramp
+        mask[max(a, b - k):b] *= np.linspace(1, 0, len(mask[max(a, b - k):b]))
+        for ly in sec.get("layers", []):
+            if ly in stems:
+                out += stems[ly] * mask[:, None]
+        if sec.get("end") == "button":
+            kk = kick(1.0) * 0.9
+            s0 = b + int(0.08 * SR)
+            if s0 < n:
+                e = min(n, s0 + len(kk))
+                out[s0:e] += np.stack([kk[: e - s0]] * 2, 1)
+    for h in hits:
+        kk = kick(1.2) * 0.9
+        s0 = int(h * SR)
+        if 0 <= s0 < n:
+            e = min(n, s0 + len(kk))
+            out[s0:e] += np.stack([kk[: e - s0]] * 2, 1)
     return out / (np.abs(out).max() + 1e-9) * 0.7
 
 
@@ -120,10 +158,16 @@ def main():
     ap.add_argument("--seconds", type=float, default=60)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--hits", default="")
+    ap.add_argument("--sections", help="JSON file with an arrangement (see render_sections)")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     hits = [float(x) for x in a.hits.split(",") if x.strip()]
-    wavfile.write(a.out, SR, render(a.mood, a.bpm, a.seconds, a.seed, hits).astype(np.float32))
+    if a.sections:
+        import json
+        y = render_sections(a.mood, a.bpm, a.seconds, a.seed, json.load(open(a.sections)), hits)
+    else:
+        y = render(a.mood, a.bpm, a.seconds, a.seed, hits)
+    wavfile.write(a.out, SR, y.astype(np.float32))
     print(a.out)
 
 

@@ -24,6 +24,7 @@ export type SceneDef = {
   transition?: Transition; // INTO this scene
   innerCuts?: number[]; // local frames of hard cuts inside the scene (camera cuts)
   events?: number[]; // local frames of intended big visual changes (graphic slams, flashes) -> QA won't call them glitches
+  cues?: Record<string, number>; // named local frames (story beats) -> timeline.json "cues" -> sound design reads them
   chapter?: string;
 };
 
@@ -36,6 +37,7 @@ export function plan(scenes: SceneDef[]) {
   const cuts: number[] = [];
   const soft: number[] = [];
   const events: number[] = [];
+  const cues: Record<string, number> = {};
   scenes.forEach((s, i) => {
     const ov = i === 0 ? 0 : tf(s.transition);
     const start = i === 0 ? 0 : at - ov;
@@ -43,9 +45,10 @@ export function plan(scenes: SceneDef[]) {
     if (i > 0) ((s.transition?.type ?? "cut") === "cut" || s.transition?.type === "flash" ? cuts : soft).push(start + (s.transition?.type === "flash" ? Math.round(ov / 2) : 0));
     for (const c of s.innerCuts ?? []) cuts.push(start + c);
     for (const e of s.events ?? []) events.push(start + e);
+    for (const [k, v] of Object.entries(s.cues ?? {})) cues[`${s.id}.${k}`] = start + v;
     at = start + s.frames;
   });
-  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b) };
+  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues };
 }
 
 const Wrap: React.FC<{ children: React.ReactNode; enter?: Transition; exit?: Transition; frames: number }> = ({ children, enter, exit, frames }) => {

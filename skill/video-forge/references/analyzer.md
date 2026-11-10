@@ -102,3 +102,19 @@ One streaming pass decodes **every frame** at native fps (no sampling) at 512 px
 - Dissolves, morph transitions and on-screen text are not classified automatically. Read them from the sheets.
 - The speech engine falls back to subtitle timing, which is approximate word-level.
 - No OCR or font identification. Identify fonts visually and pick the closest licensed or system font.
+
+## Channel-scale and script-x-picture tools (1.1)
+
+- `vfa batch VIDEO_DIR --out D --workers 4 [--meta selection.json --group-key era]`: parallel full analysis of many videos (cached). It writes:
+  - `index.md`: one row per video with views, duration, cuts, ASL, words/s, moving %, glide, black floor, saturation, ink, shadow tint, LUFS and hook
+  - `group_<g>/` aggregates per group (e.g. per era)
+  - `all/`
+  - `views_correlation.md`: Spearman rank correlation with log(views); indicative only
+- `vfa breakdown ANALYSIS_DIR`: one row per sentence with:
+  - time, words/s and the text
+  - the camera move WITHIN that sentence (push/pull x, pan, tilt, WHIP)
+  - cuts inside it, and the light shift (brighter/darker, more/less saturated)
+  - the contact-sheet index to inspect
+
+  It also lists every cut against the nearest word onset (cut-on-word offsets). Run the analysis with `--speech whisper` for exact word times.
+- Rate limits: YouTube may answer HTTP 429 on subtitle requests during bulk downloads. Re-run video-only with `--sleep-interval 4` and reuse the subtitles you already have.

@@ -168,3 +168,24 @@ node tools/render.mjs --project ID --format short|long|short4k|long4k --fps 30|6
 | outlines on characters/sky | put them on `NOINK` (cards already are) |
 | captions overlap the platform UI | use the default y, or keep within `SAFE` |
 | huge files | grain; lower `grain.amount` or CRF 18-20 |
+
+## Added in 1.1 (toonworld / shader upgrade)
+
+| feature | where | use |
+|---|---|---|
+| per-frame looks | `Stage3D look={fn}`, `lookTimeline([[f, look], ...], fade)`, `lerpLook` | lighting setups that follow the story (day -> golden -> night -> day) |
+| toonworld presets | `LOOKS["toonworld-day/golden/night/interior"]` | measured grade per lighting setup, no grain, bloom on emissive only |
+| knot grade | `grade.knots[7]`, `zoneSat`, `tintS/M/H` [Cb, Cr] | fitted 7-knot monotone tone curve + 3-zone saturation + luma-neutral tints |
+| DOF v2 | `dof.maxBlur` (= cInf), `maxCoC`, `nearScale` | thin-lens CoC, "sample reaches us" test, near-field gather (soft foreground) |
+| camera motion blur | `look.motionBlur` (shutter 0..1) + `<Stage3D camAt={rig.at}>` | depth-reprojected; whips/travels always blurred |
+| painted cel world | `toonifyScene(scene, makeToonUniforms(TOON_SETUPS.day))`, `applyToonSetup(u, a, b, t)` | sun-visibility x N.L cel ramp, hue-keeping shade, violet replacement shadows, rim, world-space colour drift |
+| wind | `windSway(obj, windUniforms())`; set `uWindTime` per frame | foliage sway in the vertex shader |
+| toon water | `toonWater(w, h, colors)` | gradient + crest marks + glints |
+| card shading | automatic in `CharacterCard` (`cardShade`, `CARD_U`) | no emissive; scene tint, bright shadow floor, side gradient, contact blob, auto light side |
+| toonworld characters | `CharacterSpec.style = "toonworld"` | bean head, thick-thin plum ink, stroke limbs, dot hands, lidded eyes, soft crescents |
+| FX | `new FxLayer(scene).add(kind, {at, f0, size})`, `fx.update(f, camPos)` | sparkle, impact, dust, speedlines, splash, notes, stars, aura, shaft, smoke, sweat, ?, ! |
+| captions | `<WordCaptions words={words} />` | one word at a time, hard swaps |
+| camera | `push {rate, punches}`, `follow [{f0, f1, target(f), offset, blendOut}]`, screen-space kicks, `glideOrCut()` | measured camera grammar |
+| props | `lampPost`, `bench`, `fence`, `flowerBox`, `bird`, `blocksShot(p, r, rig.keys)` | detail density; sight-line culling |
+| cues | `SceneDef.cues {name: frame}` -> `timeline.json.cues` | sound design reads story beats from the picture (`make_audio.py`) |
+| model sheet | `--project modelsheet --stills 0` | all expressions/poses of a cast for look-dev |

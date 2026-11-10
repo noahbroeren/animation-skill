@@ -5,7 +5,7 @@
   py sfx.py one whoosh OUT.wav --dur 0.6 --seed 3
 
 Sounds: whoosh, swish, pop, click, impact, thud, riser, chime, ding, footstep,
-sparkle, roomtone, wind, tick, boing, rumble. Real recordings (Freesound CC0,
+sparkle, roomtone, wind, tick, boing, rumble, splash. Real recordings (Freesound CC0,
 BBC SFX under licence, own foley) usually sound better: use these as the
 always-available baseline and for precise sync hits.
 """
@@ -168,9 +168,24 @@ def rumble(dur=3.0, seed=15):
     return _lp(_noise(n, rng, "brown"), 120, 4) * np.sin(np.pi * np.linspace(0, 1, n)) * 1.5
 
 
+def splash(dur=1.1, seed=16):
+    rng = np.random.default_rng(seed)
+    n = int(SR * dur)
+    body = _lp(_noise(n, rng, "pink"), 2500) * _env(n, 0.004, 0.18)
+    out = body * 0.9
+    for _ in range(9):  # bubbles: short rising sine chirps
+        st = int((0.06 + rng.random() * 0.6) * SR)
+        d = int((0.04 + rng.random() * 0.06) * SR)
+        t = np.arange(d) / SR
+        f0 = 500 + rng.random() * 900
+        b = np.sin(2 * np.pi * np.cumsum(f0 * (1 + 3 * t / (d / SR))) / SR) * np.exp(-t * 40) * 0.35
+        out[st:st + d] += b[: max(0, min(d, n - st))]
+    return out
+
+
 SOUNDS = {k: v for k, v in globals().items() if k in (
     "whoosh", "swish", "pop", "click", "impact", "thud", "riser", "chime", "ding", "footstep", "sparkle",
-    "roomtone", "wind", "tick", "boing", "rumble")}
+    "roomtone", "wind", "tick", "boing", "rumble", "splash")}
 
 
 def save(path: str, x: np.ndarray, peak_db: float = -3.0, pan: float = 0.0):

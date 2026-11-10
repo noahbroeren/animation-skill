@@ -104,3 +104,13 @@ Follow `longform.md`. Key differences:
    - otherwise recommend the rebuild
 
    Be explicit about which fixes are possible on a flat file and which need the source.
+
+## Channel study (proven on a 149-short channel, 2026-11)
+
+1. List: `yt-dlp --flat-playlist -J <channel>/shorts`. Split into ERAS by title/format and views: channels pivot, and the current era is usually the one to learn.
+2. Select: all of the current era plus a sample of the old one (top views + random). Download with original audio. On HTTP 429, retry video-only with sleeps.
+3. Run `vfa batch videos --out analysis --workers 4 --meta selection.json --group-key era`, then read `index.md`, `group_*/style_fingerprint.md` and `views_correlation.md`.
+4. Deep-dive the 3 biggest hits: `vfa analyze --speech whisper` + `vfa breakdown`, i.e. sentence by sentence what the camera, cuts and light do.
+5. Read the transcripts for the script formula: hook type, mock lines, "You see" pivot, payoff.
+6. Write or extend a style profile in `references/styles/<name>.md` (template: `toonworld-explainer.md`). Map every rule to engine parameters.
+7. Produce a demo in the style, then `vfa qa --ref analysis/group_<current>/fingerprint_aggregate.json`. Fix the gaps that matter. Different stories won't (and shouldn't) match 100 %.

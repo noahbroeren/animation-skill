@@ -44,7 +44,7 @@ def _intervals(txt: str, key: str) -> list[tuple[float, float]]:
 
 def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | None = None,
            expect_duration: float | None = None, plan: str | None = None, ref: str | None = None,
-           lufs_target: float = -14.0, allow_freeze: float = 2.5) -> dict:
+           lufs_target: float = -14.0, allow_freeze: float | None = None, mixreport: str | None = None) -> dict:
     os.makedirs(out_dir, exist_ok=True)
     pr = probe(path)
     checks: list[dict] = []
@@ -70,6 +70,9 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
         d = abs(pr.duration - expect_duration)
         add("duration", "PASS" if d <= 2 / pr.fps + 0.05 else "FAIL", f"{pr.duration:.3f}s vs planned {expect_duration:.3f}s")
 
+    # shorts: a flat hold of 0.4 s already reads as a freeze ("every hold needs a creeping push-in")
+    if allow_freeze is None:
+        allow_freeze = 0.4 if (pr.height > pr.width and pr.duration < 120) else 2.5
     # --- black / frozen
     blacks = _intervals(_ff_detect(path, "blackdetect=d=0.25:pix_th=0.06"), "black")
     add("black stretches", "PASS" if not blacks else "WARN", f"{blacks[:10]}" if blacks else "none")
@@ -105,6 +108,8 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
     pops = [int(i) for i in np.where((luma_d > 4 * base + 0.03) & (luma_d > 0.06))[0] if not intended(i) and speed[i] < 0.6]
     add("pops (unexplained frame jumps)", "PASS" if not pops else "FAIL", f"frames {pops[:30]}" if pops else "none")
     lm = A["luma_mean"]
+    whites = [int(i) for i in np.where(lm > 0.93)[0] if not intended(int(i))]
+    add("white frames", "PASS" if not whites else "FAIL", f"unplanned near-white frames {whites[:20]}" if whites else "none unplanned")
     if len(lm) > 8:
         hf = np.abs(lm[2:] - 2 * lm[1:-1] + lm[:-2])
         bad = [int(i + 1) for i in np.where(hf > 0.03)[0] if not intended(i + 1) and speed[min(len(speed) - 1, i + 1)] < 0.15]
@@ -129,6 +134,16 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
     # --- audio
     au = fp.get("audio") or {}
     if au.get("has_audio"):
+        sil = re.findall(r"silence_start: ([\d.]+)[\s\S]*?silence_end: ([\d.]+)", subprocess.run(
+            ["ffmpeg", "-nostdin", "-hide_banner", "-i", path, "-vn", "-af", "silencedetect=n=-45dB:d=0.3", "-f", "null", "-"],
+            capture_output=True, text=True).stderr)
+        add("dead air", "PASS" if not sil else "WARN", f"{len(sil)} silences >= 0.3 s at {[round(float(a_), 2) for a_, _ in sil][:10]}" if sil else "none >= 0.3 s")
+        if mixreport and os.path.exists(mixreport):
+            mr = json.load(open(mixreport))
+            sm = mr.get("speech_margin_p10")
+            if sm is not None:
+                add("speech over bed", "PASS" if sm >= 2 else ("WARN" if sm >= 0 else "FAIL"),
+                    f"p10 voice-minus-bed margin {sm:.1f} LU on spoken windows (>= 2 LU keeps every word clear)")
         L, TP = au.get("integrated_lufs"), au.get("true_peak_dbtp")
         add("loudness", "PASS" if L is not None and abs(L - lufs_target) <= 1.5 else "WARN", f"{L} LUFS (target {lufs_target})")
         add("true peak", "PASS" if TP is not None and TP <= -0.9 else "FAIL", f"{TP} dBTP (must be <= -1.0)")

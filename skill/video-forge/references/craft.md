@@ -155,3 +155,49 @@ When you have a reference, **its measurements override these defaults.**
 | captions covering the action or UI | safe zones, 2-3 words per page, highlight |
 | inconsistent characters/colours across scenes | one CharacterSpec and one Look per series (bible); per-chapter fingerprint drift check |
 | upscaled mush sold as 4K | native render; label any upscale; `vfa qa` native-detail check |
+
+## Learned from frame-level channel studies (2026-11, 42 shorts + an independent 20-short study)
+
+These refine the defaults above. Style-specific details are in `styles/`.
+
+**Camera**
+- One camera move per sentence; alternate push and pull. Fast travels sit on sentence boundaries, always with motion blur (`look.motionBlur 0.5`).
+- **Cut or glide** (`glideOrCut()`): glide frames >= 0.075 x screen travel (px @720) + 55 x |zoom|.
+  - Over half a frame width or 40 % zoom: CUT on a word onset. Measured cut offsets vs word starts: -0.01 s and +0.02 s.
+- Exponential push on holds (`push.rate` 0.0015-0.003/frame) with punches on key words (0.006-0.007/frame for ~30 f). Any push stops at an impact.
+- Kicks are screen-space (~3 px @720 per unit), flip sign every frame, last 6-8 f.
+- Dissolves: 6-8 f, only for place or time jumps. White flash: 4 f.
+
+**Characters**
+- Blinks every 0.5-2.3 s with a 4-frame lid (half/shut/shut/half), plus a blink hiding every expression swap.
+- Reactions land 2 f (0-3 f) before the word.
+- Walk: ~2.6 steps/s (a step every 9-12 f), bob ~5 % of height lowest at contact, lean 1 deg at passing to 7 deg at contact.
+- Measured stylised characters have NO breathing or idle loops. The never-still feeling comes from:
+  - camera creep
+  - walking background extras
+  - FX
+  - gestures on key words
+- Do not add idle sway there. The `activity` metric should still reach about 0.02.
+
+**Sound**
+- Shorts in this space are very compressed: LRA ~2.2 LU, bed only 5-10 LU under the voice. Duck from `words.json` at only -3 dB; per-section music levels do the rest.
+- Music: arrange per section.
+  - Hard stop (12 ms) before the big moment, so there is silence under the hit.
+  - Calm under the explanation.
+  - Button hit AFTER the last word, never on it.
+- SFX levels by loudness relative to the voice: beds -26..-32, hits 0..-6, details -12..-20.
+  - Events get a further -6 dB.
+  - Anchor each sound's peak to its frame.
+  - One shared reverb send.
+
+**Readability traps** (each one cost a re-render somewhere)
+- Props closer than ~2 m to the lens become cut-off blobs. A frame-cut bush reads as a "green ball". Use `blocksShot()` when placing props.
+- Railings or ropes crossing a face or torso.
+- Signs lit by a side sun go grey-blue: make painted signs unlit or bright.
+- A flat hold of 0.4 s already reads as a freeze in a short (QA flags it).
+- Never describe on screen what the viewer already sees.
+
+**Ops gotchas**
+- Remotion copies `public/` into TEMP on every bundle (tens of GB over a session). render.mjs deletes its own bundle; still point TEMP/TMP at a big drive for long sessions.
+- Grain multiplies file size x3-4.
+- Two independent loudness meters must agree. `mix.py` aborts if ours and ffmpeg's differ by > 0.5 LU. This caught a real 48 dB WAV-scaling bug.

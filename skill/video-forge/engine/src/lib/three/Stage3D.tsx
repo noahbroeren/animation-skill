@@ -27,15 +27,29 @@ export type StageCtx = {
 export type Stage3DProps<W> = {
   build: (ctx: StageCtx) => W;
   update: (world: W, frame: number, ctx: StageCtx) => CamState;
-  look: Look;
+  /** a fixed Look, or a function of the absolute frame (per-shot setups, see lookTimeline()) */
+  look: Look | ((frame: number) => Look);
   /** frame offset when this stage is used inside a <Sequence> but must read absolute time */
   frameOffset?: number;
   shadowMapSize?: number;
+  /** camera as a pure function of frame (e.g. rig.at) -> enables camera motion blur (look.motionBlur) */
+  camAt?: (frame: number, fps: number) => CamState;
 };
 
 type Inst<W> = { ctx: StageCtx; world: W; post: PostPipeline };
 
-export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096 }: Stage3DProps<W>) {
+function applyCam(c: THREE.PerspectiveCamera, cam: CamState, aspect: number) {
+  c.position.set(...cam.pos);
+  c.up.set(0, 1, 0);
+  c.lookAt(...cam.look);
+  if (cam.roll) c.rotateZ((cam.roll * Math.PI) / 180);
+  c.fov = cam.fov;
+  c.aspect = aspect;
+  c.updateProjectionMatrix();
+  c.updateMatrixWorld(true);
+}
+
+export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096, camAt }: Stage3DProps<W>) {
   const frame = useCurrentFrame() + frameOffset;
   const { width, height, fps } = useVideoConfig();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -92,7 +106,14 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
     c.aspect = width / height;
     c.updateProjectionMatrix();
     it.ctx.scene.updateMatrixWorld(true);
-    it.post.render(it.ctx.scene, c, look, { focus: cam.focus, frame });
+    const lk = typeof look === "function" ? look(frame) : look;
+    let prevViewProj: THREE.Matrix4 | undefined;
+    if (camAt && lk.motionBlur > 0 && frame > 0) {
+      const pc = (it as any).prevCam ?? ((it as any).prevCam = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
+      applyCam(pc, camAt(frame - 1, fps), width / height);
+      prevViewProj = new THREE.Matrix4().multiplyMatrices(pc.projectionMatrix, pc.matrixWorldInverse);
+    }
+    it.post.render(it.ctx.scene, c, lk, { focus: cam.focus, frame, prevViewProj });
     it.ctx.renderer.getContext().finish();
   };
   useLayoutEffect(() => drawRef.current());

@@ -1,0 +1,234 @@
+{
+ "voice_lufs": -18.148062257537823,
+ "cues": [
+  {
+   "file": "bed.wav",
+   "t": 0.0,
+   "role": "music",
+   "naive_lu": null
+  },
+  {
+   "file": "sfx/roomtone.wav",
+   "t": 0.0,
+   "role": "ambience",
+   "naive_lu": -32
+  },
+  {
+   "file": "sfx/wind.wav",
+   "t": 0.0,
+   "role": "ambience",
+   "naive_lu": -34
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 1.8,
+   "role": "sfx",
+   "naive_lu": -14
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 2.717,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 5.817,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 10.183,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 36.85,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 39.583,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "t": 14.1,
+   "role": "sfx",
+   "naive_lu": -11
+  },
+  {
+   "file": "sfx/pop.wav",
+   "t": 8.6,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/boing.wav",
+   "t": 8.8,
+   "role": "sfx",
+   "naive_lu": -16
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 3.0,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 3.367,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 3.733,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 4.1,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 4.467,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 4.833,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 5.2,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/footstep.wav",
+   "t": 5.567,
+   "role": "sfx",
+   "naive_lu": -20
+  },
+  {
+   "file": "sfx/rumble.wav",
+   "t": 10.267,
+   "role": "sfx",
+   "naive_lu": -16
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 13.433,
+   "role": "sfx",
+   "naive_lu": -14
+  },
+  {
+   "file": "sfx/click.wav",
+   "t": 17.967,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 19.433,
+   "role": "sfx",
+   "naive_lu": -14
+  },
+  {
+   "file": "sfx/thud.wav",
+   "t": 20.833,
+   "role": "sfx",
+   "naive_lu": -8
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "t": 21.233,
+   "role": "sfx",
+   "naive_lu": -8
+  },
+  {
+   "file": "sfx/splash.wav",
+   "t": 22.2,
+   "role": "sfx",
+   "naive_lu": -2
+  },
+  {
+   "file": "sfx/impact.wav",
+   "t": 22.567,
+   "role": "sfx",
+   "naive_lu": -10
+  },
+  {
+   "file": "sfx/pop.wav",
+   "t": 22.733,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/riser.wav",
+   "t": 24.2,
+   "role": "sfx",
+   "naive_lu": -18
+  },
+  {
+   "file": "sfx/chime.wav",
+   "t": 26.2,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 27.733,
+   "role": "sfx",
+   "naive_lu": -14
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "t": 31.1,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/pop.wav",
+   "t": 32.567,
+   "role": "sfx",
+   "naive_lu": -12
+  },
+  {
+   "file": "sfx/thud.wav",
+   "t": 35.533,
+   "role": "sfx",
+   "naive_lu": -8
+  },
+  {
+   "file": "sfx/ding.wav",
+   "t": 40.967,
+   "role": "sfx",
+   "naive_lu": -6
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 41.067,
+   "role": "sfx",
+   "naive_lu": -14
+  }
+ ],
+ "speech_margin_p10": 5.385160162652232,
+ "speech_margin_median": 12.458980264013361,
+ "input_lufs": -17.486247929475077,
+ "gain_db": 3.5489687020870306,
+ "lufs": -14.003384674204016,
+ "true_peak_dbtp": -0.9997296011569781,
+ "ffmpeg_check": "I:         -14.0 LUFS LRA:         2.2 LU Peak:       -1.0 dBFS"
+}

@@ -62,6 +62,8 @@ def compare(ref: dict, ours: dict) -> dict:
         if r is None or o is None or (isinstance(r, float) and math.isnan(r)):
             continue
         delta = o - r
+        if path.startswith("camera.jerk"):  # unit-heavy metric: compare relatively (30 % of the reference)
+            tol = max(tol, 0.3 * abs(r))
         gap = abs(delta) / tol
         advice = low if delta < 0 else high
         status = "OK" if gap <= 1 else ("CLOSE" if gap <= 2 else "GAP")

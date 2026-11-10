@@ -31,16 +31,24 @@ const VERT = /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = 
 const NORMAL_VERT = /* glsl */ `
 #include <common>
 varying vec3 vN;
+varying vec3 vV;
 void main(){
   #include <beginnormal_vertex>
   #include <defaultnormal_vertex>
   vN = transformedNormal;
   #include <begin_vertex>
   #include <project_vertex>
+  vV = mvPosition.xyz;
 }`;
 const NORMAL_FRAG = /* glsl */ `
 varying vec3 vN;
-void main(){ vec3 n = normalize(vN) * (gl_FrontFacing ? 1.0 : -1.0); gl_FragColor = vec4(n, 1.0); }`;
+varying vec3 vV;
+void main(){
+  vec3 n;
+  if (dot(vN, vN) < 1e-8) n = normalize(cross(dFdx(vV), dFdy(vV)));   // geometry without normals: no NaN
+  else n = normalize(vN) * (gl_FrontFacing ? 1.0 : -1.0);
+  gl_FragColor = vec4(n, 1.0);
+}`;
 
 const INK_MASK = /* glsl */ `
 #include <packing>
@@ -102,30 +110,68 @@ void main(){
 const DOF = /* glsl */ `
 #include <packing>
 uniform sampler2D tColor; uniform sampler2D tDepth; uniform vec2 texel;
-uniform float cNear; uniform float cFar; uniform float focus; uniform float aperture; uniform float maxBlur;
+uniform float cNear; uniform float cFar; uniform float focus; uniform float cInf; uniform float maxCoC; uniform float nearScale;
 varying vec2 vUv;
 float dist(vec2 uv){ return -perspectiveDepthToViewZ(textureLod(tDepth, uv, 0.0).x, cNear, cFar); }
-float coc(float z){ return clamp(aperture * abs(z - focus) / max(z, 1e-3), 0.0, 1.0) * maxBlur; }
+// signed thin-lens CoC in px: + behind focus, - in front (x nearScale); saturates at cInf for far objects
+float cocS(float z){ float c = cInf * (1.0 - focus / max(z, 1e-3)); if (c < 0.0) c *= nearScale; return clamp(c, -maxCoC, maxCoC); }
 void main(){
   float zc = dist(vUv);
-  float c0 = coc(zc);
-  vec4 base = texture2D(tColor, vUv);
-  if (c0 < 0.5) { gl_FragColor = base; return; }
-  vec3 acc = base.rgb; float wsum = 1.0;
-  const int N = 48;
-  for (int i = 0; i < N; i++) {
-    float r = sqrt((float(i) + 0.5) / float(N));
-    float th = float(i) * 2.39996323;                     // golden angle (Vogel disc): fixed => no flicker
-    vec2 o = vec2(cos(th), sin(th)) * r * c0;
-    vec2 uv = vUv + o * texel;
-    float zs = dist(uv);
-    float cs = coc(zs);
-    float dpx = length(o);
-    // samples in front only contribute if their own blur reaches us (keeps sharp subjects crisp)
-    float w = zs >= zc * 0.98 ? 1.0 : clamp(cs / (dpx + 0.5), 0.0, 1.0);
-    acc += textureLod(tColor, uv, 0.0).rgb * w; wsum += w;
+  float R = abs(cocS(zc));
+  vec4 base = textureLod(tColor, vUv, 0.0);
+  vec3 col = base.rgb;
+  if (R >= 0.5) {
+    vec3 acc = base.rgb; float wsum = 1.0;
+    for (int i = 0; i < 64; i++) {
+      float rr = sqrt((float(i) + 0.5) / 64.0) * R;
+      float th = float(i) * 2.39996323;                    // fixed Vogel disc: no flicker
+      vec2 uv = vUv + vec2(cos(th), sin(th)) * rr * texel;
+      float zs = dist(uv);
+      float rs = abs(cocS(zs));
+      if (zs > zc) rs = min(rs, R);                         // farther samples can't blur more than us
+      float w = clamp(rs - rr + 0.5, 0.0, 1.0);             // only if the sample's own blur reaches us
+      acc += textureLod(tColor, uv, 0.0).rgb * w; wsum += w;
+    }
+    col = acc / wsum;
   }
-  gl_FragColor = vec4(acc / wsum, base.a);
+  // near field: blurred foreground spills over sharper pixels behind it (soft foreground edges)
+  vec3 fg = vec3(0.0); float fw = 0.0, cov = 0.0;
+  for (int i = 0; i < 32; i++) {
+    float rr = sqrt((float(i) + 0.5) / 32.0) * maxCoC;
+    if (rr <= R) continue;
+    float a = float(i) * 2.39996323 + 1.0;
+    vec2 suv = vUv + vec2(cos(a), sin(a)) * rr * texel;
+    float ds = dist(suv);
+    if (ds >= zc * 0.97) continue;
+    float cs = cocS(ds);
+    if (cs >= 0.0) continue;
+    float rs = -cs;
+    float w = clamp(rs - rr + 0.5, 0.0, 1.0);
+    fg += textureLod(tColor, suv, 0.0).rgb * w; fw += w; cov += w * (maxCoC * maxCoC) / max(rs * rs, 1.0);
+  }
+  if (fw > 0.0) col = mix(col, fg / fw, clamp(cov / 32.0, 0.0, 1.0));
+  gl_FragColor = vec4(col, base.a);
+}`;
+
+const MBLUR = /* glsl */ `
+uniform sampler2D tColor; uniform sampler2D tDepth; uniform mat4 uInvProj; uniform mat4 uInvView; uniform mat4 uPrevViewProj;
+uniform float uShutter; uniform float uMaxPx; uniform vec2 res;
+varying vec2 vUv;
+void main(){
+  float z = textureLod(tDepth, vUv, 0.0).x;
+  vec4 clip = vec4(vUv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+  vec4 vp = uInvProj * clip; vp /= vp.w;
+  vec4 wp = uInvView * vp;
+  vec4 pc = uPrevViewProj * wp;
+  vec2 prevUv = pc.xy / pc.w * 0.5 + 0.5;
+  vec2 vel = (vUv - prevUv) * uShutter;
+  float lpx = length(vel * res);
+  if (lpx > uMaxPx) vel *= uMaxPx / lpx;
+  if (lpx < 0.75) { gl_FragColor = textureLod(tColor, vUv, 0.0); return; }
+  vec3 acc = vec3(0.0);
+  const int N = 14;
+  for (int i = 0; i < N; i++) { float t = float(i) / float(N - 1) - 0.5; acc += textureLod(tColor, vUv + vel * t, 0.0).rgb; }
+  gl_FragColor = vec4(acc / float(N), 1.0);
 }`;
 
 const BRIGHT = /* glsl */ `
@@ -165,6 +211,16 @@ uniform float chroma; uniform float softness;
 uniform float blackPoint; uniform float whitePoint; uniform float contrast; uniform float pivot; uniform float gammaV;
 uniform float saturation; uniform float vibrance; uniform vec3 shadowTint; uniform vec3 highlightTint;
 uniform float vigAmount; uniform float vigSoft; uniform float grain; uniform float grainSize; uniform float frame;
+uniform int uUseKnots; uniform float uKy[7]; uniform float uKm[7]; uniform vec3 uZSat; uniform vec3 uTS; uniform vec3 uTM; uniform vec3 uTH;
+float herm(float v, float x0, float x1, float y0, float y1, float m0, float m1){ float h = x1 - x0, t = (v - x0) / h, t2 = t*t, t3 = t2*t;
+  return (2.*t3 - 3.*t2 + 1.)*y0 + (t3 - 2.*t2 + t)*h*m0 + (-2.*t3 + 3.*t2)*y1 + (t3 - t2)*h*m1; }
+float kcurve(float v){ v = clamp(v, 0., 1.);
+  if (v < .1) return herm(v, 0., .1, uKy[0], uKy[1], uKm[0], uKm[1]);
+  if (v < .25) return herm(v, .1, .25, uKy[1], uKy[2], uKm[1], uKm[2]);
+  if (v < .5) return herm(v, .25, .5, uKy[2], uKy[3], uKm[2], uKm[3]);
+  if (v < .75) return herm(v, .5, .75, uKy[3], uKy[4], uKm[3], uKm[4]);
+  if (v < .9) return herm(v, .75, .9, uKy[4], uKy[5], uKm[4], uKm[5]);
+  return herm(v, .9, 1., uKy[5], uKy[6], uKm[5], uKm[6]); }
 varying vec2 vUv;
 float h12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14), 0.0, 1.0); }
@@ -200,12 +256,20 @@ void main(){
   if (tonemap == 1) c = aces(c); else if (tonemap == 2) c = neutral(c);
   else if (tonemap == 3) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); c = c / (1.0 + l); c = mix(vec3(dot(c, vec3(0.2126,0.7152,0.0722))), c, 0.92) * 1.15; }
   vec3 v = toSRGB(c);
-  v = vec3(scurve(v.r), scurve(v.g), scurve(v.b));
+  if (uUseKnots == 1) v = vec3(kcurve(v.r), kcurve(v.g), kcurve(v.b));   // fitted 7-knot monotone tone curve
+  else v = vec3(scurve(v.r), scurve(v.g), scurve(v.b));
   v = pow(max(v, 0.0), vec3(1.0 / gammaV));
   float l = dot(v, vec3(0.2126, 0.7152, 0.0722));
   float s = max(v.r, max(v.g, v.b)) - min(v.r, min(v.g, v.b));
   v = mix(vec3(l), v, saturation * (1.0 + vibrance * (1.0 - s)));
   v += shadowTint * pow(1.0 - l, 2.0) + highlightTint * pow(l, 2.0);
+  if (uUseKnots == 1) { // 3-zone saturation + luma-neutral zone tints (Cb/Cr offsets)
+    float y = dot(v, vec3(0.2126, 0.7152, 0.0722));
+    float wS = 1. - smoothstep(0., .55, y), wH = smoothstep(.45, 1., y), wM = max(0., 1. - wS - wH);
+    float zs = uZSat.y + (uZSat.x - uZSat.y) * wS + (uZSat.z - uZSat.y) * wH;
+    v = vec3(y) + zs * (v - vec3(y));
+    v += wS * uTS + wM * uTM + wH * uTH;
+  }
   vec2 q = (vUv - 0.5) * vec2(res.x / res.y, 1.0);
   float vd = length(q) / length(vec2(res.x / res.y, 1.0) * 0.5);
   v *= 1.0 - vigAmount * smoothstep(1.0 - vigSoft, 1.0 + vigSoft * 0.2, vd);
@@ -221,6 +285,23 @@ void main(){
 }`;
 
 const TM: Record<string, number> = { none: 0, aces: 1, neutral: 2, agxish: 3 };
+const KX = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1];
+/** Fritsch-Carlson monotone tangents for the 7-knot tone curve (computed on the CPU). */
+function monoTangents(x: number[], y: number[]) {
+  const n = x.length, d: number[] = [], m: number[] = new Array(n).fill(0);
+  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], h = a * a + b * b;
+    if (h > 9) { const t = 3 / Math.sqrt(h); m[i] = t * a * d[i]; m[i + 1] = t * b * d[i]; }
+  }
+  return m;
+}
+/** luma-neutral tint: [Cb, Cr] offset -> RGB offset */
+const cbcr = (t?: [number, number]) => new THREE.Vector3(
+  (t?.[1] ?? 0) * 1.5748, -(t?.[0] ?? 0) * 0.18733 - (t?.[1] ?? 0) * 0.46813, (t?.[0] ?? 0) * 1.8556);
 
 export class PostPipeline {
   renderer: THREE.WebGLRenderer;
@@ -248,7 +329,7 @@ export class PostPipeline {
     this.A = new THREE.WebGLRenderTarget(w, h, { type: hf, depthBuffer: false });
     this.B = new THREE.WebGLRenderTarget(w, h, { type: hf, depthBuffer: false });
     // bloom mip chain sized from the SHORT side so glow size is resolution-independent
-    let bw = Math.round(w / 2), bh = Math.round(h / 2);
+    let bw = Math.round(w / this.u / 2), bh = Math.round(h / this.u / 2); // pinned: glow size identical at 2K and 4K
     for (let i = 0; i < 6; i++) {
       this.bloomDown.push(new THREE.WebGLRenderTarget(bw, bh, { type: hf, depthBuffer: false }));
       this.bloomUp.push(new THREE.WebGLRenderTarget(bw, bh, { type: hf, depthBuffer: false }));
@@ -264,7 +345,9 @@ export class PostPipeline {
     });
     this.mats.inkComp = fs(INK_COMP, { tColor: { value: null }, tMask: { value: this.maskRT.texture }, texel: { value: tex }, inkColor: { value: new THREE.Color() } });
     this.mats.dof = fs(DOF, { tColor: { value: null }, tDepth: { value: this.sceneRT.depthTexture }, texel: { value: tex },
-      cNear: { value: 0.1 }, cFar: { value: 1000 }, focus: { value: 10 }, aperture: { value: 1 }, maxBlur: { value: 10 } });
+      cNear: { value: 0.1 }, cFar: { value: 1000 }, focus: { value: 10 }, cInf: { value: 10 }, maxCoC: { value: 24 }, nearScale: { value: 1.2 } });
+    this.mats.mblur = fs(MBLUR, { tColor: { value: null }, tDepth: { value: this.sceneRT.depthTexture }, uInvProj: { value: new THREE.Matrix4() },
+      uInvView: { value: new THREE.Matrix4() }, uPrevViewProj: { value: new THREE.Matrix4() }, uShutter: { value: 0.5 }, uMaxPx: { value: 80 }, res: { value: new THREE.Vector2(w, h) } });
     this.mats.bright = fs(BRIGHT, { tColor: { value: null }, threshold: { value: 0.85 } });
     this.mats.down = fs(DOWN, { tSrc: { value: null }, texel: { value: new THREE.Vector2() } });
     this.mats.up = fs(UP, { tSrc: { value: null }, tBase: { value: null }, texel: { value: new THREE.Vector2() }, radius: { value: 1 } });
@@ -274,6 +357,8 @@ export class PostPipeline {
       blackPoint: { value: 0 }, whitePoint: { value: 1 }, contrast: { value: 1 }, pivot: { value: 0.45 }, gammaV: { value: 1 },
       saturation: { value: 1 }, vibrance: { value: 0 }, shadowTint: { value: new THREE.Vector3() }, highlightTint: { value: new THREE.Vector3() },
       vigAmount: { value: 0 }, vigSoft: { value: 0.6 }, grain: { value: 0 }, grainSize: { value: 1 }, frame: { value: 0 },
+      uUseKnots: { value: 0 }, uKy: { value: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1] }, uKm: { value: [1, 1, 1, 1, 1, 1, 1] },
+      uZSat: { value: new THREE.Vector3(1, 1, 1) }, uTS: { value: new THREE.Vector3() }, uTM: { value: new THREE.Vector3() }, uTH: { value: new THREE.Vector3() },
     });
     this.normalMat = new THREE.ShaderMaterial({ vertexShader: NORMAL_VERT, fragmentShader: NORMAL_FRAG, side: THREE.DoubleSide });
     this.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.mats.final);
@@ -287,7 +372,7 @@ export class PostPipeline {
     this.renderer.render(this.fsScene, this.fsCam);
   }
 
-  render(scene: THREE.Scene, cam: THREE.PerspectiveCamera, look: Look, opts: { focus: number; frame: number }) {
+  render(scene: THREE.Scene, cam: THREE.PerspectiveCamera, look: Look, opts: { focus: number; frame: number; prevViewProj?: THREE.Matrix4 }) {
     const r = this.renderer, u = this.u;
     r.toneMapping = THREE.NoToneMapping;
     cam.layers.enableAll();
@@ -320,9 +405,22 @@ export class PostPipeline {
     if (look.dof.enabled && look.dof.maxBlur > 0) {
       const d = this.mats.dof.uniforms;
       d.tColor.value = src; d.cNear.value = cam.near; d.cFar.value = cam.far;
-      d.focus.value = opts.focus; d.aperture.value = look.dof.aperture; d.maxBlur.value = look.dof.maxBlur * u;
+      d.focus.value = opts.focus; d.cInf.value = look.dof.maxBlur * look.dof.aperture * u;
+      d.maxCoC.value = (look.dof.maxCoC ?? look.dof.maxBlur * 2) * u; d.nearScale.value = look.dof.nearScale ?? 1.2;
       const out = src === this.A.texture ? this.B : this.A;
       this.pass(this.mats.dof, out);
+      src = out.texture;
+    }
+
+    if (look.motionBlur > 0 && opts.prevViewProj) { // camera motion blur by depth reprojection (180 deg shutter = 0.5)
+      const m = this.mats.mblur.uniforms;
+      m.tColor.value = src;
+      (m.uInvProj.value as THREE.Matrix4).copy(cam.projectionMatrixInverse);
+      (m.uInvView.value as THREE.Matrix4).copy(cam.matrixWorld);
+      (m.uPrevViewProj.value as THREE.Matrix4).copy(opts.prevViewProj);
+      m.uShutter.value = look.motionBlur; m.uMaxPx.value = 90 * u;
+      const out = src === this.A.texture ? this.B : this.A;
+      this.pass(this.mats.mblur, out);
       src = out.texture;
     }
 
@@ -364,6 +462,11 @@ export class PostPipeline {
     (f.shadowTint.value as THREE.Vector3).set(...g.shadowTint); (f.highlightTint.value as THREE.Vector3).set(...g.highlightTint);
     f.vigAmount.value = look.vignette.amount; f.vigSoft.value = look.vignette.softness;
     f.grain.value = look.grain.amount; f.grainSize.value = look.grain.size; f.frame.value = opts.frame % 997;
+    if (g.knots && g.knots.length === 7) {
+      f.uUseKnots.value = 1; f.uKy.value = g.knots; f.uKm.value = monoTangents(KX, g.knots);
+      (f.uZSat.value as THREE.Vector3).set(...(g.zoneSat ?? [1, 1, 1]));
+      (f.uTS.value as THREE.Vector3).copy(cbcr(g.tintS)); (f.uTM.value as THREE.Vector3).copy(cbcr(g.tintM)); (f.uTH.value as THREE.Vector3).copy(cbcr(g.tintH));
+    } else f.uUseKnots.value = 0;
     this.pass(this.mats.final, null);
   }
 

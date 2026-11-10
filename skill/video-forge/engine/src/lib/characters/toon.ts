@@ -27,6 +27,14 @@ export type CharacterSpec = {
   beard?: string;
   blush?: boolean;
   ink?: string; // outline colour
+  /**
+   * "classic" (default): filled limbs, oval eyes with catchlight.
+   * "toonworld": measured 2D-in-3D story-short design: 3.5 heads, head H/W 0.93, bean torso 0.8 W,
+   * legs/arms = single ink strokes (~0.055 W, no knees/elbows), ink-dot hands, stroke feet,
+   * lidded half-disc eyes (shock = white circles + small pupils), no blush, no catchlights,
+   * plum outline ~5 % of head width.
+   */
+  style?: "classic" | "toonworld";
 };
 
 export type Pose = {
@@ -46,6 +54,30 @@ export type Pose = {
   propText?: string; // for "sign"
 };
 
+/** multiply a #hex colour by per-channel factors (measured soft crescents: skin x[.96,.86,.84], cloth x[.64,.66,.74]) */
+const mulHex = (hex: string, f: [number, number, number]) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgb(${Math.round(((n >> 16) & 255) * f[0])},${Math.round(((n >> 8) & 255) * f[1])},${Math.round((n & 255) * f[2])})`;
+};
+
+/** Bean head (superellipse crown 1.75 / jaw 2.3, egg -0.12 = narrower chin, seeded asymmetry + tilt). */
+export function beanHead(cx: number, cy: number, halfW: number, halfH: number, seed: number, n = 72) {
+  const rnd = (k: number) => { const x = Math.sin(seed * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
+  const nT = 1.75 + 0.3 * (rnd(2) - 0.5), nB = 2.3 + 0.3 * (rnd(3) - 0.5), egg = -0.12 + 0.06 * (rnd(4) - 0.5);
+  const asym = (0.06 + 0.04 * rnd(5)) * (rnd(6) < 0.5 ? -1 : 1), r = ((8 * (rnd(7) - 0.5)) * Math.PI) / 180;
+  const p = new Path2D();
+  for (let i = 0; i <= n; i++) {
+    const t = (i / n) * 2 * Math.PI, c = Math.cos(t), s = Math.sin(t), e = 2 / (s < 0 ? nT : nB);
+    let X = Math.sign(c) * Math.abs(c) ** e;
+    const Y = Math.sign(s) * Math.abs(s) ** e;
+    X *= (1 + egg * Y) * (1 + asym * Math.sign(X) * 0.5);
+    const x = cx + halfW * X * Math.cos(r) - halfH * Y * Math.sin(r), y = cy + halfW * X * Math.sin(r) + halfH * Y * Math.cos(r);
+    i ? p.lineTo(x, y) : p.moveTo(x, y);
+  }
+  p.closePath();
+  return p;
+}
+
 const darken = (hex: string, k: number) => {
   const n = parseInt(hex.slice(1), 16);
   const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
@@ -61,10 +93,11 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
   const HH = s.heightHeads ?? 3.5;
   const total = H / 1.08;
   const hw = total / HH; // head height in px
-  const headW = hw / (s.headRatio ?? 1.0);
-  const lw = Math.max(1.5, hw * 0.035); // thin ink
-  const ink = s.ink ?? "#141018";
-  const limbW = hw * (s.limb ?? 0.1) * (s.build === "stout" ? 1.25 : s.build === "slim" ? 0.85 : 1);
+  const headW = hw / (s.headRatio ?? (s.style === "toonworld" ? 0.93 : 1.0));
+  const TW = s.style === "toonworld";
+  const lw = Math.max(1.5, hw * (TW ? 0.045 : 0.035)); // thin ink
+  const ink = s.ink ?? (TW ? "#24182a" : "#141018");
+  const limbW = TW ? hw * (s.limb ?? 0.055) : hw * (s.limb ?? 0.1) * (s.build === "stout" ? 1.25 : s.build === "slim" ? 0.85 : 1);
   const light = p.light ?? -1;
   const sq = p.squash ?? 1;
   const sx = 1 / Math.pow(sq, 0.6);
@@ -78,23 +111,33 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
   g.translate(0, (p.bob ?? 0) * hw);
   g.lineJoin = "round"; g.lineCap = "round";
 
-  const legLen = hw * 1.25, torsoH = hw * 1.15, hipY = -legLen, shoulderY = hipY - torsoH * 0.92;
-  const torsoW = headW * (s.build === "stout" ? 0.95 : s.build === "slim" ? 0.6 : 0.75);
+  const legLen = hw * (TW ? 1.4 : 1.25), torsoH = hw * (TW ? 1.1 : 1.15), hipY = -legLen, shoulderY = hipY - torsoH * 0.92;
+  const torsoW = headW * (TW ? (s.build === "stout" ? 0.95 : s.build === "slim" ? 0.7 : 0.8) : s.build === "stout" ? 0.95 : s.build === "slim" ? 0.6 : 0.75);
 
   // cel shading: shadow colour everywhere, then the base colour re-filled from a copy of the
   // shape shifted toward the light => a crescent shadow that follows each part's form.
-  const part = (path: Path2D, fill: string, shadowSide = true) => {
+  const part = (path: Path2D, fill: string, shadowSide = true, skin = false) => {
     g.fillStyle = fill; g.fill(path);
     if (shadowSide) {
       g.save(); g.clip(path);
-      g.fillStyle = darken(fill, 0.3); g.fill(path);
-      g.translate(light * -hw * 0.16, -hw * 0.05);
+      g.fillStyle = TW ? mulHex(fill, skin ? [0.96, 0.86, 0.84] : [0.64, 0.66, 0.74]) : darken(fill, 0.3); g.fill(path);
+      g.translate(light * hw * 0.16, -hw * 0.05); // base colour shifted TOWARD the light => crescent on the far side
       g.fillStyle = fill; g.fill(path);
       g.restore();
     }
     g.strokeStyle = ink; g.lineWidth = lw; g.stroke(path);
   };
   const limb = (x0: number, y0: number, a1: number, bend: number, len: number, col: string, end: "hand" | "shoe", w: number) => {
+    if (TW) { // single ink stroke, no joints; ink-dot hand / stroke foot
+      const r = (a1 * Math.PI) / 180, rb = ((a1 + bend * 0.3) * Math.PI) / 180;
+      const xm = x0 + Math.sin(r) * len * 0.5, ym = y0 + Math.cos(r) * len * 0.5;
+      const xe = xm + Math.sin(rb) * len * 0.5, ye = ym + Math.cos(rb) * len * 0.5;
+      g.strokeStyle = ink; g.lineWidth = w;
+      g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(xm, ym, xe, ye); g.stroke();
+      if (end === "hand") { g.fillStyle = ink; g.beginPath(); g.arc(xe, ye, headW * 0.055, 0, 7); g.fill(); }
+      else { g.lineWidth = headW * 0.07; g.beginPath(); g.moveTo(xe - headW * 0.03, ye); g.lineTo(xe + headW * 0.17, ye); g.stroke(); }
+      return;
+    }
     const r1 = (a1 * Math.PI) / 180, r2 = ((a1 + bend) * Math.PI) / 180;
     const x1 = x0 + Math.sin(r1) * len * 0.5, y1 = y0 + Math.cos(r1) * len * 0.5;
     const x2 = x1 + Math.sin(r2) * len * 0.5, y2 = y1 + Math.cos(r2) * len * 0.5;
@@ -114,16 +157,24 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
   limb(torsoW * 0.22, hipY, p.legR ?? 0, Math.max(0, -(p.legR ?? 0)) * 0.6, legLen, pants, "shoe", limbW * 1.1);
   const holding = !!p.prop;
   // back arm
-  if (!holding) limb(-torsoW * 0.48, shoulderY + hw * 0.08, -(p.armL ?? 6), -(p.elbowL ?? 8), hw * 1.15, s.top.color, "hand", limbW);
+  if (!holding) limb(-torsoW * (TW ? 0.4 : 0.48), shoulderY + hw * (TW ? 0.28 : 0.08), -(p.armL ?? 6), -(p.elbowL ?? 8), hw * 1.15, s.top.color, "hand", limbW);
 
   // torso
   const t = new Path2D();
   const tw2 = torsoW / 2, hb = s.top.style === "dress" ? torsoW * 0.75 : tw2 * 1.05;
+  if (TW) { // vertical bean, widest at ~65 % of its height, round bottom, no neck
+    const top = shoulderY - hw * 0.04, bot = hipY + hw * 0.12, wy = top + (bot - top) * 0.65;
+    t.moveTo(0, top);
+    t.bezierCurveTo(tw2 * 0.75, top, tw2 * 1.05, wy - (bot - top) * 0.25, tw2, wy);
+    t.bezierCurveTo(tw2 * 0.98, bot, -tw2 * 0.98, bot, -tw2, wy);
+    t.bezierCurveTo(-tw2 * 1.05, wy - (bot - top) * 0.25, -tw2 * 0.75, top, 0, top);
+  } else {
   t.moveTo(-tw2 * 0.9, shoulderY);
   t.quadraticCurveTo(0, shoulderY - hw * 0.08, tw2 * 0.9, shoulderY);
   t.quadraticCurveTo(tw2 * 1.15, shoulderY + torsoH * 0.5, hb, hipY + hw * 0.05);
   t.lineTo(-hb, hipY + hw * 0.05);
   t.quadraticCurveTo(-tw2 * 1.15, shoulderY + torsoH * 0.5, -tw2 * 0.9, shoulderY);
+  }
   part(t, s.top.color);
   if (s.top.accent) {
     g.strokeStyle = s.top.accent; g.lineWidth = lw * 2.2;
@@ -131,15 +182,15 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
     if (s.top.style === "uniform") { g.beginPath(); g.moveTo(-tw2, shoulderY + torsoH * 0.35); g.lineTo(tw2, shoulderY + torsoH * 0.6); g.stroke(); }
   }
   // front arm
-  if (!holding) limb(torsoW * 0.48, shoulderY + hw * 0.08, p.armR ?? 6, p.elbowR ?? 8, hw * 1.15, s.top.color, "hand", limbW);
+  if (!holding) limb(torsoW * (TW ? 0.4 : 0.48), shoulderY + hw * (TW ? 0.28 : 0.08), p.armR ?? 6, p.elbowR ?? 8, hw * 1.15, s.top.color, "hand", limbW);
   else {
     const py = shoulderY + torsoH * 0.42, pw = headW * (p.prop === "sign" ? 1.5 : 1.15), ph = hw * (p.prop === "sign" ? 0.8 : 0.6);
     // upper arms down-out to the elbow, forearms in to the prop's edges
     for (const sgn of [-1, 1]) {
-      const sx0 = sgn * torsoW * 0.48, sy0 = shoulderY + hw * 0.08, ex0 = sgn * torsoW * 0.72, ey0 = shoulderY + torsoH * 0.55;
+      const sx0 = sgn * torsoW * (TW ? 0.4 : 0.48), sy0 = shoulderY + hw * (TW ? 0.28 : 0.08), ex0 = sgn * torsoW * 0.72, ey0 = shoulderY + torsoH * 0.55;
       const hx = sgn * pw * 0.46, hy = py + ph * 0.1;
       g.strokeStyle = ink; g.lineWidth = limbW + lw * 2; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(ex0, ey0); g.lineTo(hx, hy); g.stroke();
-      g.strokeStyle = s.top.color; g.lineWidth = limbW; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(ex0, ey0); g.lineTo(hx, hy); g.stroke();
+      if (!TW) { g.strokeStyle = s.top.color; g.lineWidth = limbW; g.beginPath(); g.moveTo(sx0, sy0); g.lineTo(ex0, ey0); g.lineTo(hx, hy); g.stroke(); }
     }
     const pr = new Path2D();
     if (p.prop === "book") {
@@ -155,13 +206,13 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
     } else {
       pr.rect(-pw * 0.18, py - ph * 0.4, pw * 0.36, ph * 0.7); part(pr, "#ffcc66", false);
     }
-    for (const sgn of [-1, 1]) { const hnd = new Path2D(); hnd.arc(sgn * pw * 0.46, py + ph * 0.1, limbW * 0.8, 0, 7); part(hnd, s.skin, false); }
+    for (const sgn of [-1, 1]) { const hnd = new Path2D(); hnd.arc(sgn * pw * 0.46, py + ph * 0.1, TW ? headW * 0.055 : limbW * 0.8, 0, 7); if (TW) { g.fillStyle = ink; g.fill(hnd); } else part(hnd, s.skin, false); }
   }
 
   // head
-  const headCY = shoulderY - hw * 0.52;
-  const head = new Path2D();
-  head.ellipse(0, headCY, headW / 2, hw / 2, 0, 0, 7);
+  const headCY = shoulderY - hw * (TW ? 0.47 : 0.52);
+  const head = TW ? beanHead(0, headCY, headW / 2, hw / 2, hash32(s.id)) : new Path2D();
+  if (!TW) head.ellipse(0, headCY, headW / 2, hw / 2, 0, 0, 7);
   // hair behind
   const hair = s.hair;
   if (hair && (hair.style === "long" || hair.style === "bob")) {
@@ -169,7 +220,13 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
     hb2.ellipse(0, headCY + hw * 0.08, headW * 0.56, hw * (hair.style === "long" ? 0.68 : 0.55), 0, 0, 7);
     part(hb2, hair.color);
   }
-  part(head, s.skin);
+  part(head, s.skin, true, true);
+  if (TW) { // thick-thin ink: thicker on the shadow side and toward the ground
+    g.save(); g.clip(head);
+    g.strokeStyle = ink; g.lineWidth = lw * 1.9;
+    g.translate(-light * lw * 0.55, lw * 0.35); g.stroke(head);
+    g.restore();
+  }
   // hair on top
   if (hair && hair.style !== "bald") {
     const hp = new Path2D();
@@ -202,19 +259,32 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
   // face
   const ex = p.expr ?? "neutral";
   const look = p.look ?? [0, 0];
-  const eyeY = headCY + hw * 0.02, eyeDX = headW * 0.17;
+  const eyeY = headCY + hw * 0.02, eyeDX = headW * (TW ? 0.13 : 0.17); // measured: eyes 26 % of head width apart
   const blink = clamp(p.blink ?? 0);
   const eyeH = hw * (ex === "shock" ? 0.15 : ex === "laugh" ? 0.04 : ex === "happy" ? 0.09 : 0.11) * (1 - blink * 0.92);
   const eyeW = hw * (ex === "shock" ? 0.1 : 0.075);
   g.fillStyle = "#0d0a10";
   for (const sgn of [-1, 1]) {
     const x = sgn * eyeDX + look[0] * headW * 0.05, y = eyeY + look[1] * hw * 0.04;
+    if (TW && ex === "shock" && blink < 0.5) { // white circles, small pupils
+      g.fillStyle = "#fef9f6"; g.strokeStyle = ink; g.lineWidth = lw * 0.8;
+      g.beginPath(); g.arc(sgn * headW * 0.12, y, headW * 0.11, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = "#0d0a10"; g.beginPath(); g.arc(sgn * headW * 0.12 + look[0] * headW * 0.03, y + look[1] * headW * 0.03, headW * 0.03, 0, 7); g.fill();
+      continue;
+    }
+    if (TW && !(ex === "laugh" || (ex === "happy" && blink > 0.5))) { // lidded half-disc eye
+      const ew = headW * 0.09, eh = headW * (0.06 - 0.05 * blink);
+      g.fillStyle = "#0d0a10";
+      g.beginPath(); g.moveTo(x - ew, y); g.lineTo(x + ew, y); g.ellipse(x, y, ew, Math.max(lw * 0.5, eh), 0, 0, Math.PI); g.fill();
+      g.strokeStyle = ink; g.lineWidth = lw * 0.9; g.beginPath(); g.moveTo(x - ew * 1.05, y - lw * 0.3); g.lineTo(x + ew * 1.05, y - lw * 0.3); g.stroke();
+      continue;
+    }
     if (ex === "laugh" || ex === "happy" && blink > 0.5) {
       g.strokeStyle = "#0d0a10"; g.lineWidth = lw * 1.4;
       g.beginPath(); g.arc(x, y + hw * 0.03, eyeW, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
     } else {
       g.beginPath(); g.ellipse(x, y, eyeW, Math.max(lw * 0.6, eyeH), 0, 0, 7); g.fill();
-      if (blink < 0.5) { g.fillStyle = "#ffffff"; g.beginPath(); g.arc(x + eyeW * 0.3, y - eyeH * 0.4, eyeW * 0.28, 0, 7); g.fill(); g.fillStyle = "#0d0a10"; }
+      if (blink < 0.5 && !TW) { g.fillStyle = "#ffffff"; g.beginPath(); g.arc(x + eyeW * 0.3, y - eyeH * 0.4, eyeW * 0.28, 0, 7); g.fill(); g.fillStyle = "#0d0a10"; }
     }
   }
   // brows
@@ -246,7 +316,7 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
     else { g.moveTo(-mw * 0.6, my); g.quadraticCurveTo(0, my + hw * 0.025, mw * 0.6, my); }
     g.stroke();
   }
-  if (s.blush || ex === "happy" || ex === "laugh") {
+  if (s.blush || (!TW && (ex === "happy" || ex === "laugh"))) {
     g.fillStyle = "rgba(240,110,110,0.35)";
     for (const sgn of [-1, 1]) { g.beginPath(); g.ellipse(sgn * headW * 0.3, headCY + hw * 0.15, headW * 0.08, hw * 0.045, 0, 0, 7); g.fill(); }
   }
@@ -270,18 +340,18 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
 
 // ---------------------------------------------------------------- animation helpers
 
-/** Deterministic blink schedule: gaps 1.6-4.2 s, 5-frame lid curve, + forced blinks (e.g. on expression swaps). */
+/**
+ * Deterministic blinks (measured reference: gaps 0.5-2.3 s, 4-frame lid curve half/shut/shut/half) plus a
+ * forced blink on every expression swap whose shut frames cover the swap (pass the swap frames in `forced`).
+ */
+const LID = [0.5, 1, 1, 0.5];
 export function blinkAt(frame: number, fps: number, seed: string, forced: number[] = []) {
-  const curve = [0.4, 1, 1, 0.6, 0.2];
-  for (const f0 of forced) { const n = frame - f0; if (n >= 0 && n < curve.length) return curve[n]; }
-  const h = hash32(seed);
-  let t = (h % 1000) / 1000 * fps;
-  let i = 0;
-  while (t <= frame && i < 10000) {
-    const n = Math.floor(frame - t);
-    if (n >= 0 && n < curve.length) return curve[n];
-    t += fps * (1.6 + ((hash32(seed + i) % 1000) / 1000) * 2.6);
-    i++;
+  for (const f0 of forced) { const k = frame - f0 + 1; if (k >= 0 && k < 4) return LID[k]; }
+  let t = -Math.round((2 * fps * (hash32(seed) % 1000)) / 1000);
+  for (let i = 0; t <= frame && i < 4000; i++) {
+    const k = frame - t;
+    if (k >= 0 && k < 4) return LID[k];
+    t += Math.round(fps * (0.5 + (1.8 * (hash32(seed + ":" + i) % 1000)) / 1000));
   }
   return 0;
 }
@@ -300,11 +370,14 @@ export function mouthAt(frame: number, fps: number, words: Word[], lead = 2) {
   return 0;
 }
 
-/** Walk cycle pose (arms/legs counter-swing, bob on the passing position). */
-export function walkPose(frame: number, fps: number, stepsPerSec = 2, amp = 1): Pose {
-  const ph = (frame / fps) * stepsPerSec * Math.PI;
-  const s = Math.sin(ph);
-  return { legL: 26 * s * amp, legR: -26 * s * amp, armL: -22 * s * amp + 6, armR: 22 * s * amp + 6, elbowL: 14, elbowR: 14, bob: -Math.abs(Math.cos(ph)) * 0.05 * amp, lean: 3 * amp };
+/**
+ * Walk cycle (measured reference: a step every 9-12 frames => ~2.6 steps/s, bob ~5 % of height lowest at contact,
+ * lean 1 deg at passing -> 7 deg at contact, arms counter-swing).
+ */
+export function walkPose(frame: number, fps: number, stepsPerSec = 2.6, amp = 1, heads = 3.5): Pose {
+  const ph = (frame / fps) * stepsPerSec * Math.PI, sn = Math.sin(ph), c = -Math.cos(2 * ph); // c = 1 at contact
+  return { legL: 24 * sn * amp, legR: -24 * sn * amp, armL: -20 * sn * amp + 6, armR: 20 * sn * amp + 6, elbowL: 10, elbowR: 10,
+    bob: 0.05 * heads * ((1 + c) / 2) * amp * 0.5, lean: (4 + 3 * c) * amp };
 }
 
 /** Idle life: breathing squash, slight sway, arm drift. Never fully still. */

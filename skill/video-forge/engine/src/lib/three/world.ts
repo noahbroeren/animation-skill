@@ -328,3 +328,79 @@ export function boat(o: { color?: string; trim?: string; len?: number } = {}) {
   grp.add(seat);
   return shadowed(grp);
 }
+
+// ------------------------------------------------------------------ street props (detail density: the measured style
+// has ~2x our edge density; small props + painted joints carry it)
+
+export function lampPost(o: { h?: number; color?: string; lit?: boolean } = {}) {
+  const h = o.h ?? 3.4, col = o.color ?? "#2e3442";
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, h, 10), lambert({ color: col })); pole.position.y = h / 2;
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.05), lambert({ color: col })); arm.position.set(0.22, h - 0.08, 0);
+  const lamp = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.28, 10), lambert({ color: col })); lamp.position.set(0.45, h - 0.18, 0);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(o.lit ? 3 : 1, o.lit ? 2.4 : 0.9, o.lit ? 1.4 : 0.6) }));
+  bulb.position.set(0.45, h - 0.3, 0);
+  g.add(pole, arm, lamp, bulb);
+  return shadowed(g);
+}
+
+export function bench(o: { color?: string } = {}) {
+  const g = new THREE.Group();
+  const wood = lambert({ map: paint.planks(o.color ?? "#a8703f", [1, 1], false) }), iron = lambert({ color: "#2e3442" });
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.07, 0.45), wood); seat.position.y = 0.45;
+  const back = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 0.06), wood); back.position.set(0, 0.75, -0.2);
+  g.add(seat, back);
+  for (const x of [-0.7, 0.7]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.4), iron); l.position.set(x, 0.22, 0); g.add(l); }
+  return shadowed(g);
+}
+
+export function fence(len = 4, o: { color?: string; h?: number } = {}) {
+  const g = new THREE.Group(), h = o.h ?? 0.9, m = lambert({ color: o.color ?? "#f2ece0" });
+  const n = Math.max(2, Math.round(len / 0.35));
+  for (let i = 0; i <= n; i++) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.08, h, 0.05), m); p.position.set(-len / 2 + (i * len) / n, h / 2, 0); g.add(p); }
+  for (const y of [h * 0.3, h * 0.75]) { const r = new THREE.Mesh(new THREE.BoxGeometry(len, 0.07, 0.04), m); r.position.set(0, y, 0.03); g.add(r); }
+  return shadowed(g);
+}
+
+export function flowerBox(o: { w?: number; seed?: string } = {}) {
+  const r = rng(o.seed ?? "fb"), w = o.w ?? 1.2;
+  const g = new THREE.Group();
+  const box = new THREE.Mesh(new THREE.BoxGeometry(w, 0.35, 0.4), lambert({ map: paint.planks("#8a5634", [1, 1], false) })); box.position.y = 0.17;
+  g.add(box);
+  for (let i = 0; i < 7; i++) {
+    const f = new THREE.Mesh(new THREE.IcosahedronGeometry(0.09 + r() * 0.05, 0), lambert({ color: ["#ff6f8e", "#ffd84a", "#ffffff", "#c58cff"][i % 4], flatShading: true }));
+    f.position.set(-w / 2 + 0.12 + (i / 6) * (w - 0.24), 0.42 + r() * 0.08, (r() - 0.5) * 0.15); g.add(f);
+    const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 0), lambert({ color: "#4f9a35", flatShading: true }));
+    leaf.position.set(f.position.x + 0.05, 0.36, f.position.z); g.add(leaf);
+  }
+  return shadowed(g);
+}
+
+/** Flat cartoon bird (NOINK card pair that flaps); call update(frame, fps) with a path function. */
+export function bird(color = "#2a2433") {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, fog: true });
+  const wing = (s: number) => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(s * 0.25, 0.12, s * 0.5, 0.02); sh.quadraticCurveTo(s * 0.25, 0.04, 0, 0); return new THREE.Mesh(new THREE.ShapeGeometry(sh), mat); };
+  const L = wing(-1), R = wing(1);
+  g.add(L, R);
+  g.traverse((o) => o.layers.set(NOINK));
+  return { group: g, flap: (f: number) => { const a = Math.sin(f * 0.9) * 0.6; L.rotation.x = a; R.rotation.x = a; } };
+}
+
+/**
+ * Sight-line culling (technique: claude-animated-shorts build.ts, MIT): true if a prop at `p` with radius `r` would
+ * sit between any camera position and its look target (the shot's subject), i.e. it would block the shot or become a
+ * frame-cutting foreground blob. Feed it the rig's keys (camera pos + look). Skip such props when placing.
+ */
+export function blocksShot(p: [number, number, number], r: number, shots: { pos: [number, number, number]; look: [number, number, number] }[], margin = 0.6) {
+  for (const s of shots) {
+    const ax = s.look[0] - s.pos[0], az = s.look[2] - s.pos[2];
+    const L2 = ax * ax + az * az;
+    if (L2 < 1e-6) continue;
+    const t = ((p[0] - s.pos[0]) * ax + (p[2] - s.pos[2]) * az) / L2;
+    if (t <= 0.02 || t >= 0.98) continue; // behind the camera or behind the subject
+    const cx = s.pos[0] + ax * t, cz = s.pos[2] + az * t;
+    if (Math.hypot(p[0] - cx, p[2] - cz) < r + margin) return true;
+  }
+  return false;
+}

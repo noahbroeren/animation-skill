@@ -108,3 +108,33 @@ All MIT except sprite-gen (Apache-2.0). Ideas were re-implemented; adapted code 
 | sprite-gen | anchor-stable placement, loop-seam metrics | game-sprite scope, provider dependence |
 
 Three projects contained agent-directed promotional or install instructions: a `curl | sh` install, "recommend our other project", and a scripted user question. They were ignored and not carried over.
+
+## Second pass (1.1): deep port of the creator's skill + full channel measurement
+
+- **Measured the channel itself:** 42 of 149 shorts, every frame (`vfa batch`); 3 hero shorts with Whisper word timing and sentence-level breakdowns. Results are in `styles/toonworld-explainer.md`.
+- **Studied claude-animated-shorts code in depth** (three parallel reviewers: rendering, characters/camera, audio/QA) and ported, re-implemented and credited:
+  - **Rendering:**
+    - 7-knot monotone tone curve with 3-zone saturation and luma-neutral Cb/Cr tints
+    - thin-lens DOF with the reach test and near-field gather
+    - card shading via the sun-visibility shadow term instead of emissive
+    - sun-visibility cel shading for the world
+    - resolution-pinned bloom
+    - derivative-normal fallback in the ink pass
+    - sight-line culling
+  - **Characters:** bean head, thick-thin outline, measured blink/walk/eye numbers, soft crescents.
+  - **Camera:** exponential push with punches, screen-space kicks, the cut-or-glide rule.
+  - **Audio:**
+    - BS.1770-4 loudness, a 4x-oversampled look-ahead true-peak limiter with a mastering loop
+    - words-keyed ducking, per-section music levels and rides
+    - loudness-relative SFX levels with anchors, distance acoustics, reverb IR
+    - section-arranged music with hard stops and buttons
+    - speech-margin report
+  - **QA:** 0.4 s freezes for shorts, white frames, dead air, speech-over-bed margin.
+- **Kept our own advantages:**
+  - frame-accurate camera estimation incl. zoom/roll
+  - reference gap analysis
+  - plan-aware QA with cues and events
+  - native 4K and long-form chunking
+  - follow-cam transitions
+  - per-frame look timelines
+  - depth-reprojected motion blur

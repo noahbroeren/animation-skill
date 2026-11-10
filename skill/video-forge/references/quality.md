@@ -100,3 +100,16 @@ This is the method that took the reference project from "looks cheap" to "premiu
 - Report QA verdicts verbatim, including WARNs, with the reason they're acceptable.
 - "Tested" means you ran it and looked at the output. Name what you did not verify (e.g. a 60 fps render not tried, a platform upload not tried).
 - If an external service was unavailable (no API key, private video), say so and what you did instead.
+
+## QA additions (1.1)
+
+- `frozen stretches` uses 0.4 s for shorts (2.5 s otherwise), because a flat hold reads as a freeze.
+- `white frames`: unplanned near-white frames are a FAIL.
+- `dead air`: silences >= 0.3 s at -45 dB are a WARN.
+- `speech over bed` (`--mixreport master_mixreport.json`): the p10 voice-minus-bed margin on spoken windows. Below 0 LU is a FAIL, below 2 LU a WARN.
+- Declare camera TRAVELS as `events`, so fast intended moves aren't flagged as glitches.
+- Correction to section 4: in the reference study, the measured heads DID have the narrower chin ("egg" -0.12). What was wrong was the "taller head" note. Measure, don't trust first impressions.
+- Verifier format that worked:
+  - score each area /10 with a numbered fix list by frame
+  - route each fix to the file owner
+  - resume the same owner agent (SendMessage) so it keeps its context

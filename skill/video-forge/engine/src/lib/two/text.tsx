@@ -201,3 +201,34 @@ export const GradientBg: React.FC<{ a: string; b: string; angle?: number; drift?
   const f = useCurrentFrame();
   return <AbsoluteFill style={{ background: `linear-gradient(${angle + Math.sin(f / 90) * drift}deg, ${a}, ${b})` }} />;
 };
+
+/**
+ * One word at a time, hard swap on each word (measured on 2D-in-3D story shorts: white bold sans,
+ * thin black outline, lower-middle). Words shorter than minFrames are merged with the next word
+ * so nothing flashes for 1-2 frames.
+ */
+export const WordCaptions: React.FC<{ words: Word[]; y?: number; size?: number; color?: string; outline?: number; minFrames?: number; uppercase?: boolean }> = ({
+  words, y, size, color = "#ffffff", outline = 0.06, minFrames = 5, uppercase = false,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { u, vertical, height } = useU();
+  const t = frame / fps;
+  // merge very short words into chunks lasting >= minFrames
+  const chunks: { text: string; start: number; end: number }[] = [];
+  for (const w of words) {
+    const last = chunks[chunks.length - 1];
+    if (last && (last.end - last.start) * fps < minFrames && w.start - last.end < 0.15) { last.text += " " + w.word; last.end = w.end; }
+    else chunks.push({ text: w.word, start: w.start, end: w.end });
+  }
+  const i = chunks.findIndex((c, k) => t >= c.start - 0.02 && t < (chunks[k + 1]?.start ?? c.end + 0.35) - 0.02);
+  if (i < 0) return null;
+  const fs = (size ?? (vertical ? 92 : 72)) * u;
+  return (
+    <div style={{ position: "absolute", top: (y ?? (vertical ? 0.66 : 0.78)) * height, left: 0, right: 0, textAlign: "center",
+      fontFamily: FONTS.heavy, fontWeight: 900, fontSize: fs, color, textTransform: uppercase ? "uppercase" : "none",
+      WebkitTextStroke: `${outline * fs}px #0b0b10`, paintOrder: "stroke fill", textShadow: `0 ${0.04 * fs}px ${0.06 * fs}px rgba(0,0,0,0.35)` }}>
+      {chunks[i].text.replace(/[,.;:!?]+$/, (m) => (m.includes("?") || m.includes("!") ? m.slice(-1) : ""))}
+    </div>
+  );
+};

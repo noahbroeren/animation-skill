@@ -177,3 +177,49 @@ export const paint = {
       g.fillStyle = "rgba(255,255,255,0.9)"; g.fillRect(0, 0, 2048, 60); g.fillRect(0, 964, 2048, 60);
     }, [1, 1]),
 };
+
+/** Flat-style painted surfaces (measured toonworld rule: flat colour fields + thin painted joints at ~half ink contrast,
+ *  no photographic noise, no cobbles). */
+export const flat = {
+  tiles: (color = "#c9b8a4", joint = "#8d7a68", n = 4, rep: [number, number] = [1, 1]) =>
+    canvasTexture(`ftiles${color}${joint}${n}`, 512, 512, (g, r) => {
+      const s = 512 / n;
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        g.fillStyle = vary(color, r, 0.01, 0.04, 0.05); g.fillRect(x * s, y * s, s, s);
+        g.fillStyle = "rgba(255,255,255,0.10)"; g.fillRect(x * s, y * s, s, s * 0.06);
+      }
+      g.strokeStyle = joint; g.lineWidth = 5;
+      for (let i = 0; i <= n; i++) { g.beginPath(); g.moveTo(i * s, 0); g.lineTo(i * s, 512); g.stroke(); g.beginPath(); g.moveTo(0, i * s); g.lineTo(512, i * s); g.stroke(); }
+    }, rep),
+  grass: (color = "#71b038", rep: [number, number] = [8, 8]) =>
+    canvasTexture(`fgrass${color}`, 512, 512, (g, r) => {
+      g.fillStyle = color; g.fillRect(0, 0, 512, 512);
+      for (let i = 0; i < 26; i++) { g.fillStyle = vary(color, r, 0.02, 0.06, 0.06); g.globalAlpha = 0.5; g.beginPath(); g.ellipse(r() * 512, r() * 512, 40 + r() * 90, 30 + r() * 60, r() * 3, 0, 7); g.fill(); }
+      g.globalAlpha = 1;
+      for (let i = 0; i < 14; i++) { const x = r() * 512, y = r() * 512; g.fillStyle = ["#ffffff", "#ffd84a", "#ff8fb1"][i % 3]; g.beginPath(); g.arc(x, y, 3.5, 0, 7); g.fill(); }
+    }, rep),
+  stone: (color = "#c2b2a5", mortar = "#8f8072", rep: [number, number] = [2, 2]) =>
+    canvasTexture(`fstone${color}`, 512, 512, (g, r) => {
+      g.fillStyle = mortar; g.fillRect(0, 0, 512, 512);
+      const bh = 64;
+      for (let y = 0; y < 512; y += bh) {
+        let x = (y / bh) % 2 ? -60 : 0;
+        while (x < 512) { const w = 90 + r() * 70; g.fillStyle = vary(color, r, 0.01, 0.04, 0.06); g.fillRect(x + 3, y + 3, w - 6, bh - 6); g.fillStyle = "rgba(255,255,255,0.12)"; g.fillRect(x + 3, y + 3, w - 6, 6); x += w; }
+      }
+    }, rep),
+  coverSquare: () =>
+    canvasTexture("coverSquare", 256, 256, (g) => {
+      g.fillStyle = "#59606e"; g.fillRect(0, 0, 256, 256);
+      g.strokeStyle = "#3c414d"; g.lineWidth = 10; g.strokeRect(12, 12, 232, 232);
+      g.lineWidth = 6;
+      for (let i = 1; i < 6; i++) { g.beginPath(); g.moveTo(24 + i * 35, 24); g.lineTo(24 + i * 35, 232); g.stroke(); g.beginPath(); g.moveTo(24, 24 + i * 35); g.lineTo(232, 24 + i * 35); g.stroke(); }
+      g.fillStyle = "rgba(255,255,255,0.18)"; g.fillRect(14, 14, 228, 18);
+    }),
+  coverRound: () =>
+    canvasTexture("coverRound", 256, 256, (g) => {
+      g.fillStyle = "#59606e"; g.fillRect(0, 0, 256, 256);
+      g.strokeStyle = "#3c414d"; g.lineWidth = 8;
+      for (const r of [118, 88, 58, 28]) { g.beginPath(); g.arc(128, 128, r, 0, 7); g.stroke(); }
+      for (let a = 0; a < 12; a++) { const t = (a / 12) * Math.PI * 2; g.beginPath(); g.moveTo(128 + Math.cos(t) * 28, 128 + Math.sin(t) * 28); g.lineTo(128 + Math.cos(t) * 118, 128 + Math.sin(t) * 118); g.stroke(); }
+    }),
+};

@@ -14,6 +14,14 @@ A Claude Skill that turns *"analyze this video, understand exactly how it was ma
    It includes inked or cinematic 3D worlds, consistent 2D characters, camera grammar, kinetic typography, word-synced captions, transitions, synthesized SFX and score, and mastered audio (-14 LUFS / -1 dBTP).
 3. **Verify** with an automated QA gate and a reference gap analysis: your render goes through the same analyzer, and the delta is the to-do list.
 
+![toonworld explainer demo](docs/media/manhole_strip.jpg)
+
+The image above is the demo "Why manhole covers are round". It is 9:16 1440x2560 and was built from a measured 149-short channel study (`references/styles/toonworld-explainer.md`). It uses:
+- toon shaders and per-beat lighting
+- follow-cam down the shaft with motion blur
+- one-word captions
+- section-arranged sound
+
 | | |
 |---|---|
 | ![lighthouse short](docs/media/lighthouse_strip.jpg) | ![pendulum long-form](docs/media/pendulum_strip.jpg) |
@@ -88,7 +96,10 @@ py ../analyzer/vfa.py qa out/.../pendulum_3840x2160_30fps.mp4 --plan out/.../tim
 | procedural SFX, score bed, two-pass loudness mastering, voice-keyed ducking | functional, tested (-14.0 LUFS / -1.0 dBTP measured) |
 | offline TTS (Windows SAPI / macOS `say` / espeak) + faster-whisper word alignment | functional; OS voices sound robotic |
 | premium voice (ElevenLabs etc.), AI video plates, Blender photoreal, AI upscalers | **external**: documented integration paths in `references/external.md`, cost confirmation required |
-| automatic dissolve/transition classification, OCR/font identification, 60 fps demo render | not implemented / not yet verified |
+| channel study (`vfa batch`, eras, views correlation) + sentence breakdowns (`vfa breakdown`) | **functional, tested** on 42 shorts of a 149-short channel |
+| toon shaders (painted cel world, card shading, wind, water), camera motion blur, DOF v2, knot grade, FX, one-word captions | **functional, tested** in the `manhole` demo (1440x2560, QA WARN with no FAIL) |
+| audio DSP (BS.1770 loudness, true-peak limiter, words-keyed ducking, sections, reverb, distance) | **functional, tested** (`tests/test_audio.py`; ffmpeg cross-check on every mix) |
+| automatic dissolve/transition classification, OCR/font identification, 60 fps demo render, side-view walk cycles, crowds pool | not implemented / not yet verified |
 
 ## Measured performance (RTX 5070, 16 threads)
 
