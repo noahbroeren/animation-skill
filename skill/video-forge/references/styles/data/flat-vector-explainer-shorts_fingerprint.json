@@ -1,0 +1,361 @@
+{
+ "schema": "vfa.fingerprint/1",
+ "style": "flat-vector-explainer-shorts",
+ "note": "7 Shorts (5 most-viewed + 2 recent) of the same flat-vector science channel, measured 2026-11-10. Medians; spread = p25/p75.",
+ "aggregate_of": 7,
+ "color": {
+  "luma_mean": {
+   "median": 0.2182
+  },
+  "luma_std": {
+   "median": 0.1712
+  },
+  "luma_p1": {
+   "median": 0.0471
+  },
+  "luma_p99": {
+   "median": 0.8863
+  },
+  "clip_black": {
+   "median": 0.001
+  },
+  "clip_white": {
+   "median": 0.0029
+  },
+  "sat_mean": {
+   "median": 0.7731
+  },
+  "colorfulness": {
+   "median": 0.3866
+  },
+  "warmth": {
+   "median": -0.1937
+  },
+  "shadow_a": {
+   "median": 14.2627
+  },
+  "shadow_b": {
+   "median": -26.1152
+  },
+  "high_a": {
+   "median": -0.1152
+  },
+  "high_b": {
+   "median": -7.0451
+  }
+ },
+ "texture": {
+  "ink_on_edges": {
+   "median": 0.1548
+  },
+  "edge_density": {
+   "median": 0.015
+  },
+  "grain_sigma": {
+   "median": 0.2962
+  },
+  "dof_ratio": {
+   "median": 1.992
+  }
+ },
+ "motion": {
+  "activity": {
+   "median": 0.0025
+  }
+ },
+ "camera": {
+  "frac_creep": 0.7818,
+  "frac_fast": 0.1779,
+  "glide_frames_median": 19.0,
+  "attack_frames_median": 6.0,
+  "release_frames_median": 6.0,
+  "jerk_rms_median": 10.0581,
+  "push_in_shot_frac": 0.4444
+ },
+ "editing": {
+  "asl_seconds": 4.7576,
+  "cuts_per_minute": 11.465
+ },
+ "audio": {
+  "integrated_lufs": -13.1,
+  "lra_lu": 1.7,
+  "true_peak_dbtp": -1.6,
+  "silence_frac": 0.0,
+  "onset_rate": 3.7059,
+  "speech": {
+   "wps_speaking": 3.2429,
+   "speech_start_s": 0.0
+  }
+ },
+ "deep": {
+  "ocr": {
+   "words_per_page_median": 2.0,
+   "font_size_u_est": 50.9,
+   "uppercase_ratio": 0.023,
+   "center_y_rel": 0.734,
+   "sync_offset_s": 0.099
+  },
+  "transitions": {
+   "dissolves_per_minute": 1.53,
+   "soft_per_minute": 7.33
+  },
+  "stems": {
+   "music_presence": 0.992,
+   "voice_music_margin_db_median": 15.8,
+   "non_vocal_onset_rate": 2.75
+  }
+ },
+ "spread": {
+  "color.luma_mean.median": {
+   "p25": 0.2116,
+   "p75": 0.5891,
+   "n": 7
+  },
+  "color.luma_std.median": {
+   "p25": 0.1538,
+   "p75": 0.1775,
+   "n": 7
+  },
+  "color.luma_p1.median": {
+   "p25": 0.0373,
+   "p75": 0.0745,
+   "n": 7
+  },
+  "color.luma_p99.median": {
+   "p25": 0.8373,
+   "p75": 0.9314,
+   "n": 7
+  },
+  "color.clip_black.median": {
+   "p25": 0.0008,
+   "p75": 0.0012,
+   "n": 7
+  },
+  "color.clip_white.median": {
+   "p25": 0.002,
+   "p75": 0.0033,
+   "n": 7
+  },
+  "color.sat_mean.median": {
+   "p25": 0.7507,
+   "p75": 0.796,
+   "n": 7
+  },
+  "color.colorfulness.median": {
+   "p25": 0.3636,
+   "p75": 0.4566,
+   "n": 7
+  },
+  "color.warmth.median": {
+   "p25": -0.2345,
+   "p75": -0.1002,
+   "n": 7
+  },
+  "color.shadow_a.median": {
+   "p25": 8.9151,
+   "p75": 21.2896,
+   "n": 7
+  },
+  "color.shadow_b.median": {
+   "p25": -28.519,
+   "p75": -10.3255,
+   "n": 7
+  },
+  "color.high_a.median": {
+   "p25": -3.7578,
+   "p75": 8.4972,
+   "n": 7
+  },
+  "color.high_b.median": {
+   "p25": -13.5723,
+   "p75": -4.7938,
+   "n": 7
+  },
+  "texture.ink_on_edges.median": {
+   "p25": 0.1225,
+   "p75": 0.1855,
+   "n": 7
+  },
+  "texture.edge_density.median": {
+   "p25": 0.0136,
+   "p75": 0.0171,
+   "n": 7
+  },
+  "texture.grain_sigma.median": {
+   "p25": 0.2617,
+   "p75": 0.3918,
+   "n": 7
+  },
+  "texture.dof_ratio.median": {
+   "p25": 1.366,
+   "p75": 2.1351,
+   "n": 7
+  },
+  "motion.activity.median": {
+   "p25": 0.0018,
+   "p75": 0.0028,
+   "n": 7
+  },
+  "camera.frac_creep": {
+   "p25": 0.7576,
+   "p75": 0.7993,
+   "n": 7
+  },
+  "camera.frac_fast": {
+   "p25": 0.1575,
+   "p75": 0.2316,
+   "n": 7
+  },
+  "camera.glide_frames_median": {
+   "p25": 13.75,
+   "p75": 28.0,
+   "n": 7
+  },
+  "camera.attack_frames_median": {
+   "p25": 4.0,
+   "p75": 6.5,
+   "n": 7
+  },
+  "camera.release_frames_median": {
+   "p25": 4.5,
+   "p75": 7.5,
+   "n": 7
+  },
+  "camera.jerk_rms_median": {
+   "p25": 9.3617,
+   "p75": 28.0608,
+   "n": 7
+  },
+  "camera.push_in_shot_frac": {
+   "p25": 0.3604,
+   "p75": 0.5,
+   "n": 7
+  },
+  "editing.asl_seconds": {
+   "p25": 4.5776,
+   "p75": 5.0845,
+   "n": 7
+  },
+  "editing.cuts_per_minute": {
+   "p25": 10.8743,
+   "p75": 12.1811,
+   "n": 7
+  },
+  "audio.integrated_lufs": {
+   "p25": -14.15,
+   "p75": -13.05,
+   "n": 7
+  },
+  "audio.lra_lu": {
+   "p25": 1.6,
+   "p75": 1.7,
+   "n": 7
+  },
+  "audio.true_peak_dbtp": {
+   "p25": -2.25,
+   "p75": -0.95,
+   "n": 7
+  },
+  "audio.silence_frac": {
+   "p25": 0.0,
+   "p75": 0.0,
+   "n": 7
+  },
+  "audio.onset_rate": {
+   "p25": 3.4601,
+   "p75": 3.9484,
+   "n": 7
+  },
+  "audio.speech.wps_speaking": {
+   "p25": 2.9874,
+   "p75": 3.3782,
+   "n": 7
+  },
+  "audio.speech.speech_start_s": {
+   "p25": 0.0,
+   "p75": 0.035,
+   "n": 7
+  },
+  "deep.ocr.words_per_page_median": {
+   "p25": 2.0,
+   "p75": 2.0,
+   "n": 7
+  },
+  "deep.ocr.font_size_u_est": {
+   "p25": 50.9,
+   "p75": 50.9,
+   "n": 7
+  },
+  "deep.ocr.uppercase_ratio": {
+   "p25": 0.022,
+   "p75": 0.0275,
+   "n": 7
+  },
+  "deep.ocr.center_y_rel": {
+   "p25": 0.72,
+   "p75": 0.7675,
+   "n": 7
+  },
+  "deep.ocr.sync_offset_s": {
+   "p25": 0.016,
+   "p75": 0.1925,
+   "n": 4
+  },
+  "deep.transitions.dissolves_per_minute": {
+   "p25": 0.525,
+   "p75": 3.305,
+   "n": 7
+  },
+  "deep.transitions.soft_per_minute": {
+   "p25": 6.805,
+   "p75": 8.225,
+   "n": 7
+  },
+  "deep.stems.music_presence": {
+   "p25": 0.9815,
+   "p75": 0.996,
+   "n": 7
+  },
+  "deep.stems.voice_music_margin_db_median": {
+   "p25": 13.9,
+   "p75": 17.75,
+   "n": 7
+  },
+  "deep.stems.non_vocal_onset_rate": {
+   "p25": 2.5055,
+   "p75": 3.1655,
+   "n": 7
+  }
+ },
+ "patterns": {
+  "duration_median_s": 57.2667,
+  "duration_p10_p90": [
+   53.6333,
+   74.0367
+  ],
+  "videos_with_le1_cut": 0
+ },
+ "extra": {
+  "content_changes_per_min_median": 18.4,
+  "transition_mix_share": {
+   "hard_cut": 0.56,
+   "wipe": 0.18,
+   "dissolve": 0.11,
+   "whip_pan": 0.06,
+   "zoom_through": 0.06,
+   "dip_white": 0.02
+  },
+  "caption": {
+   "words_per_page": 2,
+   "page_s": [
+    0.53,
+    0.76
+   ],
+   "fill": "#ffffff",
+   "outline_em": 0.075,
+   "highlight": null,
+   "y_rel": 0.734,
+   "font_size_u": 50.9
+  }
+ }
+}

@@ -24,7 +24,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 |---|---|---|
 | "analyze / break down / how was this made" (file, URL, screenshots) | **A. Reverse-engineer** | `references/analyzer.md` |
 | "make one like this / in this style / better than this" | **B. Recreate-better** | A, then `references/workflow.md` |
-| idea, script or topic without a reference | **C. Original** | `references/workflow.md`, `references/craft.md` |
+| idea, script or topic without a reference | **C. Original** | `references/story-engine.md` (topic -> hooks -> script lint -> fact-check gate -> beats + camera plan), `references/workflow.md`, `references/craft.md` |
 | channel URL, "series", episodes, 8-20 min video | **D. Long-form / series** | `references/longform.md` |
 | "improve / fix / why does mine look cheap" | **E. Improve** | analyze both, `vfa compare`, `references/quality.md` |
 | a known style ("2D characters in a 3D world", "like Ricks Clips", toon explainer, "like Zack D Films", "like Kurzgesagt", documentary) | **Style profile** | `references/styles/` (`toonworld-explainer.md`, `realistic3d-explainer.md`, `flat-vector-explainer.md`, `documentary-essay.md`): measured system + engine recipe |
@@ -36,7 +36,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 1. **Study.** `vfa analyze REF` (or `vfa channel URL --top 20 --analyze` for a channel). Read `report.md`, look at `timeline.png` first, then contact sheets and keyframes. Write `style_bible.md` with measured numbers plus your reading of the story formula. `look_suggestion.json` already maps the grade, ink, DOF, grain and camera timing onto engine parameters.
 2. **Story.** Hook = the first sentence and the first frame. Fact-check every claim (web search). Script at the measured words-per-second. Then make a beat sheet: each beat gets its start/end time, shot, camera move and *why*. Reject topics the reference channel already covered.
 3. **Voice.** Generate or record the voice, then `py AUDIO/tts.py align vo.wav --out words.json`. Word timings are the clock of the whole video.
-   - Default: ElevenLabs. First `py AUDIO/tts.py estimate script.txt` (credits per model), show the user the cost, and only after an explicit yes run `py AUDIO/tts.py eleven script.txt --voice ID --out vo.wav --yes` (it refuses without `--yes`; it writes words.json from the character timestamps, which also drive lip-sync visemes). Offline OS voices (`tts.py say`) are for previews only.
+   - Default: ElevenLabs. First `py SKILL_DIR/story/story.py export script.txt --out vo.txt` and `py AUDIO/tts.py estimate --text-file vo.txt` (credits per model), show the user the cost, and only after an explicit yes run `py AUDIO/tts.py eleven --text-file vo.txt --voice-id ID --out vo.wav --words-out words.json --yes` (it refuses without `--yes`; it writes words.json from the character timestamps, which also drive lip-sync visemes). Offline OS voices (`tts.py say`) are for previews only.
    - **Paid voices/APIs: show the estimated credit cost and get an explicit yes BEFORE every generation, including re-takes.**
 4. **Look test.** Scaffold with `node ENGINE/tools/new-project.mjs <id> --format short|long`. Build one key shot and render 3-6 stills (`render.mjs --stills ... --scale 0.5`). Put them next to reference keyframes (`vfa sbs`) and fix the biggest gap before animating everything.
 5. **Build** the scenes: world, characters, camera, overlays, captions. Mark every intended hard cut (`innerCuts`) and every big graphic slam (`events`) so QA can tell intent from glitches.
@@ -55,6 +55,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - **No pure black and no clipped whites** unless the reference has them. Shadows take a hue (often cool or violet); highlights are warm. Read `color.shadow_tint_name` from the report.
 - **The voice is the clock.** Reactions land 0-3 frames *before* their word. Captions come from `words.json`. Music ducks under the voice; SFX hit exact frames.
 - **One source of truth per fact.** A timing, pattern or position that drives picture AND sound AND graphics is ONE function, shared by all three.
+- **Original telling, not a template.** YouTube's Shorts recommendations have favoured original content since 2026-10-01: re-uploads, template-based edits and plain narration of what is on screen get less reach. The 2025-07 "inauthentic content" monetization rule targets mass-produced, repetitive videos. Sources: Search Engine Journal and Android Authority reporting a Creator Insider announcement; the original YouTube post body was not retrievable. Reusing a topic is fine, but every video needs its own angle, story, characters and visuals. Never mass-produce near-identical episodes.
 - **Don't claim "professional" or "tested" without evidence:** the QA verdict, rubric scores and gap table.
 
 ## Tooling map
@@ -73,12 +74,13 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | per-area reviewer packs, collect scores, learning log | `py SKILL_DIR/analyzer/vfa_loop.py judgepack OURS_DIR REF_DIR --out judge` / `collect judge` / `lessons STYLE` |
 | CC0 models/HDRIs (Poly Haven), Kenney packs | `node ENGINE/tools/fetch-assets.mjs search|get|kenney`, then `loadModel()` |
 | audio-driven lip-sync (Rhubarb, free/offline, auto-installed) | `py AUDIO/lipsync.py vo.wav --out cues.json [--script script.txt]`, then `pose.cue = cueAt(f, fps, cues.mouthCues)` |
-| ElevenLabs voice (after a cost yes) | `py AUDIO/tts.py estimate script.txt`, then `tts.py eleven ... --yes` |
+| ElevenLabs voice (after a cost yes) | `py AUDIO/tts.py estimate --text-file vo.txt`, then `tts.py eleven --text-file vo.txt --voice-id ID --out vo.wav --words-out words.json --yes` |
 | visual regression of the engine | `py tests/test_visual.py` in the repo (`--update` after an intended look change) |
 | reference vs ours, ranked fixes | `vfa compare REF OURS` |
 | side-by-side judge sheet | `vfa sbs --ref a.jpg,b.jpg --ours c.jpg,d.jpg --out sbs.jpg` |
 | final gate | `vfa qa VIDEO --plan timeline.json --ref REF` |
 | new production | `node ENGINE/tools/new-project.mjs ID` |
+| script lint, hook ranking, fact-check gate, beat sheet + camera plan, TTS text | `py SKILL_DIR/story/story.py lint|hooks|claims|verify|beats|scaffold|export` |
 | stills / full render / 4K | `node ENGINE/tools/render.mjs --project ID [--stills 0,90] [--format long4k]` |
 | live preview + scrubbing | `cd ENGINE && npx remotion studio` |
 | SFX pack, score bed, offline TTS, align, mix/master | `AUDIO/sfx.py`, `music.py`, `tts.py`, `mix.py` |
@@ -92,6 +94,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/quality.md`: QA gates, judge rubric, multi-agent gap analysis with file ownership, iteration protocol, honesty rules
 - `references/longform.md`: series bible, chapters, consistency across episodes, chunked renders, disk/time budgeting
 - `references/characters.md`: character-type research (what works where, evidence), viseme/lip-sync tables, specs for new kinds
+- `references/story-engine.md`: topic -> hook variants -> script to the measured formula -> fact-check gate -> beat sheet + generated camera plan
 - `references/director-loop.md`: the automated improvement loop (produce -> per-area judges -> fixers by file ownership -> learning log)
 - `references/external.md`: optional paid/external integrations (premium voices, AI video plates, Blender photoreal, upscalers) and how to label them
 - `references/styles/*.md`: measured style profiles with engine recipes (start: `toonworld-explainer.md`, a 149-short channel study)

@@ -71,13 +71,16 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
   const cuts = ks.filter((k, i) => i > 0 && k.cut).map((k) => k.f);
   let K = 1; // fps scale for frame-unit parameters (set per at() call)
 
-  function base(f: number): CamState & { holdFrames: number } {
+  // glide = { u, start frame, frames held on k0 before the glide began, k0 } so the push offset can be carried into the move
+  type Glide = { u: number; s: number; held: number; k0: CamKey };
+  function base(f: number): CamState & { holdFrames: number; glide?: Glide } {
     let i = 0;
     while (i < ks.length - 1 && ks[i + 1].f <= f) i++; // last key that has fully arrived (dissolve keys act like cuts)
     const k0 = ks[i];
     const k1 = ks[i + 1];
     let st: CamState = { pos: k0.pos, look: k0.look, fov: k0.fov ?? fov0, roll: k0.roll ?? 0, focus: k0.focus ?? len(sub(k0.look, k0.pos)) };
     let holdFrames = Math.max(0, f - k0.f);
+    let glide: Glide | undefined;
     if (k1 && !k1.cut && !k1.dissolve) {
       const g = (k1.glide ?? G) * K;
       const s = k1.f - g;
@@ -90,9 +93,10 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
           fov: lerp(k0.fov ?? fov0, k1.fov ?? fov0, u), roll: lerp(k0.roll ?? 0, k1.roll ?? 0, u), focus: lerp(fA, fB, u),
         };
         holdFrames = 0;
+        glide = { u, s, held: Math.max(0, s - k0.f), k0 };
       }
     }
-    return { ...st, holdFrames };
+    return { ...st, holdFrames, glide };
   }
 
   return {
@@ -102,16 +106,23 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
       K = opts.refFps ? fps / opts.refFps : 1;
       const b = base(f);
       let pos = b.pos;
-      // creep: ease into a slow push toward the target during holds (never a dead-still frame)
-      if (opts.push && b.holdFrames > 0) {
-        const hold = b.holdFrames;
-        let s = (opts.push.rate / K) * hold * E.smooth(clamp(hold / (12 * K)));
-        for (const pu of opts.push.punches ?? []) {
-          const n = (pu.n ?? 35) * K, x = f - pu.f, r = ((pu.rate ?? 0.006) - opts.push.rate) / K;
+      // push: ease into a slow exponential push toward the target during holds (never a dead-still frame)
+      const pushK = (hold: number, at: number) => {
+        let s = (opts.push!.rate / K) * hold * E.smooth(clamp(hold / (12 * K)));
+        for (const pu of opts.push!.punches ?? []) {
+          const n = (pu.n ?? 35) * K, x = at - pu.f, r = ((pu.rate ?? 0.006) - opts.push!.rate) / K;
           if (x > 0) for (let i = 0; i < Math.min(x, n, hold); i++) s += r * Math.max(0, Math.min(1, (i + 0.5) / (8 * K), (n - i - 0.5) / (8 * K)));
         }
-        const k = Math.exp(-s);
-        pos = add(b.look, mul(sub(pos, b.look), k));
+        return Math.exp(-s);
+      };
+      if (opts.push && b.holdFrames > 0) {
+        pos = add(b.look, mul(sub(pos, b.look), pushK(b.holdFrames, f)));
+      } else if (opts.push && b.glide && b.glide.held > 0) {
+        // carry the push accumulated during the hold into the move and let it fade out (it used to snap back: a
+        // visible jump at the start of every glide that followed a long hold)
+        const g = b.glide, k0 = g.k0, k = pushK(g.held, g.s);
+        const delta = sub(add(k0.look, mul(sub(k0.pos, k0.look), k)), k0.pos);
+        pos = add(pos, mul(delta, 1 - g.u));
       } else if (opts.creep && b.holdFrames > 0) {
         const dir = sub(b.look, pos);
         const t = b.holdFrames / fps;

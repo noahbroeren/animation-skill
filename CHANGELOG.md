@@ -6,6 +6,23 @@
   - `analyzer/vfa_loop.py`: `judgepack` (per-area reviewer packs with side-by-sides, rubric and JSON answer schema for 11 areas), `collect` (scores + fixes grouped by file owner), `learn`/`lessons` (per-style learning log: which changes moved which metrics).
   - `references/director-loop.md`: protocol for reviewer agents per area, fixer agents with file ownership, stop rule, cost control.
   - Proven on the manhole demo: reference match 50 -> 59.4 -> 62.5 -> 65.6 over three loops (11 reviewer agents, QA 0 FAIL, 1 WARN), and the learning log holds the confirmed and rejected rules.
+- **Story engine (`story/story.py`, `references/story-engine.md`):**
+  - Steps: `lint`, `hooks`, `claims` + `verify`, `export`, `beats`, `scaffold`.
+    - `lint` checks the script against the measured formula of a style: duration at the measured speech rate, hook length and type, one pivot inside the measured window, a re-hook interval, no call to action, and a loopable ending.
+    - `hooks` ranks hook variants.
+    - `claims` + `verify` is a fact-check gate that blocks the voice until every claim has a source.
+    - `export` writes clean text for TTS, also per speaker.
+    - `beats` writes a beat sheet with timing from words.json, shot, camera move, punches, light, FX, SFX and lip-sync.
+    - `scaffold` generates a typed camera and story plan for the engine.
+  - `story/targets.json` holds the measured targets for 4 styles.
+  - Hook rules from 65-source research: lesson framing is penalised, misconception and concrete/number/negative hooks are credited.
+  - New SKILL.md rule: original telling, never a template (YouTube's Shorts originality change, 2026-10-01).
+- **Style profiles** (measured: yt-dlp + `vfa batch/transitions/stems/ocr`), each with a `vfa compare` fingerprint and a look preset:
+  - `realistic3d-explainer` (Zack D. Films, 22 CG shorts)
+  - `flat-vector-explainer` (Kurzgesagt, 10 videos + 7 shorts)
+  - `documentary-essay` (LEMMiNO, 9 documentaries)
+  - Look presets: `realistic3d-bright`, `flat-vector`, `doc-noir`.
+- **Camera fix:** the push accumulated during a long hold now carries into the next move. It used to snap back, a jump of up to 2.5 m at the start of a glide. Tested by running a generated plan at 30 and 60 fps.
 - **Deep analysis (`vfa analyze --deep`, or each tool on its own; all optional, with honest fallbacks):**
   - `vfa transitions`: hard cut, dissolve, dip, flash, wipe, whip pan, zoom-through, match cut.
   - `vfa ocr`: captions (words/page, font size in u, colours, outline, position, sync vs speech, font class).

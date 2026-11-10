@@ -154,6 +154,40 @@ LOOKS["toonworld-interior"] = deepMerge(toonBase, {
   vignette: { amount: 0.3, softness: 0.45 },
 });
 
+// ---- measured style presets (references/styles/*.md, fingerprints in references/styles/data/) ----
+/** Realistic 3D explainer (Zack D. Films, 22 CG shorts): bright, lifted floor, warm shadows, no ink, DOF on macro. */
+LOOKS["realistic3d-bright"] = deepMerge(base, {
+  name: "realistic3d-bright", tonemap: "aces", exposure: 1.05,
+  grade: { blackPoint: 0.09, whitePoint: 0.9, contrast: 1.0, pivot: 0.45, saturation: 1.2, vibrance: 0.15,
+    shadowTint: [0.015, -0.004, -0.012], highlightTint: [0.0, -0.002, -0.004] },
+  ink: { enabled: false },
+  dof: { enabled: true, maxBlur: 10, aperture: 1.2 },
+  bloom: { enabled: true, threshold: 0.9, strength: 0.15, radius: 1.0 },
+  vignette: { amount: 0.08, softness: 0.7 }, grain: { amount: 0, size: 1 }, motionBlur: 0.5,
+});
+/** Flat vector explainer (Kurzgesagt modern era): navy/violet fields, saturated shapes, no ink, glow on lights. */
+LOOKS["flat-vector"] = deepMerge(base, {
+  name: "flat-vector", tonemap: "none", exposure: 1.0,
+  grade: { blackPoint: 0.0, whitePoint: 1.0, contrast: 1.0, saturation: 1.05, vibrance: 0.1,
+    shadowTint: [0.01, -0.01, 0.03], highlightTint: [0.0, 0.0, 0.0] },
+  ink: { enabled: false },
+  dof: { enabled: true, maxBlur: 8, aperture: 1.0 },
+  bloom: { enabled: true, threshold: 0.85, strength: 0.25, radius: 1.2 },
+  vignette: { amount: 0.1, softness: 0.7 }, grain: { amount: 0, size: 1 }, motionBlur: 0.35,
+});
+/** Documentary essay (LEMMiNO): low-key near-monochrome, capped highlights, heavy vignette, halation; ONE accent hue
+ *  drawn emissive/ungraded (e.g. red routes). */
+LOOKS["doc-noir"] = deepMerge(base, {
+  name: "doc-noir", tonemap: "aces", exposure: 0.9,
+  grade: { blackPoint: 0.055, whitePoint: 0.8, contrast: 1.1, pivot: 0.3, saturation: 0.08, vibrance: 0.0,
+    shadowTint: [0, 0, 0], highlightTint: [0, 0, 0] },
+  ink: { enabled: false },
+  dof: { enabled: true, maxBlur: 14, aperture: 1.4 },
+  bloom: { enabled: true, threshold: 0.75, strength: 0.2, radius: 1.2 },
+  vignette: { amount: 0.45, softness: 0.5 },
+  grain: { amount: 0.01, size: 1.1 }, chroma: 0.8, softness: 0.1, halation: 0.08, motionBlur: 0.4,
+});
+
 /** Interpolate two looks (numbers lerp, booleans/strings switch at t = 0.5). Use for lighting-setup changes. */
 export function lerpLook(a: Look, b: Look, t: number): Look {
   const mix = (x: any, y: any): any => {

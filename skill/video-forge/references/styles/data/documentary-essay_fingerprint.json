@@ -1,0 +1,341 @@
+{
+ "schema": "vfa.fingerprint/1",
+ "style": "documentary-essay",
+ "note": "9 documentaries of a top cinematic mystery-documentary channel, first 90 s + one 120 s mid window each = 18 clips, measured 2026-11-10. Medians; spread = p25/p75.",
+ "aggregate_of": 18,
+ "color": {
+  "luma_mean": {
+   "median": 0.1407
+  },
+  "luma_std": {
+   "median": 0.1284
+  },
+  "luma_p1": {
+   "median": 0.0627
+  },
+  "luma_p99": {
+   "median": 0.7588
+  },
+  "clip_black": {
+   "median": 0.0
+  },
+  "clip_white": {
+   "median": 0.0
+  },
+  "sat_mean": {
+   "median": 0.0492
+  },
+  "colorfulness": {
+   "median": 0.0372
+  },
+  "warmth": {
+   "median": 0.0
+  },
+  "shadow_a": {
+   "median": 0.0017
+  },
+  "shadow_b": {
+   "median": -0.0007
+  },
+  "high_a": {
+   "median": 0.107
+  },
+  "high_b": {
+   "median": 0.0
+  }
+ },
+ "texture": {
+  "ink_on_edges": {
+   "median": 0.2187
+  },
+  "edge_density": {
+   "median": 0.0382
+  },
+  "grain_sigma": {
+   "median": 0.8533
+  },
+  "dof_ratio": {
+   "median": 2.2986
+  }
+ },
+ "motion": {
+  "activity": {
+   "median": 0.0008
+  }
+ },
+ "camera": {
+  "frac_creep": 0.6711,
+  "frac_fast": 0.1313,
+  "glide_frames_median": 34.0,
+  "attack_frames_median": 9.0,
+  "release_frames_median": 9.0,
+  "jerk_rms_median": 21.4202,
+  "push_in_shot_frac": 0.697
+ },
+ "editing": {
+  "asl_seconds": 45.0,
+  "cuts_per_minute": 0.6667
+ },
+ "audio": {
+  "integrated_lufs": -16.8,
+  "lra_lu": 6.9,
+  "true_peak_dbtp": -1.55,
+  "silence_frac": 0.0244,
+  "onset_rate": 3.6958,
+  "speech": {
+   "wps_speaking": 2.2899,
+   "speech_start_s": 18.0
+  }
+ },
+ "deep": {
+  "transitions": {
+   "dissolves_per_minute": 0.67,
+   "soft_per_minute": 3.0
+  },
+  "stems": {
+   "music_presence": 0.9275,
+   "voice_music_margin_db_median": 15.75,
+   "non_vocal_onset_rate": 1.111
+  }
+ },
+ "spread": {
+  "color.luma_mean.median": {
+   "p25": 0.0971,
+   "p75": 0.2092,
+   "n": 18
+  },
+  "color.luma_std.median": {
+   "p25": 0.1077,
+   "p75": 0.1696,
+   "n": 18
+  },
+  "color.luma_p1.median": {
+   "p25": 0.051,
+   "p75": 0.0627,
+   "n": 18
+  },
+  "color.luma_p99.median": {
+   "p25": 0.5569,
+   "p75": 0.8789,
+   "n": 18
+  },
+  "color.clip_black.median": {
+   "p25": 0.0,
+   "p75": 0.0,
+   "n": 18
+  },
+  "color.clip_white.median": {
+   "p25": 0.0,
+   "p75": 0.0,
+   "n": 18
+  },
+  "color.sat_mean.median": {
+   "p25": 0.0109,
+   "p75": 0.1259,
+   "n": 18
+  },
+  "color.colorfulness.median": {
+   "p25": 0.0158,
+   "p75": 0.0668,
+   "n": 18
+  },
+  "color.warmth.median": {
+   "p25": -0.0013,
+   "p75": 0.001,
+   "n": 18
+  },
+  "color.shadow_a.median": {
+   "p25": 0.0002,
+   "p75": 0.0724,
+   "n": 18
+  },
+  "color.shadow_b.median": {
+   "p25": -0.1593,
+   "p75": 0.0,
+   "n": 18
+  },
+  "color.high_a.median": {
+   "p25": 0.0061,
+   "p75": 1.1485,
+   "n": 18
+  },
+  "color.high_b.median": {
+   "p25": 0.0,
+   "p75": 0.3633,
+   "n": 18
+  },
+  "texture.ink_on_edges.median": {
+   "p25": 0.1503,
+   "p75": 0.3958,
+   "n": 18
+  },
+  "texture.edge_density.median": {
+   "p25": 0.0207,
+   "p75": 0.052,
+   "n": 18
+  },
+  "texture.grain_sigma.median": {
+   "p25": 0.5167,
+   "p75": 1.425,
+   "n": 18
+  },
+  "texture.dof_ratio.median": {
+   "p25": 1.8659,
+   "p75": 3.5118,
+   "n": 18
+  },
+  "motion.activity.median": {
+   "p25": 0.0005,
+   "p75": 0.0014,
+   "n": 18
+  },
+  "camera.frac_creep": {
+   "p25": 0.5503,
+   "p75": 0.7772,
+   "n": 18
+  },
+  "camera.frac_fast": {
+   "p25": 0.1023,
+   "p75": 0.1877,
+   "n": 18
+  },
+  "camera.glide_frames_median": {
+   "p25": 28.625,
+   "p75": 51.25,
+   "n": 18
+  },
+  "camera.attack_frames_median": {
+   "p25": 8.125,
+   "p75": 10.875,
+   "n": 18
+  },
+  "camera.release_frames_median": {
+   "p25": 8.0,
+   "p75": 17.5,
+   "n": 18
+  },
+  "camera.jerk_rms_median": {
+   "p25": 14.0204,
+   "p75": 32.3665,
+   "n": 18
+  },
+  "camera.push_in_shot_frac": {
+   "p25": 0.5417,
+   "p75": 1.0,
+   "n": 18
+  },
+  "editing.asl_seconds": {
+   "p25": 30.0,
+   "p75": 90.0,
+   "n": 18
+  },
+  "editing.cuts_per_minute": {
+   "p25": 0.0,
+   "p75": 1.3333,
+   "n": 18
+  },
+  "audio.integrated_lufs": {
+   "p25": -18.25,
+   "p75": -16.125,
+   "n": 18
+  },
+  "audio.lra_lu": {
+   "p25": 4.15,
+   "p75": 8.55,
+   "n": 18
+  },
+  "audio.true_peak_dbtp": {
+   "p25": -2.275,
+   "p75": -0.45,
+   "n": 18
+  },
+  "audio.silence_frac": {
+   "p25": 0.008,
+   "p75": 0.0279,
+   "n": 18
+  },
+  "audio.onset_rate": {
+   "p25": 3.145,
+   "p75": 4.0333,
+   "n": 18
+  },
+  "audio.speech.wps_speaking": {
+   "p25": 1.9224,
+   "p75": 2.5773,
+   "n": 18
+  },
+  "audio.speech.speech_start_s": {
+   "p25": 0.0,
+   "p75": 0.7998,
+   "n": 18,
+   "note": "narration start measured on intro windows from subtitles (logo sting and cold open excluded); mid windows start at 0 by construction"
+  },
+  "deep.transitions.dissolves_per_minute": {
+   "p25": 0.0,
+   "p75": 1.4575,
+   "n": 18
+  },
+  "deep.transitions.soft_per_minute": {
+   "p25": 2.0,
+   "p75": 4.375,
+   "n": 18
+  },
+  "deep.stems.music_presence": {
+   "p25": 0.8738,
+   "p75": 0.974,
+   "n": 18
+  },
+  "deep.stems.voice_music_margin_db_median": {
+   "p25": 11.7,
+   "p75": 20.875,
+   "n": 18
+  },
+  "deep.stems.non_vocal_onset_rate": {
+   "p25": 0.8028,
+   "p75": 1.7668,
+   "n": 18
+  }
+ },
+ "patterns": {
+  "duration_median_s": 104.1917,
+  "duration_p10_p90": [
+   90.0,
+   120.0
+  ],
+  "videos_with_le1_cut": 10
+ },
+ "extra": {
+  "windows": "first 90 s + one 120 s mid-video window per documentary",
+  "fps": "60 (archive inserts ~24-30 with holds; ~53-86 % unique frames)",
+  "content_changes_per_min_median": {
+   "intro": 13.3,
+   "mid": 10.5
+  },
+  "transition_mix_share": {
+   "wipe_card_slide": 0.26,
+   "dissolve": 0.22,
+   "hard_cut": 0.15,
+   "whip_pan": 0.13,
+   "zoom_through": 0.1,
+   "dip_black": 0.08,
+   "match_cut": 0.02,
+   "dip_white": 0.02
+  },
+  "transition_mix_share_intro": {
+   "dissolve": 0.18,
+   "wipe": 0.18,
+   "zoom_through": 0.18,
+   "dip_black": 0.16,
+   "whip_pan": 0.13,
+   "hard_cut": 0.04
+  },
+  "narration_start_s_median_intro": 18,
+  "sentence_words_median_hero": [
+   12,
+   20
+  ],
+  "music_stops_per_window": 0.33,
+  "vignette_corner_centre_luma": 0.63,
+  "saturation_newest_film": 0.85
+ }
+}
