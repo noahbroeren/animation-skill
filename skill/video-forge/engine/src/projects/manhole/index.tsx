@@ -12,13 +12,15 @@
  * through; a circle has constant width, so a round cover can't fall into its own hole.
  */
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
-import { cameraRig, V3 } from "../../lib/camera";
+import { cameraRig, CamKey, V3 } from "../../lib/camera";
 import { blinkAt, CharacterSpec, idlePose, mergePose, Pose, walkPose } from "../../lib/characters/toon";
+import { CUE_TO_VISEME, cueAt } from "../../lib/characters/kinds";
 import { deepMerge, LOOKS, lookTimeline } from "../../lib/look";
 import { ProjectDef } from "../../lib/project";
-import { CharacterCard } from "../../lib/three/cast";
+import { loadModel } from "../../lib/three/assets";
+import { CharacterCard, CrowdPool } from "../../lib/three/cast";
 import { FxLayer } from "../../lib/three/fx";
 import { NOINK } from "../../lib/three/post";
 import { Stage3D } from "../../lib/three/Stage3D";
@@ -28,17 +30,23 @@ import { bench, bird, blocksShot, cloudCard, fence, flowerBox, house, lampPost, 
 import { FONTS, useU, WordCaptions } from "../../lib/two/text";
 import { clamp, ease, lerp, springAt } from "../../lib/time";
 import WORDS from "./words.json";
+import CUES from "./cues.json"; // Rhubarb mouth cues from the VO (audio/lipsync.py vo.wav --script script.txt --out cues.json)
 
 const OFF = 0.1;
 const words = WORDS.map((w) => ({ ...w, start: w.start + OFF, end: w.end + OFF }));
 const W = (txt: string, from = 0) => words.findIndex((w, i) => i >= from && w.word.toLowerCase().replace(/[^a-z]/g, "").startsWith(txt));
 const at = (i: number) => words[i].start;
+const FOUNDER_LINE = words.slice(W("square", 30), W("that", 30) + 1); // his spoken line
+// audio-driven mouth shapes, only inside his line (VO starts at OFF in the mix)
+const FOUNDER_CUES = CUES.mouthCues.map((c) => ({ ...c, start: c.start + OFF, end: c.end + OFF }))
+  .filter((c) => c.end > FOUNDER_LINE[0].start && c.start < FOUNDER_LINE[FOUNDER_LINE.length - 1].end)
+  .concat([{ start: FOUNDER_LINE[FOUNDER_LINE.length - 1].end, end: 1e9, value: "X" }]); // mouth closes after his line
 
 export const timing = (fps: number) => {
   const F = (s: number) => Math.round(s * fps);
   return {
     F,
-    total: F(words[words.length - 1].end + 0.35), // ends on the last word
+    total: F(words[words.length - 1].end + 0.85), // last word + ~0.5 s for the button hit to ring out (judge/sound)
     square1: F(at(W("square"))),
     mayor: F(at(W("you")) + 0.25),
     foundry: F(at(W("the", 20)) - 0.05),
@@ -79,7 +87,7 @@ const extras: CharacterSpec[] = [
   { id: "x3", style: "toonworld", skin: "#fef4ee", hair: { color: "#2a2228", style: "curly" }, top: { color: "#f2c94c" }, bottom: { color: "#5b4b7a" }, build: "slim" },
 ];
 const EXTRA_PATHS = [ // walking townsfolk on the pavements (x0, x1 over the whole short, z)
-  { x0: -30, x1: 26, z: -4.6, seed: 1 }, { x0: 24, x1: -32, z: 4.7, seed: 2 }, { x0: -12, x1: 30, z: 5.0, seed: 3 },
+  { x0: -30, x1: 26, z: -4.9, seed: 1 }, { x0: 24, x1: -32, z: -5.9, seed: 2 }, { x0: -12, x1: 30, z: -6.7, seed: 3 },
 ];
 const lam = (o: THREE.MeshLambertMaterialParameters) => new THREE.MeshLambertMaterial(o);
 
@@ -143,40 +151,61 @@ const World: React.FC = () => {
     [0, cu(day)], [T.mayor, day], [T.morning, golden], [T.wait + 6, cu(golden)], [T.explain, night], [T.summer, day], [T.oldf, cu(day)],
   ], 14);
   const coverTarget = (f: number): V3 => coverAt(f, T).pos;
-  const rig = cameraRig([
+  const R = (n: number) => (n * 30) / fps; // real frames -> 30-fps authoring units (rig refFps: 30)
+  const H = Math.round((22 * fps) / 30); // half a 44 f travel (measured channel glide)
+  const TRAVEL = 44, HOLD = 1e6; // HOLD = slow drift over the whole gap
+  const DZ = Math.round((10 * fps) / 30), PRE = Math.round((5 * fps) / 30); // place change = ~10 f dissolve (vfa transitions, 3 hero shorts)
+  const seq = (ks: CamKey[]) => ks.map((k, i) => (i && !k.cut && !k.dissolve ? { ...k, glide: Math.min(k.glide ?? TRAVEL, R(k.f - ks[i - 1].f)) } : k));
+  const DIA_A: V3 = [0.6, 4.2, 6.2], DLOOK: V3 = [0.4, 0.4, 0];
+  const keys = seq([
     { f: 0, pos: [2.9, 1.25, 3.9], look: [0.35, 0.65, 0.1], fov: 34, focus: 4.2 },
-    { f: T.mayor - 6, pos: [2.3, 1.1, 3.1], look: [0.4, 0.6, 0.1], glide: T.mayor - 6, focus: 3.3 },
-    { f: T.mayor + 28, pos: [-6.6, 1.55, 6.4], look: [-9.4, 1.05, 1.8], fov: 34, glide: 34 },
-    { f: T.foundry - 4, pos: [-5.4, 1.5, 5.6], look: [-8.2, 1.0, 1.8], glide: T.foundry - T.mayor - 24 },
-    { f: T.foundry + 26, pos: [17.2, 1.7, -1.2], look: [20.5, 1.5, -5.6], fov: 32, glide: 32 },
-    { f: T.cart - 4, pos: [18.2, 1.55, -2.6], look: [20.6, 1.45, -5.6], glide: T.cart - T.foundry - 24 },
-    { f: T.cart + 26, pos: [-2.6, 2.0, 4.8], look: [-5.4, 0.9, -0.6], fov: 34, glide: 32 },
-    { f: T.spring - 2, pos: [-3.0, 1.85, 4.1], look: [-5.4, 0.9, -0.6], glide: T.spring - T.cart - 24 },
-    { f: T.spring + 30, pos: [-3, 24, 5.5], look: [-6, 0, -0.6], fov: 46, glide: 36 },
-    { f: T.morning - 2, pos: [-1.5, 21, 4.6], look: [-4, 0, -0.4], glide: T.morning - T.spring - 28 },
-    { f: T.morning, pos: [2.5, 1.35, 3.4], look: [0.25, 0.75, 0], fov: 33, cut: true }, // >half-frame travel => CUT on "Then"
-    { f: T.drop - 4, pos: [2.1, 1.25, 2.8], look: [0.2, 0.7, 0], glide: T.drop - T.morning - 30 },
-    { f: T.hole + 8, pos: [2.1, 1.25, 2.8], look: [0.2, 0.7, 0] },
-    { f: T.hole + 9, pos: [2.15, 1.38, 2.2], look: [1.15, 1.25, 0.55], fov: 30, cut: true, focus: 1.9 },
-    { f: T.explain + 40, pos: [0.6, 4.2, 6.2], look: [0.4, 0.4, 0], fov: 36, glide: 44, focus: 6.5 },
-    { f: T.summer - 2, pos: [2.6, 3.8, 5.4], look: [0.4, 0.4, 0], glide: T.summer - T.explain - 32 },
-    { f: T.summer + 30, pos: [-2.4, 1.9, 5.6], look: [-0.6, 0.6, 0], fov: 34, glide: 34 },
-    { f: T.oldf + 26, pos: [18.2, 1.25, -2.1], look: [20.6, 0.95, -5.6], fov: 34, glide: 30, focus: 4.0 },
-    { f: T.total + 10, pos: [18.6, 1.22, -2.7], look: [20.6, 0.95, -5.6], glide: T.total - T.oldf - 12 },
-  ], { push: { rate: 0.0028, punches: [T.square1, T.squareQ, T.loves, T.wait, T.corner, T.never, T.doubled].map((p) => ({ f: p - 2, rate: 0.007, n: 30 })) }, kicks: [{ f: T.hole, amp: 0.05 }, { f: T.doubled, amp: 0.03 }],
-    follow: [{ f0: T.drop - 2, f1: T.hole + 8, target: coverTarget, offset: [0.1, 1.85, 0.18], lookAhead: 2, blend: 6, blendOut: 0 }] });
+    { f: T.mayor - PRE, pos: [2.3, 1.1, 3.1], look: [0.4, 0.6, 0.1], glide: HOLD, focus: 3.3 },
+    { f: T.mayor, pos: [-6.6, 1.55, 6.4], look: [-9.4, 1.05, 1.8], fov: 34, dissolve: DZ },
+    { f: T.foundry - PRE, pos: [-5.4, 1.5, 5.6], look: [-8.2, 1.0, 1.8], glide: HOLD },
+    { f: T.foundry, pos: [17.2, 1.7, -1.2], look: [20.5, 1.5, -5.6], fov: 32, dissolve: DZ },
+    { f: T.cart - PRE, pos: [18.2, 1.55, -2.6], look: [20.6, 1.45, -5.6], glide: HOLD },
+    { f: T.cart, pos: [-2.6, 2.0, 4.8], look: [-5.4, 0.9, -0.6], fov: 34, dissolve: DZ },
+    { f: T.spring - H, pos: [-3.0, 1.85, 4.1], look: [-5.4, 0.9, -0.6], glide: HOLD },
+    { f: T.spring + H, pos: [-3, 22, 7.5], look: [-5, 0, -0.6], fov: 40, glide: TRAVEL }, // crane: squares must read (judge/story)
+    { f: T.morning - Math.round(6 * fps / 30), pos: [-2.2, 19.5, 6.6], look: [-4.2, 0, -0.4], glide: HOLD },
+    { f: T.morning, pos: [2.5, 1.35, 3.4], look: [0.25, 0.75, 0], fov: 33, dissolve: DZ }, // time jump = dissolve in one world
+    { f: T.lifts + H, pos: [2.3, 1.3, 3.05], look: [0.22, 0.74, 0], glide: TRAVEL }, // push
+    { f: T.turns + H, pos: [2.6, 1.42, 3.25], look: [0.2, 0.72, 0], glide: TRAVEL }, // pull
+    { f: T.drop - 4, pos: [2.1, 1.25, 2.8], look: [0.2, 0.7, 0], glide: HOLD },
+    { f: T.wait - 1, pos: [2.1, 1.25, 2.8], look: [0.2, 0.7, 0] },
+    { f: T.wait, pos: [2.15, 1.38, 2.2], look: [1.15, 1.25, 0.55], fov: 30, cut: true, focus: 1.9 }, // cut ON "Wait"
+    { f: T.explain + H, pos: DIA_A, look: DLOOK, fov: 36, glide: TRAVEL, focus: 6.5 },
+    { f: T.corner + H, pos: [0.9, 3.75, 5.35], look: DLOOK, glide: TRAVEL }, // one move per sentence, push/pull alternating
+    { f: T.turn2 + H, pos: [0.2, 4.3, 6.1], look: DLOOK, glide: TRAVEL },
+    { f: T.through + H, pos: [0.7, 3.6, 5.2], look: DLOOK, glide: TRAVEL },
+    { f: T.circle + H, pos: [0.4, 4.2, 6.3], look: DLOOK, glide: TRAVEL },
+    { f: T.never + H, pos: [0.6, 3.7, 5.3], look: DLOOK, glide: TRAVEL },
+    { f: T.summer - PRE, pos: [0.6, 3.7, 5.3], look: DLOOK, glide: HOLD },
+    { f: T.summer, pos: [-2.4, 1.9, 5.6], look: [-0.6, 0.6, 0], fov: 34, dissolve: DZ },
+    { f: T.oldf - PRE, pos: [-2.75, 1.85, 5.15], look: [-0.6, 0.6, 0], glide: HOLD },
+    { f: T.oldf, pos: [18.2, 1.25, -2.1], look: [20.6, 0.95, -5.6], fov: 34, focus: 4.0, dissolve: DZ },
+    { f: T.total + 10, pos: [18.6, 1.22, -2.7], look: [20.6, 0.95, -5.6], glide: HOLD },
+  ]);
+  const rig = cameraRig(keys, {
+    push: { rate: 0.0028, punches: [T.square1, T.squareQ, T.loves, T.wait + 2, T.doubled].map((p) => ({ f: p - 2, rate: 0.0065, n: 30 })) },
+    kicks: [{ f: T.hole, amp: 0.05 }, { f: T.doubled, amp: 0.03 }],
+    follow: [{ f0: T.drop - 2, f1: T.wait - 1, target: coverTarget, offset: [0.1, 1.85, 0.18], lookAhead: 2, blend: 14, blendOut: 0 }],
+    refFps: 30, // authored at 30 fps: glides/punches/kicks keep their timing at 60 fps
+  });
 
   return (
-    <Stage3D look={look} camAt={(fr, fp) => rig.at(fr, fp)}
-      build={({ scene }) => {
+    <Stage3D look={look} camAt={(fr, fp) => rig.at(fr, fp)} dissolveAt={(fr, fp) => rig.dissolveAt(fr, fp)} cuts={rig.cuts}
+      build={(ctx) => {
+        const { scene } = ctx;
         const skyM = sky(scene, "#3f8ff0", "#bfe6ff");
-        const L = lights(scene, "day", { shadowSize: 34, target: [0, 0, 0], fog: [40, 260] });
+        const L = lights(scene, "day", { shadowSize: 34, target: [0, 0, 0], fog: [9, 95] }); // aerial haze (judge/depth)
         // street with the real hole, grass around it, a shaft under the hole
         const roadMat = lam({ map: flat.tiles("#cdbba6", "#6f5848", 4, [0.25, 0.25]) });
         scene.add(holedPlane([-40, -4, 40, 4], [[-HOLE / 2, -HOLE / 2, HOLE / 2, HOLE / 2]], roadMat));
         scene.add(holedPlane([-200, -200, 200, 200], [[-40, -4, 40, 4]], lam({ map: flat.grass("#71b038", [40, 40]) }), -0.005));
         const shaftMat = lam({ map: flat.stone("#8a7a86", "#4a3e4c", [0.5, 1.5]), side: THREE.DoubleSide });
         const shaftLamp = new THREE.PointLight("#ffd9a0", 3.5, 3.2, 1.4); scene.add(shaftLamp);
+        const nightKey = new THREE.PointLight("#ffcf8a", 0, 9, 1.2); nightKey.position.set(0.6, 2.6, 0.9); scene.add(nightKey);
         for (const [x, z, ry] of [[0, -HOLE / 2, 0], [0, HOLE / 2, 0], [-HOLE / 2, 0, Math.PI / 2], [HOLE / 2, 0, Math.PI / 2]] as const) {
           const w = new THREE.Mesh(new THREE.PlaneGeometry(HOLE, DEPTH), shaftMat); w.position.set(x, -DEPTH / 2, z); w.rotation.y = ry; scene.add(w);
         }
@@ -204,7 +233,16 @@ const World: React.FC = () => {
           else { const fb = flowerBox({ seed: `fb${i}${side}` }); fb.position.set(x, 0, side * 6.4); scene.add(fb); }
           if (i % 3 === 0) { const fc = fence(3.2); fc.position.set(x + 2.5, 0, side * 6.7); scene.add(fc); }
         }
-        const people = extras.map((sp) => { const c = new CharacterCard(sp, 1.5, 900, L.sun); scene.add(c.group); return c; });
+        // background townsfolk: CrowdPool = distance-tiered textures, poses on twos, side-view walks
+        const crowd = new CrowdPool(scene, L.sun);
+        extras.forEach((sp, i) => { const P = EXTRA_PATHS[i]; crowd.add({ spec: sp, seed: P.seed, path: { from: [P.x0, 0, P.z], to: [P.x1, 0, P.z], t0: 0, t1: T.total / fps } }, 12); });
+        crowd.add({ spec: { ...extras[1], id: "x4", top: { color: "#8fb8de" } }, pos: [FOUNDRY[0] - 4.6, 0, -6.2], expr: "happy", seed: 4 }, 8)
+          .add({ spec: { ...extras[0], id: "x5", top: { color: "#c98bd9", style: "dress" } }, pos: [-12.5, 0, 5.6], seed: 5 }, 14);
+        // a real CC0 asset (Poly Haven wine_barrel_01), toon-shaded like the rest of the world
+        const barrels = [[FOUNDRY[0] + 3.6, -5.2, 0.3], [FOUNDRY[0] + 4.5, -5.6, 1.1]].map(([x, z, r]) => {
+          const b = loadModel(ctx, staticFile("assets/polyhaven/models/wine_barrel_01/wine_barrel_01_1k.gltf"), { height: 1.0 });
+          b.position.set(x, 0, z); b.rotation.y = r; scene.add(b); return b;
+        });
         const birds = [0, 1, 2].map(() => { const b = bird(); b.group.scale.setScalar(1.6); scene.add(b.group); return b; });
         const clouds = [0, 1, 2].map((i) => { const c = cloudCard({ seed: "mc" + i, w: 40 }); c.position.set(-60 + i * 60, 45 + i * 6, -170); scene.add(c); return c; });
         // covers: hole A (square, later round) + street covers
@@ -238,7 +276,7 @@ const World: React.FC = () => {
         fx.add("stars", { at: [FOUNDRY[0] - 1.4, 2.0, -5.0], f0: T.doubled, size: 1.4 });
         for (let f0 = 0; f0 < T.total; f0 += 16) fx.add("smoke", { at: [FOUNDRY[0] + 2.2, 9.6 + (f0 % 32) * 0.02, FOUNDRY[2] - 0.5], f0, size: 2.4, dur: 60, seed: "sm" + f0 });
         const toon = toonifyScene(scene, makeToonUniforms(TOON_SETUPS.day, 2.4)); // painted cel shading on the whole world
-        return { skyM, L, coverA, roundA, street, cart, cast, fx, clouds, shaftLamp, toon, wind, people, birds };
+        return { skyM, L, coverA, roundA, street, cart, cast, fx, clouds, shaftLamp, nightKey, toon, wind, crowd, barrels, birds };
       }}
       update={(w, f, { fps: FPS }) => {
         const cam = rig.at(f, FPS);
@@ -249,11 +287,12 @@ const World: React.FC = () => {
         (u.top.value as THREE.Color).set("#3f8ff0").lerp(new THREE.Color("#8c78c4"), g).lerp(new THREE.Color("#0f1648"), n);
         (u.horizon.value as THREE.Color).set("#bfe6ff").lerp(new THREE.Color("#ffd08a"), g).lerp(new THREE.Color("#3a3f8f"), n);
         (u.bottom.value as THREE.Color).copy(u.horizon.value);
-        w.L.sun.color.set("#fff3e0").lerp(new THREE.Color("#ffab5e"), g).lerp(new THREE.Color("#9fb0ff"), n);
+        w.L.sun.color.set("#fffaf4").lerp(new THREE.Color("#ffc890"), g).lerp(new THREE.Color("#9fb0ff"), n); // judge/light
         w.L.sun.intensity = lerp(lerp(2.4, 3.0, g), 0.9, n);
-        w.L.sun.position.set(lerp(lerp(-30, 60, g), 20, n), lerp(lerp(55, 14, g), 50, n), lerp(lerp(30, -25, g), 30, n));
-        w.L.hemi.color.set("#b9d7ff").lerp(new THREE.Color("#c39ad8"), g).lerp(new THREE.Color("#3b44a8"), n);
-        w.L.hemi.intensity = lerp(1.15, 0.7, n);
+        w.L.sun.position.set(lerp(lerp(-30, 35, g), 20, n), lerp(lerp(55, 30, g), 50, n), lerp(lerp(30, 28, g), 30, n)); // golden = front 3/4 key
+        w.L.hemi.color.set("#b9d7ff").lerp(new THREE.Color("#d8b4d8"), g).lerp(new THREE.Color("#3b44a8"), n);
+        w.L.hemi.intensity = lerp(lerp(1.15, 1.0, g), 0.5, n);
+        w.nightKey.intensity = 6 * n;
         (w.L.sun.parent as THREE.Scene).fog!.color.copy(u.horizon.value);
         if (n > 0) applyToonSetup(w.toon, f < T.summer - 10 ? TOON_SETUPS.golden : TOON_SETUPS.day, TOON_SETUPS.night, n, w.L.sun.intensity);
         else applyToonSetup(w.toon, TOON_SETUPS.day, TOON_SETUPS.golden, g, w.L.sun.intensity);
@@ -273,7 +312,11 @@ const World: React.FC = () => {
         // characters
         const lead = 2;
         const workerPose: Pose = f >= T.lifts && f < T.hole ? { armL: 150, armR: 150, elbowL: -10, elbowR: -10, expr: f >= T.slips ? "shock" : "neutral" }
-          : f >= T.hole && f < T.explain ? { expr: "shock", look: [-0.3, 0.8], armL: f >= T.wait + 20 ? 70 : 20, armR: f >= T.wait + 20 ? 70 : 20 }
+          : f >= T.hole && f < T.explain ? {
+            expr: f >= T.wait + 40 ? "think" : "shock", look: f >= T.wait + 40 ? [0.5, -0.4] : [-0.3, 0.8],
+            armL: f >= T.wait + 20 ? 70 : 20, armR: f >= T.wait + 40 ? 120 : f >= T.wait + 20 ? 70 : 20, elbowR: f >= T.wait + 40 ? -80 : 0,
+            lean: -9 * springAt(Math.max(0, f - T.wait + 1) / fps, 4, 0.45) * (f >= T.wait - 1 ? 1 : 0), // recoil on "Wait"
+            squash: 1 + 0.08 * Math.sin(Math.min(1, Math.max(0, (f - T.wait + 1) / 6)) * Math.PI) }
           : f < T.mayor ? { expr: "smug", armR: f >= T.square1 - 2 ? 60 : 8 } : { expr: "neutral" };
         w.cast.worker.setPose(mergePose(idlePose(f, FPS, 1), workerPose, { blink: blinkAt(f, FPS, "worker", [T.slips - lead, T.wait - lead]) }));
         w.cast.worker.place(1.15, 0, 0.55, cam.pos);
@@ -286,23 +329,20 @@ const World: React.FC = () => {
         w.cast.founder.setPose(mergePose(idlePose(f, FPS, 3), {
           expr: f >= T.squareQ - lead && f < T.cart ? "laugh" : f >= T.oldf ? "smug" : "neutral",
           armL: f >= T.squareQ - lead && f < T.cart ? 40 + 15 * Math.sin(f * 0.5) : 6, armR: f >= T.squareQ - lead && f < T.cart ? 40 + 15 * Math.cos(f * 0.5) : 6,
-          prop: f >= T.oldf ? "sign" : undefined, propText: "PRICES ×2", blink: blinkAt(f, FPS, "founder", [T.squareQ - lead, T.oldf]),
+          prop: f >= T.doubled - 1 ? "sign" : undefined, propText: "PRICES ×2", blink: blinkAt(f, FPS, "founder", [T.squareQ - lead, T.oldf]),
+          viseme: CUE_TO_VISEME[cueAt(f, FPS, FOUNDER_CUES, lead)],
         }));
         w.cast.founder.place(FOUNDRY[0] - 1.6, 0, -5.4, cam.pos);
         w.cast.worker2.group.visible = f >= T.summer;
         w.cast.worker2.setPose(mergePose(walkPose(f, FPS, 1.8), { expr: "happy" }));
         w.cast.worker2.place(lerp(-5.2, -2.6, clamp((f - T.summer) / 70)), 0, -0.9, cam.pos);
-        w.people.forEach((c, i) => { // background townsfolk: never-still world (measured micro-animation)
-          const P = EXTRA_PATHS[i], u = f / T.total;
-          c.setPose(mergePose(walkPose(f + P.seed * 7, FPS, 2.6), { expr: "neutral", blink: blinkAt(f, FPS, "x" + i), facing: P.x1 > P.x0 ? 1 : -1 }));
-          c.place(lerp(P.x0, P.x1, u), 0, P.z, cam.pos);
-        });
+        w.crowd.update(f, FPS, cam.pos); // never-still world (measured micro-animation)
         w.birds.forEach((b, i) => {
           const tt = f / FPS + i * 4.1, x = -40 + ((tt * 3.2) % 80), y = 9 + i * 1.5 + Math.sin(tt * 0.8 + i) * 0.8;
           b.group.position.set(x, y, -6 - i * 3); b.group.rotation.y = Math.PI / 2; b.flap(f + i * 5);
         });
         for (const cl of w.clouds) { cl.position.x += 0; cl.lookAt(cam.pos[0], cl.position.y, cam.pos[2]); }
-        w.fx.update(f, cam.pos);
+        w.fx.update(f, cam.pos, FPS);
         void t;
         return cam;
       }}
@@ -316,8 +356,8 @@ const Diagram: React.FC = () => {
   const { fps } = useVideoConfig();
   const { u, width, height } = useU();
   const T = timing(fps);
-  if (f < T.explain - 4 || f >= T.summer) return null;
-  const inn = ease.outExpo(clamp((f - T.explain + 4) / 14)), out = clamp((f - T.summer + 10) / 10);
+  if (f < T.explain || f >= T.summer) return null;
+  const inn = ease.outBack(clamp((f - T.explain) / 10)), out = clamp((f - T.summer + 10) / 10);
   const S = 300; // cover side in svg units
   const cx = 0, cy = 0;
   const diag = clamp((f - T.corner) / 16);
@@ -331,7 +371,7 @@ const Diagram: React.FC = () => {
   const lineLen = S, holeD = S * (HOLE / COVER);
   const box = width * 0.82, sc = box / 560;
   return (
-    <AbsoluteFill style={{ opacity: inn * (1 - out), pointerEvents: "none" }}>
+    <AbsoluteFill style={{ opacity: Math.min(1, inn * 3) * (1 - out), transform: `translateY(${(1 - inn) * -0.35 * height}px)`, pointerEvents: "none" }}>
       <div style={{ position: "absolute", left: (width - box) / 2, top: height * 0.1, width: box, height: box, background: "rgba(10,14,48,0.72)", borderRadius: 34 * u, border: `${3 * u}px solid rgba(160,190,255,0.35)` }}>
         <svg width={box} height={box} viewBox="-280 -280 560 560">
           {sq ? (
@@ -345,11 +385,11 @@ const Diagram: React.FC = () => {
               {/* side vs diagonal */}
               {f < T.turn2 + 4 && <>
                 <line x1={-S / 2} y1={S / 2 + 34} x2={S / 2} y2={S / 2 + 34} stroke="#ffffff" strokeWidth={8} strokeLinecap="round" />
-                <text x={0} y={S / 2 + 82} textAnchor="middle" fill="#fff" fontFamily={FONTS.heavy} fontSize={34}>side = 1</text>
+                <text x={0} y={S / 2 + 82} textAnchor="middle" fill="#fff" fontFamily={FONTS.heavy} fontSize={52}>side = 1</text>
                 <line x1={-S / 2} y1={S / 2} x2={-S / 2 + S * diag} y2={S / 2 - S * diag} stroke="#ffd23f" strokeWidth={9} strokeLinecap="round" />
-                {diag > 0.6 && <text x={-40} y={-30} fill="#ffd23f" fontFamily={FONTS.heavy} fontSize={40} opacity={clamp((diag - 0.6) * 3)}>corner = 1.41</text>}
+                {diag > 0.6 && <text x={-S / 2} y={-S / 2 - 26} fill="#ffd23f" fontFamily={FONTS.heavy} fontSize={56} opacity={clamp((diag - 0.6) * 3)}>diagonal = 1.41</text>}
               </>}
-              {tilt > 0.9 && slide < 1 && <text x={0} y={-holeD / 2 - 24} textAnchor="middle" fill="#9dffb0" fontFamily={FONTS.heavy} fontSize={36}>fits!</text>}
+              {tilt > 0.9 && slide < 1 && <text x={0} y={-holeD / 2 - 24} textAnchor="middle" fill="#9dffb0" fontFamily={FONTS.heavy} fontSize={56}>fits!</text>}
             </g>
           ) : (
             <g opacity={clamp((f - T.circle + 6) / 10)}>
@@ -358,7 +398,7 @@ const Diagram: React.FC = () => {
                 <line x1={-lineLen / 2} y1={0} x2={lineLen / 2} y2={0} stroke="#7a8394" strokeWidth={26} strokeLinecap="round" />
                 <line x1={-lineLen / 2} y1={0} x2={lineLen / 2} y2={0} stroke="#140c10" strokeWidth={4} />
               </g>
-              <text x={0} y={holeD / 2 + 70} textAnchor="middle" fill="#fff" fontFamily={FONTS.heavy} fontSize={34}>same width every way</text>
+              <text x={0} y={holeD / 2 + 80} textAnchor="middle" fill="#9dffb0" fontFamily={FONTS.heavy} fontSize={52}>any angle ✓</text>
               {hit && <g transform={`scale(${springAt((f - T.never + 2) / fps, 3, 0.5)})`}><path d="M-60 -60 L60 60 M60 -60 L-60 60" stroke="#ff5a5a" strokeWidth={20} strokeLinecap="round" /></g>}
             </g>
           )}
@@ -373,12 +413,14 @@ export const manholeShort: ProjectDef = {
   scenes: ({ fps }) => {
     const T = timing(fps);
     return [{
-      id: "street", frames: T.total, innerCuts: [T.morning, T.hole + 9],
+      id: "street", frames: T.total, innerCuts: [T.wait], innerSoft: [T.mayor, T.foundry, T.cart, T.morning, T.summer, T.oldf],
       cues: Object.fromEntries(Object.entries(T).filter(([, v]) => typeof v === "number")) as Record<string, number>,
       // big intended changes: FX slams + every camera TRAVEL (start/mid/end) so QA doesn't call fast travels glitches
-      events: [T.square1, T.squareQ, T.loves, T.hole - 2, T.wait, T.explain - 4, T.circle - 6, T.never - 2, T.summer - 10, T.doubled, T.oldf,
-        ...[T.mayor, T.foundry, T.cart, T.spring, T.morning, T.explain, T.summer, T.oldf].flatMap((x) => [x - 4, x + 6, x + 16]), T.drop, T.drop + 10],
-      render: () => (<><World /><Diagram /><WordCaptions words={words} /></>),
+      events: [T.square1, T.squareQ, T.loves, T.hole - 2, T.wait, T.explain, T.circle - 6, T.never - 2, T.summer - 10, T.doubled, T.oldf,
+        // every camera TRAVEL (44 f centred on its cue): start / centre / end, so QA doesn't call intended motion glitches
+        ...[T.spring, T.explain, T.corner, T.turn2, T.through, T.circle, T.never, T.lifts, T.turns]
+          .flatMap((x) => [x - 22 * fps / 30, x, x + 22 * fps / 30].map(Math.round)), ...[T.mayor, T.foundry, T.cart, T.morning, T.summer, T.oldf].flatMap((x) => [x - 6, x, x + 6]), T.drop, T.drop + 10],
+      render: () => (<><World /><Diagram /><WordCaptions words={words} yAt={(fr) => (fr >= T.wait && fr < T.explain ? 0.79 : undefined)} /></>),
     }];
   },
 };

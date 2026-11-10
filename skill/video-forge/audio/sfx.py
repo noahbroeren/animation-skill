@@ -5,7 +5,7 @@
   py sfx.py one whoosh OUT.wav --dur 0.6 --seed 3
 
 Sounds: whoosh, swish, pop, click, impact, thud, riser, chime, ding, footstep,
-sparkle, roomtone, wind, tick, boing, rumble, splash. Real recordings (Freesound CC0,
+sparkle, roomtone, wind, tick, boing, rumble, splash, creak. Real recordings (Freesound CC0,
 BBC SFX under licence, own foley) usually sound better: use these as the
 always-available baseline and for precise sync hits.
 """
@@ -63,13 +63,47 @@ def _sweep_filter(x, f0, f1, q=1.5, steps=64):
     return out
 
 
-def whoosh(dur=0.6, seed=0, f0=300, f1=4000):
+def _moving_band(x, f_from, f_to, width_oct=0.9, peak_frac=0.45):
+    """Time-varying log-Gaussian band-pass via STFT (smooth, no zipper steps): centre glides f_from -> f_to.
+    Technique adapted from claude-animated-shorts sfx_gen.py (MIT)."""
+    from scipy.signal import istft, stft
+    nper = 1024
+    f, t, Z = stft(x, fs=SR, nperseg=nper, noverlap=nper - 256)
+    u = np.clip(t / max(t[-1], 1e-6), 0, 1)
+    centre = f_from * (f_to / f_from) ** u
+    lf = np.log2(np.maximum(f, 20.0))[:, None]
+    gain = np.exp(-0.5 * ((lf - np.log2(centre)[None, :]) / (width_oct / 2)) ** 2)
+    _, y = istft(Z * gain, fs=SR, nperseg=nper, noverlap=nper - 256)
+    return y[: len(x)] if len(y) >= len(x) else np.pad(y, (0, len(x) - len(y)))
+
+
+def whoosh(dur=0.6, seed=0, f0=300, f1=4000, peak=0.45):
+    """Camera-move whoosh. Peak at `peak` x dur (anchor = peak*dur seconds in mix plans): rise (t/peak)^2.2 then
+    exponential tail, plus a thin 'air' layer."""
     rng = np.random.default_rng(seed)
     n = int(SR * dur)
-    x = _sweep_filter(_noise(n, rng, "pink"), f0, f1)
+    body = _moving_band(_noise(n, rng, "pink"), f0, f1)
+    air = _bp(_noise(n, rng), 3500, 12000) * 0.25
     t = np.linspace(0, 1, n)
-    env = np.sin(np.pi * t) ** 1.6
-    return x * env
+    env = np.where(t < peak, (t / peak) ** 2.2, np.exp(-(t - peak) / max(1e-3, (1 - peak) * 0.35)))
+    return (body + air * env) * env
+
+
+def creak(dur=0.8, seed=17, f0=180, material="wood"):
+    """Stick-slip creak: irregular impulse train through a resonator bank (wood/metal)."""
+    rng = np.random.default_rng(seed)
+    n = int(SR * dur)
+    imp = np.zeros(n)
+    t = 0.0
+    while t < dur:
+        imp[int(t * SR)] = 0.6 + 0.4 * rng.random()
+        t += (1.0 / (f0 * (0.7 + 0.6 * np.sin(np.pi * t / dur)))) * (0.8 + 0.4 * rng.random())
+    modes = [(1.0, 1.0), (2.3, 0.5), (3.9, 0.3), (6.1, 0.15)] if material == "wood" else [(1.0, 1.0), (2.76, 0.6), (5.4, 0.4), (8.9, 0.25)]
+    out = np.zeros(n)
+    base = 420 if material == "wood" else 900
+    for m, a in modes:
+        out += a * _bp(imp, base * m * 0.94, base * m * 1.06, 2)
+    return out * np.sin(np.pi * np.linspace(0, 1, n)) ** 0.6
 
 
 def swish(dur=0.3, seed=1):
@@ -185,7 +219,7 @@ def splash(dur=1.1, seed=16):
 
 SOUNDS = {k: v for k, v in globals().items() if k in (
     "whoosh", "swish", "pop", "click", "impact", "thud", "riser", "chime", "ding", "footstep", "sparkle",
-    "roomtone", "wind", "tick", "boing", "rumble", "splash")}
+    "roomtone", "wind", "tick", "boing", "rumble", "splash", "creak")}
 
 
 def save(path: str, x: np.ndarray, peak_db: float = -3.0, pan: float = 0.0):

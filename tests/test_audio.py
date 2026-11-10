@@ -64,6 +64,48 @@ def test_duck_curve_keyed_from_words():
     assert c[int(3.9 * SR)] > -1.0                  # released after
 
 
+def test_event_loudness_short_sounds():
+    # regression: momentary() is -inf under 400 ms, so short SFX (pop 0.12 s, swish 0.3 s) were never levelled
+    pop = tone(-20, 1000, 0.12)
+    assert np.isfinite(dsp.event_loudness(pop))
+    assert abs(dsp.event_loudness(pop) - dsp.event_loudness(tone(-20, 1000, 1.0))) < 1.0  # same level, any length
+
+
+def test_mix_levels_short_sfx_relative_to_voice():
+    sys.path.insert(0, os.path.join(HERE, "..", "skill", "video-forge", "audio"))
+    import json
+    import mix
+    d = tempfile.mkdtemp()
+    wavfile.write(os.path.join(d, "vo.wav"), SR, tone(-20, 300, 4.0).T.astype(np.float32))
+    wavfile.write(os.path.join(d, "pop.wav"), SR, tone(-3, 1500, 0.12).T.astype(np.float32))
+    plan = {"duration": 4.0, "fps": 30, "tracks": [{"file": "vo.wav", "role": "voice"},
+            {"file": "pop.wav", "at_frame": 60, "naive_lu": -6}]}
+    _, rep = mix.mix(plan, d)
+    got = [c for c in rep["cues"] if c["file"] == "pop.wav"][0]["lu_vs_voice"]
+    assert got is not None and abs(got - (-12)) < 1.0, got  # naive -6, events get a further -6
+    assert not rep.get("level_errors")
+
+
+def test_rhubarb_lipsync_if_installed():
+    """Audio-driven mouth cues (skips when Rhubarb is not installed/cached; never downloads in tests)."""
+    import shutil
+    cache = os.path.join(os.path.expanduser("~"), ".cache", "video-forge", "rhubarb")
+    exe = os.environ.get("RHUBARB") or shutil.which("rhubarb") or next(
+        (os.path.join(r, f) for r, _, fs in os.walk(cache) for f in fs if f in ("rhubarb.exe", "rhubarb")), None)
+    if not exe:
+        print("skip test_rhubarb_lipsync_if_installed (no rhubarb)")
+        return
+    sys.path.insert(0, os.path.join(HERE, "..", "skill", "video-forge", "audio"))
+    import lipsync
+    d = tempfile.mkdtemp()
+    t = np.arange(int(SR * 2.0)) / SR  # a vowel-like buzz with syllable envelope: Rhubarb must open and close the mouth
+    x = 0.3 * np.sign(np.sin(2 * np.pi * 140 * t)) * (0.5 + 0.5 * np.sin(2 * np.pi * 3 * t)) ** 2
+    wavfile.write(os.path.join(d, "v.wav"), SR, x.astype(np.float32))
+    cues = lipsync.cues(os.path.join(d, "v.wav"), rhubarb=exe, recognizer="phonetic")["mouthCues"]
+    assert cues and abs(cues[-1]["end"] - 2.0) < 0.1
+    assert len({c["value"] for c in cues}) >= 2
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

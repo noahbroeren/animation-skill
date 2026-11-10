@@ -22,12 +22,20 @@ export type CamKey = {
   focus?: number; // focus distance override (m); default = distance to look target
   glide?: number; // frames the move takes (ending at f). default: rig default
   ease?: EaseName;
+  /** arc the travel through a Bezier control point (quadratic): long lateral travels lift over the set instead of
+   *  skimming past near objects (pops/flicker); same smoother timing, still C2 in time */
+  via?: V3;
   cut?: boolean; // jump here instantly
+  /** cross-dissolve INTO this key over n frames (two camera views blended; Stage3D dissolveAt) */
+  dissolve?: number;
 };
 export type Kick = { f: number; amp: number; frames?: number };
 export type CamState = { pos: V3; look: V3; fov: number; roll: number; focus: number };
 
 export type RigOptions = {
+  /** frame-unit parameters (glide, kick frames, push rate, punch n, follow blend) are authored at this fps and
+   *  rescaled at render time -> the same project renders identically at 30 and 60 fps. */
+  refFps?: number;
   glide?: number;
   creep?: number; // fraction of distance-to-target per second pushed in during holds (0.01 = 1%/s)
   handheld?: number; // amplitude in metres
@@ -61,23 +69,24 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
   const G = opts.glide ?? 24;
   const fov0 = opts.fovDefault ?? 35;
   const cuts = ks.filter((k, i) => i > 0 && k.cut).map((k) => k.f);
+  let K = 1; // fps scale for frame-unit parameters (set per at() call)
 
   function base(f: number): CamState & { holdFrames: number } {
     let i = 0;
-    while (i < ks.length - 1 && ks[i + 1].f <= f) i++; // last key that has fully arrived
+    while (i < ks.length - 1 && ks[i + 1].f <= f) i++; // last key that has fully arrived (dissolve keys act like cuts)
     const k0 = ks[i];
     const k1 = ks[i + 1];
     let st: CamState = { pos: k0.pos, look: k0.look, fov: k0.fov ?? fov0, roll: k0.roll ?? 0, focus: k0.focus ?? len(sub(k0.look, k0.pos)) };
     let holdFrames = Math.max(0, f - k0.f);
-    if (k1 && !k1.cut) {
-      const g = k1.glide ?? G;
+    if (k1 && !k1.cut && !k1.dissolve) {
+      const g = (k1.glide ?? G) * K;
       const s = k1.f - g;
       if (f >= s) {
         const u = (E[k1.ease ?? "smoother"] ?? E.smoother)(clamp((f - s) / g));
         const fA = k0.focus ?? len(sub(k0.look, k0.pos));
         const fB = k1.focus ?? len(sub(k1.look, k1.pos));
         st = {
-          pos: mix3(k0.pos, k1.pos, u), look: mix3(k0.look, k1.look, u),
+          pos: k1.via ? mix3(mix3(k0.pos, k1.via, u), mix3(k1.via, k1.pos, u), u) : mix3(k0.pos, k1.pos, u), look: mix3(k0.look, k1.look, u),
           fov: lerp(k0.fov ?? fov0, k1.fov ?? fov0, u), roll: lerp(k0.roll ?? 0, k1.roll ?? 0, u), focus: lerp(fA, fB, u),
         };
         holdFrames = 0;
@@ -90,15 +99,16 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
     keys: ks,
     cuts,
     at(f: number, fps = 30): CamState {
+      K = opts.refFps ? fps / opts.refFps : 1;
       const b = base(f);
       let pos = b.pos;
       // creep: ease into a slow push toward the target during holds (never a dead-still frame)
       if (opts.push && b.holdFrames > 0) {
         const hold = b.holdFrames;
-        let s = opts.push.rate * hold * E.smooth(clamp(hold / 12));
+        let s = (opts.push.rate / K) * hold * E.smooth(clamp(hold / (12 * K)));
         for (const pu of opts.push.punches ?? []) {
-          const n = pu.n ?? 35, x = f - pu.f, r = (pu.rate ?? 0.006) - opts.push.rate;
-          if (x > 0) for (let i = 0; i < Math.min(x, n, hold); i++) s += r * Math.max(0, Math.min(1, (i + 0.5) / 8, (n - i - 0.5) / 8));
+          const n = (pu.n ?? 35) * K, x = f - pu.f, r = ((pu.rate ?? 0.006) - opts.push.rate) / K;
+          if (x > 0) for (let i = 0; i < Math.min(x, n, hold); i++) s += r * Math.max(0, Math.min(1, (i + 0.5) / (8 * K), (n - i - 0.5) / (8 * K)));
         }
         const k = Math.exp(-s);
         pos = add(b.look, mul(sub(pos, b.look), k));
@@ -116,7 +126,7 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
       let roll = b.roll;
       let look = b.look;
       for (const k of opts.kicks ?? []) {
-        const n = f - k.f, N = k.frames ?? 7;
+        const n = Math.floor((f - k.f) / K), N = k.frames ?? 7;
         if (n >= 0 && n < N) {
           // screen-space: ~3 px at 720p per unit amp, independent of distance/fov (measured kick: 6-8 f, sign flip)
           const L = len(sub(look, pos));
@@ -128,14 +138,23 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
       }
       for (const fo of opts.follow ?? []) {
         if (f < fo.f0 || f > fo.f1) continue;
-        const bl = fo.blend ?? 8;
-        const bo = fo.blendOut ?? bl;
+        const bl = (fo.blend ?? 8) * K;
+        const bo = (fo.blendOut ?? fo.blend ?? 8) * K;
         const w = E.smoother(clamp(Math.min((f - fo.f0) / bl, bo > 0 ? (fo.f1 - f) / bo : 1)));
         const tp = fo.target(f), ta = fo.target(f + (fo.lookAhead ?? 6));
         pos = mix3(pos, add(tp, fo.offset), w);
         look = mix3(look, ta, w);
       }
       return { pos, look, fov: b.fov, roll, focus: b.focus };
+    },
+    /** During a dissolve key: both camera states and the mix (0 = old view, 1 = new view); null otherwise. */
+    dissolveAt(f: number, fps = 30): { a: CamState; b: CamState; t: number } | null {
+      const k = ks.find((x) => x.dissolve && f >= x.f - x.dissolve / 2 && f < x.f + x.dissolve / 2);
+      if (!k) return null;
+      const before = cameraRig(ks.filter((x) => x !== k && x.f < k.f), opts);
+      const after = this as unknown as { at: (f: number, fps: number) => CamState };
+      const t = E.smooth(clamp((f - (k.f - k.dissolve! / 2)) / k.dissolve!));
+      return { a: before.at(f, fps), b: after.at(Math.max(f, k.f), fps), t };
     },
   };
 }

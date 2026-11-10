@@ -10,6 +10,14 @@
   vfa qa        VIDEO [--min-class 2k|4k] [--fps 30] [--duration S] [--plan timeline.json] [--ref FP]
   vfa sbs       --ref A.jpg,B.jpg --ours C.jpg,D.jpg --out sbs.jpg   side-by-side judge sheet
   vfa probe     VIDEO
+  deep extras (optional deps; each writes <name>.json + <name>.md into the analysis dir):
+  vfa ocr         VIDEO|ANALYSIS_DIR [--every 0.5]           captions: words/page, size (u), colours, font class, sync
+  vfa transitions VIDEO|ANALYSIS_DIR                         cut / dissolve / dip / flash / wipe / whip / zoom / match
+  vfa stems       VIDEO|ANALYSIS_DIR                         demucs stems: music presence, voice-over-music margin, SFX
+  vfa embed       VIDEO|ANALYSIS_DIR [--every 1]             CLIP style / lighting / shot-type tags (cached embeddings)
+  vfa similar     REF_DIR OURS_DIR [--out PATH]              per-shot CLIP nearest neighbours + style similarity 0-100
+  vfa pose        VIDEO|ANALYSIS_DIR [--stride 1]            face/body coverage, lip-sync r + lag, blinks, gestures
+  vfa analyze ... --deep [--deep-skip stems,pose]            run the extras and store summaries in fingerprint["deep"]
 """
 from __future__ import annotations
 
@@ -49,6 +57,8 @@ def main(argv=None):
     p.add_argument("--start", type=float, default=0.0)
     p.add_argument("--duration", type=float)
     p.add_argument("--no-keyframes", action="store_true")
+    p.add_argument("--deep", action="store_true", help="also run ocr/transitions/stems/embed/pose (whatever is installed)")
+    p.add_argument("--deep-skip", default="", help="comma list of extras to skip with --deep")
 
     p = sub.add_parser("compare")
     p.add_argument("ref")
@@ -91,6 +101,19 @@ def main(argv=None):
     p = sub.add_parser("probe")
     p.add_argument("video")
 
+    for name in ("ocr", "transitions", "stems", "embed", "pose"):
+        p = sub.add_parser(name)
+        p.add_argument("target", help="video file or analysis dir")
+        p.add_argument("--video", help="source video when TARGET is an analysis dir without fingerprint")
+        if name in ("ocr", "embed"):
+            p.add_argument("--every", type=float, help="sampling interval in seconds")
+        if name == "pose":
+            p.add_argument("--stride", type=int)
+    p = sub.add_parser("similar")
+    p.add_argument("ref")
+    p.add_argument("ours")
+    p.add_argument("--out", help="output path without extension (default OURS/similar)")
+
     a = ap.parse_args(argv)
 
     if a.cmd == "probe":
@@ -105,8 +128,23 @@ def main(argv=None):
         from .analyze import analyze
         out = a.out or os.path.splitext(a.video)[0] + "_analysis"
         analyze(a.video, out, width=a.width, sheets=a.sheets, sheet_seconds=a.sheet_seconds, speech=a.speech,
-                whisper_model=a.whisper_model, keyframes=not a.no_keyframes, start=a.start, duration=a.duration)
+                whisper_model=a.whisper_model, keyframes=not a.no_keyframes, start=a.start, duration=a.duration,
+                deep=a.deep, deep_skip=[x.strip() for x in a.deep_skip.split(",") if x.strip()])
         print(os.path.join(out, "report.md"))
+    elif a.cmd in ("ocr", "transitions", "stems", "embed", "pose"):
+        import importlib
+        mod = importlib.import_module(f".{a.cmd}", __package__)
+        kw = {}
+        if getattr(a, "every", None):
+            kw["every"] = a.every
+        if getattr(a, "stride", None):
+            kw["stride"] = a.stride
+        res = mod.run(a.target, a.video, **kw)
+        print(json.dumps(res.get("summary", res), indent=1, default=str))
+    elif a.cmd == "similar":
+        from .embed import similar
+        res = similar(a.ref, a.ours, a.out)
+        print(json.dumps({k: v for k, v in res.items() if k != "per_shot"}, indent=1, default=str))
     elif a.cmd == "compare":
         from .compare import compare, compare_md, load
         r, o = load(a.ref), load(a.ours)

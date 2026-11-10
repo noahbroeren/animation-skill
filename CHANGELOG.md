@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.2.0 - 2026-11-10
+- **Director loop (automated improvement):**
+  - `engine/tools/produce.mjs`: one command for stills -> render -> audio -> mux -> QA -> gap -> judge pack -> learning log -> report.
+  - `analyzer/vfa_loop.py`: `judgepack` (per-area reviewer packs with side-by-sides, rubric and JSON answer schema for 11 areas), `collect` (scores + fixes grouped by file owner), `learn`/`lessons` (per-style learning log: which changes moved which metrics).
+  - `references/director-loop.md`: protocol for reviewer agents per area, fixer agents with file ownership, stop rule, cost control.
+  - Proven on the manhole demo: reference match 50 -> 59.4 -> 62.5 -> 65.6 over three loops (11 reviewer agents, QA 0 FAIL, 1 WARN), and the learning log holds the confirmed and rejected rules.
+- **Deep analysis (`vfa analyze --deep`, or each tool on its own; all optional, with honest fallbacks):**
+  - `vfa transitions`: hard cut, dissolve, dip, flash, wipe, whip pan, zoom-through, match cut.
+  - `vfa ocr`: captions (words/page, font size in u, colours, outline, position, sync vs speech, font class).
+  - `vfa stems`: Demucs voice/music/drums/other with per-stem loudness, music presence, voice-over-music margin, hit rate.
+  - `vfa embed` / `similar`: CLIP style tags and per-shot nearest neighbours vs a reference.
+  - `vfa pose`: MediaPipe body language and lip-sync correlation; flags itself as unreliable on cartoons.
+  - `compare` gained 10 deep metrics plus CLIP art-style similarity. Frame-unit metrics are now compared at the reference's fps, so 60 fps renders score fairly.
+  - QA tolerance windows and the snap threshold are now seconds-based.
+- **Measured corrections to the toonworld-explainer profile** (3 hero shorts):
+  - 18-26 soft transitions per minute (quick 9-10 f dissolves, zoom and whip transitions). The old cut detector saw 3 of 25 scene changes.
+  - Music under 98-100 % of the runtime, voice about 19-20 dB above it. An earlier "5-10 LU under" rule was wrong for this channel.
+  - Captions: 1 word per page, 0.37 s, outline 0.06 em, on the word.
+  - The manhole demo now changes place with 10 f in-world dissolves and glides only inside a place.
+- **Characters:**
+  - `references/characters.md`: research on 25 character types, ranked by evidence for shorts and long-form, plus a viseme/lip-sync guide and build specs.
+  - Lip-sync: text-based visemes (`Pose.viseme`, `visemeAt()` from word timings) and audio-based Rhubarb cues (`audio/lipsync.py` downloads Rhubarb 1.14 (MIT) on first use, or uses `--rhubarb PATH` / `$RHUBARB`; `cueAt()` with a 2-frame lead and a 2-frame minimum hold). Tested: 275 cues for the 42 s manhole VO in 16 s; the founder in the manhole demo lip-syncs from them. Side/profile view.
+  - `CrowdPool`: distance-tiered crowds, poses on twos, side-view walks, cue-gated acting.
+  - Stronger never-still idle.
+  - `lib/characters/kinds.ts`: 7 new kinds (object, critter incl. quadrupeds, blob, stick, chibi, flatvec, microbe), 50+ presets, a shared face with 16 expressions and Rhubarb mouth cues, 4-beat walk/hop/IK/spring helpers, and style passes (sketch, cutout, silhouette, pixelize) that work on every character. Usable on 3D cards and in crowds; `charsheet` look-dev project.
+- **Production:**
+  - ElevenLabs is the default voice, behind a hard cost gate: `tts.py estimate` first, and `tts.py eleven ... --yes` refuses to run without `--yes`. It writes `words.json` from the character timestamps.
+  - Real assets: Poly Haven search/get (CC0, credited) and Kenney zip import; `loadModel()` (glTF, toon-shaded, ground-aligned, recolour).
+  - Blender bridge for the realistic-3D path (`tools/blender_bridge.py`), tested with Blender 5.3: EEVEE and Cycles (OptiX GPU requested), several glTFs with offsets, HDRI, shadow-catcher ground, DOF, Freestyle toon ink, and the same camera grammar as `cameraRig` (glides, cuts, `via` arcs).
+  - Camera:
+    - `refFps` for frame-rate-independent timing at 60 fps.
+    - In-world dissolves (`dissolve` keys plus `Stage3D dissolveAt`, `innerSoft` in the edit plan).
+    - Bezier arc travels (`via`).
+  - No motion blur across hard cuts (it used to smear the first incoming frame).
+- **Look:**
+  - Ink thresholds x0.6 / 30-degree creases (coverage 0.24 -> towards 0.35).
+  - Plaster value noise, speckle, chipped brick and grime band; per-tile variation.
+  - Cooler toonworld highlights, pure-white day cards, golden key from the front three-quarter.
+- **Captions:** shown on the word onset instead of about 3 frames late, single words by default, thicker outline and shadow, `yAt` to keep them clear of faces.
+- **Audio:**
+  - Fixed: SFX shorter than 400 ms were never levelled (`momentary()` = -inf), so swish/pop/click played about 14 LU hot. New `dsp.event_loudness()` measures over the sound's own length, `mix.py` reports `lu_vs_voice` per cue and lists level errors over 2 LU.
+  - Distance gain is applied after levelling; detail SFX are ducked under spoken words.
+  - `whoosh` rebuilt with a moving STFT band and a defined peak; new `creak`.
+- **Render speed (measured with the new `tools/bench.mjs`, full 1,274-frame short, Ryzen 7 9800X3D + RTX 5070):**
+  - New defaults: concurrency 4 (was 8), x264 `medium` (was `slow`), CRF 14 (was 16).
+  - Render time 141-145 s -> 78-128 s, about 1.4x faster on average (the spread comes from other jobs on the machine).
+  - Bitrate 10 -> 15.5 Mbps, which meets YouTube's 1440p30 recommendation.
+  - One GPU gets choked by 8 Chromium WebGL tabs: more tabs is slower.
+- **Robustness:** visual regression tests (`tests/test_visual.py`, SSIM + colour shift vs baselines), 2 new audio regression tests.
+
 ## 1.1.0 - 2026-11-10
 - **Channel study:** 42 of 149 @RicksClips3000 shorts measured frame by frame, split into eras; 3 hero shorts analysed sentence by sentence.
   - New style profile `references/styles/toonworld-explainer.md` with an engine recipe.

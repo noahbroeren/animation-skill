@@ -37,6 +37,10 @@ export type CharacterSpec = {
   style?: "classic" | "toonworld";
 };
 
+/** Mouth shapes (minimal viseme set): rest, A (open), E (wide), I (smile-open), O (round), U (small round),
+ *  M (lips pressed: m/b/p), F (teeth on lip: f/v), L (open + tongue: l/t/d/n/th), W (pucker: w/q/oo) */
+export type Viseme = "rest" | "A" | "E" | "I" | "O" | "U" | "M" | "F" | "L" | "W";
+
 export type Pose = {
   expr?: Expression;
   mouth?: number; // 0..1 talking openness (overrides expression mouth when > 0.05)
@@ -51,6 +55,8 @@ export type Pose = {
   facing?: 1 | -1;
   light?: number; // -1 = key light from the left, +1 from the right
   prop?: "book" | "sign" | "lantern"; // held in both hands in front of the chest (arms are posed automatically)
+  viseme?: Viseme; // lip-sync mouth shape (from visemeAt); overrides `mouth` when set and not "rest"
+  view?: "front" | "side"; // side = profile: features slide to the facing side, one eye, nose tick, slimmer torso
   propText?: string; // for "sign"
 };
 
@@ -112,7 +118,7 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
   g.lineJoin = "round"; g.lineCap = "round";
 
   const legLen = hw * (TW ? 1.4 : 1.25), torsoH = hw * (TW ? 1.1 : 1.15), hipY = -legLen, shoulderY = hipY - torsoH * 0.92;
-  const torsoW = headW * (TW ? (s.build === "stout" ? 0.95 : s.build === "slim" ? 0.7 : 0.8) : s.build === "stout" ? 0.95 : s.build === "slim" ? 0.6 : 0.75);
+  const torsoW = headW * (TW ? (s.build === "stout" ? 0.95 : s.build === "slim" ? 0.7 : 0.8) : s.build === "stout" ? 0.95 : s.build === "slim" ? 0.6 : 0.75) * (p.view === "side" ? 0.72 : 1);
 
   // cel shading: shadow colour everywhere, then the base colour re-filled from a copy of the
   // shape shifted toward the light => a crescent shadow that follows each part's form.
@@ -259,13 +265,15 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
   // face
   const ex = p.expr ?? "neutral";
   const look = p.look ?? [0, 0];
+  const side = p.view === "side";
   const eyeY = headCY + hw * 0.02, eyeDX = headW * (TW ? 0.13 : 0.17); // measured: eyes 26 % of head width apart
+  const fx = side ? headW * 0.24 : 0; // profile: features slide toward the facing side
   const blink = clamp(p.blink ?? 0);
   const eyeH = hw * (ex === "shock" ? 0.15 : ex === "laugh" ? 0.04 : ex === "happy" ? 0.09 : 0.11) * (1 - blink * 0.92);
   const eyeW = hw * (ex === "shock" ? 0.1 : 0.075);
   g.fillStyle = "#0d0a10";
-  for (const sgn of [-1, 1]) {
-    const x = sgn * eyeDX + look[0] * headW * 0.05, y = eyeY + look[1] * hw * 0.04;
+  for (const sgn of side ? [1] : [-1, 1]) {
+    const x = (side ? fx + headW * 0.04 : sgn * eyeDX) + look[0] * headW * 0.05, y = eyeY + look[1] * hw * 0.04;
     if (TW && ex === "shock" && blink < 0.5) { // white circles, small pupils
       g.fillStyle = "#fef9f6"; g.strokeStyle = ink; g.lineWidth = lw * 0.8;
       g.beginPath(); g.arc(sgn * headW * 0.12, y, headW * 0.11, 0, 7); g.fill(); g.stroke();
@@ -296,10 +304,32 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
     g.beginPath(); g.moveTo(bx - Math.cos(a) * eyeW * 1.3, by - Math.sin(a) * eyeW * 1.3); g.lineTo(bx + Math.cos(a) * eyeW * 1.3, by + Math.sin(a) * eyeW * 1.3); g.stroke();
   }
   // mouth
-  const my = headCY + hw * 0.24, mw = headW * 0.17;
+  const my = headCY + hw * 0.24, mw = headW * (side ? 0.11 : 0.17);
   const talk = p.mouth ?? 0;
+  if (side) { // nose tick on the facing edge
+    g.strokeStyle = ink; g.lineWidth = lw;
+    g.beginPath(); g.moveTo(headW * 0.47, headCY + hw * 0.04); g.lineTo(headW * 0.53, headCY + hw * 0.12); g.lineTo(headW * 0.46, headCY + hw * 0.14); g.stroke();
+  }
+  g.save();
+  if (side) g.translate(fx, 0);
   g.lineWidth = lw * 1.3; g.strokeStyle = ink;
-  if (talk > 0.05 || ex === "laugh" || ex === "shock") {
+  const vis = p.viseme && p.viseme !== "rest" ? p.viseme : null;
+  if (vis) {
+    // [width, open height, round] per viseme, in head units
+    const V: Record<string, [number, number, number]> = { A: [1.0, 0.16, 0], E: [1.15, 0.08, 0], I: [0.9, 0.06, 0], O: [0.55, 0.13, 1],
+      U: [0.38, 0.08, 1], W: [0.32, 0.06, 1], L: [0.85, 0.1, 0], M: [0.8, 0, 0], F: [0.85, 0.02, 0] };
+    const [vw, vh, rd] = V[vis];
+    g.lineWidth = lw * 1.3; g.strokeStyle = ink;
+    if (vh <= 0.001) { g.beginPath(); g.moveTo(-mw * vw, my); g.lineTo(mw * vw, my); g.lineWidth = lw * 1.8; g.stroke(); }
+    else {
+      const mp = new Path2D();
+      if (rd) mp.ellipse(0, my, mw * vw, hw * vh, 0, 0, 7);
+      else { mp.moveTo(-mw * vw, my - hw * 0.015); mp.quadraticCurveTo(0, my - hw * 0.03, mw * vw, my - hw * 0.015); mp.quadraticCurveTo(0, my + hw * vh * 1.6, -mw * vw, my - hw * 0.015); }
+      g.fillStyle = "#4a1a22"; g.fill(mp); g.stroke(mp);
+      if (vis === "F") { g.fillStyle = "#ffffff"; g.fillRect(-mw * vw * 0.6, my - hw * 0.012, mw * vw * 1.2, hw * 0.022); }
+      if (vis === "L" || vis === "A") { g.save(); g.clip(mp); g.fillStyle = "#e0707a"; g.beginPath(); g.ellipse(0, my + hw * vh * (vis === "L" ? 0.4 : 1.0), mw * vw * 0.5, hw * 0.05, 0, 0, 7); g.fill(); g.restore(); }
+    }
+  } else if (talk > 0.05 || ex === "laugh" || ex === "shock") {
     const open = ex === "shock" ? 0.9 : ex === "laugh" ? 0.8 : talk;
     const mp = new Path2D();
     if (ex === "shock") mp.ellipse(0, my, mw * 0.55, hw * 0.1 * open + lw, 0, 0, 7);
@@ -316,6 +346,7 @@ export function drawCharacter(g: CanvasRenderingContext2D, s: CharacterSpec, p: 
     else { g.moveTo(-mw * 0.6, my); g.quadraticCurveTo(0, my + hw * 0.025, mw * 0.6, my); }
     g.stroke();
   }
+  g.restore(); // end profile translate
   if (s.blush || (!TW && (ex === "happy" || ex === "laugh"))) {
     g.fillStyle = "rgba(240,110,110,0.35)";
     for (const sgn of [-1, 1]) { g.beginPath(); g.ellipse(sgn * headW * 0.3, headCY + hw * 0.15, headW * 0.08, hw * 0.045, 0, 0, 7); g.fill(); }
@@ -370,6 +401,41 @@ export function mouthAt(frame: number, fps: number, words: Word[], lead = 2) {
   return 0;
 }
 
+/** Grapheme -> viseme approximation (good enough for cartoon lip-sync; real phonemes come from the TTS aligner). */
+function wordVisemes(word: string): Viseme[] {
+  const w = word.toLowerCase().replace(/[^a-z']/g, "");
+  const out: Viseme[] = [];
+  for (let i = 0; i < w.length; i++) {
+    const c = w[i], n = w[i + 1] ?? "";
+    let v: Viseme | null = null;
+    if ("mbp".includes(c)) v = "M";
+    else if ("fv".includes(c)) v = "F";
+    else if (c === "o" && n === "o") { v = "W"; i++; }
+    else if ("wq".includes(c)) v = "W";
+    else if (c === "t" && n === "h") { v = "L"; i++; }
+    else if ("ltdn".includes(c)) v = "L";
+    else if (c === "a") v = "A";
+    else if (c === "o") v = "O";
+    else if (c === "u") v = "U";
+    else if (c === "e") v = i === w.length - 1 ? null : "E"; // silent final e
+    else if ("iy".includes(c)) v = "I";
+    if (v && out[out.length - 1] !== v) out.push(v);
+  }
+  return out.length ? out : ["E"];
+}
+/** Viseme at a frame from word timings (lead = reactions/mouths land ~2 f before the sound). */
+export function visemeAt(frame: number, fps: number, words: Word[], lead = 2): Viseme {
+  const t = (frame + lead) / fps;
+  for (const w of words) {
+    if (t >= w.start && t <= w.end) {
+      const vs = wordVisemes(w.word);
+      const k = Math.min(vs.length - 1, Math.floor(((t - w.start) / Math.max(0.04, w.end - w.start)) * vs.length));
+      return vs[k];
+    }
+  }
+  return "rest";
+}
+
 /**
  * Walk cycle (measured reference: a step every 9-12 frames => ~2.6 steps/s, bob ~5 % of height lowest at contact,
  * lean 1 deg at passing -> 7 deg at contact, arms counter-swing).
@@ -384,9 +450,11 @@ export function walkPose(frame: number, fps: number, stepsPerSec = 2.6, amp = 1,
 export function idlePose(frame: number, fps: number, seed = 0): Pose {
   const t = frame / fps;
   return {
-    squash: 1 + Math.sin(t * 2 * Math.PI * 0.28 + seed) * 0.012,
-    lean: noise1(t * 0.35, seed) * 2.2,
-    armL: 6 + noise1(t * 0.4, seed + 3) * 4, armR: 6 + noise1(t * 0.4, seed + 7) * 4,
+    // never-still idle (manhole loop: micro-activity 0.009 vs ref 0.020 -> breathing/sway/bob roughly x1.6)
+    squash: 1 + Math.sin(t * 2 * Math.PI * 0.28 + seed) * 0.02,
+    lean: noise1(t * 0.35, seed) * 3.5,
+    bob: noise1(t * 0.5, seed + 17) * 0.015,
+    armL: 6 + noise1(t * 0.4, seed + 3) * 7, armR: 6 + noise1(t * 0.4, seed + 7) * 7,
     look: [noise1(t * 0.25, seed + 11) * 0.5, noise1(t * 0.2, seed + 13) * 0.3],
   };
 }

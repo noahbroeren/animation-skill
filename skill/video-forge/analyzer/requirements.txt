@@ -5,3 +5,10 @@ pillow>=10.1
 # optional: word-level speech transcription (GPU if CUDA available)
 faster-whisper>=1.0
 # CLI tools required on PATH: ffmpeg, ffprobe (>= 6), yt-dlp (for URLs)
+# ---- optional "deep" extras (vfa ocr / transitions / stems / embed / pose, vfa analyze --deep) ----
+# transitions needs nothing extra. Each extra degrades to "unavailable" or a labelled heuristic when its package is missing.
+# rapidocr-onnxruntime>=1.2      # vfa ocr (captions, on-screen text); ~15 MB, CPU, uses onnxruntime
+# torch>=2.9                     # vfa stems / embed; CUDA build: py -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu130  (~2 GB; CPU wheel from PyPI otherwise)
+# demucs>=4.0                    # vfa stems (htdemucs weights ~80 MB download on first use)
+# open_clip_torch>=2.24          # vfa embed / similar (ViT-B-32 laion2b weights ~600 MB on first use)
+# mediapipe>=0.10.20             # vfa pose (face/pose landmarker .task models ~10 MB on first use)

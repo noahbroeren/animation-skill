@@ -82,11 +82,11 @@ void main(){
       vec2 o = STEP[a] * texel * float(r);
       float z1 = dist(tDepth, vUv - o), z2 = dist(tDepth, vUv + o);
       float s = (1.0 / z1 + 1.0 / z2 - 2.0 * Wc) / Wc;      // 2nd difference of 1/z: 0 on planes
-      eD = max(eD, smoothstep(0.012, 0.035, -s) * cw);      // near side of depth jumps only
+      eD = max(eD, smoothstep(0.007, 0.021, -s) * cw);      // near side of depth jumps only (x0.6: judge/ink iter 2)
       if (ch > 0.0) {
         vec4 n1 = textureLod(tNormal, vUv - o, 0.0), n2 = textureLod(tNormal, vUv + o, 0.0);
-        float k1 = (n1.a > 0.5 && abs(z1 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.64, 0.82, dot(n0, n1.xyz)) : 0.0;
-        float k2 = (n2.a > 0.5 && abs(z2 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.64, 0.82, dot(n0, n2.xyz)) : 0.0;
+        float k1 = (n1.a > 0.5 && abs(z1 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.74, 0.9, dot(n0, n1.xyz)) : 0.0;
+        float k2 = (n2.a > 0.5 && abs(z2 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.74, 0.9, dot(n0, n2.xyz)) : 0.0;
         eN = max(eN, max(k1, k2) * ch);
       }
     }
@@ -372,7 +372,24 @@ export class PostPipeline {
     this.renderer.render(this.fsScene, this.fsCam);
   }
 
-  render(scene: THREE.Scene, cam: THREE.PerspectiveCamera, look: Look, opts: { focus: number; frame: number; prevViewProj?: THREE.Matrix4 }) {
+  private outA?: THREE.WebGLRenderTarget;
+  private outB?: THREE.WebGLRenderTarget;
+  /** Two finished frames (e.g. two camera views) cross-dissolved to the screen. */
+  dissolve(scene: THREE.Scene, camA: THREE.PerspectiveCamera, camB: THREE.PerspectiveCamera, look: Look,
+    o: { focusA: number; focusB: number; frame: number; t: number }) {
+    this.outA ??= new THREE.WebGLRenderTarget(this.w, this.h, { depthBuffer: false });
+    this.outB ??= new THREE.WebGLRenderTarget(this.w, this.h, { depthBuffer: false });
+    this.render(scene, camA, look, { focus: o.focusA, frame: o.frame, target: this.outA });
+    this.render(scene, camB, look, { focus: o.focusB, frame: o.frame, target: this.outB });
+    this.mats.mix ??= new THREE.ShaderMaterial({ vertexShader: VERT, depthTest: false, depthWrite: false,
+      uniforms: { tA: { value: null }, tB: { value: null }, t: { value: 0 } },
+      fragmentShader: `uniform sampler2D tA; uniform sampler2D tB; uniform float t; varying vec2 vUv;
+        void main(){ gl_FragColor = mix(texture2D(tA, vUv), texture2D(tB, vUv), t); }` });
+    this.mats.mix.uniforms.tA.value = this.outA.texture; this.mats.mix.uniforms.tB.value = this.outB.texture; this.mats.mix.uniforms.t.value = o.t;
+    this.pass(this.mats.mix, null);
+  }
+
+  render(scene: THREE.Scene, cam: THREE.PerspectiveCamera, look: Look, opts: { focus: number; frame: number; prevViewProj?: THREE.Matrix4; target?: THREE.WebGLRenderTarget | null }) {
     const r = this.renderer, u = this.u;
     r.toneMapping = THREE.NoToneMapping;
     cam.layers.enableAll();
@@ -467,7 +484,7 @@ export class PostPipeline {
       (f.uZSat.value as THREE.Vector3).set(...(g.zoneSat ?? [1, 1, 1]));
       (f.uTS.value as THREE.Vector3).copy(cbcr(g.tintS)); (f.uTM.value as THREE.Vector3).copy(cbcr(g.tintM)); (f.uTH.value as THREE.Vector3).copy(cbcr(g.tintH));
     } else f.uUseKnots.value = 0;
-    this.pass(this.mats.final, null);
+    this.pass(this.mats.final, opts.target ?? null);
   }
 
   dispose() {

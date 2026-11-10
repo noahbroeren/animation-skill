@@ -27,6 +27,11 @@ if (ff) {
   const filters = spawnSync("ffmpeg", ["-hide_banner", "-filters"], { encoding: "utf8" }).stdout || "";
   for (const f of ["ebur128", "loudnorm", "blackdetect", "freezedetect"]) filters.includes(` ${f} `) ? ok(`ffmpeg filter ${f}`) : fail(`ffmpeg filter ${f} missing`, "install a full ffmpeg build");
 }
+{ // optional: Blender for the realistic-3D path (tools/blender_bridge.py)
+  const cands = isWin ? ["C:/Program Files/Blender Foundation"].flatMap((d) => { try { return fs.readdirSync(d).map((v) => `${d}/${v}/blender.exe`); } catch { return []; } }) : [];
+  const bl = ver("blender", ["--version"]) || cands.map((c) => (fs.existsSync(c) ? c : null)).find(Boolean);
+  bl ? ok(`Blender: ${String(bl).split(/\r?\n/)[0].slice(0, 70)}`) : warn("Blender missing (only for the realistic-3D Blender path)", isWin ? "winget install BlenderFoundation.Blender" : "https://www.blender.org/download/");
+}
 const yt = ver("yt-dlp", ["--version"]); yt ? ok(`yt-dlp ${yt}`) : warn("yt-dlp missing (needed only for URLs/channels)", "pip install -U yt-dlp");
 const py = ver(PY, ["--version"]); py ? ok(py) : fail("python missing", "install Python >= 3.10");
 if (py) {

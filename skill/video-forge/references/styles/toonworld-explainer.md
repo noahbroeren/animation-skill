@@ -16,7 +16,7 @@ Use it for any topic. The style is the *system* below, not the channel's stories
 | views | median ~1.5 M (top 15 M) | median ~8 M (top 33 M) |
 | speech | 2.6 words/s | **3.63 words/s** (IQR 3.51-3.78), starts at frame 0 |
 | camera | moving 84 % of frames, glides ~20 f | **moving 99 %**, 55 % of frames fast, glides **~44 f** (ease-in 9 f, ease-out 11.5 f), push-in in every shot |
-| edit | ASL 5.7 s | ASL **16 s**, 2.7 cuts/min (10/27 videos have ≤ 1 cut) |
+| edit | ASL 5.7 s | hard cuts rare: ASL **16 s**, 2.7 cuts/min (10/27 videos have ≤ 1 cut), BUT **18-26 soft transitions/min** (quick 9-10 f dissolves, zoom and whip transitions; `vfa transitions`, 3/3 hero shorts) |
 | grade | pure black (p1 = 0), clipped whites | **lifted blacks (p1 ≈ 0.098)**, whites ≈ 0.95, never clipped |
 | sound | -13.7 LUFS, LRA 1.7 | -14.1 LUFS, LRA **2.2** (very compressed), TP ≈ -2 dBTP |
 
@@ -49,10 +49,13 @@ Median sentence length is about 13 words. Contractions, no jargon unless it is e
 - **Glides about 44 frames, symmetric ease.** Between them, a constant slow exponential push-in. No handheld float.
   - Engine: `cameraRig({ push: { rate: 0.0025-0.003, punches: [key words] } })`.
 - **Punch push-ins on key words.** Punch rate about 0.006-0.007/frame for about 30 frames.
-- **Very few cuts, and every cut lands on a word onset.** Measured: the 27 M short has 1 cut in 65 s, at 3.73 s on "two" (-0.01 s). In the 33 M short a cut lands on "Did" (+0.02 s).
+- **Very few HARD cuts, and every cut lands on a word onset.** Measured: the 27 M short has 1 cut in 65 s, at 3.73 s on "two" (-0.01 s). In the 33 M short a cut lands on "Did" (+0.02 s).
 - **Cut or glide:** anything over half a frame width or 40 % zoom is a cut, not a fly. Otherwise glide for at least 0.075 × px@720 frames (`glideOrCut()`).
 - **Impact kick:** the offset flips sign every frame for 6-8 f, about 3 px at 720p. The push-in stops at the hit.
-- **Dissolves:** 6-8 f, only for place or time jumps. White flash: 4 f.
+- **Soft transitions are the real edit (measured with `vfa transitions`, 3 hero shorts, 2026-11-10):** 18.4 / 22.2 / 25.8 soft
+  transitions per minute, of which 4.6 / 14.8 / 12.9 cross-dissolves; median length 9-10.5 f. The old cut detector saw only 3 of
+  25 scene changes in the 33 M short, which is why "ASL 16 s" looked so long. Use in-world dissolves (`dissolve` keys,
+  ~10 f) between beats and places, plus zoom/whip travels; keep hard cuts for word-onset punches. White flash: 4 f.
 - **DOF only on close-up, medium and insert beats** (about 1/3 of shots); wides stay sharp. Never pull focus inside a shot.
 
 ## 4. Look (engine presets `toonworld-day | golden | night | interior` + `TOON_SETUPS`)
@@ -121,13 +124,19 @@ Use `lookTimeline()` + `applyToonSetup()`.
 
 One word at a time (sometimes 2-3 when words are very short), white heavy sans with a thin dark outline, lower-middle (about 60-74 % of height), hard swap on every word (`WordCaptions`).
 
+Measured with `vfa ocr` on the 33 M short: 1 word per page (max 2), 0.37 s per page, centre at 70 % of height, fill #fdfcfc,
+outline ≈ 0.06 em, no box, no highlight colour, 2 % uppercase, font ≈ 88-96 u (closest: Montserrat Black), appears ON the
+word (sync −0.001 s vs Whisper).
+
 ## 7. Sound (`audio/mix.py` level model)
 
 - **Master:** -14 LUFS, LRA about 2.2, TP ≤ -1.
-- **Bed:** only 5-10 LU under the voice; duck from `words.json` (-3 dB).
+- **Bed (measured with `vfa stems`, 3 hero shorts):** music under 98-100 % of the runtime, voice ≈ 19-20 dB above the music per
+  sentence (p10 ≈ 13 dB); in LUFS vocals −14.2 vs music −29.7 (≈ 15.5 LU under). Duck from `words.json` (-3 dB).
+  An earlier "5-10 LU under" rule and a reviewer's push in that direction were WRONG for this channel: measure, don't opine.
 - **Music:** arranged per section (`music.py --sections`):
   - bouncy for the set-up
-  - **hard stop** before the incident, so there is silence under the big hit
+  - the music keeps playing in 3/3 hero shorts (presence ≥ 98 %): a hard stop is an option for one big hit, not the norm
   - calm pad for the explanation
   - full for the payoff, with a button hit after the last word
 - **SFX:**
@@ -147,4 +156,8 @@ plan    = SceneDef{ innerCuts, events (FX slams + travels), cues (all story beat
 QA      = vfa qa FINAL --plan timeline.json --ref <channel aggregate> --mixreport master_mixreport.json
 ```
 
-Worked example: `engine/src/projects/manhole` ("Why manhole covers are round"). Score vs the channel aggregate: 16/32 metrics in tolerance. The remaining gaps (warmer palette, fewer fast frames, longer ASL in the reference) are listed in its `gap_vs_channel.md`.
+Worked example: `engine/src/projects/manhole` ("Why manhole covers are round"), improved with the director loop: reference match
+50 → 59.4 → 62.5 → 65.6 over three iterations (learning log: `toonworld-explainer.learnings.md`); the last step adopted the
+measured grammar (10 f place-change dissolves: ours 10 f / 8.5 per min vs ref 9-10.5 f / 4.6-14.8; voice-over-music p10 13.0 dB
+vs 12.8). Remaining gaps: fast-motion frames (15 % vs 55 %: the reference keeps moving fast INSIDE shots), micro-animation
+(0.007 vs 0.020), highlights still warm (b* 14 vs 5.8), edge detail 0.033 vs 0.061.

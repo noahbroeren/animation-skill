@@ -77,7 +77,8 @@ def _stats(v: np.ndarray) -> dict:
 
 def analyze(path: str, out_dir: str, width: int = 512, sheets: str = "auto", sheet_seconds: float = 2.0,
             speech: str = "auto", whisper_model: str = "small", keyframes: bool = True,
-            start: float = 0.0, duration: float | None = None, quiet: bool = False) -> dict:
+            start: float = 0.0, duration: float | None = None, quiet: bool = False,
+            deep: bool = False, deep_skip: list[str] | None = None) -> dict:
     t0 = time.time()
     os.makedirs(out_dir, exist_ok=True)
     pr = probe(path)
@@ -217,6 +218,16 @@ def analyze(path: str, out_dir: str, width: int = 512, sheets: str = "auto", she
         json.dump(look, f, indent=1)
     with open(os.path.join(out_dir, "report.md"), "w", encoding="utf-8") as f:
         f.write(render_report(fp, look))
+    if deep:
+        if start > 0 or duration:
+            print("[vfa] --deep needs a full-length analysis (no --start/--duration); extras skipped")
+        else:
+            from .deep import run_deep
+            fp["deep"], deep_md = run_deep(out_dir, deep_skip, quiet)
+            with open(os.path.join(out_dir, "fingerprint.json"), "w", encoding="utf-8") as f:
+                json.dump(fp, f, indent=1, default=float)
+            with open(os.path.join(out_dir, "report.md"), "a", encoding="utf-8") as f:
+                f.write(deep_md + "\n")
     if not quiet:
         print(f"[vfa] done: {n} frames, {len(shots)} shots in {fp['elapsed_s']}s -> {out_dir}")
     return fp

@@ -23,6 +23,7 @@ export type SceneDef = {
   render: () => React.ReactNode;
   transition?: Transition; // INTO this scene
   innerCuts?: number[]; // local frames of hard cuts inside the scene (camera cuts)
+  innerSoft?: number[]; // local frames of in-world dissolves (rig dissolve keys): soft transitions
   events?: number[]; // local frames of intended big visual changes (graphic slams, flashes) -> QA won't call them glitches
   cues?: Record<string, number>; // named local frames (story beats) -> timeline.json "cues" -> sound design reads them
   chapter?: string;
@@ -44,6 +45,7 @@ export function plan(scenes: SceneDef[]) {
     out.push({ id: s.id, start, frames: s.frames, transition: s.transition?.type ?? "cut", chapter: s.chapter });
     if (i > 0) ((s.transition?.type ?? "cut") === "cut" || s.transition?.type === "flash" ? cuts : soft).push(start + (s.transition?.type === "flash" ? Math.round(ov / 2) : 0));
     for (const c of s.innerCuts ?? []) cuts.push(start + c);
+    for (const c of s.innerSoft ?? []) soft.push(start + c);
     for (const e of s.events ?? []) events.push(start + e);
     for (const [k, v] of Object.entries(s.cues ?? {})) cues[`${s.id}.${k}`] = start + v;
     at = start + s.frames;

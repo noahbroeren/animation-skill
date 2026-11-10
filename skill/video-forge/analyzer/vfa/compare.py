@@ -43,6 +43,17 @@ METRICS = [
     ("audio.onset_rate", "sound onset rate", 0.6, "/s", "more SFX hits / rhythmic events", "fewer hits"),
     ("audio.speech.wps_speaking", "speech rate (words/s)", 0.3, "", "tighter, faster delivery", "slow the delivery"),
     ("audio.speech.speech_start_s", "speech starts at", 0.4, "s", "", "start talking sooner (hook in frame 1)"),
+    # --- deep extras (`vfa analyze --deep`); rows appear only when both sides have them
+    ("deep.ocr.words_per_page_median", "caption words/page", 0.6, "", "put more words on each caption page", "fewer words per caption page (split pages)"),
+    ("deep.ocr.font_size_u_est", "caption font size (u)", 12, "u", "bigger captions", "smaller captions"),
+    ("deep.ocr.uppercase_ratio", "caption uppercase share", 0.3, "", "uppercase the captions", "use sentence/lower case captions"),
+    ("deep.ocr.center_y_rel", "caption vertical position", 0.06, "", "move captions up", "move captions down"),
+    ("deep.ocr.sync_offset_s", "caption lead/lag vs speech", 0.08, "s", "captions appear too early: delay pages", "captions lag the voice: show pages sooner"),
+    ("deep.transitions.dissolves_per_minute", "dissolves per minute", 2.0, "/min", "use more cross-dissolves between beats", "fewer dissolves (cut or travel instead)"),
+    ("deep.transitions.soft_per_minute", "soft transitions per minute", 3.0, "/min", "more soft/camera transitions (dissolve, whip, zoom)", "fewer soft transitions"),
+    ("deep.stems.music_presence", "music presence", 0.15, "", "keep a music bed under more of the runtime", "drop the music more often"),
+    ("deep.stems.voice_music_margin_db_median", "voice-over-music margin", 3.0, "dB", "duck the music more under speech", "music can sit louder under the voice"),
+    ("deep.stems.non_vocal_onset_rate", "SFX/music hit rate", 0.6, "/s", "more SFX hits / rhythmic accents", "fewer hits"),
 ]
 
 
@@ -55,12 +66,25 @@ def get(d: dict, path: str):
     return cur if isinstance(cur, (int, float)) and not isinstance(cur, bool) else None
 
 
+def _fps(d: dict):
+    v = (d.get("source") or {}).get("fps")
+    return float(v) if isinstance(v, (int, float)) and v > 0 else None
+
+
 def compare(ref: dict, ours: dict) -> dict:
     rows = []
+    # frame-unit metrics are compared in the REFERENCE's frame rate: a 44 f glide @30 is 88 f @60, not "too long".
+    # Per-frame motion energy scales ~1/fps (half the displacement per frame at 60 fps).
+    rf, of = _fps(ref), _fps(ours)
+    k = (rf / of) if rf and of else 1.0
     for path, label, tol, unit, low, high in METRICS:
         r, o = get(ref, path), get(ours, path)
         if r is None or o is None or (isinstance(r, float) and math.isnan(r)):
             continue
+        if unit == "f":
+            o = o * k
+        elif path == "motion.activity.median":
+            o = o / k
         delta = o - r
         if path.startswith("camera.jerk"):  # unit-heavy metric: compare relatively (30 % of the reference)
             tol = max(tol, 0.3 * abs(r))
@@ -69,6 +93,17 @@ def compare(ref: dict, ours: dict) -> dict:
         status = "OK" if gap <= 1 else ("CLOSE" if gap <= 2 else "GAP")
         rows.append({"metric": path, "label": label, "ref": r, "ours": o, "delta": delta, "tolerance": tol,
                      "gap": round(gap, 2), "status": status, "advice": advice if status != "OK" else ""})
+    rc, oc = (((ref.get("deep") or {}).get("embed") or {}).get("centroid"),
+              ((ours.get("deep") or {}).get("embed") or {}).get("centroid"))
+    if rc and oc and len(rc) == len(oc) and (ref["deep"]["embed"].get("model") == ours["deep"]["embed"].get("model")):
+        a, b = np.asarray(rc, float), np.asarray(oc, float)
+        cos = float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9))
+        gap = max(0.0, 0.9 - cos) / 0.07
+        status = "OK" if gap <= 1 else ("CLOSE" if gap <= 2 else "GAP")
+        rows.append({"metric": "deep.embed.centroid_cos", "label": "art-style similarity (CLIP centroid cos)", "ref": 1.0,
+                     "ours": round(cos, 4), "delta": round(cos - 1.0, 4), "tolerance": 0.07, "gap": round(gap, 2),
+                     "status": status, "advice": "" if status == "OK" else
+                     "the look drifts from the reference (render style / palette / framing): run `vfa similar REF OURS` for per-shot neighbours"})
     rows.sort(key=lambda x: -x["gap"])
     ok = sum(1 for r in rows if r["status"] == "OK")
     return {"schema": "vfa.compare/1", "matched": ok, "total": len(rows),
@@ -90,6 +125,9 @@ def aggregate(fps_list: list[dict]) -> dict:
     so the aggregate itself can be used as a `compare` reference."""
     out: dict = {"schema": "vfa.fingerprint/1", "aggregate_of": len(fps_list),
                  "sources": [f.get("source", {}).get("path") for f in fps_list], "spread": {}}
+    fr = [f.get("source", {}).get("fps") for f in fps_list if isinstance(f.get("source", {}).get("fps"), (int, float))]
+    if fr:  # frame-unit metrics are rescaled against this in compare()
+        out["source"] = {"fps": float(np.median(fr)), "path": f"aggregate of {len(fps_list)}"}
     for path, *_ in METRICS:
         vals = [get(f, path) for f in fps_list]
         vals = [v for v in vals if v is not None and not (isinstance(v, float) and math.isnan(v))]
@@ -103,6 +141,14 @@ def aggregate(fps_list: list[dict]) -> dict:
         cur[parts[-1]] = med
         out["spread"][path] = {"p25": float(np.percentile(vals, 25)), "p75": float(np.percentile(vals, 75)),
                                "n": len(vals)}
+    # CLIP style centroid (deep.embed): mean of unit centroids, so an aggregate can be a `compare` reference
+    cents = [((f.get("deep") or {}).get("embed") or {}) for f in fps_list]
+    cents = [c for c in cents if c.get("centroid")]
+    if cents and len({c.get("model") for c in cents}) == 1:
+        m = np.mean([np.asarray(c["centroid"], float) for c in cents], axis=0)
+        m /= np.linalg.norm(m) + 1e-9
+        out.setdefault("deep", {}).setdefault("embed", {}).update(
+            {"centroid": [round(float(x), 4) for x in m], "model": cents[0].get("model"), "n": len(cents)})
     # editing & speech patterns that matter for formula extraction
     durations = [f["source"]["analysed_seconds"] for f in fps_list if "source" in f]
     hooks = [((f.get("audio") or {}).get("speech") or {}).get("hook") for f in fps_list]

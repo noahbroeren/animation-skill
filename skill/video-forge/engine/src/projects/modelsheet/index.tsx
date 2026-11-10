@@ -5,7 +5,7 @@
  */
 import React, { useLayoutEffect, useRef } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import { CharacterSpec, drawCharacter, Expression, Pose, walkPose } from "../../lib/characters/toon";
+import { CharacterSpec, drawCharacter, Expression, Pose, Viseme, walkPose } from "../../lib/characters/toon";
 import { ProjectDef } from "../../lib/project";
 import { FONTS } from "../../lib/two/text";
 
@@ -34,7 +34,12 @@ const Sheet: React.FC = () => {
   const frame = useCurrentFrame();
   const rows = CAST.length;
   const ch = Math.floor((height - 60) / rows) - 24, cw = Math.floor(ch * 0.72);
-  const poses: [string, Pose][] = [...EXPR.map((e) => [e, { expr: e }] as [string, Pose]), ["walk", walkPose(frame + 7, fps)], ["book", { prop: "book", expr: "think" }], ["talk", { mouth: 0.8 }]];
+  const page = Number(new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("page") ?? 0);
+  const VIS: Viseme[] = ["A", "E", "I", "O", "U", "M", "F", "L", "W"];
+  const poses: [string, Pose][] = frame < 30
+    ? [...EXPR.map((e) => [e, { expr: e }] as [string, Pose]), ["walk", walkPose(frame + 7, fps)], ["book", { prop: "book", expr: "think" }], ["talk", { mouth: 0.8 }]]
+    : [...VIS.map((v) => ["viseme " + v, { viseme: v }] as [string, Pose]), ["side", { view: "side" }], ["side walk", { ...walkPose(frame + 7, fps), view: "side" }], ["side talk", { view: "side", viseme: "O" }]];
+  void page;
   const cols = Math.min(poses.length, Math.floor(width / (cw + 8)));
   return (
     <AbsoluteFill style={{ background: "#efe9df", padding: 20, gap: 4 }}>

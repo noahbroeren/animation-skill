@@ -21,14 +21,14 @@ if not C:
     raise SystemExit("timeline.json has no cues -- render with the current engine first")
 S = lambda f: f / fps
 sfx = os.path.join(PUB, "sfx")
-if not os.path.exists(os.path.join(sfx, "splash.wav")):
+if not os.path.exists(os.path.join(sfx, "creak.wav")):
     subprocess.run([sys.executable, os.path.join(AUDIO, "sfx.py"), "pack", sfx], check=True, stdout=subprocess.DEVNULL)
 shutil.copy(os.path.join(HERE, "words.json"), os.path.join(PUB, "words.json"))
 
 sections = [
     {"a": 0, "b": S(C["morning"]), "layers": ["pad", "pluck", "kick"]},                         # set-up: bouncy
     {"a": S(C["morning"]), "b": S(C["drop"]), "layers": ["pad", "pluck"], "end": "stop"},       # tension, hard stop
-    {"a": S(C["explain"]), "b": S(C["summer"]), "layers": ["pad"]},                              # calm night explanation
+    {"a": S(C["wait"]), "b": S(C["summer"]), "layers": ["pad"]},                                 # calm pad back on "Wait" (short silence only under the splash)
     {"a": S(C["summer"]), "b": total / fps - 0.25, "layers": ["pad", "pluck", "kick"], "end": "button"},
 ]
 json.dump(sections, open(os.path.join(PUB, "sections.json"), "w"), indent=1)
@@ -41,31 +41,38 @@ def s(name, frame, lu, pan=0.0, anchor=0.0, **kw):
     return {"file": f"sfx/{name}.wav", "at_frame": int(frame), "naive_lu": lu, "role": "sfx", "pan": pan, "anchor": anchor, **kw}
 
 
-travels = [C["mayor"], C["foundry"], C["cart"], C["summer"], C["oldf"]]
+# camera travels are 44 f centred on their cue (index.tsx) -> the whoosh PEAK lands on the cue frame.
+# whoosh(0.6 s) peaks at 0.27 s, swish(0.3 s) at 0.135 s (sfx.py peak=0.45).
+SW, WH = 0.135, 0.27
+travels = [C["mayor"], C["foundry"], C["cart"], C["summer"], C["oldf"]]  # place changes (now ~10 f dissolves): a soft swish centred on each
+quiet = [C["corner"], C["turn2"], C["circle"]]  # small push/pull moves in the explanation
 tracks = [
     {"file": "vo.wav", "start": 0.1, "role": "voice", "highpass": 80},
     {"file": "bed.wav", "start": 0, "role": "music", "fade_in": 0.05},
     {"file": "sfx/roomtone.wav", "start": 0, "role": "ambience", "naive_lu": -32, "loop": True},
     {"file": "sfx/wind.wav", "start": 0, "role": "ambience", "naive_lu": -34, "loop": True},
     s("sparkle", C["square1"], -14),
-    *[s("swish", f + 2, -12, pan=(-0.3 if i % 2 else 0.3), anchor=0.15) for i, f in enumerate(travels)],  # peak on the move
-    s("whoosh", C["spring"] + 6, -11, anchor=0.3),
-    s("pop", C["squareQ"], -12), s("boing", C["squareQ"] + 6, -16),
+    *[s("swish", f, -14, pan=(-0.3 if i % 2 else 0.3), anchor=SW) for i, f in enumerate(travels)],
+    *[s("swish", f, -18, pan=(0.2 if i % 2 else -0.2), anchor=SW) for i, f in enumerate(quiet)],
+    s("whoosh", C["spring"], -8, anchor=WH),                      # the crane: fastest move gets the biggest whoosh
+    s("whoosh", C["morning"], -12, anchor=WH), s("tick", C["morning"] + 3, -16),  # time-jump dissolve
+    s("swish", C["lifts"], -18, anchor=SW), s("swish", C["turns"], -18, anchor=SW),
+    s("pop", C["squareQ"] - 8, -12), s("boing", C["squareQ"] - 6, -16),  # land BEFORE "Square?", not on it
     *[s("footstep", f, -20, pan=-0.2, distance_m=7) for f in range(C["mayor"] + 6, C["foundry"] - 6, 11)],
     s("rumble", C["cart"], -16, distance_m=6),
     s("sparkle", C["loves"], -14, pan=0.2),
-    s("click", C["lifts"], -12), s("tick", C["turns"], -14), s("thud", C["slips"], -8),
-    s("whoosh", C["drop"], -8, anchor=0.3, send=0.4),
-    s("splash", C["hole"] - 2, -2, send=0.6),                 # biggest hit, wet: it's down a shaft
+    s("click", C["lifts"] + 4, -14), s("creak", C["turns"] + 4, -16), s("thud", C["slips"], -8),
+    s("whoosh", C["drop"] + 6, -6, anchor=WH, send=0.4),          # peak on the follow-cam peak
+    s("splash", C["hole"] - 2, -2, send=0.6, on_word=True),       # biggest hit, wet: it's down a shaft
     s("impact", C["hole"] + 9, -10),
-    s("pop", C["wait"], -12),
-    s("riser", C["explain"] - 60, -18), s("chime", C["explain"], -12, send=0.3),
-    s("swish", C["corner"], -14), s("whoosh", C["through"], -12, anchor=0.3), s("pop", C["circle"], -12), s("thud", C["never"], -8),
-    s("ding", C["doubled"], -6), s("sparkle", C["doubled"] + 3, -14),
+    s("pop", C["wait"] - 6, -12),
+    s("riser", C["explain"] - 60, -10), s("chime", C["explain"], -12, send=0.3),
+    s("whoosh", C["through"], -12, anchor=WH), s("pop", C["circle"] + 8, -14), s("thud", C["never"], -8),
+    s("ding", total - round(0.42 * fps), -4, send=0.3, on_word=True), s("sparkle", C["doubled"] + 3, -14),  # button AFTER "prices."
 ]
 plan = {"duration": total / fps, "fps": fps, "target_lufs": -14, "true_peak": -1.0,
         "words": "words.json", "words_offset": 0.1, "duck_db": -3,
-        "music_sections": [[0, S(C["explain"]), -9], [S(C["explain"]), S(C["summer"]), -12], [S(C["summer"]), total / fps, -9]],
+        "music_sections": [[0, S(C["explain"]), -13], [S(C["explain"]), S(C["summer"]), -14], [S(C["summer"]), total / fps, -12]],  # measured: music ~15.5 LU under VO (vfa stems, 3 hero shorts)
         "reverb": {"rt60": 1.0, "wet": 0.5}, "tracks": tracks}
 json.dump(plan, open(os.path.join(PUB, "audio_plan.json"), "w"), indent=1)
 subprocess.run([sys.executable, os.path.join(AUDIO, "mix.py"), os.path.join(PUB, "audio_plan.json"), "--out", os.path.join(PUB, "master.wav"),

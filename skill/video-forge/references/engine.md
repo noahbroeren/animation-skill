@@ -189,3 +189,74 @@ node tools/render.mjs --project ID --format short|long|short4k|long4k --fps 30|6
 | props | `lampPost`, `bench`, `fence`, `flowerBox`, `bird`, `blocksShot(p, r, rig.keys)` | detail density; sight-line culling |
 | cues | `SceneDef.cues {name: frame}` -> `timeline.json.cues` | sound design reads story beats from the picture (`make_audio.py`) |
 | model sheet | `--project modelsheet --stills 0` | all expressions/poses of a cast for look-dev |
+
+## Added in 1.2 (production upgrades)
+
+**Frame-rate independence.** `cameraRig(keys, { refFps: 30 })` authors every frame-unit parameter (glide, push rate,
+punch length, kick frames, follow blend) at 30 fps and rescales at render time, so `--fps 60` keeps the same timing.
+Key frames (`f`) are real frames (they come from `timing(fps)`). A glide computed from real frames must be converted:
+`R = (n) => n * 30 / fps`. `FxLayer.update(frame, camPos, fps)` scales effect durations the same way.
+
+**Glide hygiene.** A glide longer than the gap since the previous key starts *before* that key arrives and jumps.
+Clamp it: `seq(keys)` in `projects/manhole/index.tsx` sets `glide = min(glide, gap)`. Channel grammar: every travel
+is 44 f centred on its cue (`f: cue + 22`, glide 44), and long holds get one small push/pull per sentence.
+
+**In-world dissolves.** A key with `dissolve: n` cross-dissolves from the previous camera to this one over n frames
+inside ONE world (two renders of the same scene, mixed in post; both get DOF/ink/grade). Wire it with
+`<Stage3D dissolveAt={(f, fps) => rig.dissolveAt(f, fps)} ...>` and declare it as `innerSoft: [f]` in the SceneDef so
+QA treats it as a soft transition. Use it for time jumps ("One morning...") instead of a hard cut.
+
+**Clean cuts.** Pass `cuts={rig.cuts}` to Stage3D: camera motion blur is skipped on a cut frame (it used to smear the
+first incoming frame). A camera jump of more than 35 % of the focus distance is treated as an undeclared cut too.
+
+**Lip-sync (visemes).** `Pose.viseme` takes `rest|A|E|I|O|U|M|F|L|W`; `visemeAt(frame, fps, words, lead = 2)` maps
+word timings (Whisper or ElevenLabs `/with-timestamps` -> `tts.py eleven` writes words.json) to mouth shapes by
+grapheme rules, leading the audio by 2 frames. Give each speaking character only ITS words
+(`words.slice(first, last + 1)`). See `references/characters.md` section 4 for the full phoneme/viseme tables.
+
+**Side view.** `Pose.view = "side"` draws a profile: features slide to the facing side, one eye, a nose tick, slimmer
+torso. CrowdPool uses it automatically for walking extras.
+
+**Crowds.** `new CrowdPool(scene, sun).add({ spec, path: { from, to, t0, t1 } | pos, expr, cueWindows }, camDist)`;
+`crowd.update(frame, fps, camPos)` every frame. Texture resolution by distance tier (1200/700/420/240 px), poses on
+twos, side-view walks, optional cue-gated acting (frozen outside `cueWindows`, as measured on story channels). Keep
+extras off the pavement the camera stands on (a cropped giant head is the classic failure).
+
+**Real assets.** `node tools/fetch-assets.mjs search --type models --q barrel`, `get --type models --id wine_barrel_01`
+(Poly Haven, CC0, credited in `public/assets/CREDITS.json`), `kenney --zip <downloaded pack.zip>` (Kenney has no
+API: the user downloads the zip). In a scene: `loadModel(ctx, staticFile(".../x_1k.gltf"), { height: 1.0, toon,
+recolor })` returns a Group at once; Stage3D waits for the file (ctx.wait) before the frame is captured.
+
+**Blender bridge (tested: Blender 5.3 on Windows, EEVEE and Cycles with the OptiX GPU device requested).** For the realistic-3D style:
+`blender -b -P tools/blender_bridge.py -- --scene a.gltf,b.gltf --offsets "0,0,0;1.2,0,-0.8" --cam cam.json --out frames
+--res 1440x2560 --engine EEVEE|CYCLES --samples 64 --hdri <polyhaven .hdr> [--ground "#7a8a52" --catcher] [--fstop 2.8]
+[--look toon] [--frames 0-299 --step 1]`. cam.json uses the same key grammar as `cameraRig` (pos/look/fov, glide with
+smootherstep, cut, `via` arcs), in engine axes (+Y up; converted to Blender +Z up). `--look toon` adds Freestyle ink;
+`--catcher` makes the ground a Cycles shadow catcher so the HDRI horizon stays (a flat plane against an HDRI reads
+fake). Measured at 540x960 (GPU shared with another render): EEVEE ~0.3 s/frame after ~17 s startup; Cycles 48 spp +
+denoise: one frame in 7 s including startup. Benchmark at full size before planning a long render.
+Mux with ffmpeg (`-framerate 30 -i f%06d.png`) and run `vfa qa` like any render; label it "Blender path".
+
+**Director loop.** `node tools/produce.mjs --project ID --ref REF_fingerprint.json --ref-dir REF_ANALYSIS --style
+STYLE --change "what changed"` runs stills -> render -> audio -> mux -> QA -> gap -> judge pack -> learning log ->
+report.md. See `references/director-loop.md`.
+
+**Character kinds (`lib/characters/kinds.ts`, build specs in `references/characters.md`).** Seven kinds beyond the
+toon.ts humans, all frame-pure Canvas2D sharing one face module (16 expressions, Rhubarb mouth cues A-H/X plus the
+toon visemes): `object` (face on any shape: box, can, ball, jelly, phone, house, tooth, custom SVG path; `rigidity`
+limits squash), `critter` (cat, dog, bird, frog, bear, mouse, rabbit, fox, pig; `cat4`/`dog4` quadrupeds with a
+4-beat walk), `blob` (spring-driven antennae/ears), `stick` (two-bone IK, x-ray skeleton, smears, `STICK_POSES`),
+`chibi` (2.3 heads; storyteller, kid, scientist, OverSimplified-style caricature), `flatvec` (Kurzgesagt-like, no
+outline), `microbe` (virus, bacterium, cell, rbc, wbc, heart, brain). Presets: `KIND_PRESETS`. Motion helpers:
+`walk4Pose`, `hopPose`, `hopWalkPose`, `critterIdle`, `springFollow`, `withSecondary`, `ik2`.
+Style passes on ANY 2D character (toon.ts included): `sketch`, `cutout`, `silhouette`, `pixelize`
+(`drawAnyStyled`, `applyPass`). In 3D: `new CharacterCard(KIND_PRESETS.cat, 0.6, 900, sun, { pass: "cutout" })` and
+`card.setPose(pose, frame, fps)` (the frame drives idles and pass boil). CrowdPool members accept kinds and `pass`.
+Look-dev: `node tools/render.mjs --project charsheet --format long --stills 0,40,70,100,130`.
+Known weak spots (measured on the sheet): object side views are plain, the cat face is busy at small sizes, solid
+critter eyes make sad/smug subtle, the flatvec bird's visemes are small, the sketch pass is clean rather than rough.
+
+**Render defaults (1.2, measured with `tools/bench.mjs`).** On one GPU, Chromium WebGL tabs contend: concurrency 4 beat 8 by
+about 1.4x on the full manhole short (78-128 s vs 141-145 s, Ryzen 7 9800X3D + RTX 5070); x264 `medium` instead of `slow`; CRF 14
+(about 15 Mbps at 1440p30, meeting YouTube's upload recommendation; CRF 16 gave about 10 Mbps). Re-run the benchmark on a new
+machine before changing these: `node tools/bench.mjs --project ID --frames 0-299 --variants old,default,old,default`.

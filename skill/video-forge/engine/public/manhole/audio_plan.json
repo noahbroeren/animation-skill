@@ -1,5 +1,5 @@
 {
- "duration": 41.96666666666667,
+ "duration": 42.46666666666667,
  "fps": 30,
  "target_lufs": -14,
  "true_peak": -1.0,
@@ -10,17 +10,17 @@
   [
    0,
    26.2,
-   -9
+   -13
   ],
   [
    26.2,
    36.93333333333333,
-   -12
+   -14
   ],
   [
    36.93333333333333,
-   41.96666666666667,
-   -9
+   42.46666666666667,
+   -12
   ]
  ],
  "reverb": {
@@ -64,55 +64,111 @@
   },
   {
    "file": "sfx/swish.wav",
-   "at_frame": 86,
-   "naive_lu": -12,
+   "at_frame": 84,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": 0.3,
-   "anchor": 0.15
+   "anchor": 0.135
   },
   {
    "file": "sfx/swish.wav",
-   "at_frame": 179,
-   "naive_lu": -12,
+   "at_frame": 177,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": -0.3,
-   "anchor": 0.15
+   "anchor": 0.135
   },
   {
    "file": "sfx/swish.wav",
-   "at_frame": 310,
-   "naive_lu": -12,
+   "at_frame": 308,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": 0.3,
-   "anchor": 0.15
+   "anchor": 0.135
   },
   {
    "file": "sfx/swish.wav",
-   "at_frame": 1110,
-   "naive_lu": -12,
+   "at_frame": 1108,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": -0.3,
-   "anchor": 0.15
+   "anchor": 0.135
   },
   {
    "file": "sfx/swish.wav",
-   "at_frame": 1192,
-   "naive_lu": -12,
+   "at_frame": 1190,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": 0.3,
-   "anchor": 0.15
+   "anchor": 0.135
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 832,
+   "naive_lu": -18,
+   "role": "sfx",
+   "pan": -0.2,
+   "anchor": 0.135
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 881,
+   "naive_lu": -18,
+   "role": "sfx",
+   "pan": 0.2,
+   "anchor": 0.135
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 977,
+   "naive_lu": -18,
+   "role": "sfx",
+   "pan": -0.2,
+   "anchor": 0.135
   },
   {
    "file": "sfx/whoosh.wav",
-   "at_frame": 432,
-   "naive_lu": -11,
+   "at_frame": 426,
+   "naive_lu": -8,
    "role": "sfx",
    "pan": 0.0,
-   "anchor": 0.3
+   "anchor": 0.27
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "at_frame": 501,
+   "naive_lu": -12,
+   "role": "sfx",
+   "pan": 0.0,
+   "anchor": 0.27
+  },
+  {
+   "file": "sfx/tick.wav",
+   "at_frame": 504,
+   "naive_lu": -16,
+   "role": "sfx",
+   "pan": 0.0,
+   "anchor": 0.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 539,
+   "naive_lu": -18,
+   "role": "sfx",
+   "pan": 0.0,
+   "anchor": 0.135
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 583,
+   "naive_lu": -18,
+   "role": "sfx",
+   "pan": 0.0,
+   "anchor": 0.135
   },
   {
    "file": "sfx/pop.wav",
-   "at_frame": 258,
+   "at_frame": 250,
    "naive_lu": -12,
    "role": "sfx",
    "pan": 0.0,
@@ -120,7 +176,7 @@
   },
   {
    "file": "sfx/boing.wav",
-   "at_frame": 264,
+   "at_frame": 252,
    "naive_lu": -16,
    "role": "sfx",
    "pan": 0.0,
@@ -217,16 +273,16 @@
   },
   {
    "file": "sfx/click.wav",
-   "at_frame": 539,
-   "naive_lu": -12,
+   "at_frame": 543,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": 0.0,
    "anchor": 0.0
   },
   {
-   "file": "sfx/tick.wav",
-   "at_frame": 583,
-   "naive_lu": -14,
+   "file": "sfx/creak.wav",
+   "at_frame": 587,
+   "naive_lu": -16,
    "role": "sfx",
    "pan": 0.0,
    "anchor": 0.0
@@ -241,11 +297,11 @@
   },
   {
    "file": "sfx/whoosh.wav",
-   "at_frame": 646,
-   "naive_lu": -8,
+   "at_frame": 652,
+   "naive_lu": -6,
    "role": "sfx",
    "pan": 0.0,
-   "anchor": 0.3,
+   "anchor": 0.27,
    "send": 0.4
   },
   {
@@ -255,7 +311,8 @@
    "role": "sfx",
    "pan": 0.0,
    "anchor": 0.0,
-   "send": 0.6
+   "send": 0.6,
+   "on_word": true
   },
   {
    "file": "sfx/impact.wav",
@@ -267,7 +324,7 @@
   },
   {
    "file": "sfx/pop.wav",
-   "at_frame": 682,
+   "at_frame": 676,
    "naive_lu": -12,
    "role": "sfx",
    "pan": 0.0,
@@ -276,7 +333,7 @@
   {
    "file": "sfx/riser.wav",
    "at_frame": 726,
-   "naive_lu": -18,
+   "naive_lu": -10,
    "role": "sfx",
    "pan": 0.0,
    "anchor": 0.0
@@ -291,25 +348,17 @@
    "send": 0.3
   },
   {
-   "file": "sfx/swish.wav",
-   "at_frame": 832,
-   "naive_lu": -14,
-   "role": "sfx",
-   "pan": 0.0,
-   "anchor": 0.0
-  },
-  {
    "file": "sfx/whoosh.wav",
    "at_frame": 942,
    "naive_lu": -12,
    "role": "sfx",
    "pan": 0.0,
-   "anchor": 0.3
+   "anchor": 0.27
   },
   {
    "file": "sfx/pop.wav",
-   "at_frame": 977,
-   "naive_lu": -12,
+   "at_frame": 985,
+   "naive_lu": -14,
    "role": "sfx",
    "pan": 0.0,
    "anchor": 0.0
@@ -324,11 +373,13 @@
   },
   {
    "file": "sfx/ding.wav",
-   "at_frame": 1229,
-   "naive_lu": -6,
+   "at_frame": 1261,
+   "naive_lu": -4,
    "role": "sfx",
    "pan": 0.0,
-   "anchor": 0.0
+   "anchor": 0.0,
+   "send": 0.3,
+   "on_word": true
   },
   {
    "file": "sfx/sparkle.wav",

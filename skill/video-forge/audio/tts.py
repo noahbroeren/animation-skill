@@ -86,9 +86,75 @@ def align(audio: str, out: str, text: str | None = None, model: str = "small"):
     return words
 
 
+def eleven_estimate(text: str, model: str = "eleven_multilingual_v2") -> dict:
+    """ElevenLabs bills per character. Flash/Turbo models cost ~0.5 credit/char, multilingual/v3 ~1 credit/char.
+    Rates change -- this is an estimate to SHOW THE USER before generating, never a quote."""
+    chars = len(text)
+    per = 0.5 if any(k in model for k in ("flash", "turbo")) else 1.0
+    return {"characters": chars, "model": model, "estimated_credits": int(round(chars * per))}
+
+
+def words_from_alignment(al: dict) -> list[dict]:
+    """ElevenLabs /with-timestamps character alignment -> word timings (no Whisper needed)."""
+    chars = al["characters"]
+    st, en = al["character_start_times_seconds"], al["character_end_times_seconds"]
+    words, cur, s0, e0 = [], "", None, None
+    for ch, a, b in zip(chars, st, en):
+        if ch.isspace():
+            if cur:
+                words.append({"word": cur, "start": round(s0, 3), "end": round(e0, 3)})
+            cur, s0 = "", None
+            continue
+        if s0 is None:
+            s0 = a
+        cur += ch
+        e0 = b
+    if cur:
+        words.append({"word": cur, "start": round(s0, 3), "end": round(e0, 3)})
+    return words
+
+
+def eleven(text: str, out: str, voice_id: str, words_out: str | None, model: str = "eleven_multilingual_v2",
+           stability: float = 0.45, similarity: float = 0.8, style: float = 0.3, speed: float = 1.0, yes: bool = False) -> dict:
+    """Generate VO with ElevenLabs (needs env ELEVENLABS_API_KEY). Refuses without yes=True: the user must have
+    approved the shown credit estimate. Writes the audio and, from the API's character alignment, words.json."""
+    import base64
+    import urllib.request
+    est = eleven_estimate(text, model)
+    if not yes:
+        raise SystemExit(f"COST CHECK: {est['characters']} characters on {model} ~ {est['estimated_credits']} credits. "
+                         "Show this to the user; re-run with --yes only after an explicit OK.")
+    key = os.environ.get("ELEVENLABS_API_KEY")
+    if not key:
+        raise SystemExit("ELEVENLABS_API_KEY not set (or use the ElevenLabs connector in Claude and then `tts.py align`).")
+    body = json.dumps({"text": text, "model_id": model, "voice_settings": {"stability": stability, "similarity_boost": similarity,
+                       "style": style, "speed": speed}}).encode()
+    req = urllib.request.Request(f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/with-timestamps?output_format=mp3_44100_192",
+                                 data=body, headers={"xi-api-key": key, "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        res = json.loads(r.read())
+    mp3 = os.path.splitext(out)[0] + ".mp3"
+    open(mp3, "wb").write(base64.b64decode(res["audio_base64"]))
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", mp3, "-ar", "48000", out], check=True)
+    if words_out and res.get("alignment"):
+        json.dump(words_from_alignment(res["alignment"]), open(words_out, "w", encoding="utf-8"), indent=1)
+    return {**est, "audio": out, "words": words_out}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("eleven", help="ElevenLabs VO + word timings (cost check first; needs --yes)")
+    p.add_argument("--text-file", required=True)
+    p.add_argument("--out", required=True)
+    p.add_argument("--voice-id", required=True)
+    p.add_argument("--words-out")
+    p.add_argument("--model", default="eleven_multilingual_v2")
+    p.add_argument("--speed", type=float, default=1.0)
+    p.add_argument("--yes", action="store_true", help="the user approved the shown credit estimate")
+    p = sub.add_parser("estimate", help="credit estimate for a script")
+    p.add_argument("--text-file", required=True)
+    p.add_argument("--model", default="eleven_multilingual_v2")
     p = sub.add_parser("say")
     p.add_argument("--text-file", required=True)
     p.add_argument("--out", required=True)
@@ -101,6 +167,12 @@ def main():
     p.add_argument("--model", default="small")
     sub.add_parser("voices")
     a = ap.parse_args()
+    if a.cmd == "estimate":
+        print(json.dumps(eleven_estimate(open(a.text_file, encoding="utf-8").read(), a.model)))
+        return
+    if a.cmd == "eleven":
+        print(json.dumps(eleven(open(a.text_file, encoding="utf-8").read(), a.out, a.voice_id, a.words_out, a.model, speed=a.speed, yes=a.yes)))
+        return
     if a.cmd == "say":
         print(say(open(a.text_file, encoding="utf-8").read(), a.out, a.voice, a.rate))
     elif a.cmd == "align":

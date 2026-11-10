@@ -34,6 +34,10 @@ export type Stage3DProps<W> = {
   shadowMapSize?: number;
   /** camera as a pure function of frame (e.g. rig.at) -> enables camera motion blur (look.motionBlur) */
   camAt?: (frame: number, fps: number) => CamState;
+  /** cross-dissolve between two camera views inside ONE world (rig.dissolveAt) */
+  dissolveAt?: (frame: number, fps: number) => { a: CamState; b: CamState; t: number } | null;
+  /** hard-cut frames (rig.cuts): no camera motion blur across a cut (the incoming frame must be clean) */
+  cuts?: number[];
 };
 
 type Inst<W> = { ctx: StageCtx; world: W; post: PostPipeline };
@@ -49,7 +53,7 @@ function applyCam(c: THREE.PerspectiveCamera, cam: CamState, aspect: number) {
   c.updateMatrixWorld(true);
 }
 
-export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096, camAt }: Stage3DProps<W>) {
+export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096, camAt, dissolveAt, cuts }: Stage3DProps<W>) {
   const frame = useCurrentFrame() + frameOffset;
   const { width, height, fps } = useVideoConfig();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -108,12 +112,20 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
     it.ctx.scene.updateMatrixWorld(true);
     const lk = typeof look === "function" ? look(frame) : look;
     let prevViewProj: THREE.Matrix4 | undefined;
-    if (camAt && lk.motionBlur > 0 && frame > 0) {
+    const prev = camAt && frame > 0 ? camAt(frame - 1, fps) : null;
+    const jump = prev ? Math.hypot(prev.pos[0] - cam.pos[0], prev.pos[1] - cam.pos[1], prev.pos[2] - cam.pos[2]) > 0.35 * cam.focus : false; // undeclared cut
+    if (prev && lk.motionBlur > 0 && !cuts?.includes(frame) && !jump) {
       const pc = (it as any).prevCam ?? ((it as any).prevCam = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
-      applyCam(pc, camAt(frame - 1, fps), width / height);
+      applyCam(pc, prev, width / height);
       prevViewProj = new THREE.Matrix4().multiplyMatrices(pc.projectionMatrix, pc.matrixWorldInverse);
     }
-    it.post.render(it.ctx.scene, c, lk, { focus: cam.focus, frame, prevViewProj });
+    const dz = dissolveAt ? dissolveAt(frame, fps) : null;
+    if (dz) {
+      const ca = (it as any).dzA ?? ((it as any).dzA = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
+      const cb = (it as any).dzB ?? ((it as any).dzB = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
+      applyCam(ca, dz.a, width / height); applyCam(cb, dz.b, width / height);
+      it.post.dissolve(it.ctx.scene, ca, cb, lk, { focusA: dz.a.focus, focusB: dz.b.focus, frame, t: dz.t });
+    } else it.post.render(it.ctx.scene, c, lk, { focus: cam.focus, frame, prevViewProj });
     it.ctx.renderer.getContext().finish();
   };
   useLayoutEffect(() => drawRef.current());

@@ -118,3 +118,131 @@ One streaming pass decodes **every frame** at native fps (no sampling) at 512 px
 
   It also lists every cut against the nearest word onset (cut-on-word offsets). Run the analysis with `--speech whisper` for exact word times.
 - Rate limits: YouTube may answer HTTP 429 on subtitle requests during bulk downloads. Re-run video-only with `--sleep-interval 4` and reuse the subtitles you already have.
+
+## Deep extras (1.2): captions, transitions, stems, style embeddings, acting
+
+These lift two "Known limits" above: transitions are now classified, and on-screen text is now read (OCR plus a heuristic font class).
+
+**Conventions:**
+- Each extra is its own command and writes `<name>.json` + `<name>.md` into the analysis dir.
+- `T` is a video or an analysis dir. Given a bare video, a light `analyze` runs first (into `<video>_analysis/`).
+- Optional packages are imported lazily. A missing one gives `"available": false` with an install hint, or a fallback that is clearly labelled HEURISTIC. Nothing here can crash `vfa analyze`.
+
+| command | needs | does |
+|---|---|---|
+| `vfa ocr T [--every 0.5]` | rapidocr-onnxruntime | caption track, words/page, frame-accurate page timing, size in u, colours, highlight, box, font class, sync vs transcript, static text |
+| `vfa transitions T` | nothing extra | classifies every scene change and finds the soft ones the cut detector missed |
+| `vfa stems T` | demucs + torch (CUDA if present) | vocals/drums/bass/other stems: music presence, voice-over-music margin, hit density, music stops |
+| `vfa embed T [--every 1]` | open_clip_torch + torch | CLIP zero-shot tags (render style, lighting, shot type); cached `embeddings.npz` |
+| `vfa similar REF OURS [--out P]` | open_clip_torch + torch | per-shot nearest reference frame, centroid cosine, style similarity 0-100 |
+| `vfa pose T [--stride 1]` | mediapipe (Tasks API) | face/body coverage, lip-sync r + lag, blink rate, gesture speed |
+| `vfa analyze V --deep [--deep-skip stems,pose]` | whatever is installed | runs the five extras and stores their summaries in `fingerprint["deep"]`; appends their sections to `report.md`. Full-length analyses only. |
+
+### Install (Windows, Python 3.14 tested)
+
+1. `py -m pip install rapidocr-onnxruntime demucs open_clip_torch mediapipe`
+2. A CUDA torch: `py -m pip install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu130`. RTX 50-series GPUs need a CUDA ≥ 12.8 build. Without it, demucs and CLIP run on CPU (slower).
+
+| package | install | weights fetched on first use |
+|---|---|---|
+| torch 2.14 cu130 | 2.0 GB wheel, about 5 min | |
+| rapidocr-onnxruntime | 12 MB, seconds | bundled |
+| demucs | small | htdemucs, about 80 MB (Hugging Face hub) |
+| open_clip_torch | small | ViT-B-32 laion2b, about 600 MB (Hugging Face hub) |
+| mediapipe | about 60 MB (pulls opencv-contrib) | face/pose `.task` files, about 9 MB, into `~/.cache/vfa` (`VFA_CACHE` moves it) |
+
+### `vfa ocr` (captions)
+- **Coarse pass:** OCR runs on a frame every 0.5 s (1 s for videos over 3 min, 2 s over 15 min), plus 2 frames after each cut, at 720 px wide.
+  - Boxes cluster into horizontal bands. The caption track is the centred band whose text keeps changing.
+  - Bands of unchanged text are reported as `static_text` (titles, watermarks).
+- **Fine pass:** gives frame-accurate page timing.
+  - Every frame, the caption band is reduced to a fill-colour mask signature. A signature change starts a new page.
+  - Each page is OCR'd once. Identical consecutive pages merge; `highlight_steps` counts these same-text restyles.
+- **Style:** k-means (Lab, k=3) inside each padded box separates background, outline (the cluster that rings the fill) and fill (the cluster deepest inside the glyphs). Reported fields:
+  - colours: `fill_hex`, `outline_hex`, `outline_rel_em`
+  - `highlight_hex`: a second, saturated fill colour, i.e. the active word
+  - `background_box`: a uniform ring around the text that stays constant while the picture changes
+  - sizes, in engine u (1 u = 1 px at a 1080 px short side): `text_height_u` (ink), `core_height_u` (cap height for uppercase captions, x-height otherwise), `font_size_u_est`
+  - `uppercase_ratio`, `center_y_rel`, `on_screen_frac`
+- **Sync:** pages are fuzzy-matched to the words in `transcript.json`.
+  - `sync_offset_s` = page start minus word start. Negative means the caption leads the voice.
+  - Analyze with whisper for exact word times.
+- **Font (HEURISTIC):**
+  - Measures: stroke weight in em (Arial Regular ≈ 0.09, Bold ≈ 0.15, Black ≈ 0.2), stroke contrast, advance width in em (condensed below 0.45), and advance uniformity (mono).
+  - Classes: heavy sans (condensed), regular/light sans, serif, mono, handwritten. Each comes with suggested families.
+  - It is a starting point: confirm visually.
+- **Limits:**
+  - RapidOCR misreads stylised or small text (e.g. "puta" for "put a"); words/page counts OCR tokens.
+  - On low-contrast boxed designs, the fill and box roles can swap.
+  - Only one caption track is followed.
+
+### `vfa transitions`
+- **Pass 1** runs at 160 px and records, per frame:
+  - frame difference, luma, contrast, gradient energy in x and y, sharpness
+  - a sliding blend fit: is frame t ≈ (1−a)·frame(t−K) + a·frame(t+K)? A phase-correlation veto stops slow pans posing as blends.
+- **Candidates:** analyzer cuts, own spikes, sustained elevated-difference runs, blend runs, and dark/bright excursions. Each grows into a span [s, e]; A = frame s−1 and B = frame e.
+- **Types:**
+  - `hard_cut`: a one-frame change
+  - `match_cut`: a hard cut with SSIM(A,B) > 0.55 and edge-map correlation > 0.5
+  - `flash`, `dip_black`, `dip_white`: luma excursions
+  - `dissolve`: a monotonic alpha ramp with median residual below 0.2 (below 0.3 counts as weak)
+  - `wipe`, with direction: every changed pixel equals A or B (partition fit below 0.2), the A|B mask is spatially coherent, and the B share grows
+  - `whip_pan`: camera speed above 1.5 w/s from `frames.npz`, or directional blur
+  - `zoom_through`: accumulated |log zoom| above 0.35
+  - `other`: an analyzer cut that fits nothing above
+- **Outputs:** the list with frames and confidence, counts, `per_minute`, `dissolves_per_minute`, `soft_per_minute`, `missed_by_cut_detector`.
+- **Validation:** synthetic hard cut, 12-frame dissolve, dip to black and 10-frame wipe, all found within ±3 frames, with nothing spurious in the creeping shots.
+- **Limits:**
+  - `whip_pan`/`zoom_through` also fire on fast camera moves inside one continuous 3D scene. They are "camera transitions", not necessarily scene changes.
+  - Morphs and soft-edged shape wipes come out as dissolves or are dropped.
+  - Analyzer cuts that are really fast motion show up as `other`.
+
+### `vfa stems`
+- **Separation:** Demucs htdemucs splits the mix. The WAVs are cached in `stems/`, plus `music.wav` = drums + bass + other.
+- **Metrics:**
+  - `loudness_lufs` per stem (ffmpeg R128)
+  - `music_presence`: the share of 100 ms hops where the music stem's 400 ms RMS is above −48 dBFS
+  - `voice_music_margin_db` per transcript sentence: unweighted RMS of vocals minus music (≈ LU). Aim for ≥ 6 dB on every sentence.
+  - `onset_rate`: drums / other / non-vocal hits per second (SFX density)
+  - `music_stops`: music drops ≥ 15 dB under its 3 s median, or below −55 dBFS, for ≥ 0.3 s after at least 1 s of music
+- **Fallback without demucs (HEURISTIC):** the bed level is measured in speech pauses (transcript word gaps), and onsets come from the HPSS percussive part.
+- **Limits:** separation bleeds. Sung vocals and voice-made SFX land in `vocals`, and synthetic tones can land in any stem.
+
+### `vfa embed` / `vfa similar`
+- **Model:** open_clip ViT-B-32 laion2b by default (`VFA_CLIP_MODEL=ARCH:TAG` to change). It embeds a frame every 1 s plus each shot keyframe, cached per model.
+- **Tags** are softmax probabilities over fixed prompt lists:
+  - style: 2D cartoon, 3D render, flat vector, photoreal, anime, pixel art, low poly, clay, paper cutout, live action, whiteboard
+  - lighting: day, golden hour, night, interior
+  - shot: close-up, medium, wide, aerial
+
+  They are good for comparing videos, not ground truth: CLIP B/32 often calls western cartoons "anime".
+- **`similar`** reports:
+  - the per-shot nearest-neighbour cosine of our shot mean against every reference frame
+  - the centroid cosine and the tag-distribution overlap
+  - `style_similarity` = 100·clip((centroid cos − 0.6)/0.35), a heuristic. The same video scores 100. Two shorts from the same cartoon channel scored 65-79 (centroid 0.83-0.88). Their frame NN cosine was only about 0.55-0.6, because NN measures shared scenes rather than style.
+- **In compare and aggregate:** `fingerprint.deep.embed.centroid` lets `vfa compare` add an "art-style similarity" row, and `aggregate` averages the centroids.
+
+### `vfa pose`
+- **Engine:** MediaPipe FaceLandmarker (blendshapes `jawOpen`, `eyeBlink*`) plus PoseLandmarker lite, in VIDEO mode. Every frame is used (stride 2-4 for long videos).
+- **Outputs:**
+  - `coverage`: any / face / body
+  - `lip_sync`: Pearson r between mouth openness and the speech envelope (the vocals stem if `stems` ran), with the best lag in frames (+ = mouth late)
+  - `blink_rate_per_min`
+  - `gesture_activity`: upper-body landmark speed in shoulder-widths/s
+  - per-shot values
+- **`animation_vs_speech`:** the analyzer's camera-compensated activity against the speech envelope. It is style-agnostic.
+- **Fallback without MediaPipe:** Haar face boxes plus motion energy in the lower third of the face.
+- **Honesty rules:**
+  - Detectors are trained on real people, so cartoon characters are often missed or tracked unstably.
+  - A gesture median above 3 shoulder-widths/s raises a `warning` (jittering landmarks).
+  - Low coverage means "not measurable", never "no character".
+
+### Comparable deep metrics in `vfa compare`
+Rows appear only when both fingerprints carry them (`analyze --deep`):
+
+| group | metrics |
+|---|---|
+| captions | words/page, font size (u), uppercase share, vertical position, sync offset |
+| transitions | dissolves/min, soft transitions/min |
+| sound | music presence, voice-over-music margin, non-vocal hit rate |
+| look | art-style similarity: CLIP centroid cosine, OK at ≥ 0.83 |

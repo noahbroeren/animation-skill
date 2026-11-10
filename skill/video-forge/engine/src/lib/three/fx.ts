@@ -151,9 +151,9 @@ export class FxLayer {
   }
 
   /** Call every frame (pure: depends only on frame). */
-  update(frame: number, camPos: [number, number, number]) {
+  update(frame: number, camPos: [number, number, number], fps = 30) {
     for (const it of this.items) {
-      const u = (frame - it.spec.f0) / it.dur;
+      const u = (frame - it.spec.f0) / (it.dur * fps / 30); // durations are authored in frames @30
       const on = u >= 0 && u <= 1;
       it.mesh.visible = on;
       if (!on) continue;

@@ -1,0 +1,435 @@
+[
+ {
+  "date": "2026-11-10",
+  "project": "manhole",
+  "change": "iter2: 11-area judge fixes (44f travels on cues, per-sentence moves, dissolve on time jump, cut on Wait, no blur across cuts; cooler highs/white cards; golden front key; ink thresholds x0.6; plaster/tile texture; haze; captions on onset; SFX levelling fix for <400ms sounds, word-duck, music -6/-8/-6)",
+  "note": "",
+  "match_score_before": 50.0,
+  "match_score_after": 59.4,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "audio.onset_rate",
+    "label": "sound onset rate",
+    "gap_before": 1.03,
+    "gap_after": 0.49,
+    "ours_before": 3.0023828435266084,
+    "ours_after": 3.90894819466248,
+    "ref": 3.6175090803745533,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.88,
+    "gap_after": 0.5,
+    "ours_before": 5.5,
+    "ours_after": 11.0,
+    "ref": 9.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_creep",
+    "label": "frames with camera motion",
+    "gap_before": 1.21,
+    "gap_after": 0.19,
+    "ours_before": 0.8661354581673307,
+    "ours_after": 0.96852871754524,
+    "ref": 0.9873284054910243,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 7.17,
+    "gap_after": 6.03,
+    "ours_before": 0.1952191235059761,
+    "ours_after": 0.25255704169944926,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 3.1,
+    "gap_after": 2.2,
+    "ours_before": 28.5,
+    "ours_after": 33.0,
+    "ref": 44.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 0.62,
+    "gap_after": 3.78,
+    "ours_before": 24.00853860155046,
+    "ours_after": 62.8959422444669,
+    "ref": 29.484029725217365,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.push_in_shot_frac",
+    "label": "push-in shot fraction",
+    "gap_before": 0.0,
+    "gap_after": 4.44,
+    "ours_before": 1.0,
+    "ours_after": 0.3333333333333333,
+    "ref": 1.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 1.38,
+    "gap_after": 0.12,
+    "ours_before": 6.0,
+    "ours_after": 11.0,
+    "ref": 11.5,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 2.51,
+    "gap_after": 0.83,
+    "ours_before": 6.952322483062744,
+    "ours_after": 0.2789132297039032,
+    "ref": 1.936219334602356,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 3.24,
+    "gap_after": 2.99,
+    "ours_before": 12.281888008117676,
+    "ours_after": 11.792333602905273,
+    "ref": 5.8063578605651855,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_mean.median",
+    "label": "mean brightness",
+    "gap_before": 1.04,
+    "gap_after": 0.09,
+    "ours_before": 0.4234355688095093,
+    "ours_after": 0.4683513194322586,
+    "ref": 0.46486346423625946,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_p1.median",
+    "label": "black floor (p1)",
+    "gap_before": 0.98,
+    "gap_after": 1.37,
+    "ours_before": 0.11764705882352941,
+    "ours_after": 0.12549019607843137,
+    "ref": 0.09803921568627451,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.luma_p99.median",
+    "label": "white ceiling (p99)",
+    "gap_before": 1.96,
+    "gap_after": 0.92,
+    "ours_before": 0.8901960784313725,
+    "ours_after": 0.9215686274509803,
+    "ref": 0.9490196078431372,
+    "result": "improved"
+   },
+   {
+    "metric": "color.sat_mean.median",
+    "label": "saturation",
+    "gap_before": 0.01,
+    "gap_after": 0.49,
+    "ours_before": 0.48052793741226196,
+    "ours_after": 0.4604502022266388,
+    "ref": 0.48001131415367126,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 1.28,
+    "gap_after": 0.73,
+    "ours_before": 13.124189376831055,
+    "ours_after": 12.019955158233643,
+    "ref": 10.56808090209961,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_b.median",
+    "label": "shadow tint b (blue-/yellow+)",
+    "gap_before": 0.01,
+    "gap_after": 1.08,
+    "ours_before": -5.346225261688232,
+    "ours_after": -7.534801483154297,
+    "ref": -5.367428779602051,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.warmth.median",
+    "label": "warmth (R-B)",
+    "gap_before": 4.06,
+    "gap_after": 2.75,
+    "ours_before": 0.14750656485557556,
+    "ours_after": 0.11468013003468513,
+    "ref": 0.04604286700487137,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 9.53,
+    "gap_after": 3.42,
+    "ours_before": 10.491666666666667,
+    "ours_after": 14.155555555555553,
+    "ref": 16.20724959882321,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 0.54,
+    "gap_after": 0.05,
+    "ours_before": 4.289118347895155,
+    "ours_after": 2.82574568288854,
+    "ref": 2.666844444444444,
+    "result": "improved"
+   },
+   {
+    "metric": "motion.activity.median",
+    "label": "micro-animation activity",
+    "gap_before": 3.55,
+    "gap_after": 2.78,
+    "ours_before": 0.006071708289291035,
+    "ours_after": 0.009150817630220163,
+    "ref": 0.020277401030412884,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.dof_ratio.median",
+    "label": "DOF centre/border sharpness",
+    "gap_before": 0.62,
+    "gap_after": 0.07,
+    "ours_before": 2.1364714802566076,
+    "ours_after": 1.9722390728875583,
+    "ref": 1.9517237917353885,
+    "result": "improved"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-10",
+  "project": "manhole",
+  "change": "iter3: Bezier arc (via) on the two 23 m travels (flicker from near objects), day blackPoint .06->.045, cooler highs [-.03,-.004,.05], sat 1.26, golden shadow b .1->.08, idle breathing/sway/bob x1.6",
+  "note": "",
+  "match_score_before": 59.4,
+  "match_score_after": 62.5,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.5,
+    "gap_after": 1.0,
+    "ours_before": 11.0,
+    "ours_after": 5.0,
+    "ref": 9.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 2.2,
+    "gap_after": 4.0,
+    "ours_before": 33.0,
+    "ours_after": 24.0,
+    "ref": 44.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 3.78,
+    "gap_after": 2.25,
+    "ours_before": 62.8959422444669,
+    "ours_after": 49.395563238891455,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.push_in_shot_frac",
+    "label": "push-in shot fraction",
+    "gap_before": 4.44,
+    "gap_after": 2.22,
+    "ours_before": 0.3333333333333333,
+    "ours_after": 0.6666666666666666,
+    "ref": 1.0,
+    "result": "improved"
+   },
+   {
+    "metric": "color.colorfulness.median",
+    "label": "colorfulness",
+    "gap_before": 0.86,
+    "gap_after": 0.57,
+    "ours_before": 0.2689093753155949,
+    "ours_after": 0.27759790825621433,
+    "ref": 0.2947719466551656,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 0.83,
+    "gap_after": 0.55,
+    "ours_before": 0.2789132297039032,
+    "ours_after": 0.8366678655147552,
+    "ref": 1.936219334602356,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 2.99,
+    "gap_after": 2.6,
+    "ours_before": 11.792333602905273,
+    "ours_after": 11.001539707183838,
+    "ref": 5.8063578605651855,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_p1.median",
+    "label": "black floor (p1)",
+    "gap_before": 1.37,
+    "gap_after": 0.98,
+    "ours_before": 0.12549019607843137,
+    "ours_after": 0.11764705882352941,
+    "ref": 0.09803921568627451,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 0.73,
+    "gap_after": 0.99,
+    "ours_before": 12.019955158233643,
+    "ours_after": 12.556425094604492,
+    "ref": 10.56808090209961,
+    "result": "regressed"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-10",
+  "project": "manhole",
+  "change": "iter4: measured grammar (vfa transitions/stems on 3 hero shorts): 5 place changes as 10 f in-world dissolves instead of 44 f flights, music back to ~15 LU under VO and playing except under the splash, caption outline 0.06 em; render defaults c4/medium/crf14",
+  "note": "",
+  "match_score_before": 62.5,
+  "match_score_after": 65.6,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "audio.onset_rate",
+    "label": "sound onset rate",
+    "gap_before": 0.49,
+    "gap_after": 0.05,
+    "ours_before": 3.90894819466248,
+    "ours_after": 3.6499215070643642,
+    "ref": 3.6175090803745533,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 1.0,
+    "gap_after": 0.75,
+    "ours_before": 5.0,
+    "ours_after": 6.0,
+    "ref": 9.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 6.07,
+    "gap_after": 8.01,
+    "ours_before": 0.25019669551534224,
+    "ours_after": 0.15342250196695514,
+    "ref": 0.5539007092198581,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 4.0,
+    "gap_after": 3.0,
+    "ours_before": 24.0,
+    "ours_after": 29.0,
+    "ref": 44.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 2.25,
+    "gap_after": 0.23,
+    "ours_before": 49.395563238891455,
+    "ours_after": 27.411856063891573,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.push_in_shot_frac",
+    "label": "push-in shot fraction",
+    "gap_before": 2.22,
+    "gap_after": 4.44,
+    "ours_before": 0.6666666666666666,
+    "ours_after": 0.3333333333333333,
+    "ref": 1.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 2.6,
+    "gap_after": 4.12,
+    "ours_before": 11.001539707183838,
+    "ours_after": 14.039618968963623,
+    "ref": 5.8063578605651855,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.luma_std.median",
+    "label": "contrast",
+    "gap_before": 0.56,
+    "gap_after": 0.05,
+    "ours_before": 0.19053442031145096,
+    "ours_after": 0.2059435173869133,
+    "ref": 0.20457380264997482,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 0.99,
+    "gap_after": 1.42,
+    "ours_before": 12.556425094604492,
+    "ours_after": 13.398537635803223,
+    "ref": 10.56808090209961,
+    "result": "regressed"
+   },
+   {
+    "metric": "motion.activity.median",
+    "label": "micro-animation activity",
+    "gap_before": 2.72,
+    "gap_after": 3.3,
+    "ours_before": 0.0093909233246593,
+    "ours_after": 0.00708953639910175,
+    "ref": 0.020277401030412884,
+    "result": "regressed"
+   }
+  ]
+ }
+]

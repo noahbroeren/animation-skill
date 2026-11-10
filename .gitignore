@@ -16,3 +16,12 @@ skill/video-forge/engine/public/*/master.wav
 skill/video-forge/engine/public/*/vo_raw.wav
 skill/video-forge/engine/public/*/vo.wav.48k.wav
 skill/video-forge/engine/public/*/*.premaster.wav
+
+# downloaded CC0 assets: commit only what a demo project uses (re-fetch the rest with tools/fetch-assets.mjs)
+skill/video-forge/engine/public/assets/*
+!skill/video-forge/engine/public/assets/CREDITS.json
+!skill/video-forge/engine/public/assets/polyhaven/
+skill/video-forge/engine/public/assets/polyhaven/*
+!skill/video-forge/engine/public/assets/polyhaven/models/
+skill/video-forge/engine/public/assets/polyhaven/models/*
+!skill/video-forge/engine/public/assets/polyhaven/models/wine_barrel_01/

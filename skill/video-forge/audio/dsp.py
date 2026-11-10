@@ -61,6 +61,24 @@ def momentary(x: np.ndarray, hop_s: float = 0.01) -> np.ndarray:
     return -0.691 + 10 * np.log10(e + 1e-30)
 
 
+def event_loudness(x: np.ndarray, win_s: float = 0.4) -> float:
+    """Max short-window loudness of an EVENT (LUFS): 400 ms window, or the sound's own length (>= 50 ms) when it
+    is shorter -- momentary() is -inf for a 0.12 s pop, which used to leave short SFX unlevelled (14 LU hot)."""
+    x = as2(x)
+    n = x.shape[1]
+    if n == 0:
+        return -np.inf
+    w = int(min(win_s * SR, max(0.05 * SR, n)))
+    if n < w:
+        x = np.pad(x, ((0, 0), (0, w - n)))
+        n = w
+    z = _kweight(x)
+    c = np.concatenate([np.zeros((2, 1)), np.cumsum(z, -1)], -1)
+    s = np.arange(0, n - w + 1, max(1, int(0.005 * SR)))
+    e = ((c[:, s + w] - c[:, s]) / w).sum(0)
+    return float(-0.691 + 10 * np.log10(e.max() + 1e-30))
+
+
 def true_peak_db(x: np.ndarray) -> float:
     up = signal.resample_poly(as2(x), 4, 1, axis=-1)
     return float(20 * np.log10(np.abs(up).max() + 1e-12))

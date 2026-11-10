@@ -88,7 +88,7 @@ def find_moves(speed_s: np.ndarray, fps: float, thr: float = SPEED_BANDS["move"]
         while b < n and speed_s[b] > thr * 0.25 and speed_s[b] <= speed_s[b - 1] + 1e-9:
             b += 1
         seg = speed_s[a:b]
-        if len(seg) >= min_frames:
+        if len(seg) >= max(min_frames, round(min_frames * fps / 30)):  # durations are seconds-based (authored @30)
             pk = int(np.argmax(seg))
             peak = float(seg[pk])
             t10 = next((k for k in range(pk + 1) if seg[k] >= 0.1 * peak), 0)
@@ -97,7 +97,7 @@ def find_moves(speed_s: np.ndarray, fps: float, thr: float = SPEED_BANDS["move"]
             r10 = next((k for k in range(len(seg) - 1, pk - 1, -1) if seg[k] >= 0.1 * peak), len(seg) - 1)
             attack, release, plateau = t90 - t10, r10 - r90, r90 - t90
             dur = len(seg)
-            if dur <= 6:
+            if dur <= max(6, round(0.2 * fps)):  # < 0.2 s = snap at any fps
                 ease = "snap"
             elif plateau > 0.5 * dur:
                 ease = "linear-ish (plateau)"

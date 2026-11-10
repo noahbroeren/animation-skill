@@ -87,6 +87,10 @@ def mix(plan: dict, base_dir: str, stems_dir: str | None = None):
             x = filt(x, "high", tr["highpass"])
         place(buses["voice"], x * 10 ** (tr.get("gain_db", 0) / 20), int(round(tr.get("start", 0) * SR)))
     v_ref = dsp.lufs(buses["voice"])
+    words_t = []
+    if plan.get("words"):
+        _w = json.load(open(os.path.join(base_dir, plan["words"]), encoding="utf-8"))
+        words_t = [(w["start"] + plan.get("words_offset", 0.0), w["end"] + plan.get("words_offset", 0.0)) for w in _w]
     if not np.isfinite(v_ref):
         v_ref = -20.0
     report = {"voice_lufs": v_ref, "cues": []}
@@ -110,18 +114,33 @@ def mix(plan: dict, base_dir: str, stems_dir: str | None = None):
         if x.shape[1] == 0:
             continue
         send_amt = tr.get("send", 0.0)
+        gd = 0.0
         if "distance_m" in tr:
             gd, lp, sd = dsp.dist_fx(tr["distance_m"])
-            x = filt(x, "low", lp) * 10 ** (gd / 20)
+            x = filt(x, "low", lp)
             send_amt = max(send_amt, sd)
-        if "naive_lu" in tr:  # loudness-relative level
-            is_bed = role in ("ambience", "music") or tr.get("loop")
-            meas = dsp.lufs(x) if is_bed else float(np.max(dsp.momentary(x)))
+        is_bed = role in ("ambience", "music") or tr.get("loop")
+        lu_vs_voice = None
+        if "naive_lu" in tr:  # loudness-relative level (distance gain applied AFTER levelling, else it is undone)
+            meas = dsp.lufs(x) if is_bed else dsp.event_loudness(x)
             if np.isfinite(meas):
                 applied = tr["naive_lu"] - (0 if is_bed else 6)
-                x = x * 10 ** ((v_ref + applied - meas) / 20)
+                x = x * 10 ** ((v_ref + applied + gd - meas) / 20)
+                lu_vs_voice = (dsp.lufs(x) if is_bed else dsp.event_loudness(x)) - v_ref
+                if abs(lu_vs_voice - (applied + gd)) > 2.0:
+                    report.setdefault("level_errors", []).append({"file": tr["file"], "target": applied + gd, "got": lu_vs_voice})
+            else:
+                report.setdefault("level_errors", []).append({"file": tr["file"], "target": tr["naive_lu"], "got": None})
         else:
-            x = x * 10 ** (tr.get("gain_db", 0) / 20)
+            x = x * 10 ** ((tr.get("gain_db", 0) + gd) / 20)
+        if words_t and not is_bed and tr.get("naive_lu", 0) < -8 and not tr.get("on_word"):
+            # detail SFX never sit on a spoken word: duck them under words (hits at -8 LU or louder are exempt)
+            tt = (np.arange(x.shape[1]) + s) / SR
+            on = np.zeros(x.shape[1], bool)
+            for w0, w1 in words_t:
+                on |= (tt >= w0 - 0.03) & (tt <= w1 + 0.03)
+            if on.any():
+                x = x * 10 ** (dsp.smooth_steps(on * plan.get("sfx_word_duck_db", -6.0), 0.03) / 20)
         if tr.get("fade_in"):
             k = min(x.shape[1], int(tr["fade_in"] * SR))
             x[:, :k] *= np.linspace(0, 1, k)
@@ -134,7 +153,8 @@ def mix(plan: dict, base_dir: str, stems_dir: str | None = None):
         place(buses[role], x, s)
         if send_amt:
             send[s:s + x.shape[1]] += send_amt * x.mean(0)[: n - s]
-        report["cues"].append({"file": tr["file"], "t": round(start, 3), "role": role, "naive_lu": tr.get("naive_lu")})
+        report["cues"].append({"file": tr["file"], "t": round(start, 3), "role": role, "naive_lu": tr.get("naive_lu"),
+                               "lu_vs_voice": None if lu_vs_voice is None else round(lu_vs_voice, 1)})
 
     # music: per-section level vs voice, words-keyed duck, rides
     music_db = np.zeros(n)

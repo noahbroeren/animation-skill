@@ -27,20 +27,22 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | idea, script or topic without a reference | **C. Original** | `references/workflow.md`, `references/craft.md` |
 | channel URL, "series", episodes, 8-20 min video | **D. Long-form / series** | `references/longform.md` |
 | "improve / fix / why does mine look cheap" | **E. Improve** | analyze both, `vfa compare`, `references/quality.md` |
-| a known style ("2D characters in a 3D world", "like Ricks Clips", toon explainer) | **Style profile** | `references/styles/toonworld-explainer.md` (measured system + engine recipe); other profiles in `references/styles/` |
+| a known style ("2D characters in a 3D world", "like Ricks Clips", toon explainer, "like Zack D Films", "like Kurzgesagt", documentary) | **Style profile** | `references/styles/` (`toonworld-explainer.md`, `realistic3d-explainer.md`, `flat-vector-explainer.md`, `documentary-essay.md`): measured system + engine recipe |
+| "what kind of character", new cast, mascot, talking object, animal | **Character design** | `references/characters.md` (25 character types ranked by evidence, lip-sync tables, build specs) |
+| "keep improving it", "make it as good as the reference", overnight polish | **Director loop** | `references/director-loop.md` (`tools/produce.mjs` + per-area reviewer agents + learning log) |
 
 ## The production loop (B, C, D)
 
 1. **Study.** `vfa analyze REF` (or `vfa channel URL --top 20 --analyze` for a channel). Read `report.md`, look at `timeline.png` first, then contact sheets and keyframes. Write `style_bible.md` with measured numbers plus your reading of the story formula. `look_suggestion.json` already maps the grade, ink, DOF, grain and camera timing onto engine parameters.
 2. **Story.** Hook = the first sentence and the first frame. Fact-check every claim (web search). Script at the measured words-per-second. Then make a beat sheet: each beat gets its start/end time, shot, camera move and *why*. Reject topics the reference channel already covered.
 3. **Voice.** Generate or record the voice, then `py AUDIO/tts.py align vo.wav --out words.json`. Word timings are the clock of the whole video.
-   - Preferred: a premium voice (e.g. ElevenLabs via its connector). Offline OS voices (`tts.py say`) are for previews only.
-   - **Paid voices/APIs: show the estimated credit cost and get an explicit yes BEFORE generating.**
+   - Default: ElevenLabs. First `py AUDIO/tts.py estimate script.txt` (credits per model), show the user the cost, and only after an explicit yes run `py AUDIO/tts.py eleven script.txt --voice ID --out vo.wav --yes` (it refuses without `--yes`; it writes words.json from the character timestamps, which also drive lip-sync visemes). Offline OS voices (`tts.py say`) are for previews only.
+   - **Paid voices/APIs: show the estimated credit cost and get an explicit yes BEFORE every generation, including re-takes.**
 4. **Look test.** Scaffold with `node ENGINE/tools/new-project.mjs <id> --format short|long`. Build one key shot and render 3-6 stills (`render.mjs --stills ... --scale 0.5`). Put them next to reference keyframes (`vfa sbs`) and fix the biggest gap before animating everything.
 5. **Build** the scenes: world, characters, camera, overlays, captions. Mark every intended hard cut (`innerCuts`) and every big graphic slam (`events`) so QA can tell intent from glitches.
 6. **Stills review**, then a **full render** at native resolution: `node ENGINE/tools/render.mjs --project <id> --format <fmt> --fps 30|60`. Chunks are resumable.
 7. **Sound.** Derive the SFX cues from the same timing code or `timeline.json`, then `py AUDIO/mix.py plan.json --out master.wav` (masters to -14 LUFS / -1 dBTP). Re-run render.mjs with `--audio master.wav`: cached chunks are only concatenated and muxed.
-8. **QA gate.** `vfa qa FINAL.mp4 --plan timeline.json --fps 30 --duration S --ref REF_fingerprint.json`. A FAIL blocks delivery. Then LOOK at the sheets and score the judge rubric in `references/quality.md`, ideally with a fresh-context reviewer agent. Fix the worst three problems, re-render, re-measure. Stop when the gap table is green or the residuals are explained.
+8. **QA gate** (or all of 6-8 in one command: `node ENGINE/tools/produce.mjs --project ID --ref REF --ref-dir REF_DIR --style STYLE --change "..."`, then `py SKILL_DIR/analyzer/vfa_loop.py judgepack/collect/learn/lessons`; see `references/director-loop.md`). `vfa qa FINAL.mp4 --plan timeline.json --fps 30 --duration S --ref REF_fingerprint.json`. A FAIL blocks delivery. Then LOOK at the sheets and score the judge rubric in `references/quality.md`, ideally with a fresh-context reviewer agent. Fix the worst three problems, re-render, re-measure. Stop when the gap table is green or the residuals are explained.
 9. **Deliver.** Give the file path, resolution, whether it is native or upscaled (say which), fps, LUFS, the QA verdict, the remaining WARNs, and what was not verified.
 
 ## Non-negotiables
@@ -64,7 +66,15 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | channel style fingerprint | `vfa channel URL --top 20 --analyze`, then `vfa aggregate` |
 | whole-channel study, eras, what correlates with views | `vfa batch VIDEOS --out D --workers 4 --meta selection.json --group-key era` |
 | sentence-by-sentence script x camera x cuts x light | `vfa breakdown ANALYSIS_DIR` (analyze with `--speech whisper` first) |
-| cast look-dev sheet | `node ENGINE/tools/render.mjs --project modelsheet --format long --stills 0` |
+| cast look-dev sheet | `node ENGINE/tools/render.mjs --project modelsheet --format long --stills 0,40` (40 = visemes + side view) |
+| new character kinds (objects, animals, blobs, stick, chibi, flat vector, microbes) + style passes | `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 0,40,70,100,130` |
+| render-speed benchmark before changing defaults | `node ENGINE/tools/bench.mjs --project ID --frames 180-299 --variants default,c4,veryfast,default` |
+| one-command iteration: stills, render, audio, QA, gap, judge pack, learning log | `node ENGINE/tools/produce.mjs --project ID --ref ... --style ... --change "..."` |
+| per-area reviewer packs, collect scores, learning log | `py SKILL_DIR/analyzer/vfa_loop.py judgepack OURS_DIR REF_DIR --out judge` / `collect judge` / `lessons STYLE` |
+| CC0 models/HDRIs (Poly Haven), Kenney packs | `node ENGINE/tools/fetch-assets.mjs search|get|kenney`, then `loadModel()` |
+| audio-driven lip-sync (Rhubarb, free/offline, auto-installed) | `py AUDIO/lipsync.py vo.wav --out cues.json [--script script.txt]`, then `pose.cue = cueAt(f, fps, cues.mouthCues)` |
+| ElevenLabs voice (after a cost yes) | `py AUDIO/tts.py estimate script.txt`, then `tts.py eleven ... --yes` |
+| visual regression of the engine | `py tests/test_visual.py` in the repo (`--update` after an intended look change) |
 | reference vs ours, ranked fixes | `vfa compare REF OURS` |
 | side-by-side judge sheet | `vfa sbs --ref a.jpg,b.jpg --ours c.jpg,d.jpg --out sbs.jpg` |
 | final gate | `vfa qa VIDEO --plan timeline.json --ref REF` |
@@ -81,6 +91,8 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/craft.md`: cinematography, lighting/colour, animation/motion, editing/pacing, story/hooks/retention, typography/captions, sound. Measured defaults plus an anti-"AI-look" checklist
 - `references/quality.md`: QA gates, judge rubric, multi-agent gap analysis with file ownership, iteration protocol, honesty rules
 - `references/longform.md`: series bible, chapters, consistency across episodes, chunked renders, disk/time budgeting
+- `references/characters.md`: character-type research (what works where, evidence), viseme/lip-sync tables, specs for new kinds
+- `references/director-loop.md`: the automated improvement loop (produce -> per-area judges -> fixers by file ownership -> learning log)
 - `references/external.md`: optional paid/external integrations (premium voices, AI video plates, Blender photoreal, upscalers) and how to label them
 - `references/styles/*.md`: measured style profiles with engine recipes (start: `toonworld-explainer.md`, a 149-short channel study)
 - `references/reference-study.md`: the reference methodology this skill was built from, plus measured results

@@ -100,11 +100,20 @@ export const paint = {
   plaster: (color = "#f1e3c6", windows = 2, floors = 1, key = "") =>
     canvasTexture(`plaster${color}${windows}${floors}${key}`, 512, 512, (g, r) => {
       g.fillStyle = color; g.fillRect(0, 0, 512, 512);
-      for (let i = 0; i < 70; i++) {
-        g.fillStyle = vary(color, r, 0.02, 0.06, 0.08); g.globalAlpha = 0.25;
-        g.beginPath(); g.ellipse(r() * 512, r() * 512, 10 + r() * 50, 8 + r() * 30, r() * 3, 0, 7); g.fill();
+      for (let i = 0; i < 110; i++) { // painterly value noise (+-7%, judge/texture)
+        g.fillStyle = shade(color, (r() - 0.5) * 0.14); g.globalAlpha = 0.35;
+        g.beginPath(); g.ellipse(r() * 512, r() * 512, 10 + r() * 60, 8 + r() * 34, r() * 3, 0, 7); g.fill();
       }
-      g.globalAlpha = 1;
+      g.globalAlpha = 0.18; // fine speckle
+      for (let i = 0; i < 900; i++) { g.fillStyle = r() < 0.5 ? shade(color, -0.2) : shade(color, 0.12); g.fillRect(r() * 512, r() * 512, 2, 2); }
+      for (let i = 0; i < 5; i++) { // exposed-brick patches where the plaster chipped
+        const bx = r() * 440, by = 60 + r() * 360, bw = 40 + r() * 50, bh = 24 + r() * 26;
+        g.globalAlpha = 0.5; g.fillStyle = shade(color, -0.12);
+        for (let yy = 0; yy < bh; yy += 9) for (let xx = (yy / 9) % 2 ? -8 : 0; xx < bw; xx += 18) g.fillRect(bx + xx, by + yy, 15, 6);
+      }
+      const gr = g.createLinearGradient(0, 400, 0, 512); // grime band: bottom ~0.8 m darkens ~18%
+      gr.addColorStop(0, "rgba(40,24,30,0)"); gr.addColorStop(1, "rgba(40,24,30,0.3)");
+      g.globalAlpha = 1; g.fillStyle = gr; g.fillRect(0, 400, 512, 112);
       g.fillStyle = shade(color, -0.18); g.fillRect(0, 488, 512, 24); // base stones
       const fh = 512 / floors;
       for (let fl = 0; fl < floors; fl++) {
@@ -185,7 +194,7 @@ export const flat = {
     canvasTexture(`ftiles${color}${joint}${n}`, 512, 512, (g, r) => {
       const s = 512 / n;
       for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
-        g.fillStyle = vary(color, r, 0.01, 0.04, 0.05); g.fillRect(x * s, y * s, s, s);
+        g.fillStyle = vary(color, r, 0.02, 0.07, 0.1); g.fillRect(x * s, y * s, s, s); // per-tile variation (judge/texture)
         g.fillStyle = "rgba(255,255,255,0.10)"; g.fillRect(x * s, y * s, s, s * 0.06);
       }
       g.strokeStyle = joint; g.lineWidth = 5;

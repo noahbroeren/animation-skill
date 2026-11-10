@@ -104,7 +104,8 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
     from scipy.ndimage import median_filter
     base = median_filter(luma_d, size=15, mode="nearest")
     speed = np.hypot(A["dx"], A["dy"]) * pr.fps + np.abs(A["dlogs"]) * pr.fps
-    intended = lambda i: any(abs(i - c) <= 2 for c in cuts | planned) or any(-2 <= i - e <= 12 for e in events)
+    k = pr.fps / 30.0  # tolerance windows are seconds-based (authored in frames @30)
+    intended = lambda i: any(abs(i - c) <= 2 * k for c in cuts | planned) or any(-2 * k <= i - e <= 12 * k for e in events)
     pops = [int(i) for i in np.where((luma_d > 4 * base + 0.03) & (luma_d > 0.06))[0] if not intended(i) and speed[i] < 0.6]
     add("pops (unexplained frame jumps)", "PASS" if not pops else "FAIL", f"frames {pops[:30]}" if pops else "none")
     lm = A["luma_mean"]
@@ -120,9 +121,9 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
     add("clipping", "PASS" if cb < 0.02 and cw < 0.02 else "WARN", f"p90 clipped black {cb:.2%}, white {cw:.2%}")
     snaps = [m for s in fp["shots"] for m in s.get("moves", [])
              if m["ease"] == "snap" and m["peak_speed"] < 0.6 and not intended(s["start"] + 1 + m["start"])
-             and not any(abs(s["start"] + 1 + m["start"] - e) <= 15 for e in events | planned)]
+             and not any(abs(s["start"] + 1 + m["start"] - e) <= 15 * k for e in events | planned)]
     add("camera snaps", "PASS" if not snaps else "WARN",
-        f"{len(snaps)} moves shorter than 6 frames (reference styles typically glide 18-40f)" if snaps else "none")
+        f"{len(snaps)} moves shorter than 0.2 s (reference styles typically glide 0.6-1.5 s)" if snaps else "none")
     res = fp.get("resolution") or {}
     if res:
         eh = res.get("effective_height_median")

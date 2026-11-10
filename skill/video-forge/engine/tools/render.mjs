@@ -3,7 +3,7 @@
  * video-forge render orchestrator.
  *
  *   node tools/render.mjs --project demo-short --format short --fps 30 [--out DIR]
- *        [--chunk 20] [--concurrency 6] [--codec h264|h265|prores] [--crf 16]
+ *        [--chunk 20] [--concurrency 4] [--codec h264|h265|prores] [--crf 14] [--x264-preset medium]
  *        [--image-format jpeg|png] [--frames 0-299] [--audio master.wav] [--scale 1] [--clean]
  *   node tools/render.mjs --project X --stills 0,45,120 [--scale 0.5]
  *
@@ -43,10 +43,11 @@ const format = A.format ?? undefined;
 const out = path.resolve(A.out ?? path.join(ROOT, "out", A.project, `${format ?? "default"}_${fps}`));
 fs.mkdirSync(out, { recursive: true });
 const codec = A.codec ?? "h264";
-const crf = Number(A.crf ?? (codec === "h265" ? 18 : 16));
+const crf = Number(A.crf ?? (codec === "h265" ? 16 : 14)); // 14: ~YouTube-recommended upload bitrate for 1440p (crf 16 gave ~10 Mbps)
 const imageFormat = A["image-format"] ?? "jpeg";
 const scale = Number(A.scale ?? 1);
-const conc = Number(A.concurrency ?? Math.max(2, Math.min(8, Math.floor(os.cpus().length / 2))));
+// one GPU: more Chromium tabs contend for WebGL. tools/bench.mjs on a Ryzen 9800X3D + RTX 5070: 4 tabs 1.2-1.4x faster than 8
+const conc = Number(A.concurrency ?? Math.max(2, Math.min(4, Math.floor(os.cpus().length / 4))));
 
 const t0 = Date.now();
 console.log(`[render] bundling ${ROOT}/src ...`);
@@ -80,7 +81,7 @@ const chunks = [];
 for (let s = fa; s <= fb; s += chunkF) chunks.push([s, Math.min(fb, s + chunkF - 1)]);
 const ext = codec === "prores" ? "mov" : "mp4";
 const srcHash = hashDir(path.join(ROOT, "src"));
-const settings = { codec, crf, imageFormat, scale, w: comp.width, h: comp.height, fps: comp.fps, srcHash, props: inputProps };
+const settings = { codec, crf, x264: A["x264-preset"] ?? "medium", imageFormat, scale, w: comp.width, h: comp.height, fps: comp.fps, srcHash, props: inputProps };
 const chunkDir = path.join(out, "chunks");
 fs.mkdirSync(chunkDir, { recursive: true });
 const done = [];
@@ -93,7 +94,7 @@ for (const [s, e] of chunks) {
   await renderMedia({
     composition: comp, serveUrl, codec, outputLocation: file + ".part." + ext, inputProps, frameRange: [s, e], muted: true,
     crf: codec === "prores" ? undefined : crf, proResProfile: codec === "prores" ? "hq" : undefined,
-    x264Preset: codec === "h264" ? "slow" : undefined, imageFormat, jpegQuality: imageFormat === "jpeg" ? 95 : undefined,
+    x264Preset: codec === "h264" ? (A["x264-preset"] ?? "medium") : undefined, imageFormat, jpegQuality: imageFormat === "jpeg" ? 95 : undefined,
     pixelFormat: codec === "prores" ? "yuv422p10le" : "yuv420p", colorSpace: "bt709", scale, concurrency: conc, chromiumOptions, onBrowserLog,
     onProgress: ({ progress }) => process.stdout.write(`\r[chunk] ${s}-${e} ${(progress * 100).toFixed(0)}%   `),
   });

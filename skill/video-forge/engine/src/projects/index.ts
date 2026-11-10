@@ -5,5 +5,6 @@ import { modelsheet } from "./modelsheet";
 import { lighthouseShort } from "./lighthouse";
 import { pendulumLong } from "./pendulum";
 import { smoke } from "./smoke";
+import { charsheet } from "./charsheet";
 
-export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong];
+export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet];

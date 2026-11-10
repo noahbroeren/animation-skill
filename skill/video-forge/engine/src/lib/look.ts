@@ -130,14 +130,14 @@ const toonBase = deepMerge(base, {
 });
 LOOKS["toonworld-day"] = deepMerge(toonBase, {
   name: "toonworld-day",
-  grade: { blackPoint: 0.06, whitePoint: 0.97, contrast: 1.22, pivot: 0.5, saturation: 1.22, vibrance: 0.15,
-    shadowTint: [0.05, -0.008, 0.0], highlightTint: [-0.006, 0.004, 0.022] }, // lifted magenta-violet blacks; whites ~0.95-0.97, cool-neutral highs
+  grade: { blackPoint: 0.045, whitePoint: 0.97, contrast: 1.22, pivot: 0.5, saturation: 1.26, vibrance: 0.15, // manhole loop iter 3: p1 .126 -> ~.10
+    shadowTint: [0.05, -0.008, 0.0], highlightTint: [-0.03, -0.004, 0.05], tintM: [0.012, -0.01] }, // lifted magenta-violet blacks; whites ~0.95-0.97, cool-neutral highs
   vignette: { amount: 0.12, softness: 0.5 },
 });
 LOOKS["toonworld-golden"] = deepMerge(toonBase, {
   name: "toonworld-golden",
   grade: { blackPoint: 0.06, whitePoint: 0.97, contrast: 1.2, pivot: 0.5, saturation: 1.25, vibrance: 0.2,
-    shadowTint: [0.0, -0.012, 0.1], highlightTint: [0.035, 0.0, -0.01] }, // violet replacement shadows, pink (not yellow) highs
+    shadowTint: [0.0, -0.012, 0.08], highlightTint: [0.012, 0.004, 0.004] }, // violet replacement shadows, pink (not yellow) highs
   vignette: { amount: 0.2, softness: 0.45 },
 });
 LOOKS["toonworld-night"] = deepMerge(toonBase, {

@@ -44,8 +44,8 @@ export type ToonSetup = { cardTint?: string; rampLo: number; rampHi: number; sha
 
 /** Measured per lighting setup (references/styles/toonworld-explainer.md). */
 export const TOON_SETUPS: Record<"day" | "golden" | "night" | "interior", ToonSetup> = {
-  day: { cardTint: "#fff2ec", rampLo: 0.18, rampHi: 0.42, shadeMul: "#8a8296", shadeSat: 0.25, shadeReplace: "#6a6d92", shadeReplaceAmt: 0.0, litTint: "#fbf8f6", litGain: 1.08, ambient: 0.22, rim: 0.12, rimColor: "#ffffff", drift: 0.06 },
-  golden: { cardTint: "#ffd2a0", rampLo: 0.12, rampHi: 0.34, shadeMul: "#5c5578", shadeSat: 0.15, shadeReplace: "#5b5173", shadeReplaceAmt: 0.55, litTint: "#ffe0cf", litGain: 1.08, ambient: 0.16, rim: 0.3, rimColor: "#ffb36b", drift: 0.06 },
+  day: { cardTint: "#ffffff", rampLo: 0.18, rampHi: 0.42, shadeMul: "#8a8296", shadeSat: 0.25, shadeReplace: "#6a6d92", shadeReplaceAmt: 0.0, litTint: "#f6f8ff", litGain: 1.08, ambient: 0.22, rim: 0.12, rimColor: "#ffffff", drift: 0.06 },
+  golden: { cardTint: "#ffd2a0", rampLo: 0.12, rampHi: 0.34, shadeMul: "#5c5578", shadeSat: 0.15, shadeReplace: "#5b5173", shadeReplaceAmt: 0.3, litTint: "#ffe0cf", litGain: 1.08, ambient: 0.22, rim: 0.3, rimColor: "#ffb36b", drift: 0.06 },
   night: { cardTint: "#bdb6f0", rampLo: 0.15, rampHi: 0.4, shadeMul: "#3d3f86", shadeSat: 0.1, shadeReplace: "#26286a", shadeReplaceAmt: 0.45, litTint: "#b9c4ff", litGain: 0.85, ambient: 0.16, rim: 0.22, rimColor: "#8d8cff", drift: 0.05 },
   interior: { cardTint: "#ffe6cc", rampLo: 0.16, rampHi: 0.4, shadeMul: "#7d6f84", shadeSat: 0.2, shadeReplace: "#5e5070", shadeReplaceAmt: 0.15, litTint: "#ffe6c4", litGain: 1.05, ambient: 0.24, rim: 0.1, rimColor: "#ffe2b8", drift: 0.05 },
 };

@@ -8,16 +8,25 @@
  * full silhouette shadow ("lit like they physically exist in the world").
  */
 import * as THREE from "three";
-import { CharacterSpec, charCanvasSize, drawCharacter, Pose } from "../characters/toon";
+import { CharacterSpec, charCanvasSize, Pose } from "../characters/toon";
+import { drawAnyStyled, KindSpec, KPose, PassSpec } from "../characters/kinds";
 import { NOINK, SHADOW_ONLY } from "./post";
 import { cardShade } from "./shaders";
 
+/** Any 2D character: toon.ts specs (classic/toonworld) or kinds.ts specs (object, critter, blob, stick, chibi, flatvec,
+ *  microbe), optionally through a style pass (sketch/cutout/silhouette/pixelize). */
+export type AnySpec = CharacterSpec | KindSpec;
+
 export class CharacterCard {
-  spec: CharacterSpec;
+  spec: AnySpec;
+  /** optional 2D style pass applied to the card drawing */
+  pass?: PassSpec;
   mesh: THREE.Mesh;
   shadowCaster: THREE.Mesh;
   blob: THREE.Mesh;
-  private pose: Pose = {};
+  private pose: Pose | KPose = {};
+  private frame = 0;
+  private fps = 30;
   private sun?: THREE.DirectionalLight;
   private lightSide = -1;
   group = new THREE.Group();
@@ -30,7 +39,8 @@ export class CharacterCard {
   sunYaw = 0;
 
   /** heightM: character height in metres; texPx: drawing resolution (>= 1400 for 2K, 2048 for 4K close-ups). */
-  constructor(spec: CharacterSpec, heightM = 1.7, texPx = 1400, sun?: THREE.DirectionalLight) {
+  constructor(spec: AnySpec, heightM = 1.7, texPx = 1400, sun?: THREE.DirectionalLight, pass?: PassSpec) {
+    this.pass = pass;
     this.spec = spec;
     this.heightM = heightM;
     const { w, h } = charCanvasSize(texPx);
@@ -42,7 +52,7 @@ export class CharacterCard {
     this.tex.anisotropy = 8;
     const hm = heightM * 1.08, wm = hm * (w / h);
     const geo = new THREE.PlaneGeometry(wm, hm);
-    geo.translate(0, hm / 2 - heightM * (0.08 / (spec.heightHeads ?? 3.5)), 0); // feet exactly at y = 0
+    geo.translate(0, hm / 2 - heightM * (0.08 / ((spec as { heightHeads?: number }).heightHeads ?? 3.5)), 0); // feet exactly at y = 0
     const mat = cardShade(new THREE.MeshLambertMaterial({ map: this.tex, alphaTest: 0.5, side: THREE.DoubleSide }));
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = false;
@@ -72,19 +82,22 @@ export class CharacterCard {
     this.sunYaw = Math.atan2(d.x, d.z);
   }
 
-  /** Store the pose; drawn in place() once the light side relative to the camera is known. */
-  setPose(p: Pose) {
+  /** Store the pose; drawn in place() once the light side relative to the camera is known. Pass the frame for kinds
+   *  with frame-driven idle (blob antennae, microbe wobble, spring follow-through) and for boiling style passes. */
+  setPose(p: Pose | KPose, frame?: number, fps = 30) {
     this.pose = p;
+    if (frame !== undefined) { this.frame = frame; this.fps = fps; }
     this.draw();
   }
 
   private draw() {
-    const p: Pose = { light: this.lightSide, ...this.pose };
+    const p = { light: this.lightSide, ...this.pose } as Pose;
     const q = (v: number | undefined) => (v === undefined ? "" : Math.round(v * 200) / 200);
-    const key = JSON.stringify(Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Array.isArray(v) ? v.map(q) : typeof v === "number" ? q(v) : v])));
+    const animated = "kind" in this.spec || !!this.pass; // kinds idle per frame, passes boil per frame
+    const key = JSON.stringify(Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Array.isArray(v) ? v.map(q) : typeof v === "number" ? q(v) : v]))) + (animated ? `@${this.frame}` : "");
     if (key === this.lastKey) return;
     this.lastKey = key;
-    drawCharacter(this.g, this.spec, p, this.canvas.width, this.canvas.height);
+    drawAnyStyled(this.g, this.spec, p, this.canvas.width, this.canvas.height, this.frame, this.pass, this.fps);
     this.tex.needsUpdate = true;
   }
 
@@ -105,5 +118,55 @@ export class CharacterCard {
     }
     this.mesh.rotation.set(0, Math.atan2(cp.x - x, cp.z - z), 0);
     this.shadowCaster.rotation.set(0, this.sunYaw, 0);
+  }
+}
+
+// ------------------------------------------------------------------ crowds
+import { walkPose as _walk, blinkAt as _blink, mergePose as _merge, Expression as _Ex } from "../characters/toon";
+
+export type CrowdMember = {
+  spec: AnySpec; heightM?: number; pass?: PassSpec;
+  /** static position, or a path walked between t0..t1 (seconds) */
+  pos?: [number, number, number]; path?: { from: [number, number, number]; to: [number, number, number]; t0: number; t1: number };
+  expr?: _Ex; seed?: number;
+  /** if set, the member only moves/acts inside these [start, end] frame windows (measured: background crowds are
+   *  frozen except on cue) */
+  cueWindows?: [number, number][];
+};
+
+/**
+ * Many background characters cheaply: texture resolution by distance tier, poses updated on twos, optional cue-gated
+ * acting. update(frame, fps, camPos) every frame.
+ */
+export class CrowdPool {
+  members: { m: CrowdMember; card: CharacterCard }[] = [];
+  constructor(private scene: THREE.Scene, private sun?: THREE.DirectionalLight, private tierFor = (d: number) => (d < 6 ? 1200 : d < 14 ? 700 : d < 30 ? 420 : 240)) {}
+  add(m: CrowdMember, camDistanceHint = 10) {
+    const card = new CharacterCard(m.spec, m.heightM ?? 1.5, this.tierFor(camDistanceHint), this.sun, m.pass);
+    this.scene.add(card.group);
+    this.members.push({ m, card });
+    return this;
+  }
+  update(frame: number, fps: number, camPos: [number, number, number]) {
+    const f2 = frame - (frame % 2); // on twos
+    for (const { m, card } of this.members) {
+      const active = !m.cueWindows || m.cueWindows.some(([a, b]) => frame >= a && frame <= b);
+      const t = frame / fps;
+      let p = m.pos ?? [0, 0, 0];
+      let moving = false;
+      let dir = 1;
+      if (m.path) {
+        const u = Math.min(1, Math.max(0, (t - m.path.t0) / Math.max(0.01, m.path.t1 - m.path.t0)));
+        p = [m.path.from[0] + (m.path.to[0] - m.path.from[0]) * u, 0, m.path.from[2] + (m.path.to[2] - m.path.from[2]) * u];
+        moving = u > 0 && u < 1;
+        // facing on screen: compare movement direction with the camera's right vector
+        const fx = p[0] - camPos[0], fz = p[2] - camPos[2], rx = -fz, rz = fx;
+        dir = (m.path.to[0] - m.path.from[0]) * rx + (m.path.to[2] - m.path.from[2]) * rz >= 0 ? 1 : -1;
+      }
+      const fr = active ? f2 : (m.cueWindows?.[0]?.[0] ?? 0);
+      card.setPose(_merge(moving ? _walk(fr + (m.seed ?? 0) * 5, fps, 2.6) : {}, { expr: m.expr ?? "neutral", facing: dir as 1 | -1,
+        blink: _blink(fr, fps, m.spec.id + (m.seed ?? 0)), view: moving ? "side" : "front" }), fr, fps);
+      card.place(p[0], p[1], p[2], camPos);
+    }
   }
 }
