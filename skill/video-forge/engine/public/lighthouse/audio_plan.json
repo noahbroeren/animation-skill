@@ -1,0 +1,133 @@
+{
+ "duration": 23.2,
+ "fps": 30,
+ "target_lufs": -14,
+ "true_peak": -1.0,
+ "tracks": [
+  {
+   "file": "vo_tight.wav",
+   "start": 0.15,
+   "role": "voice",
+   "highpass": 80
+  },
+  {
+   "file": "bed.wav",
+   "start": 0,
+   "gain_db": -15,
+   "role": "music",
+   "fade_in": 0.4,
+   "fade_out": 1.2,
+   "duck_db": -8
+  },
+  {
+   "file": "sfx/wind.wav",
+   "start": 0,
+   "gain_db": -30,
+   "role": "ambience",
+   "loop": true
+  },
+  {
+   "file": "sfx/rumble.wav",
+   "start": 0.2,
+   "gain_db": -24,
+   "role": "ambience"
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "at_frame": 80,
+   "gain_db": -9,
+   "role": "sfx",
+   "pan": 0.3
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 192,
+   "gain_db": -16,
+   "role": "sfx",
+   "pan": -0.2
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "at_frame": 258,
+   "gain_db": -10,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/chime.wav",
+   "at_frame": 326,
+   "gain_db": -20,
+   "role": "sfx",
+   "pan": -0.15
+  },
+  {
+   "file": "sfx/chime.wav",
+   "at_frame": 340,
+   "gain_db": -20,
+   "role": "sfx",
+   "pan": 0.0
+  },
+  {
+   "file": "sfx/chime.wav",
+   "at_frame": 392,
+   "gain_db": -20,
+   "role": "sfx",
+   "pan": 0.15
+  },
+  {
+   "file": "sfx/pop.wav",
+   "at_frame": 327,
+   "gain_db": -14,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/pop.wav",
+   "at_frame": 334,
+   "gain_db": -14,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/pop.wav",
+   "at_frame": 394,
+   "gain_db": -14,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/thud.wav",
+   "at_frame": 424,
+   "gain_db": -18,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 462,
+   "gain_db": -12,
+   "role": "sfx",
+   "pan": 0.2
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "at_frame": 519,
+   "gain_db": -16,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "at_frame": 560,
+   "gain_db": -9,
+   "role": "sfx",
+   "pan": -0.3
+  },
+  {
+   "file": "sfx/impact.wav",
+   "at_frame": 645,
+   "gain_db": -10,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/chime.wav",
+   "at_frame": 646,
+   "gain_db": -12,
+   "role": "sfx"
+  }
+ ]
+}

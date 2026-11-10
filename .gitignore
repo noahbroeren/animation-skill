@@ -1,0 +1,18 @@
+node_modules/
+**/node_modules/
+skill/video-forge/engine/out/
+renders/
+work/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+*.part.*
+# regenerable audio (make_audio.py / sfx.py / music.py / mix.py recreate them)
+skill/video-forge/engine/public/*/sfx/
+skill/video-forge/engine/public/*/stems/
+skill/video-forge/engine/public/*/bed.wav
+skill/video-forge/engine/public/*/master.wav
+skill/video-forge/engine/public/*/vo_raw.wav
+skill/video-forge/engine/public/*/vo.wav.48k.wav
+skill/video-forge/engine/public/*/*.premaster.wav

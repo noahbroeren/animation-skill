@@ -1,0 +1,407 @@
+[
+ {
+  "word": "A",
+  "start": 0.0,
+  "end": 0.08
+ },
+ {
+  "word": "pendulum",
+  "start": 0.08,
+  "end": 0.42
+ },
+ {
+  "word": "clock",
+  "start": 0.42,
+  "end": 0.74
+ },
+ {
+  "word": "keeps",
+  "start": 0.74,
+  "end": 1.04
+ },
+ {
+  "word": "time",
+  "start": 1.04,
+  "end": 1.32
+ },
+ {
+  "word": "with",
+  "start": 1.32,
+  "end": 1.5
+ },
+ {
+  "word": "nothing",
+  "start": 1.5,
+  "end": 1.72
+ },
+ {
+  "word": "but",
+  "start": 1.72,
+  "end": 1.96
+ },
+ {
+  "word": "gravity.",
+  "start": 1.96,
+  "end": 2.34
+ },
+ {
+  "word": "And",
+  "start": 3.02,
+  "end": 3.18
+ },
+ {
+  "word": "here's",
+  "start": 3.18,
+  "end": 3.44
+ },
+ {
+  "word": "the",
+  "start": 3.44,
+  "end": 3.54
+ },
+ {
+  "word": "strange",
+  "start": 3.54,
+  "end": 3.82
+ },
+ {
+  "word": "part:",
+  "start": 3.82,
+  "end": 4.14
+ },
+ {
+  "word": "how",
+  "start": 4.6,
+  "end": 4.76
+ },
+ {
+  "word": "heavy",
+  "start": 4.76,
+  "end": 5.0
+ },
+ {
+  "word": "the",
+  "start": 5.0,
+  "end": 5.12
+ },
+ {
+  "word": "weight",
+  "start": 5.12,
+  "end": 5.28
+ },
+ {
+  "word": "is",
+  "start": 5.28,
+  "end": 5.44
+ },
+ {
+  "word": "doesn't",
+  "start": 5.44,
+  "end": 5.78
+ },
+ {
+  "word": "matter",
+  "start": 5.78,
+  "end": 5.98
+ },
+ {
+  "word": "at",
+  "start": 5.98,
+  "end": 6.14
+ },
+ {
+  "word": "all.",
+  "start": 6.14,
+  "end": 6.36
+ },
+ {
+  "word": "Only",
+  "start": 6.98,
+  "end": 7.2
+ },
+ {
+  "word": "the",
+  "start": 7.2,
+  "end": 7.34
+ },
+ {
+  "word": "length",
+  "start": 7.34,
+  "end": 7.54
+ },
+ {
+  "word": "does.",
+  "start": 7.54,
+  "end": 7.8
+ },
+ {
+  "word": "A",
+  "start": 8.54,
+  "end": 8.68
+ },
+ {
+  "word": "one",
+  "start": 8.68,
+  "end": 8.88
+ },
+ {
+  "word": "metre",
+  "start": 8.88,
+  "end": 9.08
+ },
+ {
+  "word": "pendulum",
+  "start": 9.08,
+  "end": 9.5
+ },
+ {
+  "word": "takes",
+  "start": 9.5,
+  "end": 9.8
+ },
+ {
+  "word": "about",
+  "start": 9.8,
+  "end": 10.04
+ },
+ {
+  "word": "two",
+  "start": 10.04,
+  "end": 10.28
+ },
+ {
+  "word": "seconds",
+  "start": 10.28,
+  "end": 10.62
+ },
+ {
+  "word": "to",
+  "start": 10.62,
+  "end": 10.86
+ },
+ {
+  "word": "swing",
+  "start": 10.86,
+  "end": 11.08
+ },
+ {
+  "word": "there",
+  "start": 11.08,
+  "end": 11.26
+ },
+ {
+  "word": "and",
+  "start": 11.26,
+  "end": 11.42
+ },
+ {
+  "word": "back.",
+  "start": 11.42,
+  "end": 11.74
+ },
+ {
+  "word": "Make",
+  "start": 12.32,
+  "end": 12.5
+ },
+ {
+  "word": "it",
+  "start": 12.5,
+  "end": 12.62
+ },
+ {
+  "word": "four",
+  "start": 12.62,
+  "end": 12.82
+ },
+ {
+  "word": "times",
+  "start": 12.82,
+  "end": 13.12
+ },
+ {
+  "word": "longer,",
+  "start": 13.12,
+  "end": 13.48
+ },
+ {
+  "word": "and",
+  "start": 13.94,
+  "end": 14.04
+ },
+ {
+  "word": "it",
+  "start": 14.04,
+  "end": 14.14
+ },
+ {
+  "word": "takes",
+  "start": 14.14,
+  "end": 14.38
+ },
+ {
+  "word": "twice",
+  "start": 14.38,
+  "end": 14.62
+ },
+ {
+  "word": "as",
+  "start": 14.62,
+  "end": 14.84
+ },
+ {
+  "word": "long.",
+  "start": 14.84,
+  "end": 15.12
+ },
+ {
+  "word": "That's",
+  "start": 15.8,
+  "end": 16.04
+ },
+ {
+  "word": "why",
+  "start": 16.04,
+  "end": 16.18
+ },
+ {
+  "word": "tall",
+  "start": 16.18,
+  "end": 16.42
+ },
+ {
+  "word": "grandfather",
+  "start": 16.42,
+  "end": 16.82
+ },
+ {
+  "word": "clocks",
+  "start": 16.82,
+  "end": 17.26
+ },
+ {
+  "word": "have",
+  "start": 17.26,
+  "end": 17.52
+ },
+ {
+  "word": "long",
+  "start": 17.52,
+  "end": 17.76
+ },
+ {
+  "word": "pendulums.",
+  "start": 17.76,
+  "end": 18.3
+ },
+ {
+  "word": "And",
+  "start": 18.92,
+  "end": 19.14
+ },
+ {
+  "word": "on",
+  "start": 19.14,
+  "end": 19.24
+ },
+ {
+  "word": "the",
+  "start": 19.24,
+  "end": 19.34
+ },
+ {
+  "word": "Moon,",
+  "start": 19.34,
+  "end": 19.56
+ },
+ {
+  "word": "where",
+  "start": 19.96,
+  "end": 20.14
+ },
+ {
+  "word": "gravity",
+  "start": 20.14,
+  "end": 20.48
+ },
+ {
+  "word": "is",
+  "start": 20.48,
+  "end": 20.72
+ },
+ {
+  "word": "six",
+  "start": 20.72,
+  "end": 20.88
+ },
+ {
+  "word": "times",
+  "start": 20.88,
+  "end": 21.2
+ },
+ {
+  "word": "weaker,",
+  "start": 21.2,
+  "end": 21.46
+ },
+ {
+  "word": "the",
+  "start": 21.96,
+  "end": 22.06
+ },
+ {
+  "word": "same",
+  "start": 22.06,
+  "end": 22.28
+ },
+ {
+  "word": "pendulum",
+  "start": 22.28,
+  "end": 22.66
+ },
+ {
+  "word": "would",
+  "start": 22.66,
+  "end": 22.86
+ },
+ {
+  "word": "swing",
+  "start": 22.86,
+  "end": 23.08
+ },
+ {
+  "word": "almost",
+  "start": 23.08,
+  "end": 23.44
+ },
+ {
+  "word": "two",
+  "start": 23.44,
+  "end": 23.7
+ },
+ {
+  "word": "and",
+  "start": 23.7,
+  "end": 23.84
+ },
+ {
+  "word": "a",
+  "start": 23.84,
+  "end": 23.92
+ },
+ {
+  "word": "half",
+  "start": 23.92,
+  "end": 24.12
+ },
+ {
+  "word": "times",
+  "start": 24.12,
+  "end": 24.34
+ },
+ {
+  "word": "slower.",
+  "start": 24.34,
+  "end": 24.68
+ }
+]

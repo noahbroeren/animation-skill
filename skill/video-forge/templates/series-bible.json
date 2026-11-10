@@ -1,0 +1,18 @@
+{
+  "series": "my-series",
+  "format": "long",
+  "fps": 30,
+  "look": { "preset": "cartoon-ink", "overrides": { "grade": { "blackPoint": 0.035 } }, "fromReference": "work/<id>/analysis/ref/look_suggestion.json" },
+  "palette": { "brand": "#ffb347", "accent": "#5ec8ff", "caption_highlight": "#ffd23f", "chapter_bg": "#0f1220" },
+  "typography": { "captions": "pop", "caption_words_per_page": 3, "title_font": "display", "body_font": "body" },
+  "camera": { "glide": 24, "creep": 0.012, "handheld": 0.02 },
+  "characters": {
+    "host": {
+      "spec": { "id": "host", "skin": "#f1c6a2", "hair": { "color": "#3a2618", "style": "short" }, "top": { "color": "#3f7dd6", "accent": "#ffd23f" }, "bottom": { "color": "#2d3550" }, "heightHeads": 3.5 },
+      "voice": { "provider": "elevenlabs|sapi|recording", "voice_id": "", "rate": 0 },
+      "signature": { "expressions": ["smug", "shock"], "prop": "sign" }
+    }
+  },
+  "locations": { "town": { "builder": "shared/town.ts", "seed": "town-v1" } },
+  "audio": { "target_lufs": -14, "true_peak": -1.0, "music": { "intro": "playful", "explain": "curious", "climax": "epic" }, "sfx_density_per_10s": 4 }
+}

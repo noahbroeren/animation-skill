@@ -1,0 +1,377 @@
+[
+ {
+  "word": "Lighthouses",
+  "start": 0.0,
+  "end": 0.36
+ },
+ {
+  "word": "don't",
+  "start": 0.36,
+  "end": 0.64
+ },
+ {
+  "word": "just",
+  "start": 0.64,
+  "end": 0.8
+ },
+ {
+  "word": "blink.",
+  "start": 0.8,
+  "end": 1.06
+ },
+ {
+  "word": "Each",
+  "start": 1.6,
+  "end": 1.76
+ },
+ {
+  "word": "one",
+  "start": 1.76,
+  "end": 1.94
+ },
+ {
+  "word": "blinks",
+  "start": 1.94,
+  "end": 2.18
+ },
+ {
+  "word": "its",
+  "start": 2.18,
+  "end": 2.32
+ },
+ {
+  "word": "own",
+  "start": 2.32,
+  "end": 2.46
+ },
+ {
+  "word": "name.",
+  "start": 2.46,
+  "end": 2.68
+ },
+ {
+  "word": "At",
+  "start": 3.16,
+  "end": 3.3
+ },
+ {
+  "word": "night,",
+  "start": 3.3,
+  "end": 3.5
+ },
+ {
+  "word": "a",
+  "start": 3.88,
+  "end": 3.96
+ },
+ {
+  "word": "sailor",
+  "start": 3.96,
+  "end": 4.24
+ },
+ {
+  "word": "sees",
+  "start": 4.24,
+  "end": 4.4
+ },
+ {
+  "word": "nothing",
+  "start": 4.4,
+  "end": 4.62
+ },
+ {
+  "word": "but",
+  "start": 4.62,
+  "end": 4.84
+ },
+ {
+  "word": "darkness,",
+  "start": 4.84,
+  "end": 5.16
+ },
+ {
+  "word": "and",
+  "start": 5.56,
+  "end": 5.72
+ },
+ {
+  "word": "one",
+  "start": 5.72,
+  "end": 5.88
+ },
+ {
+  "word": "tiny",
+  "start": 5.88,
+  "end": 6.08
+ },
+ {
+  "word": "light.",
+  "start": 6.08,
+  "end": 6.36
+ },
+ {
+  "word": "But",
+  "start": 6.8,
+  "end": 6.92
+ },
+ {
+  "word": "which",
+  "start": 6.92,
+  "end": 7.1
+ },
+ {
+  "word": "light?",
+  "start": 7.1,
+  "end": 7.28
+ },
+ {
+  "word": "You",
+  "start": 7.82,
+  "end": 7.94
+ },
+ {
+  "word": "see,",
+  "start": 7.94,
+  "end": 8.12
+ },
+ {
+  "word": "every",
+  "start": 8.46,
+  "end": 8.66
+ },
+ {
+  "word": "lighthouse",
+  "start": 8.66,
+  "end": 8.92
+ },
+ {
+  "word": "on",
+  "start": 8.92,
+  "end": 9.16
+ },
+ {
+  "word": "a",
+  "start": 9.16,
+  "end": 9.24
+ },
+ {
+  "word": "coast",
+  "start": 9.24,
+  "end": 9.44
+ },
+ {
+  "word": "gets",
+  "start": 9.44,
+  "end": 9.6
+ },
+ {
+  "word": "its",
+  "start": 9.6,
+  "end": 9.76
+ },
+ {
+  "word": "own",
+  "start": 9.76,
+  "end": 9.9
+ },
+ {
+  "word": "pattern.",
+  "start": 9.9,
+  "end": 10.14
+ },
+ {
+  "word": "Two",
+  "start": 10.72,
+  "end": 10.86
+ },
+ {
+  "word": "quick",
+  "start": 10.86,
+  "end": 11.06
+ },
+ {
+  "word": "flashes.",
+  "start": 11.06,
+  "end": 11.38
+ },
+ {
+  "word": "A",
+  "start": 11.96,
+  "end": 12.08
+ },
+ {
+  "word": "pause.",
+  "start": 12.08,
+  "end": 12.4
+ },
+ {
+  "word": "One",
+  "start": 12.94,
+  "end": 13.1
+ },
+ {
+  "word": "long",
+  "start": 13.1,
+  "end": 13.3
+ },
+ {
+  "word": "flash.",
+  "start": 13.3,
+  "end": 13.6
+ },
+ {
+  "word": "Sailors",
+  "start": 14.2,
+  "end": 14.54
+ },
+ {
+  "word": "look",
+  "start": 14.54,
+  "end": 14.7
+ },
+ {
+  "word": "that",
+  "start": 14.7,
+  "end": 14.86
+ },
+ {
+  "word": "pattern",
+  "start": 14.86,
+  "end": 15.08
+ },
+ {
+  "word": "up",
+  "start": 15.08,
+  "end": 15.26
+ },
+ {
+  "word": "in",
+  "start": 15.26,
+  "end": 15.36
+ },
+ {
+  "word": "a",
+  "start": 15.36,
+  "end": 15.44
+ },
+ {
+  "word": "book",
+  "start": 15.44,
+  "end": 15.54
+ },
+ {
+  "word": "called",
+  "start": 15.54,
+  "end": 15.78
+ },
+ {
+  "word": "the",
+  "start": 15.78,
+  "end": 15.94
+ },
+ {
+  "word": "List",
+  "start": 15.94,
+  "end": 16.08
+ },
+ {
+  "word": "of",
+  "start": 16.08,
+  "end": 16.22
+ },
+ {
+  "word": "Lights,",
+  "start": 16.22,
+  "end": 16.42
+ },
+ {
+  "word": "and",
+  "start": 16.74,
+  "end": 16.9
+ },
+ {
+  "word": "they",
+  "start": 16.9,
+  "end": 17.02
+ },
+ {
+  "word": "know",
+  "start": 17.02,
+  "end": 17.16
+ },
+ {
+  "word": "exactly",
+  "start": 17.16,
+  "end": 17.46
+ },
+ {
+  "word": "where",
+  "start": 17.46,
+  "end": 17.7
+ },
+ {
+  "word": "they",
+  "start": 17.7,
+  "end": 17.84
+ },
+ {
+  "word": "are.",
+  "start": 17.84,
+  "end": 18.04
+ },
+ {
+  "word": "So",
+  "start": 18.48,
+  "end": 18.66
+ },
+ {
+  "word": "that",
+  "start": 18.66,
+  "end": 18.78
+ },
+ {
+  "word": "light",
+  "start": 18.78,
+  "end": 18.96
+ },
+ {
+  "word": "isn't",
+  "start": 18.96,
+  "end": 19.22
+ },
+ {
+  "word": "just",
+  "start": 19.22,
+  "end": 19.34
+ },
+ {
+  "word": "saying",
+  "start": 19.34,
+  "end": 19.6
+ },
+ {
+  "word": "danger.",
+  "start": 19.6,
+  "end": 19.9
+ },
+ {
+  "word": "It's",
+  "start": 20.44,
+  "end": 20.68
+ },
+ {
+  "word": "saying:",
+  "start": 20.68,
+  "end": 20.9
+ },
+ {
+  "word": "I'm",
+  "start": 21.24,
+  "end": 21.4
+ },
+ {
+  "word": "here.",
+  "start": 21.4,
+  "end": 21.56
+ }
+]

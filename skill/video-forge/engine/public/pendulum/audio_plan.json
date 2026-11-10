@@ -1,0 +1,84 @@
+{
+ "duration": 31.6,
+ "fps": 30,
+ "target_lufs": -14,
+ "true_peak": -1.0,
+ "tracks": [
+  {
+   "file": "vo.wav",
+   "start": 3.5,
+   "role": "voice",
+   "highpass": 80
+  },
+  {
+   "file": "bed.wav",
+   "start": 0,
+   "gain_db": -13,
+   "role": "music",
+   "fade_in": 0.3,
+   "fade_out": 2.5,
+   "duck_db": -9
+  },
+  {
+   "file": "sfx/roomtone.wav",
+   "start": 0,
+   "gain_db": -34,
+   "role": "ambience",
+   "loop": true
+  },
+  {
+   "file": "sfx/riser.wav",
+   "start": 0.2,
+   "gain_db": -20,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 93,
+   "gain_db": -12,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "at_frame": 348,
+   "gain_db": -12,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "at_frame": 563,
+   "gain_db": -12,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 657,
+   "gain_db": -12,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/swish.wav",
+   "at_frame": 855,
+   "gain_db": -12,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/pop.wav",
+   "at_frame": 406,
+   "gain_db": -14,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/pop.wav",
+   "at_frame": 484,
+   "gain_db": -14,
+   "role": "sfx"
+  },
+  {
+   "file": "sfx/chime.wav",
+   "at_frame": 868,
+   "gain_db": -14,
+   "role": "sfx"
+  }
+ ]
+}
