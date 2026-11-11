@@ -31,9 +31,17 @@ def test_board_draft_gives_every_clause_a_place_a_shot_and_flags_missing_gags():
     rows = [json.loads(l.strip().rstrip(",")) for l in ts.splitlines() if l.strip().startswith('{"at"')]
     assert len(rows) >= 19, len(rows)                      # at least one beat per sentence (19), long sentences split
     assert rows[0]["at"] == 0 and "place" in rows[0] and rows[0]["key"]
-    assert all("shot" in b and "act" in b for b in rows)
-    sizes = [b["shot"]["size"] for b in rows]
-    assert all(a != b or a == "close" for a, b in zip(sizes, sizes[1:])), sizes    # never the same size twice (spoken lines may both be close)
+    assert all("act" in b for b in rows)
+    # 1.8: one shot per sentence. Clauses, short sentences and replies are beats INSIDE a shot (the first board had 34
+    # setups of 1.7 s; the reference holds 6 s), so there are clearly fewer shots than beats and no whips.
+    shots = [b for b in rows if "shot" in b]
+    assert 10 <= len(shots) <= 16 and len(shots) <= len(rows) - 5, (len(shots), len(rows))
+    assert not any(b.get("via") == "whip" for b in rows)
+    sizes = [b["shot"]["size"] for b in shots]
+    assert all(a != b for a, b in zip(sizes, sizes[1:])), sizes    # never the same size twice in a row
+    two = [b for b in shots if b["shot"]["size"] == "two"]
+    assert two and isinstance(two[0]["shot"]["on"], list) and len(two[0]["shot"]["on"]) == 2   # a dialogue exchange is one two-shot
+    assert any("focus" in b for b in rows if "shot" not in b)                                  # ... with a rack focus to the reply
     # anchors exist in the narration, in order
     toks = [w["word"].lower().strip('.,?!:"') for w in json.load(open(words))]
     pos = 0
@@ -44,6 +52,21 @@ def test_board_draft_gives_every_clause_a_place_a_shot_and_flags_missing_gags():
     stamps = [b["gag"]["stamp"] for b in rows if "stamp" in b.get("gag", {})]
     assert "1695" in stamps and "1696" in stamps            # years become stamps
     assert "Still needs a gag" in md and "**needs a gag**" in md
+
+
+def test_titles_auto_makes_variants_from_the_title_and_the_narration():
+    from story import auto_title_variants, digits_for_words
+    v = auto_title_variants("Why You Can't Shave a Coin", ["And that is why a quarter still has one hundred nineteen ridges, guarding silver it lost."])
+    assert v[0] == "Why You Can't Shave a Coin" and "Why Nobody Can Shave a Coin" in v and "The Real Reason You Can't Shave a Coin" in v
+    assert "Why a Quarter Has 119 Ridges" in v, v            # the payoff line of the script, numbers as digits
+    assert digits_for_words("two thousand and five coins") == "2005 coins" and digits_for_words("no numbers here") == "no numbers here"
+    assert len(v) == len(set(x.lower() for x in v))
+    out = os.path.join(tempfile.mkdtemp(), "titles.md")
+    script = os.path.join(SKILL, "story", "examples", "coins.txt")
+    r = subprocess.run([sys.executable, os.path.join(SKILL, "story", "story.py"), "titles", script, "--auto", "--out", out], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    md = open(out, encoding="utf-8").read()
+    assert md.count("| x") >= 4 and "Why Nobody Can Shave a Coin" in md
 
 
 def _bursts(times, dur):

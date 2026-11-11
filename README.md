@@ -82,6 +82,7 @@ py skill/video-forge/analyzer/vfa.py compare ref_analysis ours_analysis # gap ta
 cd skill/video-forge/engine
 node tools/make.mjs --project my-short                                  # script -> fact check -> voice -> storyboard -> stills -> audit -> render -> sound -> QA
 node tools/make.mjs --project my-short --from board --to stills         # the authoring loop: one named still per beat
+node tools/make.mjs --project my-short --from audit --also long        # + thumbnails, ranked title variants and the 16:9 version from the same storyboard
 node tools/new-project.mjs my-short --format short                      # scaffold a hand-built project instead
 node tools/render.mjs --project lighthouse --format short --stills 0,200,400 --scale 0.5
 node tools/render.mjs --project pendulum --format long4k --audio public/pendulum/master.wav

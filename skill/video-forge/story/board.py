@@ -6,9 +6,10 @@ sentence that makes the claim concrete. The draft is a starting point: the autho
 topic's own props (custom `props` in the board) and fixes marks, but never starts from an empty file.
 
 Proposals come from story/gags.json (keyword -> set / key / gag / crowd reaction), the beat roles from `infer_beats`
-and a shot ladder: a wide (or a medium for the hook) to open a place, never the same size twice in a row, a close for
-a spoken line, an insert when the gag is a prop, a point-of-view shot on see / look / show, a whip on then / but /
-suddenly. Camera moves cycle push, orbit, track, crane so no shot just holds.
+and ONE SHOT PER SENTENCE (1.8): the first clause carries the shot (a medium for the hook, a wide to open a place, an
+insert when the gag is a prop, never the same size twice in a row); the other clauses are beats inside that shot that
+change the acting, the gag and the `focus`. A dialogue exchange is one two-shot with a rack focus. No whips: the camera
+travels inside a place and dissolves to a new one. Camera moves cycle push, orbit, track, crane so no shot just holds.
 """
 from __future__ import annotations
 
@@ -135,8 +136,18 @@ def draft(sc: dict, sents: list[dict], words: list[dict] | None, pid: str) -> di
                 b["crowd"] = cm["crowd"]
             # the shot
             who = s["speaker"] if s["speaker"] != "narrator" else "hero"
-            if s["speaker"] != "narrator":
-                size = "close"
+            # 1.8: ONE SHOT PER SENTENCE. The first clause carries the shot; the other clauses change the acting, the gag and
+            # the focus inside it (the first board cut 34 setups into 57 s, 1.7 s each; the reference holds 6 s). A dialogue
+            # exchange is one two-shot with a rack focus from speaker to speaker.
+            prev_sp = sents[si - 1]["speaker"] if si else "narrator"
+            next_sp = sents[si + 1]["speaker"] if si + 1 < len(sents) else "narrator"
+            inside = (ci > 0 and not first_of_place) or (s["speaker"] != "narrator" and prev_sp not in ("narrator", who) and not first_of_place)
+            if s["speaker"] == "narrator" and si > 0 and not first_of_place and len(text.split()) <= 5:
+                inside = True  # a short sentence ("No two edges match.") is a beat of the shot before it
+            if inside:
+                size = None
+            elif s["speaker"] != "narrator":
+                size = "two" if next_sp not in ("narrator", who) else "medium"
             elif si == 0 and ci == 0:
                 size = "medium"
             elif first_of_place:
@@ -148,19 +159,24 @@ def draft(sc: dict, sents: list[dict], words: list[dict] | None, pid: str) -> di
             else:
                 size = next(x for x in ["medium", "close", "full", "low", "medium"] if x != last_size)
             shot: dict = {"size": size}
-            if size == "insert":
+            if size is None:
+                focus = gag["id"] if (gag and "prop" in gag) else (who if s["speaker"] != "narrator" else None)
+                if focus:
+                    b["focus"] = focus
+            elif size == "two":
+                shot["on"] = [who, next_sp]
+            elif size == "insert":
                 shot["on"] = gag["id"]
             elif size == "pov":
                 shot.update({"on": gag["id"], "from": who})
             elif size != "wide":
                 shot["on"] = who
                 shot["angle"] = 16 if len(beats) % 2 else -16
-            shot["move"] = MOVES[mv % len(MOVES)] if size not in ("insert", "pov", "close") else "push"
-            mv += 1
-            if rx(G["whip"]).search(clause.strip()) and not first_of_place and len(beats) and size != "wide":
-                b["via"] = "whip"
-            b["shot"] = shot
-            last_size = size
+            if size is not None:
+                shot["move"] = MOVES[mv % len(MOVES)] if size not in ("insert", "pov", "close", "two") else "push"
+                mv += 1
+                b["shot"] = shot  # no whips: the way in is a slow travel (same place) or a dissolve (new place)
+                last_size = size
             # the acting: a pose per beat role
             pose = {"hook": "hips", "mock": "point", "mystery": "shock", "incident": "shock", "pivot": "think", "explanation": "point", "payoff": "cheer"}.get(s["beat"], "idle")
             act = {who: {"pose": pose}}
@@ -179,7 +195,7 @@ def draft(sc: dict, sents: list[dict], words: list[dict] | None, pid: str) -> di
             if s["beat"] == "payoff" and ci == 0:
                 b["music"] = "full"
             beats.append(b)
-            rows.append({"n": len(beats), "beat": s["beat"], "at": a, "place": place_id, "shot": size + (" (whip)" if b.get("via") else ""), "key": b.get("key", ""), "gag": json.dumps(gag) if gag else "",
+            rows.append({"n": len(beats), "beat": s["beat"], "at": a, "place": place_id, "shot": size or ("(same shot" + (", focus " + b["focus"] if b.get("focus") else "") + ")"), "key": b.get("key", ""), "gag": json.dumps(gag) if gag else "",
                          "why": why, "text": clause, "suggest_set": sugg["set"] if (sugg and sugg["set"] != cur_set and not tag) else ""})
     return {"id": pid, "title": sc["head"].get("title", pid), "cast": cast, "places": places, "beats": beats, "rows": rows}
 

@@ -24,6 +24,8 @@
  *   produce   all of the above              produce.mjs: native render, sound (score.py for   vfa qa has no FAIL
  *                                           boards), mux, QA, per-key colour table, report
  *
+ * After `produce`: thumbnails (tools/thumbs.mjs, every board has them), title variants (story.py titles --auto) and,
+ * with `--also long`, the 16:9 version from the same storyboard. `--no-extras` skips the three.
  * `--to stills` is the fast authoring loop; `--from audit` re-renders after edits. Paid steps never run without
  * their flag: --yes-voice prints the credit estimate first (tts.py estimate) and then generates one take.
  */
@@ -122,7 +124,9 @@ if (on("stills")) {
   const r = render(["--stills", "cues+10", "--scale", "0.3"], path.join(out, "preview"));
   if (r.status !== 0) { process.stdout.write((r.stdout + r.stderr).slice(-3000)); need("stills", "the board failed to render: fix the error above (unknown mark, actor, prop or word anchor)"); }
   const sheet = run(PY, [path.join(ENGINE, "tools", "sheet.py"), path.join(out, "preview", "stills"), path.join(out, "preview", "stills_sheet.jpg")]);
-  done("stills", sheet.stdout.trim() || "stills rendered");
+  const lint = ((r.stdout ?? "") + (r.stderr ?? "")).split(/\r?\n/).filter((l) => l.startsWith("[board lint]"));
+  if (lint.length) console.log(lint.join("\n"));
+  done("stills", (sheet.stdout.trim() || "stills rendered") + (lint.length ? `; ${lint.length} storyboard remark(s) above` : "; storyboard lint clean"));
 }
 // ---- audit
 if (on("audit")) {
@@ -138,6 +142,17 @@ if (on("produce")) {
   const args = [path.join(ENGINE, "tools", "produce.mjs"), "--project", id, "--format", fmt, "--fps", fps, "--out", out, "--skip-stills", ...(A.ref ? ["--ref", A.ref] : []), ...(A.style ? ["--style", A.style] : []), ...(A.change ? ["--change", A.change] : [])];
   const r = spawnSync("node", args, { cwd: ENGINE, stdio: "inherit" });
   state.push(`- produce: exit ${r.status} (report: ${path.join(out, "report.md")})`);
+  // ---- 1.8: the same storyboard also gives the thumbnails, the title variants and (with --also long) the 16:9 version
+  if (r.status === 0 && !A["no-extras"]) {
+    const th = spawnSync("node", [path.join(ENGINE, "tools", "thumbs.mjs"), "--project", id, "--kind", "all", "--out", path.join(out, "thumbs")], { cwd: ENGINE, stdio: "inherit" });
+    state.push(`- thumbnails: exit ${th.status} (${path.join(out, "thumbs", "thumbs_sheet.jpg")}, ranked in thumbs_report.md)`);
+    if (fs.existsSync(script)) { const t = story(["titles", script, "--auto", "--out", path.join(out, "titles.md"), ...(A.style ? ["--style", A.style] : [])]); state.push(`- titles: exit ${t.status} (${path.join(out, "titles.md")})`); }
+    const also = A.also ? String(A.also).split(",").filter((f) => f && f !== fmt) : [];
+    for (const f2 of also) { // the board re-frames every shot for the other aspect; QA runs, the style comparison does not (the reference is 9:16)
+      const o2 = path.join(out, f2), r2 = spawnSync("node", [path.join(ENGINE, "tools", "produce.mjs"), "--project", id, "--format", f2, "--fps", fps, "--out", o2, "--skip-stills"], { cwd: ENGINE, stdio: "inherit" });
+      state.push(`- ${f2} version: exit ${r2.status} (${o2})`);
+    }
+  }
   fs.writeFileSync(path.join(out, "make.md"), `# make ${id}\n\n${state.join("\n")}\n`);
   process.exit(r.status ?? 1);
 }

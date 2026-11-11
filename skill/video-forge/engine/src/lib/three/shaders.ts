@@ -78,8 +78,8 @@ export const TOON_SETUPS: Record<"day" | "golden" | "night" | "interior" | "over
   interiorWindow: { cardTint: "#e8f0f6", rampLo: 0.16, rampHi: 0.40, shadeMul: "#6f7890", shadeSat: 0.15, shadeReplace: "#4c5670", shadeReplaceAmt: 0.20, litTint: "#f0f6ff", litGain: 1.06, ambient: 0.24, rim: 0.12, rimColor: "#e6f2ff", drift: 0.05, bounce: "#a08468" },
   sunsetBack:     { cardTint: "#ffc79a", rampLo: 0.10, rampHi: 0.30, shadeMul: "#4f4a7a", shadeSat: 0.15, shadeReplace: "#4a3f78", shadeReplaceAmt: 0.40, litTint: "#ffd2b0", litGain: 1.10, ambient: 0.26, rim: 0.55, rimColor: "#ffa65a", drift: 0.06, term: 0.18, termColor: "#ff6a2a" },
   day: { cardTint: "#ffffff", rampLo: 0.18, rampHi: 0.42, shadeMul: "#8a8296", shadeSat: 0.25, shadeReplace: "#6a6d92", shadeReplaceAmt: 0.0, litTint: "#f6f8ff", litGain: 1.08, ambient: 0.22, rim: 0.12, rimColor: "#ffffff", drift: 0.06 },
-  golden: { cardTint: "#ffd2a0", rampLo: 0.12, rampHi: 0.34, shadeMul: "#5c5578", shadeSat: 0.15, shadeReplace: "#5b5173", shadeReplaceAmt: 0.3, litTint: "#ffe0cf", litGain: 1.08, ambient: 0.22, rim: 0.3, rimColor: "#ffb36b", drift: 0.06 },
-  night: { cardTint: "#bdb6f0", rampLo: 0.15, rampHi: 0.4, shadeMul: "#3d3f86", shadeSat: 0.1, shadeReplace: "#26286a", shadeReplaceAmt: 0.45, litTint: "#b9c4ff", litGain: 0.85, ambient: 0.16, rim: 0.22, rimColor: "#8d8cff", drift: 0.05 },
+  golden: { cardTint: "#ffd2a0", rampLo: 0.12, rampHi: 0.34, shadeMul: "#655c78", shadeSat: 0.15, shadeReplace: "#6a5d70", shadeReplaceAmt: 0.16, litTint: "#ffe0cf", litGain: 1.08, ambient: 0.22, rim: 0.3, rimColor: "#ffb36b", drift: 0.06 },
+  night: { cardTint: "#bdb6f0", rampLo: 0.15, rampHi: 0.4, shadeMul: "#3d4078", shadeSat: 0.1, shadeReplace: "#232a52", shadeReplaceAmt: 0.42, litTint: "#b9c4ff", litGain: 0.85, ambient: 0.16, rim: 0.22, rimColor: "#8d8cff", drift: 0.05 },
   interior: { cardTint: "#ffe6cc", rampLo: 0.16, rampHi: 0.4, shadeMul: "#7d6f84", shadeSat: 0.2, shadeReplace: "#5e5070", shadeReplaceAmt: 0.15, litTint: "#ffe6c4", litGain: 1.05, ambient: 0.24, rim: 0.1, rimColor: "#ffe2b8", drift: 0.05 },
 };
 

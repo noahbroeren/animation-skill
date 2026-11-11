@@ -60,7 +60,7 @@ export type Act = {
 };
 export type Gag =
   | { prop: string; at: Mark; id?: string; /** where the prop's own origin is: its base (default) or its centre (floating coins) */ origin?: "base" | "center"; opts?: { color?: string; n?: number; text?: string; seed?: string }; scale?: number; ry?: number; in?: "pop" | "drop" | "none"; until?: string }
-  | { fx: FxKind; on: string; size?: number; color?: string; dy?: number }
+  | { fx: FxKind; on: string | V3; size?: number; color?: string; dy?: number }
   | { stamp: string; side?: "left" | "right"; color?: string; until?: string }
   | { label: string; y?: number; color?: string; until?: string }
   | { counter: { from?: number; to: number; prefix?: string; suffix?: string; decimals?: number }; y?: number; color?: string; until?: string }
@@ -447,19 +447,81 @@ export function boardProject(b: Board): ProjectDef {
   };
   return {
     id: b.id, title: b.title, defaultFormat: "short", fps: b.fps ?? 30, audio: b.audio ?? `${b.id}/master.wav`,
-    thumbnails: b.thumbnails ? (fps) => b.thumbnails!(planFor(fps).T, World) : undefined,
+    thumbnails: (fps) => (b.thumbnails ? b.thumbnails(planFor(fps).T, World) : autoThumbs(b, planFor(fps), World)), // 1.8: every board has thumbnails
     scenes: ({ fps }) => {
       const P = planFor(fps), S = boardSounds(b, fps);
       const scene: SceneDef = {
         id: "board", frames: P.total, innerCuts: P.cuts, innerSoft: P.soft, cues: Object.fromEntries(P.beats.map((x) => [x.id, x.f])),
         events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 6, x.f, x.f + 6] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
-        sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels,
+        sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps),
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
           return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={110} yAt={(fr) => { y = 0.7; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
       };
       return [scene];
     },
   };
+}
+/**
+ * What a reviewer would say about the edit, before anything is rendered (1.8). Printed by `tools/render.mjs --stills`
+ * and written to timeline.json (`lint`); `make.mjs` shows it after the stills.
+ */
+export function lintBoard(b: Board, fps: number): string[] {
+  const P = planBoard(b, fps), out: string[] = [], sec = (f: number) => (f / fps).toFixed(1);
+  // a SHOT starts on a cut or a dissolve; a travel (`glide`) re-frames inside the running shot
+  const starts = P.shotBeats.filter((x) => x.i === 0 || P.viaOf(x) !== "glide"), shots = starts.map((x, k) => ({ x, len: (starts[k + 1]?.f ?? P.total) - x.f }));
+  const asl = P.total / fps / shots.length;
+  if (asl < 3) out.push(`average shot ${asl.toFixed(1)} s (${shots.length} shots in ${sec(P.total)} s): hold shots 4-6 s and let beats change the acting, the gag and the \`focus\` inside a shot`);
+  for (const { x, len } of shots) if (len < 1.2 * fps && x.i > 0) out.push(`shot "${x.id}" lasts ${sec(len)} s (f ${x.f}): too short to read; make it a beat inside the shot before it, or give it 1.5 s`);
+  P.shotBeats.forEach((x, k) => { const len = (P.shotBeats[k + 1]?.f ?? P.total) - x.f; if (x.i > 0 && P.viaOf(x) === "glide" && len < 0.9 * fps) out.push(`the camera re-frames on "${x.id}" for only ${sec(len)} s (f ${x.f}): start the travel a beat earlier or drop it`); });
+  for (const x of P.shotBeats) if (x.i > 0 && P.viaOf(x) === "whip") out.push(`shot "${x.id}" comes in on a whip: use a slow travel inside a place, a dissolve to a new one`);
+  const texts: { id: string; f0: number; f1: number; kind: string }[] = [];
+  for (const x of P.beats) for (const g of gagsOf(x)) { const kind = "label" in g ? "label" : "counter" in g ? "counter" : "big" in g ? "big" : null; if (!kind) continue;
+    const until = (g as { until?: string }).until, f1 = until ? P.T[until] ?? P.total : Math.min(P.total, P.shotBeats.find((y) => y.f > x.f)?.f ?? P.total); texts.push({ id: x.id, f0: x.f, f1, kind });
+    if (kind === "big" && f1 - x.f < fps) out.push(`"${g && "big" in g ? g.big : ""}" (${x.id}) is on screen ${sec(f1 - x.f)} s: hold the climax at least 1 s (\`until\`)`); }
+  for (let i = 1; i < texts.length; i++) if (texts[i].f0 < texts[i - 1].f1 - 2) out.push(`two texts at once: ${texts[i - 1].kind} of "${texts[i - 1].id}" is still up when the ${texts[i].kind} of "${texts[i].id}" appears (f ${texts[i].f0}); end the first with \`until\``);
+  const acts = P.beats.filter((x) => x.act && Object.values(x.act).some((a) => a.pose !== undefined || a.walk !== undefined)).length;
+  if (acts < P.beats.length * 0.5) out.push(`only ${acts} of ${P.beats.length} beats change a pose or move someone: the people must DO the thing the narrator says (tools in the hand: \`hold\`, \`hold2\`)`);
+  return out;
+}
+
+// ------------------------------------------------------------------------------------------------ thumbnails from the storyboard (1.8)
+const TH_STOP = new Set(["why", "how", "what", "the", "real", "reason", "you", "we", "they", "your"]);
+/** 2-4 words from the title, on two lines: "Why You Can't Shave a Coin" -> "CAN'T SHAVE|A COIN". */
+export function thumbWords(title: string): { text: string; highlight?: string } {
+  let w = title.replace(/[^A-Za-z0-9' ]/g, " ").split(/\s+/).filter(Boolean);
+  while (w.length > 2 && TH_STOP.has(w[0].toLowerCase())) w = w.slice(1);
+  if (w.length > 4) w = w.filter((x) => x.length > 3 || /^\d/.test(x)).slice(0, 3);
+  const cut = Math.ceil(w.length / 2), neg = w.find((x) => /n't$|^(no|not|never|nobody)$/i.test(x));
+  return { text: (w.length > 2 ? `${w.slice(0, cut).join(" ")}|${w.slice(cut).join(" ")}` : w.join(" ")).toUpperCase(), highlight: (neg ?? [...w].sort((a, c) => c.length - a.length)[0])?.toLowerCase().replace(/[^a-z0-9]/g, "") };
+}
+/**
+ * A board without its own `thumbnails` gets these: the hook, the big word, the number, the evidence and the payoff, each
+ * frozen from the 3D world (no captions) with 1-3 huge words. `tools/thumbs.mjs` renders them at 1280x720, 2560x1440 and
+ * 1080x1920 and ranks them; a board that wants other moments declares `thumbnails` itself.
+ */
+export function autoThumbs(b: Board, P: BoardPlan, World: React.FC): ThumbVariant[] {
+  const scene = () => React.createElement(World), tw = thumbWords(b.title), out: ThumbVariant[] = [];
+  const two = (s: string) => { const w = s.toUpperCase().split(/\s+/); return w.length > 2 ? `${w.slice(0, Math.ceil(w.length / 2)).join(" ")}|${w.slice(Math.ceil(w.length / 2)).join(" ")}` : w.join(" "); };
+  const shotEnd = (i: number) => { const nx = P.shotBeats.find((x) => x.f > P.beats[i].f); return (nx?.f ?? P.total) - 8; };
+  const add = (id: string, note: string, frame: number, text: ThumbVariant["text"], more: Partial<ThumbVariant> = {}) => {
+    frame = Math.round(clamp(frame, 2, P.total - 2)); if (out.some((v) => Math.abs(v.frame - frame) < 12 || v.text?.text === text?.text)) return;
+    out.push({ id, note, frame, scene, text, layout: "top", focus: [0.5, 0.6], pop: 0.65, scrim: 0.35, cam: { dolly: 0.92 },
+      byKind: { long: { layout: "left", cam: { dolly: 0.92, shift: [0.2, 0] }, focus: [0.68, 0.52] } }, ...more }); };
+  // 1. the hook: the first thing that happens (the second beat), with the title's words
+  // (the END of the first shot: by then the camera has reached the person; words at the bottom so they do not cover the face)
+  add("hook", `the hook (end of the first shot) with the title's words`, shotEnd(0), tw, { layout: "bottom", focus: [0.5, 0.4], cam: { dolly: 0.95 }, byKind: {} });
+  // 2. the big word of the story (a `big` gag is the climax)
+  for (const x of P.beats) for (const g of gagsOf(x)) if ("big" in g) add("climax", `the climax "${g.big}" (${x.id})`, x.f + 14, { text: `${g.big.toUpperCase()}!`, highlight: g.big.toLowerCase().split(/\s+/)[0], pill: "#ff2d2d" });
+  // 3. the number (a counter gag): numbers pull clicks when the picture shows what is counted
+  for (const x of P.beats) for (const g of gagsOf(x)) if ("counter" in g) add(`n${g.counter.to}`, `the number ${g.counter.to} (${x.id})`, x.f + 20, { text: `${g.counter.prefix ?? ""}${g.counter.to}${(g.counter.suffix ?? "").toUpperCase()}`.trim().replace(/\s+(?=\S+$)/, "|"), highlight: String(g.counter.to) });
+  // 4. the evidence: an insert on a prop, with its label when it has one
+  for (const x of P.beats) { if (x.shot?.size !== "insert" || x.i === 0) continue; const end = shotEnd(x.i);
+    const lab = P.beats.filter((y) => y.f >= x.f && y.f <= end).flatMap((y) => gagsOf(y)).filter((g): g is Extract<Gag, { label: string }> => "label" in g).pop();
+    add(`proof${x.i}`, `the evidence (${x.id})`, end, lab ? { text: two(lab.label), highlight: lab.label.toLowerCase().split(/\s+/).sort((a, c) => c.length - a.length)[0] } : { text: tw.text + "?", highlight: tw.highlight }); }
+  // 5. the hardest hit that is not one of the above
+  const hit = [...P.beats].filter((x) => x.kick).sort((a, c) => (c.kick ?? 0) - (a.kick ?? 0))[0];
+  if (hit) add("hit", `the hardest hit (${hit.id})`, hit.f + 6, { text: tw.text + "?", highlight: tw.highlight });
+  return out.slice(0, 6);
 }
 function deepMergeLook<T>(a: T, o: Record<string, unknown>): T {
   const out: Record<string, unknown> = { ...(a as Record<string, unknown>) };

@@ -497,6 +497,62 @@ def title_variants(subject: str, fact: str | None, contrast: str | None) -> list
     return res
 
 
+_NW = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split())}
+_NW.update({w: 10 * (i + 2) for i, w in enumerate("twenty thirty forty fifty sixty seventy eighty ninety".split())})
+
+
+def digits_for_words(text: str) -> str:
+    """Scripts spell numbers for the voice ("one hundred nineteen"); a title wants digits ("119")."""
+    out, cur, run = [], 0, False
+    for w in text.split():
+        k = w.lower().strip(",")
+        if k in _NW:
+            cur += _NW[k]; run = True
+        elif k == "hundred" and run:
+            cur *= 100
+        elif k == "thousand" and run:
+            cur *= 1000
+        elif k == "and" and run and cur >= 100:
+            continue
+        else:
+            if run:
+                out.append(str(cur)); cur, run = 0, False
+            out.append(w)
+    if run:
+        out.append(str(cur))
+    return " ".join(out)
+
+
+def auto_title_variants(title: str, sentences: list[str]) -> list[str]:
+    """Variants of a script's own title (1.8, `titles --auto`): safe rewrites of the measured forms, plus every
+    "why <clause>" the narration itself says (the payoff line is often the better title)."""
+    t = re.sub(r"\s+", " ", title).strip().rstrip("?.!")
+    out = [t]
+    m = re.match(r"(?i)^why (you|we|they) (can't|cannot|don't|never) (.+)$", t)
+    if m:
+        who, neg, rest = m.group(1), m.group(2).lower(), m.group(3)
+        verb = {"can't": "Can", "cannot": "Can", "don't": "Should", "never": "Should"}[neg]
+        out += [f"The Real Reason {who.capitalize()} {neg.capitalize()} {rest}", f"Why Nobody {verb} {rest}", f"{who.capitalize()} {neg.capitalize()} {rest}. Here's Why"]
+    else:
+        m = re.match(r"(?i)^(why|how) (.+)$", t)
+        if m:
+            out += [f"The Real Reason {m.group(2)}", f"{m.group(2)}. Here's {m.group(1).capitalize()}"]
+        else:
+            out += [f"Why {t}", f"The Real Reason Behind {t}"]
+    for s in sentences:
+        for c in re.findall(r"(?i)\bwhy ((?:an?|the|every|your|no|most) [^,.;:!?]{8,60})", s):
+            c = re.sub(r"(?i)\b(still|really|actually|just) ", "", c).strip()
+            if 3 <= len(c.split()) <= 9:
+                out.append("Why " + digits_for_words(c))
+    seen, res = set(), []
+    for x in out:
+        x = title_case(x)
+        if x.lower() not in seen:
+            seen.add(x.lower())
+            res.append(x)
+    return res
+
+
 def rank_titles(titles: list[str], style: str | None, hook: str | None = None) -> list[dict]:
     name, _ = load_style(style)
     out = []
@@ -531,6 +587,8 @@ def main():
     p.add_argument("--subject", help="the thing, plural noun phrase, e.g. 'manhole covers'")
     p.add_argument("--fact", help="its odd behaviour, e.g. 'are round'"); p.add_argument("--contrast", help="the wrong alternative, e.g. 'square'")
     p.add_argument("--style"); p.add_argument("--json", action="store_true")
+    p.add_argument("--auto", action="store_true", help="add variants generated from the script's own title and narration")
+    p.add_argument("--out", help="also write the ranked list as markdown")
     a = ap.parse_args()
     if a.cmd == "calibrate":
         print(json.dumps(calibrate(a.words, a.voice, a.note)))
@@ -602,6 +660,8 @@ def main():
             hook = sc["sentences"][0]["text"] if sc["sentences"] else None
             if sc["head"].get("title"):
                 cands.append(sc["head"]["title"])
+                if a.auto:
+                    cands += auto_title_variants(sc["head"]["title"], [x["text"] for x in sc["sentences"]])
         cands += items
         if a.subject:
             cands += title_variants(a.subject, a.fact, a.contrast)
@@ -610,6 +670,12 @@ def main():
         seen = set()
         cands = [c for c in cands if not (c.lower() in seen or seen.add(c.lower()))]
         R = rank_titles(cands, style, hook)
+        if a.out:
+            L = ["# Title variants", "", "Ranked on the measured title data (score 0-100, predicted views against the channel median).", "", "| score | views | chars | title |", "|---|---|---|---|"]
+            L += [f"| {r['score']} | {'x' + str(r['x_views']) if r['x_views'] else '-'} | {r['chars']} | {r['title']} |" for r in R]
+            if R and R[0]["suggestions"]:
+                L += ["", "For the best one: " + " | ".join(R[0]["suggestions"])]
+            open(a.out, "w", encoding="utf-8").write("\n".join(L) + "\n")
         if a.json:
             print(json.dumps(R, indent=1))
         else:

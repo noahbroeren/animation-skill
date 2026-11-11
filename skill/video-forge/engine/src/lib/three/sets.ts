@@ -324,7 +324,7 @@ function street(o: SetOpts, c: Ctx): SetCore {
 function alley(o: SetOpts, c: Ctx): SetCore {
   const old = (o.era ?? "old") === "old", seed = o.seed ?? "alley", r = rng(seed);
   c.g.add(floorPlane(60, 60, lam({ map: old ? paint.cobble("#8f8474", [16, 16]) : asphalt([10, 10]) }), 0, 0.004, -4));
-  const brick = (col: string, rep: [number, number]) => lam({ map: brickTexture(col, "#c9b8a4", rep) });
+  const brick = (col: string, rep: [number, number]) => lam({ map: brickTexture(col, "#3e2c28", rep) });
   c.g.add(box(0.6, 10, 26, brick(o.wall ?? "#8a4f3c", [9, 4]), -3.3, 5, -4), box(0.6, 8.5, 26, brick("#7a5a48", [9, 3]), 3.3, 4.25, -4), box(7.2, 9, 0.6, brick("#94604a", [3, 4]), 0, 4.5, -15.3));
   c.g.add(at(rowFacade(9, 15, { color: "#6f5a52", seed: seed + "b" }), 0, 0, -20), at(rowFacade(10, 12, { color: "#7a665c", seed: seed + "f" }), -1, 0, 12.5, Math.PI));
   // doorway + lit window on the left wall, arch and a small window at the back
@@ -440,9 +440,9 @@ function shop(o: SetOpts, c: Ctx): SetCore {
 
 function workshop(o: SetOpts, c: Ctx): SetCore {
   const old = (o.era ?? "old") === "old" && !o.garage, seed = o.seed ?? "workshop", W = o.garage ? 9 : 8, D = 7.4, H = 5.2;
-  const rm = room(c, W, D, H, old ? brickTexture(o.wall ?? "#8f6a58", "#b8a590", [4, 3]) : wallpaper(o.wall ?? "#cfd4d8", "#c4c9ce", seed, [4, 2]), old ? lam({ map: flat.stone("#9a8f85", "#6f665e", [5, 8]) }) : lam({ map: asphalt([3, 5]), color: "#b9bcc6" }), old ? "#4a3626" : "#8a8f9a", old ? "#8a7a6a" : "#e9e6de");
+  const rm = room(c, W, D, H, old ? brickTexture(o.wall ?? "#8f6a58", "#3e2c28", [4, 3]) : wallpaper(o.wall ?? "#cfd4d8", "#c4c9ce", seed, [4, 2]), old ? lam({ map: flat.stone("#9a8f85", "#6f665e", [5, 8]) }) : lam({ map: asphalt([3, 5]), color: "#b9bcc6" }), old ? "#4a3626" : "#8a8f9a", old ? "#8a7a6a" : "#e9e6de");
   const bx = -2.1, bz = -D / 2 + 0.75; c.g.add(at(shadowed(table(2.8, 0.9, 0.95, "#7a5234")), bx, 0, bz));
-  c.g.add(box(3.0, 1.6, 0.06, lam({ color: old ? "#a8875e" : "#b9a27a" }), bx, 2.3, -D / 2 + 0.2, false)); // (a dark board on a brick wall measured as one brown mass)
+  c.g.add(box(3.0, 1.6, 0.06, lam({ map: paint.planks(old ? "#7a5640" : "#b9a27a", [5, 1], true) }), bx, 2.3, -D / 2 + 0.2, false)); // 1.8: a plank rack (a flat #a8875e board filled half of every close-up with one orange plane; a very dark one read as one mass with the brick)
   const tool = lam({ color: "#8d96a6" }), grip = lam({ color: "#b0603a" });
   for (let i = 0; i < 6; i++) { const tx = bx - 1.2 + i * 0.48, t = new THREE.Group(); t.add(box(0.06, 0.5, 0.04, grip, 0, -0.1, 0, false));
     if (i % 3 === 0) t.add(box(0.3, 0.14, 0.08, tool, 0, 0.2, 0, false)); else if (i % 3 === 1) t.add(box(0.05, 0.5, 0.03, tool, 0, 0.36, 0, false)); else { const d = cyl(0.12, 0.12, 0.03, tool, 0, 0.26, 0, 10); d.rotation.x = Math.PI / 2; t.add(d); }
@@ -457,7 +457,7 @@ function workshop(o: SetOpts, c: Ctx): SetCore {
     c.g.add(at(shelfUnit(2.0, 2.8, "goods", seed + "g"), W / 2 - 0.24, 0, -0.2, -Math.PI / 2)); marks.bay = [1.9, 0, -0.4]; marks.visitor = [-1.2, 0, 1.9];
     const hl = hangingLamp(1.2, true); c.g.add(at(hl.group, 1.2, H, -0.3)); c.glows.push({ m: hl.bulb, day: 0.8, night: 1.8 }); lampAt(c, 1.2, H - 1.5, -0.1, 3.4, "#f4f0e6", 11);
   } else {
-    const fx = 2.7, fz = -D / 2 + 0.9; c.g.add(box(1.9, 1.2, 1.4, lam({ map: brickTexture("#7a4a3a", "#b8a590", [2, 1]) }), fx, 0.6, fz), box(1.3, 3.9, 1.0, lam({ map: brickTexture("#6f4436", "#b8a590", [1, 4]) }), fx, 3.15, fz - 0.2));
+    const fx = 2.7, fz = -D / 2 + 0.9; c.g.add(box(1.9, 1.2, 1.4, lam({ map: brickTexture("#7a4a3a", "#3e2c28", [2, 1]) }), fx, 0.6, fz), box(1.3, 3.9, 1.0, lam({ map: brickTexture("#6f4436", "#3e2c28", [1, 4]) }), fx, 3.15, fz - 0.2));
     const fire = new THREE.MeshLambertMaterial({ color: "#ff8a3a", emissive: new THREE.Color("#ff6a1a"), emissiveIntensity: 1.6 }); c.g.add(box(1.15, 0.3, 0.9, fire, fx, 1.3, fz + 0.1, false)); { const gl = { m: fire, day: 1.2, night: 2.2, k: 1 }; c.glows.push(gl); flickerGlow(c, gl, 11); }
     smoke(c, fx, 1.6, fz + 0.25, { size: 0.32, rise: 2.4, drift: 0.05, n: 5, color: "#bfb6c6" }); sparks(c, fx, 1.45, fz + 0.3);
     for (let i = 0; i < 4; i++) { const lg = cyl(0.11, 0.11, 0.7, lam({ map: paint.planks("#6b4a30", [1, 1], true) }), fx + 1.0, 0.11 + (i > 1 ? 0.2 : 0), fz + 0.9 + (i % 2) * 0.24 + (i > 1 ? 0.12 : 0), 8); lg.rotation.z = Math.PI / 2; c.g.add(lg); }
@@ -480,7 +480,9 @@ function workshop(o: SetOpts, c: Ctx): SetCore {
 
 function office(o: SetOpts, c: Ctx): SetCore {
   const old = (o.era ?? "modern") === "old", seed = o.seed ?? "office", W = 7.8, D = 7.2, H = 5.2;
-  const rm = room(c, W, D, H, wallpaper(o.wall ?? (old ? "#6f8a7a" : "#dfe6ee"), old ? "#64806f" : "#d3dce6", seed, [4, 2]), lam({ map: paint.planks(old ? "#7a5234" : "#b9905e", [6, 9], false) }), old ? "#4a3626" : "#f4efe6");
+  const rm = room(c, W, D, H, wallpaper(o.wall ?? (old ? "#6f8a7a" : "#dfe6ee"), o.wall ? "#" + new THREE.Color(o.wall).multiplyScalar(0.9).getHexString() : old ? "#64806f" : "#d3dce6", seed, [4, 2]), lam({ map: paint.planks(old ? "#7a5234" : "#b9905e", [6, 9], false) }), old ? "#4a3626" : "#f4efe6");
+  // 1.8: a dark wainscot under a light wall, so a dark coat and hat silhouette against the upper wall (reviewer: one teal plane)
+  if (old) { const wm = lam({ map: paint.planks("#2f4a3e", [8, 1], true) }); c.g.add(box(W, 1.15, 0.08, wm, 0, 0.575, -D / 2 + 0.05, false), box(0.08, 1.15, D + 6, wm, -W / 2 + 0.05, 0.575, 3, false), box(W, 0.07, 0.12, lam({ color: "#c9a23a" }), 0, 1.18, -D / 2 + 0.07, false)); }
   viewWindow(c, 2.2, 2.3, -1.3, 2.7, -D / 2 + 0.02, old, seed, old); viewWindow(c, 1.2, 2.3, 1.3, 2.7, -D / 2 + 0.02, old, seed + "2", old);
   c.g.add(at(shelfUnit(2.6, 3.9, "books", seed), -W / 2 + 0.24, 0, -0.9, Math.PI / 2), at(shelfUnit(1.3, 3.9, "books", seed + "b"), 3.0, 0, -D / 2 + 0.26));
   const dx = 0.5, dz = -1.3; const wood = lam({ map: paint.planks(old ? "#6b3f26" : "#a57a4e", [3, 1], false) });
@@ -514,7 +516,7 @@ function office(o: SetOpts, c: Ctx): SetCore {
 
 function hall(o: SetOpts, c: Ctx): SetCore {
   const old = (o.era ?? "old") === "old", seed = o.seed ?? "hall", W = 13, D = 15, H = 9.5;
-  const rm = room(c, W, D, H, old ? brickTexture(o.wall ?? "#a8826a", "#cdbba6", [7, 5]) : wallpaper(o.wall ?? "#d8dce4", "#cdd2dc", seed, [7, 4]), lam({ map: old ? flat.stone("#b8ab9c", "#8a7f74", [6, 10]) : flat.tiles("#d9d4c8", "#a8a294", 6, [4, 7]) }), old ? "#5a4636" : "#9aa2b4", old ? "#9a8a78" : "#e9e6de");
+  const rm = room(c, W, D, H, old ? brickTexture(o.wall ?? "#a8826a", "#3e2c28", [7, 5]) : wallpaper(o.wall ?? "#d8dce4", "#cdd2dc", seed, [7, 4]), lam({ map: old ? flat.stone("#b8ab9c", "#8a7f74", [6, 10]) : flat.tiles("#d9d4c8", "#a8a294", 6, [4, 7]) }), old ? "#5a4636" : "#9aa2b4", old ? "#9a8a78" : "#e9e6de");
   const colM = lam({ color: old ? "#d9cdb8" : "#e9e6de" });
   for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) { const z = -5.6 + i * 4.2; c.g.add(cyl(0.3, 0.36, H - 0.6, colM, sx * 4.7, (H - 0.6) / 2, z, 14), box(0.9, 0.3, 0.9, colM, sx * 4.7, 0.15, z), box(0.9, 0.3, 0.9, colM, sx * 4.7, H - 0.45, z)); }
   for (let i = 0; i < 3; i++) viewWindow(c, 1.9, 4.0, -3.6 + i * 3.6, 5.0, -D / 2 + 0.02, old, seed + i, true);

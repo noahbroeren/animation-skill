@@ -146,3 +146,59 @@ Real samples first (`public/ID/sounds/`, `$VIDEO_FORGE_SOUNDS`, `~/.video-forge/
 `sound_report.md` lists which cue used what. `public/ID/score.json` (`{"track": "music_sneaky"}`) picks a licensed or
 generated music track from the same folders; without one the procedural bed is arranged from the beats' `music` marks.
 Audio files are not in the repository; `audio/soundlib.json` has the prompts that built the starter library.
+
+## 8. Added in 1.8: hold the shot, put the tool in the hand
+
+The first board was reviewed by three strict reviewers (camera 4, edit 3, depth 3, characters 4 out of 10). Their
+verdict in one line: **the person is shown, not the act.** 34 setups of 1.7 s each, tools floating next to empty hands,
+a climax that lasted half a second. What changed, and the rules that came out of it:
+
+**One shot per sentence, beats inside it.** A beat without `shot` stays in the running shot and changes the acting, the
+gag and the focus. Write a `shot` only where the picture really has to change; aim for 4-6 s per shot (the reference
+holds 6.2 s). `story.py board` drafts it this way: the first clause of a sentence carries the shot, clauses, short
+sentences and replies are beats inside it, a dialogue exchange is one two-shot. The storyboard lint
+(`lintBoard`, printed as `[board lint]` by `render.mjs --stills` and by `make.mjs` after the stills) names: an average
+shot under 3 s, shots under 1.2 s, whips, two texts on screen at once, a `big` word held under 1 s, and boards where
+fewer than half of the beats change a pose.
+
+| field | what it does |
+|---|---|
+| `focus: "id"` on a beat | racks the focus to that actor, prop or mark over 10 frames (until the next shot) |
+| `act.hold` / `act.hold2` | a prop in the hand / in the other hand: `{ item: "shears", hand: "R", open: 0.85, aim: 180 }`, `{ item: "coin", hand: "L", len: 0.15, cut: true }`; items: shears, coin, file, hammer, sack, quill, bar, axe, cane, flag, bag, phone, cup, paper |
+| `aim` on a held prop | absolute direction on screen in degrees (0 right, 90 up, 180 left), so shears point AT the coin whatever the arm does |
+| `crowd: "snip"` | everybody is at it (shears and a coin, blades opening and closing); the other kinds: gasp, cheer, laugh, boo, look, clap, point, sad |
+| gag `big` with `y`, `counter` with `color` | where the big word sits, the counter's colour (yellow by default) |
+| `caption: 0.8` on a beat | caption height from that beat on (captions are 110 px at 70 % of the height by default) |
+
+**Rules (each one was a defect in the first board):**
+1. The action word of the sentence is a pose change ON that word, with the tool in the hand: open blades on the beat
+   before, shut blades (`open: 0.02`, `lead: 1`) and a sparkle on "shaves". Numeric anchors (`at: 6.3`) time repeated
+   strokes between words.
+2. A subject that fills less than a fifth of the frame height is lost. `two`, `group` and `wide` on people who stand
+   apart give small figures in 9:16: bring them within 1-2 m of each other, or frame a point between them:
+   `{ size: "full", on: [x, 0, z], h: 1.9 }` (interiors clamp the camera, so the same shot is tighter there; exteriors
+   frame about 3 x `h`: use `h` 2.7-3.1 for three people on a street).
+3. Depth comes from staging, not from blur alone: one person 1-1.5 m nearer the camera than the other (the listener big
+   in the foreground, the speaker behind) reads as an over-the-shoulder shot.
+4. One text on screen at a time, and never the number the narrator is saying AND a stamp of it. End every stamp, label
+   and counter with `until`.
+5. The climax is one shot held for at least a second with its `big` word up the whole time; the person who causes it
+   WALKS in (`walk`, `speed: 3.4`) instead of appearing on a cut.
+6. Value separation before colour: the hero must not wear the wall's colour family. Dark walls (brick `#8a5a48`, dark
+   joints are the default now) behind light faces, a light wall over a dark wainscot behind dark coats (`office`,
+   `era: "old"`).
+7. End on the picture of the last line and stop: `tail: 0.45`.
+
+**Life in every set.** Sets carry their own motion (`update`): chimney and forge smoke, sparks, swinging signs, bunting,
+curtains and trees in the wind, flickering lanterns, candles and chandeliers. Characters breathe, shift their weight,
+move their eyes and nod a little on every spoken word. The camera is never level or still: a slow roll drift rides on
+every shot, and travels take 20-40 frames.
+
+**Thumbnails, titles and 16:9 from the same board.** Every board has thumbnails: without a `thumbnails` function
+`autoThumbs` picks the hook, the `big` word, the counter, the evidence insert and the hardest hit, each frozen from the
+3D world with 1-3 huge words (`thumbWords(title)`). After `produce`, `make.mjs` runs `tools/thumbs.mjs --kind all`
+(1280x720, 2560x1440, 1080x1920, ranked in `thumbs/thumbs_report.md`), writes `titles.md`
+(`story.py titles script.txt --auto`: rewrites of the script's title plus every "why ..." clause the narration says,
+ranked on the measured title data) and, with `--also long`, renders the 16:9 version into `OUT/long/`: the shot grammar
+re-frames every beat for the other aspect. Check its stills (`render.mjs --format long --stills cues+10`): props
+stacked for 9:16 may not fit 16:9.

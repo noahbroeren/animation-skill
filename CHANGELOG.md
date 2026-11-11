@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.8.0 - 2026-11-12
+- **The person is shown doing the thing.** Three strict reviewers scored the 1.7.1 coin short camera 4, edit 3, depth 3,
+  characters 4 out of 10: 34 setups of 1.7 s, tools floating beside empty hands, a climax of half a second. The proof
+  short is rewritten as 13 shots (`engine/src/projects/coins/index.tsx`): beats change the acting, the prop and the
+  focus inside a shot. Held props are new (`hold` / `hold2`: shears with opening blades, coin, file, hammer, sack,
+  quill, bar; `aim` points a prop at something), so the blades close on the word "shaves".
+- **Storyboard**: `Beat.focus` (rack focus on a word), travels of 20-40 frames, a slow roll drift on every shot, eyes
+  38 % from the top in medium and close shots, stronger depth of field per shot size, nods on spoken words, bigger
+  captions, crowd reaction `snip`. `lintBoard` names short shots, whips, two texts at once, a climax held under a
+  second and boards where people do not act; `render.mjs --stills` and `make.mjs` print it.
+- **`story.py board` drafts one shot per sentence** (clauses, short sentences and replies are beats inside it, a
+  dialogue exchange is one two-shot, no whips): 14 shots for the coin script, was 23.
+- **Life and dressing in every set**: smoke, sparks, swinging signs, bunting, curtains, flickering lanterns, candles and
+  chandeliers, wind in the trees, posters, shelves, cabinets, hanging rows of pots and tools; a plank rack instead of a
+  flat board in the workshop; a dark wainscot under the wall colour in the old office.
+- **Value and line**: brick has dark joints by default with a lit and a shaded edge per brick; world ink is heavier and
+  darker (`widthNear` 4.2, `hue` 0.1), bobble outlines 18 % lighter; golden shade is less violet, night less blue.
+- **Thumbnails, titles and 16:9 from the same storyboard**: every board has thumbnails (`autoThumbs`: hook, climax
+  word, number, evidence, hardest hit), `story.py titles --auto --out` writes ranked title variants (script title
+  rewrites plus every "why ..." clause the narration says, numbers as digits), and `make.mjs --also long` renders the
+  16:9 version. All three run after `produce`.
+- Fixed: the release bump had been rewriting a dependency's version in `package-lock.json` since 1.7.0 (restored; the
+  lock's own version now follows the release).
+- Measured on the coin short (same script, voice and sound; 1.7.1 -> 1.8.0): detected cuts 13 -> 4 (11 transitions, all soft), average shot (detector) 4.1 -> 11.3 s against 16.2 s in the reference,
+  hardest transition 18.6 -> 7.0, micro-animation 0.013 -> 0.015 (reference 0.020), background blur ratio 1.23 -> 1.39,
+  QA WARN with 0 FAIL. Final numbers of the last render: `renders/coins_final/report.md`.
+- Still weak (next): camera travel is slower than the reference (fast-motion frames and glide length), the day
+  interiors are warmer than the reference, and props stacked for 9:16 do not always fit the 16:9 frame.
+
 ## 1.7.1 - 2026-11-11
 - **The cuts were too hard (user feedback on the coin short), and most of them were a bug.** The board's camera
   "travels" jumped: a shot ended two frames before the next cue while the travel to the next shot had already

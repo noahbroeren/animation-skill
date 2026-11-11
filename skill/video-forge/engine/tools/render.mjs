@@ -61,6 +61,7 @@ const chromiumOptions = { gl: A.gl ?? "angle", enableMultiProcessOnLinux: true }
 const comp = await selectComposition({ serveUrl, id: A.project, inputProps, chromiumOptions });
 const planFile = path.join(out, "timeline.json");
 fs.writeFileSync(planFile, JSON.stringify({ project: A.project, width: comp.width, height: comp.height, fps: comp.fps, durationInFrames: comp.durationInFrames, ...comp.props.plan }, null, 1));
+for (const l of comp.props.plan?.lint ?? []) console.log(`[board lint] ${l}`);
 console.log(`[render] ${comp.id}: ${comp.width}x${comp.height} @ ${comp.fps} fps, ${comp.durationInFrames} frames (${(comp.durationInFrames / comp.fps).toFixed(2)} s), scale ${scale}${scale < 1 ? " (PREVIEW, not native)" : " (native)"}`);
 
 const auditLog = path.join(out, "shot_audit.log"), auditSeen = new Set();

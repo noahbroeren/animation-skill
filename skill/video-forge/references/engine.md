@@ -470,3 +470,29 @@ Bugs found on the way (both were silent):
 - `Raycaster` hits invisible meshes; the shot audit reported a hidden prop as an occluder.
 
 Measured lessons (coin short, first board): see the nine rules in `references/board.md` section 3.
+
+## Added in 1.8 (hold the shot, tools in the hand, life in the set, thumbnails and 16:9 from the board)
+
+Rules and the authoring table: `references/board.md` section 8. The pieces:
+
+- **Held props** (`lib/characters/kinds.ts`): `StickHold.item` adds `shears` (`open` 0..1), `coin` (`len` = radius in
+  head units, `cut` = a shaved flat), `file`, `hammer`, `sack`, `quill`, `bar`; `KPose.hold2` is the other hand; `aim`
+  is an absolute screen direction (0 right, 90 up, 180 left). Bobble outlines are 18 % lighter (`lineW` on a spec
+  overrides it).
+- **Board** (`lib/board.tsx`): `Beat.focus` (rack focus), `Act.hold2`, gag `big.y` / `counter.color`, fx `on` accepts
+  coordinates, travels 20-40 frames, a slow roll drift on every shot (`driftCam`), stronger depth of field per shot size
+  (`DOF_BY_SIZE`), word-onset nods and eye darts, captions 110 px at 70 %, `lintBoard` (in `timeline.json` as `lint`),
+  `autoThumbs` + `thumbWords`. Eye line: `Subject.eye` puts the eyes 38 % from the top in medium, close and two-shots
+  (`lib/shots.ts`); the settle after a cut is off by default.
+- **Sets** (`lib/three/sets.ts`): a life and dressing kit used by every set: `smoke`, `sparks`, `sway`, `hangSign`,
+  `bunting`, `curtains`, `picture`, `poster`, `wallShelf`, `pilaster`, `cabinet`, `hangingRow`, `sconce`,
+  `flickerGlow`, `chandelier`; wind on trees; the old office has a dark wainscot under the wall colour. Crowd spots of
+  the street are on the far pavement only (an extra on the camera side stood in front of the lens).
+- **Textures and look**: `brickTexture` has dark joints by default (`#3e2c28`), a lit top edge and a shaded bottom edge
+  per brick and a few burnt bricks. World ink `widthNear` 4.2, `hue` 0.1, `creases` 0.9 (was 3.0 / 0.22 / 0.75: the
+  world line was six times thinner than the character line). Golden shade is less violet (`shadowTint` b 0.045, shade
+  replace `#6a5d70` at 0.16); night is less blue (saturation 1.15, `shadowTint` b 0.06).
+- **Crowd** (`lib/three/cast.ts`): reaction `snip`.
+- **Tools**: `make.mjs` runs thumbnails, `titles.md` and (`--also long`) the 16:9 version after `produce`
+  (`--no-extras` skips them); `render.mjs` prints `[board lint]` lines; `story.py titles --auto --out FILE`;
+  `story.py board` drafts one shot per sentence.

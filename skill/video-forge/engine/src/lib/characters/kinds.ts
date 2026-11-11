@@ -543,7 +543,7 @@ export type StickSpec = KBase & {
 export type HandShape = "fist" | "point" | "open";
 /** 1.8: `shears` (`open` 0..1), `coin` (`len` = radius in head units, `cut` = a shaved flat), `file`, `hammer`, `sack`, `quill`: tools belong IN the hand.
  *  A prop floating next to an empty hand reads as clip art (reviewer, coin short). A second prop goes in `KPose.hold2`. */
-export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper" | "shears" | "coin" | "file" | "hammer" | "sack" | "quill" | "bar"; open?: number; cut?: boolean; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
+export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper" | "shears" | "coin" | "file" | "hammer" | "sack" | "quill" | "bar"; open?: number; cut?: boolean; /** absolute direction on screen in degrees (0 = right, 90 = up, 180 = left) instead of `angle` relative to the forearm: shears that must point AT the coin */ aim?: number; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
 export type ChibiSpec = KBase & {
   kind: "chibi"; skin: string;
   hair?: { color: string; style: "short" | "bob" | "spiky" | "long" | "bun" | "curly" | "bald" | "side" };
@@ -573,7 +573,7 @@ const groundOf = (H: number, heads?: number) => H - ((H / 1.08) * 0.08) / (heads
  */
 export function drawKind(g: CanvasRenderingContext2D, s: KindSpec, p: KPose, W: number, H: number, frame = 0, fps = 30) {
   const u = H / 1.08, facing = p.facing ?? 1;
-  const c: Ctx = { g, u, lw: Math.max(1.5, u * 0.012), ink: s.ink ?? INK, light: (p.light ?? -1) * facing, side: p.view === "side", t: frame / fps, frame, three: s.kind === "bobble" && p.view === "three" };
+  const c: Ctx = { g, u, lw: Math.max(1.5, u * 0.012 * (s.lineW ?? (s.kind === "bobble" ? 0.82 : 1))), ink: s.ink ?? INK, light: (p.light ?? -1) * facing, side: p.view === "side", t: frame / fps, frame, three: s.kind === "bobble" && p.view === "three" };
   const E = EX[p.expr ?? "neutral"] ?? EX.neutral;
   // squash limit per kind (characters.md 4.1 table / 5.3 A rigidity rule)
   const maxSq = s.kind === "object" ? 0.3 * (1 - (s.rigidity ?? 0.4)) : s.kind === "blob" ? s.maxSquash ?? 0.35 : s.kind === "microbe" ? 0.3
@@ -1255,7 +1255,7 @@ function stickHat(c: Ctx, hat: StickHat, h: V2, d: number, tilt = 0) {
 
 /** A held prop along the forearm (elbow -> hand) of arm `a`. */
 function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: number) {
-  const g = c.g, ang = Math.atan2(a.e[1] - a.j[1], a.e[0] - a.j[0]) + rad(h.angle ?? 0), L = (h.len ?? (h.item === "axe" ? 2.2 : 1.7)) * d;
+  const g = c.g, ang = h.aim !== undefined ? -rad(h.aim) : Math.atan2(a.e[1] - a.j[1], a.e[0] - a.j[0]) + rad(h.angle ?? 0), L = (h.len ?? (h.item === "axe" ? 2.2 : 1.7)) * d;
   g.save(); g.translate(a.e[0], a.e[1]); g.rotate(ang);
   const wood = h.color ?? "#9a6a3c";
   if (h.item === "axe") {
@@ -1285,7 +1285,7 @@ function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: numb
   } else if (h.item === "shears") {
     const o = 0.1 + 0.5 * (h.open ?? 0.6), Lb = (h.len ?? 0.95) * d;
     for (const sgn of [1, -1]) { g.save(); g.rotate(sgn * o * 0.5);
-      part(c, poly([[d * 0.02, -w * 0.16], [Lb, -w * 0.04], [Lb, w * 0.1], [d * 0.02, w * 0.16]]), "#c3cbd8", { off: 0 });
+      part(c, poly([[d * 0.02, -d * 0.06], [Lb, -d * 0.012], [Lb, d * 0.024], [d * 0.02, d * 0.06]]), "#d3dae6", { off: 0 }); // blades wide enough to read as steel at feed size
       g.strokeStyle = c.ink; g.lineWidth = c.lw * 1.6; g.beginPath(); g.ellipse(-d * 0.14, sgn * d * 0.1, d * 0.12, d * 0.09, 0, 0, Math.PI * 2); g.stroke(); g.restore(); }
     part(c, ell(d * 0.03, 0, w * 0.2, w * 0.2), "#5c6678", { off: 0 });
   } else if (h.item === "file" || h.item === "quill") {
@@ -1296,7 +1296,7 @@ function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: numb
     const Lh = (h.len ?? 1.0) * d; part(c, rrect(-Lh * 0.18, -w * 0.3, Lh, w * 0.6, w * 0.25), wood, { off: 0 });
     part(c, rrect(Lh * 0.66, -d * 0.24, d * 0.3, d * 0.48, d * 0.05), "#7d8696", { off: d * 0.04, thick: true });
   } else if (h.item === "bar") {
-    g.rotate(-ang); part(c, poly([[-d * 0.34, d * 0.02], [d * 0.34, d * 0.02], [d * 0.26, -d * 0.2], [-d * 0.26, -d * 0.2]]), h.color ?? "#e4e8f0", { off: d * 0.03, thick: true });
+    g.rotate(-ang); g.scale(h.len ?? 1, h.len ?? 1); part(c, poly([[-d * 0.34, d * 0.02], [d * 0.34, d * 0.02], [d * 0.26, -d * 0.2], [-d * 0.26, -d * 0.2]]), h.color ?? "#e4e8f0", { off: d * 0.03, thick: true });
     g.strokeStyle = "#ffffff"; g.lineWidth = c.lw * 1.4; g.beginPath(); g.moveTo(-d * 0.18, -d * 0.14); g.lineTo(d * 0.1, -d * 0.14); g.stroke();
   } else if (h.item === "sack") {
     g.rotate(-ang); const pth = new Path2D(); pth.moveTo(-d * 0.28, d * 0.55); pth.quadraticCurveTo(-d * 0.42, d * 0.1, -d * 0.1, -d * 0.02); pth.lineTo(d * 0.1, -d * 0.02); pth.quadraticCurveTo(d * 0.42, d * 0.1, d * 0.28, d * 0.55); pth.closePath();

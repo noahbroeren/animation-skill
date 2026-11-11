@@ -525,11 +525,16 @@ export function lattice(w: number, h: number, o: { cell?: number; color?: string
   return g;
 }
 /** Brick texture (running bond). */
-export const brickTexture = (color = "#a8553c", mortar = "#d9c7b0", rep: [number, number] = [2, 2]) =>
-  canvasTexture(`brick|${color}|${mortar}`, 512, 512, (g, r) => {
+/** 1.8: the joints are DARK by default (#3e2c28). Light mortar made the most frequent edge of every interior a light line
+ *  (ink-on-edges 0.19 against 0.35 in the reference) and kept the wall as bright as the faces in front of it. */
+export const brickTexture = (color = "#a8553c", mortar = "#3e2c28", rep: [number, number] = [2, 2]) =>
+  canvasTexture(`brick3|${color}|${mortar}`, 512, 512, (g, r) => {
     g.fillStyle = mortar; g.fillRect(0, 0, 512, 512);
     const bh = 512 / 8, bw = 512 / 4;
-    for (let y = 0; y < 8; y++) for (let x = -1; x < 4; x++) { g.fillStyle = vary(color, r, 0.03, 0.1, 0.12); g.fillRect(x * bw + (y % 2 ? bw / 2 : 0) + 4, y * bh + 4, bw - 8, bh - 8); }
+    for (let y = 0; y < 8; y++) for (let x = -1; x < 4; x++) { const x0 = x * bw + (y % 2 ? bw / 2 : 0) + 3, y0 = y * bh + 3, burnt = r() < 0.12;
+      g.fillStyle = vary(burnt ? shadeHex(color, -0.1) : color, r, 0.03, 0.1, 0.18); g.fillRect(x0, y0, bw - 6, bh - 6);
+      g.fillStyle = "rgba(255,255,255,0.10)"; g.fillRect(x0, y0, bw - 6, 5); g.fillStyle = "rgba(20,8,10,0.16)"; g.fillRect(x0, y0 + bh - 12, bw - 6, 6); // a lit top edge and a shaded bottom edge: bricks, not tiles
+      if (r() < 0.3) { g.fillStyle = "rgba(20,8,10,0.14)"; g.beginPath(); g.ellipse(x0 + r() * bw, y0 + r() * bh, 6 + r() * 16, 3 + r() * 6, r() * 3, 0, 7); g.fill(); } }
   }, rep);
 /** Wooden crate with a frame and a diagonal brace on every face. */
 export function crate(s = 0.6, o: { color?: string; seed?: string; label?: string } = {}) {
