@@ -10,6 +10,7 @@
  *   flatvec  Kurzgesagt-like: no outline, two-tone fills, rim light; bird + person (5.3 F)
  *   microbe  cell / bacterium / virus / rbc / wbc / heart / brain with a wobbling membrane (5.3 G)
  *   passes   sketch (vector, jittered double line), cutout, silhouette, pixelize on ANY 2D canvas (5.3 H)
+ *   bobble   big round head, pill torso, rubber-hose IK limbs with fists/shoes, 11 outfits, 10 hairs, 10 hats (5.3 I)
  *
  * Every kind consumes the shared toon.ts `Pose` (expr, blink, look, mouth, viseme, armL/armR, legL/legR,
  * lean, bob, squash, facing, view, light) plus the optional extras in `KPose`. One shared FaceRig draws
@@ -524,7 +525,7 @@ export type StickSpec = KBase & {
   build?: "slim" | "regular" | "stout"; cheeks?: boolean;
 };
 /** Held props for stick figures: drawn along the forearm of the holding hand (angle = extra rotation in deg). */
-export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag"; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat };
+export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag"; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
 export type ChibiSpec = KBase & {
   kind: "chibi"; skin: string;
   hair?: { color: string; style: "short" | "bob" | "spiky" | "long" | "bun" | "curly" | "bald" | "side" };
@@ -542,7 +543,7 @@ export type MicrobeSpec = KBase & {
   kind: "microbe"; form: "cell" | "bacterium" | "virus" | "rbc" | "wbc" | "heart" | "brain";
   color: string; inner?: string; accent?: string; noise?: number; wobbleHz?: number; organelles?: number; face?: Partial<FaceSpec>;
 };
-export type KindSpec = ObjectSpec | CritterSpec | BlobSpec | StickSpec | ChibiSpec | FlatvecSpec | MicrobeSpec;
+export type KindSpec = ObjectSpec | CritterSpec | BlobSpec | StickSpec | ChibiSpec | FlatvecSpec | MicrobeSpec | BobbleSpec;
 
 // ================================================================ dispatcher
 /** Same ground line as toon.ts / CharacterCard: feet at H - (H/1.08) * 0.08 / heightHeads. */
@@ -558,7 +559,7 @@ export function drawKind(g: CanvasRenderingContext2D, s: KindSpec, p: KPose, W: 
   const E = EX[p.expr ?? "neutral"] ?? EX.neutral;
   // squash limit per kind (characters.md 4.1 table / 5.3 A rigidity rule)
   const maxSq = s.kind === "object" ? 0.3 * (1 - (s.rigidity ?? 0.4)) : s.kind === "blob" ? s.maxSquash ?? 0.35 : s.kind === "microbe" ? 0.3
-    : s.kind === "chibi" ? 0.2 : s.kind === "critter" ? 0.12 : s.kind === "stick" ? 0.1 : 0.06;
+    : s.kind === "chibi" ? 0.2 : s.kind === "bobble" ? 0.18 : s.kind === "critter" ? 0.12 : s.kind === "stick" ? 0.1 : 0.06;
   const actSq = s.kind === "blob" || s.kind === "microbe" || s.kind === "object" ? E.act?.squash ?? 1 : 1;
   const sq = clamp((p.squash ?? 1) * actSq, 1 - maxSq, 1 + maxSq), sc = s.kind === "blob" || s.kind === "microbe" ? E.act?.scale ?? 1 : 1;
   g.clearRect(0, 0, W, H);
@@ -568,13 +569,14 @@ export function drawKind(g: CanvasRenderingContext2D, s: KindSpec, p: KPose, W: 
   g.scale(sc / Math.sqrt(sq), sc * sq); // volume-preserving (characters.md 4.7)
   g.rotate(rad(p.lean ?? 0));
   g.lineJoin = "round"; g.lineCap = "round";
-  const bobUnit = s.kind === "stick" ? u / (s.heightHeads ?? 5.5) : s.kind === "chibi" ? u / (s.heightHeads ?? 2.3) : s.kind === "critter" ? u / 2.7 : s.kind === "flatvec" ? u / 3.2 : u * 0.66;
+  const bobUnit = s.kind === "bobble" ? u / (s.heightHeads ?? 3.4) : s.kind === "stick" ? u / (s.heightHeads ?? 5.5) : s.kind === "chibi" ? u / (s.heightHeads ?? 2.3) : s.kind === "critter" ? u / 2.7 : s.kind === "flatvec" ? u / 3.2 : u * 0.66;
   g.translate(0, (p.bob ?? 0) * bobUnit);
   switch (s.kind) {
     case "object": drawObject(c, s, p); break;
     case "critter": (s.stance === "quadruped" ? drawQuad : drawBiped)(c, s, p, W); break;
     case "blob": drawBlob(c, s, p); break;
     case "stick": drawStick(c, s, p); break;
+    case "bobble": drawBobble(c, s, p); break;
     case "chibi": drawChibi(c, s, p); break;
     case "flatvec": drawFlat(c, s, p); break;
     case "microbe": drawMicrobe(c, s, p); break;
@@ -1253,7 +1255,9 @@ function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: numb
   } else if (h.item === "bag") {
     part(c, rrect(-d * 0.35, d * 0.05, d * 0.7, d * 0.55, d * 0.1), h.color ?? "#7a4a2a", { off: d * 0.05 });
   } else if (h.item === "hat" && h.hat) {
-    g.rotate(-ang); stickHat(c, h.hat, [0, d * 0.35], d, -8); // brim at the hand: hat held to the chest
+    g.rotate(-ang); // brim at the hand: hat held to the chest
+    if (h.as === "bobble") { g.rotate(Math.PI * 0.94); bobbleHat(c, h.hat as BobbleHat, 0, d * 0.3, d / 2, false, 0); g.rotate(-Math.PI * 0.94); } // held by the brim, crown down: never covers the face
+    else stickHat(c, h.hat as StickHat, [0, d * 0.35], d, -8);
   }
   g.restore();
 }
@@ -1372,6 +1376,272 @@ function hat(c: Ctx, h: NonNullable<ChibiSpec["hat"]>, cx: number, cy: number, r
       break;
     }
   }
+}
+
+// ================================================================ 8. BOBBLE (characters.md 2.26 / 5.3 I)
+/**
+ * Bobble: big round head (~38 % of the height), pill torso, thin rubber-hose limbs with fists and shoes.
+ * Built for full-body ACTING in a 3D world (two-bone IK on all four limbs, pose-target library, held props, hat tip),
+ * which is what the measured toonworld reference does in every shot: characters sit, limp, clutch, cheer, point.
+ * Identity = hair/hat silhouette + one outfit shape + one accent colour; polish = thick-thin ink, cel crescents,
+ * the fringe's drop shadow on the forehead, the head's shadow on the collar, a soft key highlight.
+ */
+export type BobbleHat = { style: "cap" | "top" | "bowler" | "beanie" | "hardhat" | "chef" | "ranger" | "crown" | "boater" | "beret"; color: string; accent?: string };
+export type BobbleSpec = KBase & {
+  kind: "bobble"; skin: string;
+  hair?: { style: "cap" | "side" | "spiky" | "curly" | "long" | "bob" | "bun" | "pony" | "buzz" | "bald"; color: string };
+  hat?: BobbleHat;
+  top: { color: string; style?: "jacket" | "hoodie" | "shirt" | "suit" | "tee" | "dress" | "overall" | "uniform" | "coat" | "vest" | "apron"; accent?: string; sleeves?: "long" | "short" };
+  legs?: string; shoes?: string;
+  beard?: string; stache?: string; glasses?: string; shades?: string;
+  neck?: { style: "tie" | "bow" | "scarf"; color: string };
+  face?: Partial<FaceSpec>; cheeks?: boolean; build?: "slim" | "regular" | "stout";
+};
+/** Pose targets for bobbles: hand/foot targets in head units relative to the hip centre (x outward or forward, y up).
+ *  Landmarks: shoulder ~0.7 up, chin ~0.95, head centre ~1.45, head top ~1.95; resting hand ~[0.5, 0.0]. */
+export const BOBBLE_POSES: Record<string, KPose> = {
+  idle: {},
+  wave: { limbs: { handR: [0.95, 1.55] }, expr: "happy" },
+  point: { limbs: { handR: [1.2, 0.85] }, expr: "happy" },
+  shrug: { limbs: { handL: [0.8, 0.85], handR: [0.8, 0.85] }, expr: "smug" },
+  cheer: { limbs: { handL: [0.7, 1.9], handR: [0.7, 1.9] }, expr: "laugh", bob: -0.06 },
+  think: { limbs: { handR: [0.18, 0.98], handL: [0.3, 0.3] }, expr: "think" },
+  facepalm: { limbs: { handR: [0.05, 1.5] }, expr: "sad", lean: 3 },
+  neck: { limbs: { handR: [0.3, 0.86] }, expr: "cry", lean: -5 },
+  hips: { limbs: { handL: [0.36, 0.22], handR: [0.36, 0.22] }, expr: "determined" },
+  phone: { limbs: { handR: [0.5, 1.3] }, cue: "D", expr: "neutral" },
+  shock: { limbs: { handL: [0.75, 1.25], handR: [0.75, 1.25] }, expr: "shock", squash: 1.06 },
+  carry: { limbs: { handL: [0.3, 0.42], handR: [0.3, 0.42] }, expr: "determined" },
+  sit: { view: "side", limbs: { footL: [0.78, -0.36], footR: [0.86, -0.42], handR: [0.72, 0.5], handL: [0.68, 0.46] } },
+  run: { view: "side", limbs: { handR: [0.6, 0.55], handL: [-0.5, 0.35], footL: [0.62, -0.5], footR: [-0.6, -0.55] }, lean: 12, expr: "determined" },
+  limp: { view: "side", limbs: { handR: [0.25, 0.86], footL: [0.32, -0.6], footR: [-0.2, -0.8] }, lean: -8, expr: "cry" },
+};
+type BobbleLimb = { r: V2; j: V2; e: V2; far: boolean; sg: number };
+type BobbleRig = { d: number; r: number; cx: number; cy: number; tw: number; yT: number; yB: number; hem: number; hip: V2; sh: V2; arms: BobbleLimb[]; legs: BobbleLimb[] };
+const BOBBLE_HATX: Record<BobbleHat["style"], number> = { top: 0.5, chef: 0.52, crown: 0.24, ranger: 0.2, bowler: 0.22, boater: 0.14, hardhat: 0.12, cap: 0.08, beanie: 0.16, beret: 0.1 };
+function bobbleRig(c: Ctx, s: BobbleSpec, p: KPose): BobbleRig {
+  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04;
+  // default = the tall, slim figure (3.4 heads: long jacket, straight legs); heightHeads 2.6 gives the short chibi-like build
+  const heads = s.heightHeads ?? 3.4, tk = clamp((heads - 2.6) / 0.8, 0, 1.3), TL = 0.92 + 0.36 * tk;
+  const d = c.u / (heads + hx), r = d / 2, side = c.side;
+  const k = s.build === "stout" ? 1.24 : s.build === "slim" ? 0.86 : 1;
+  const cx = side ? d * 0.03 : 0, cy = -c.u + hx * d + r;
+  const tw = d * 0.66 * k * (side ? 0.8 : 1), yT = cy + r * 0.78, yB = yT + d * TL;
+  const st = s.top.style ?? "tee", hem = st === "dress" ? yB + d * 0.2 : st === "coat" ? yB + d * 0.24 : yB;
+  const hip: V2 = [0, yB - d * 0.1], sh: V2 = [0, yT + d * 0.22];
+  const legLen = -hip[1] - d * 0.06, l1 = legLen * 0.52, l2 = legLen * 0.5, a1 = d * (0.44 + 0.13 * tk);
+  const ks = (0.29 + TL) / 1.21; // pose targets are authored on the 2.6-head build and scale with the torso
+  const T = (t: V2 | undefined, sg: number): V2 | null => (t ? [hip[0] + (side ? 1 : sg) * t[0] * d * ks, hip[1] - t[1] * d * ks] : null);
+  const arms = ([-1, 1] as const).map((sg): BobbleLimb => {
+    const root: V2 = side ? [sg * d * 0.03, sh[1]] : [sg * tw * 0.42, sh[1]];
+    const ang = sg < 0 ? p.armL ?? 12 : p.armR ?? 12, el = sg < 0 ? p.elbowL ?? 6 : p.elbowR ?? 6;
+    const a = rad(side ? ang - 6 + (sg < 0 ? -8 : 10) : ang), dir: V2 = side ? [Math.sin(a), Math.cos(a)] : [sg * Math.sin(a), Math.cos(a)];
+    const reach = 2 * a1 * (0.97 - 0.3 * clamp(el / 90));
+    const tgt = T(sg < 0 ? p.limbs?.handL : p.limbs?.handR, sg) ?? ([root[0] + dir[0] * reach, root[1] + dir[1] * reach] as V2);
+    const { joint, end } = ik2(root, tgt, a1, a1, side ? [-1, 0.5] : [sg, 0.7]);
+    return { r: root, j: joint, e: end, far: side && sg < 0, sg };
+  });
+  const legs = ([-1, 1] as const).map((sg): BobbleLimb => {
+    const root: V2 = side ? [sg * d * 0.04, hip[1]] : [sg * tw * 0.21, hip[1]];
+    const a = rad(sg < 0 ? p.legL ?? 0 : p.legR ?? 0);
+    const tgt = T(sg < 0 ? p.limbs?.footL : p.limbs?.footR, sg) ?? ((side
+      ? [root[0] + Math.sin(a) * legLen, root[1] + Math.cos(a) * legLen * (1 - 0.1 * Math.max(0, Math.sin(a)))]
+      : [root[0] + sg * d * 0.03 + Math.sin(a) * legLen * 0.22, root[1] + legLen * (1 - 0.16 * Math.max(0, sg * Math.sin(a) * 2))]) as V2);
+    const { joint, end } = ik2(root, tgt, l1, l2, side ? [1, -0.1] : [sg, -0.2]);
+    return { r: root, j: joint, e: end, far: side && sg < 0, sg };
+  });
+  return { d, r, cx, cy, tw, yT, yB, hem, hip, sh, arms, legs };
+}
+/** Union of shapes with ONE outer ink outline (stroke everything thick, then fill everything). */
+function inkUnion(c: Ctx, paths: Path2D[], fill: string, lw = c.lw) {
+  const g = c.g;
+  g.strokeStyle = c.ink; g.lineWidth = lw * 2; g.lineJoin = "round";
+  for (const q of paths) g.stroke(q);
+  g.fillStyle = fill;
+  for (const q of paths) g.fill(q);
+}
+/** Hair for a round head: `front` sits on the head, `back` behind it (long / bob / pony), `extra` on top (bun). */
+function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, side: boolean): { front: Path2D[]; back: Path2D[] } {
+  const R = r * 1.045, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
+  if (st === "bald") return { front, back };
+  const q = new Path2D();
+  if (side) { // profile facing +x: mass over the top and down the back, open face
+    const nape = st === "long" || st === "bob" || st === "pony" ? 0.8 : st === "buzz" ? 0.9 : 0.84, fr = st === "buzz" ? -0.36 : st === "side" ? -0.2 : -0.27;
+    if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = P * (fr - (i / 8) * (2 + fr - nape)), rr = i % 2 ? R * 1.3 : R; const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr; if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
+    else q.arc(cx, cy, R, P * fr, P * nape, true);
+    q.quadraticCurveTo(cx - r * 0.42, cy + r * 0.22, cx - r * 0.12, cy - r * (st === "buzz" ? 0.5 : 0.3));
+    if (st === "cap") { q.quadraticCurveTo(cx + r * 0.15, cy - r * 0.12, cx + r * 0.35, cy - r * 0.34); q.quadraticCurveTo(cx + r * 0.5, cy - r * 0.2, cx + r * 0.66, cy - r * 0.5); }
+    else if (st === "side") q.quadraticCurveTo(cx + r * 0.5, cy - r * 0.2, cx + r * 0.84, cy - r * 0.42);
+    else q.quadraticCurveTo(cx + r * 0.35, cy - r * 0.42, cx + R * Math.cos(P * fr), cy + R * Math.sin(P * fr));
+    q.closePath(); front.push(q);
+    if (st === "curly") for (let i = 0; i < 7; i++) { const a = P * (fr - (i / 6) * (2 + fr - nape)); front.push(ell(cx + Math.cos(a) * R * 0.98, cy + Math.sin(a) * R * 0.98, r * 0.27, r * 0.25)); }
+    if (st === "long") back.push(rrect(cx - r * 1.12, cy - r * 0.3, r * 1.1, r * 2.0, r * 0.45));
+    if (st === "bob") back.push(rrect(cx - r * 1.1, cy - r * 0.3, r * 1.0, r * 1.45, r * 0.45));
+    if (st === "pony") { const t = new Path2D(); t.moveTo(cx - r * 0.85, cy - r * 0.45); t.quadraticCurveTo(cx - r * 1.9, cy - r * 0.35, cx - r * 1.55, cy + r * 0.85); t.quadraticCurveTo(cx - r * 1.25, cy + r * 0.2, cx - r * 0.8, cy + r * 0.05); t.closePath(); back.push(t); }
+    if (st === "bun") front.push(ell(cx - r * 0.35, cy - r * 1.12, r * 0.36, r * 0.3));
+    return { front, back };
+  }
+  const low = st === "long" || st === "bob" ? 0.1 : st === "buzz" ? -0.08 : 0.0, a0 = P * low;
+  const xr = cx + R * Math.cos(a0), yr = cy + R * Math.sin(a0), xl = cx - R * Math.cos(a0);
+  if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = a0 - (i / 8) * (P + 2 * a0), rr = i % 2 ? R * 1.32 : R; const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr; if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
+  else { q.moveTo(xr, yr); q.arc(cx, cy, R, a0, P - a0, true); }
+  // fringe, left -> right
+  if (st === "cap" || st === "spiky") { const n = st === "spiky" ? 4 : 5, y0 = cy - r * (st === "spiky" ? 0.34 : 0.26), amp = r * (st === "spiky" ? 0.26 : 0.13);
+    q.lineTo(xl + r * 0.05, y0); for (let i = 0; i < n; i++) { const xa = lerp(xl + r * 0.05, xr - r * 0.05, i / n), xb = lerp(xl + r * 0.05, xr - r * 0.05, (i + 1) / n); q.quadraticCurveTo(lerp(xa, xb, 0.35), y0 + amp * 0.2, lerp(xa, xb, 0.7), y0 + amp * (i % 2 ? 0.7 : 1)); q.quadraticCurveTo(lerp(xa, xb, 0.9), y0 + amp * 0.2, xb, y0); } }
+  else if (st === "side" || st === "pony") { q.lineTo(xl + r * 0.04, cy - r * 0.02); q.quadraticCurveTo(cx - r * 0.2, cy - r * 0.1, cx + r * 0.3, cy - r * 0.52); q.quadraticCurveTo(cx + r * 0.55, cy - r * 0.72, cx + r * 0.62, cy - r * 0.84); q.quadraticCurveTo(cx + r * 0.9, cy - r * 0.5, xr - r * 0.03, cy - r * 0.12); }
+  else if (st === "long") { q.lineTo(xl + r * 0.1, cy + r * 0.2); q.quadraticCurveTo(cx - r * 0.75, cy - r * 0.55, cx - r * 0.05, cy - r * 0.86); q.quadraticCurveTo(cx + r * 0.75, cy - r * 0.55, xr - r * 0.1, cy + r * 0.2); }
+  else if (st === "bob") { q.lineTo(xl + r * 0.12, cy + r * 0.22); q.lineTo(xl + r * 0.2, cy - r * 0.3); q.quadraticCurveTo(cx, cy - r * 0.2, xr - r * 0.2, cy - r * 0.3); q.lineTo(xr - r * 0.12, cy + r * 0.22); }
+  else if (st === "buzz") q.quadraticCurveTo(cx, cy - r * 0.62, xr, yr);
+  else q.quadraticCurveTo(cx, cy - r * 0.42, xr, yr); // bun / curly: soft hairline
+  q.closePath(); front.push(q);
+  if (st === "curly") for (let i = 0; i < 9; i++) { const a = -P * (0.02 + (i / 8) * 0.96); front.push(ell(cx + Math.cos(a) * R * 0.98, cy + Math.sin(a) * R * 0.98, r * 0.28, r * 0.26)); }
+  if (st === "bun") front.push(ell(cx, cy - r * 1.2, r * 0.38, r * 0.32));
+  if (st === "long") back.push(rrect(cx - r * 1.14, cy - r * 0.4, r * 2.28, r * 2.1, r * 0.55));
+  if (st === "bob") back.push(rrect(cx - r * 1.12, cy - r * 0.4, r * 2.24, r * 1.5, r * 0.5));
+  if (st === "pony") { const t = new Path2D(); t.moveTo(cx + r * 0.7, cy - r * 0.75); t.quadraticCurveTo(cx + r * 1.75, cy - r * 0.9, cx + r * 1.5, cy + r * 0.55); t.quadraticCurveTo(cx + r * 1.2, cy - r * 0.05, cx + r * 0.85, cy - r * 0.2); t.closePath(); back.push(t); }
+  return { front, back };
+}
+function bobbleHat(c: Ctx, h: BobbleHat, cx: number, cy: number, r: number, side: boolean, tilt: number) {
+  const g = c.g, d = r * 2, band = h.accent ?? shade(h.color, 0.5), off = d * 0.05;
+  const dome = (rx: number, ry: number, y = 0) => { const q = new Path2D(); q.ellipse(0, y, rx, ry, 0, Math.PI, 0); q.closePath(); return q; };
+  g.save(); g.translate(cx, cy - r * 0.6); g.rotate(rad(tilt + (side ? -3 : -5)));
+  switch (h.style) {
+    case "cap": part(c, dome(r * 1.04, r * 0.72, r * 0.06), h.color, { off, thick: true }); part(c, side ? ell(r * 1.1, r * 0.05, r * 0.62, r * 0.11) : ell(0, r * 0.1, r * 1.0, r * 0.16), band, { off: 0 }); dot(g, 0, -r * 0.66, r * 0.07, band); break;
+    case "beanie": part(c, dome(r * 1.06, r * 0.8, r * 0.16), h.color, { off }); part(c, rrect(-r * 1.08, -r * 0.04, r * 2.16, r * 0.32, r * 0.14), band, { off: 0 }); part(c, ell(0, -r * 0.72, r * 0.2, r * 0.2), h.accent ?? "#f4efe6", { off: 0 }); break;
+    case "top": part(c, poly([[-r * 0.66, 0], [r * 0.66, 0], [r * 0.74, -d * 0.86], [-r * 0.74, -d * 0.86]]), h.color, { off, thick: true }); part(c, rrect(-r * 0.67, -d * 0.2, r * 1.34, d * 0.14, 0), h.accent ?? "#b23a3a", { off: 0 }); part(c, ell(0, 0, r * 1.22, r * 0.17), h.color, { off: d * 0.02 }); break;
+    case "bowler": part(c, dome(r * 0.86, r * 0.92), h.color, { off, thick: true }); part(c, rrect(-r * 0.85, -r * 0.24, r * 1.7, r * 0.2, 0), band, { off: 0 }); part(c, ell(side ? r * 0.08 : 0, 0, r * 1.2, r * 0.16), h.color, { off: d * 0.02 }); break;
+    case "hardhat": part(c, dome(r * 1.02, r * 0.8, r * 0.04), h.color, { off, thick: true }); part(c, rrect(-r * 0.12, -r * 0.8, r * 0.24, r * 0.82, r * 0.1), tint(h.color, 0.25), { off: 0 }); part(c, side ? ell(r * 0.7, r * 0.06, r * 0.7, r * 0.12) : ell(0, r * 0.08, r * 1.24, r * 0.15), h.color, { off: 0 }); break;
+    case "chef": { part(c, rrect(-r * 0.72, -r * 0.5, r * 1.44, r * 0.6, r * 0.06), h.color, { off }); inkUnion(c, [ell(-r * 0.5, -r * 0.82, r * 0.46, r * 0.42), ell(r * 0.5, -r * 0.82, r * 0.46, r * 0.42), ell(0, -r * 1.0, r * 0.56, r * 0.5)], h.color); g.strokeStyle = shade(h.color, 0.22); g.lineWidth = c.lw * 0.8; for (const x of [-0.3, 0, 0.3]) { g.beginPath(); g.moveTo(x * r, -r * 0.42); g.lineTo(x * r, -r * 0.08); g.stroke(); } break; }
+    case "ranger": part(c, ell(0, 0, r * 1.62, r * 0.2), h.color, { off: d * 0.03 }); { const q = new Path2D(); q.moveTo(-r * 0.7, -r * 0.02); q.quadraticCurveTo(-r * 0.62, -r * 0.9, -r * 0.2, -r * 0.74); q.quadraticCurveTo(0, -r * 0.6, r * 0.2, -r * 0.74); q.quadraticCurveTo(r * 0.62, -r * 0.9, r * 0.7, -r * 0.02); q.closePath(); part(c, q, h.color, { off, thick: true }); } part(c, rrect(-r * 0.7, -r * 0.2, r * 1.4, r * 0.16, 0), band, { off: 0 }); break;
+    case "crown": part(c, poly([[-r * 0.72, r * 0.08], [-r * 0.8, -r * 0.6], [-r * 0.4, -r * 0.22], [0, -r * 0.74], [r * 0.4, -r * 0.22], [r * 0.8, -r * 0.6], [r * 0.72, r * 0.08]]), h.color, { off: d * 0.03, thick: true }); for (const x of [-0.4, 0, 0.4]) dot(g, x * r, -r * 0.08, r * 0.07, h.accent ?? "#d8344e"); break;
+    case "boater": part(c, ell(0, 0, r * 1.42, r * 0.17), h.color, { off: d * 0.02 }); part(c, rrect(-r * 0.76, -r * 0.5, r * 1.52, r * 0.5, r * 0.06), h.color, { off }); part(c, rrect(-r * 0.76, -r * 0.24, r * 1.52, r * 0.16, 0), h.accent ?? "#c0392b", { off: 0 }); break;
+    case "beret": part(c, ell(r * 0.12, -r * 0.2, r * 1.08, r * 0.46, -0.12), h.color, { off, thick: true }); part(c, rrect(-r * 0.03, -r * 0.82, r * 0.08, r * 0.22, r * 0.03), h.color, { off: 0 }); break;
+  }
+  g.restore();
+}
+function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
+  const g = c.g, side = c.side, R = bobbleRig(c, s, p), { d, r, cx, cy, tw, yT, yB, hem } = R;
+  c.lw = Math.max(1.6, d * (s.lineW ?? 0.042));
+  const st = s.top.style ?? "tee", topC = s.top.color, acc = s.top.accent, legC = s.legs ?? "#33415f", shoeC = s.shoes ?? "#2b2230";
+  const short = s.top.sleeves === "short" || (!s.top.sleeves && (st === "tee" || st === "dress" || st === "overall" || st === "apron"));
+  const armW = d * 0.105, legW = d * 0.125, skinSh = skinShade(s.skin), hs = s.hair?.style ?? "bald", hcol = s.hair?.color ?? "#3a2a24";
+  const hair = bobbleHair(hs, cx, cy, r, side);
+  const drawLeg = (L: BobbleLimb) => {
+    const col = L.far ? shade(legC, 0.2) : legC, sc = L.far ? shade(shoeC, 0.2) : shoeC;
+    limb(c, [L.r, L.j, L.e], legW, st === "dress" && legC === s.skin ? (L.far ? skinSh : s.skin) : col, { curve: true });
+    const fx = side ? d * 0.11 : L.sg * d * 0.06, shoe = ell(L.e[0] + fx, L.e[1] - d * 0.035, d * (side ? 0.17 : 0.13), d * 0.085);
+    part(c, shoe, sc, { off: d * 0.02 });
+    g.save(); g.clip(shoe); g.fillStyle = "rgba(255,255,255,0.75)"; g.fillRect(L.e[0] + fx - d * 0.3, L.e[1] + d * 0.012, d * 0.6, d * 0.05); g.restore(); g.strokeStyle = c.ink; g.lineWidth = c.lw; g.stroke(shoe);
+  };
+  const drawArm = (A: BobbleLimb, hold?: StickHold) => {
+    const col = short ? s.skin : topC, cc = A.far ? (short ? skinSh : shade(col, 0.18)) : col;
+    if (hold && A.far) stickProp(c, { ...hold, as: "bobble" }, A, d, armW);
+    limb(c, [A.r, A.j, A.e], armW, cc, { curve: true });
+    if (short) limb(c, [A.r, [lerp(A.r[0], A.j[0], 0.55), lerp(A.r[1], A.j[1], 0.55)]], armW * 1.5, A.far ? shade(topC, 0.18) : topC);
+    else { const k = 0.8, q: V2 = [lerp(A.j[0], A.e[0], k), lerp(A.j[1], A.e[1], k)]; limb(c, [q, A.e], armW * 1.12, st === "suit" || st === "coat" ? "#f4efe6" : shade(topC, 0.16)); } // cuff
+    if (hold && !A.far) stickProp(c, { ...hold, as: "bobble" }, A, d, armW);
+    part(c, ell(A.e[0], A.e[1], d * 0.085, d * 0.085), A.far ? skinSh : s.skin, { off: d * 0.015, sh: skinSh });
+  };
+  const holdArm = p.hold ? (p.hold.hand === "L" ? 0 : 1) : -1;
+  // ---- back hair, far limbs
+  if (hair.back.length) inkUnion(c, hair.back, shade(hcol, 0.12));
+  if (side) { drawLeg(R.legs[0]); drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); }
+  // ---- legs under the torso
+  if (side) drawLeg(R.legs[1]); else { drawLeg(R.legs[0]); drawLeg(R.legs[1]); }
+  // ---- torso
+  const tp = new Path2D(), hw = tw / 2, flare = st === "dress" ? hw * 1.5 : st === "coat" ? hw * 1.12 : hw, rr = hw * 0.78;
+  tp.moveTo(-hw + rr, yT); tp.lineTo(hw - rr, yT); tp.quadraticCurveTo(hw, yT, hw, yT + rr);
+  if (hem > yB) { tp.lineTo(flare, hem - d * 0.03); tp.quadraticCurveTo(flare, hem, flare - d * 0.04, hem); tp.lineTo(-flare + d * 0.04, hem); tp.quadraticCurveTo(-flare, hem, -flare, hem - d * 0.03); }
+  else { tp.lineTo(hw, yB - rr); tp.quadraticCurveTo(hw, yB, hw - rr, yB); tp.lineTo(-hw + rr, yB); tp.quadraticCurveTo(-hw, yB, -hw, yB - rr); }
+  tp.lineTo(-hw, yT + rr); tp.quadraticCurveTo(-hw, yT, -hw + rr, yT); tp.closePath();
+  const base = st === "overall" || st === "vest" ? acc ?? "#f4efe6" : topC;
+  part(c, tp, base, { thick: true, off: d * 0.07 });
+  // clothes details, clipped to the torso; ox = the chest's centre line (toward +x in profile)
+  const ox = side ? tw * 0.3 : 0, wk = side ? 0.5 : 1, th = yB - yT, chest = yT + d * 0.3;
+  g.save(); g.clip(tp); g.lineCap = "round"; g.lineJoin = "round";
+  const line = (pts: V2[], col = c.ink, w = c.lw * 0.7) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); };
+  const fill = (path: Path2D, col: string, stroke = true) => { g.fillStyle = col; g.fill(path); if (stroke) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.7; g.stroke(path); } };
+  const collar = (col: string, wdt = 0.3, dep = 0.26) => { for (const sg of side ? [1] : [-1, 1]) fill(poly([[ox, chest - d * 0.02], [ox + sg * tw * wdt * wk, yT - d * 0.02], [ox + sg * tw * (wdt + 0.16) * wk, chest + d * dep * 0.4], [ox + sg * tw * 0.06 * wk, chest + d * dep]]), col); };
+  if (st === "jacket") { const zw = d * 0.085 * wk; fill(rrect(ox - zw / 2, yT, zw, th + d * 0.1, 0), acc ?? "#ffd23f"); collar(shade(topC, 0.2), 0.3, 0.2); fill(rrect(-hw * 1.2, yB - d * 0.1, tw * 1.2, d * 0.12, 0), shade(topC, 0.2), false); line([[-hw, yB - d * 0.1], [hw, yB - d * 0.1]]); }
+  if (st === "hoodie") { fill(rrect(ox - tw * 0.3 * wk, yB - th * 0.4, tw * 0.6 * wk, th * 0.26, d * 0.05), shade(topC, 0.16)); for (const sg of side ? [1] : [-1, 1]) { line([[ox + sg * tw * 0.1 * wk, chest - d * 0.04], [ox + sg * tw * 0.11 * wk, chest + d * 0.2]], "#f4efe6", c.lw * 0.9); dot(g, ox + sg * tw * 0.11 * wk, chest + d * 0.21, c.lw * 0.8, "#f4efe6"); } }
+  if (st === "shirt") { collar(tint(topC, 0.55), 0.26, 0.2); line([[ox, chest + d * 0.05], [ox, yB]]); for (let i = 0; i < 3; i++) dot(g, ox + d * 0.03, chest + d * (0.14 + i * 0.17), d * 0.022, c.ink); }
+  if (st === "suit" || st === "coat") { fill(poly([[ox - tw * 0.24 * wk, yT], [ox + tw * 0.24 * wk, yT], [ox, chest + d * 0.3]]), "#f4efe6"); collar(shade(topC, 0.14), 0.26, 0.34); line([[ox, chest + d * 0.3], [ox, hem]]); for (let i = 0; i < (st === "coat" ? 3 : 1); i++) dot(g, ox + d * 0.035, chest + d * (0.42 + i * 0.16), d * 0.022, acc && st === "coat" ? acc : c.ink); }
+  if (st === "tee" && acc) fill(rrect(-hw * 1.2, chest + d * 0.08, tw * 1.2, d * 0.16, 0), acc, false);
+  if (st === "dress") { fill(rrect(-flare * 1.2, hem - d * 0.1, flare * 2.4, d * 0.12, 0), acc ?? tint(topC, 0.4), false); fill(poly([[ox - tw * 0.2 * wk, yT], [ox + tw * 0.2 * wk, yT], [ox, chest + d * 0.04]]), acc ?? tint(topC, 0.4)); }
+  if (st === "overall") { fill(rrect(-hw * 1.2, chest + d * 0.12, tw * 1.2, th, 0), topC); for (const sg of side ? [1] : [-1, 1]) { fill(rrect(ox + sg * tw * 0.2 * wk - d * 0.035, yT - d * 0.05, d * 0.07, d * 0.5, 0), topC); dot(g, ox + sg * tw * 0.2 * wk, chest + d * 0.17, d * 0.03, "#f1c94a"); } fill(rrect(ox - tw * 0.14 * wk, chest + d * 0.28, tw * 0.28 * wk, d * 0.16, d * 0.02), shade(topC, 0.16)); }
+  if (st === "vest") { for (const sg of side ? [1] : [-1, 1]) fill(poly([[ox + sg * tw * 0.1 * wk, yT - d * 0.02], [ox + sg * hw * 1.3, yT - d * 0.02], [ox + sg * hw * 1.3, yB + d * 0.02], [ox + sg * tw * 0.16 * wk, yB + d * 0.02], [ox + sg * tw * 0.06 * wk, chest + d * 0.25]]), topC); }
+  if (st === "uniform") { collar(shade(topC, 0.2), 0.26, 0.18); line([[ox, chest + d * 0.05], [ox, yB]]); for (let i = 0; i < 2; i++) dot(g, ox + d * 0.03, chest + d * (0.14 + i * 0.16), d * 0.024, "#f1c94a"); fill(rrect(-hw * 1.2, yB - d * 0.26, tw * 1.2, d * 0.1, 0), "#2b2230", false); fill(rrect(ox - d * 0.045, yB - d * 0.27, d * 0.09, d * 0.12, d * 0.01), "#f1c94a"); const bx = ox + (side ? -tw * 0.05 : -tw * 0.24), by = chest + d * 0.14, star = new Path2D(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, q2 = d * (i % 2 ? 0.035 : 0.075); if (i) star.lineTo(bx + Math.cos(a) * q2, by + Math.sin(a) * q2); else star.moveTo(bx + Math.cos(a) * q2, by + Math.sin(a) * q2); } star.closePath(); fill(star, acc ?? "#f1c94a"); }
+  if (st === "apron") { fill(rrect(ox - tw * 0.33 * wk, chest + d * 0.06, tw * 0.66 * wk, th, d * 0.03), acc ?? "#f4efe6"); for (const sg of side ? [1] : [-1, 1]) line([[ox + sg * tw * 0.3 * wk, chest + d * 0.08], [ox + sg * tw * 0.16 * wk, yT - d * 0.03]], acc ?? "#f4efe6", c.lw * 1.3); fill(rrect(ox - tw * 0.14 * wk, chest + d * 0.3, tw * 0.28 * wk, d * 0.15, d * 0.02), shade(acc ?? "#f4efe6", 0.12)); }
+  // the head's shadow on the collar + a soft key highlight down the lit side (polish)
+  g.fillStyle = "rgba(30,14,50,0.26)"; g.beginPath(); g.ellipse(cx + (side ? 0 : -c.light * d * 0.03), cy + r * 0.12, r * 0.99, r * 1.0, 0, 0, TAU); g.fill();
+  g.fillStyle = "rgba(255,255,255,0.16)"; g.fill(rrect(c.light * hw * 0.5 - hw * 0.14, chest, hw * 0.28, th * 0.5, hw * 0.14));
+  g.restore();
+  g.strokeStyle = c.ink; g.lineWidth = c.lw; g.stroke(tp);
+  if (st === "hoodie") { const hood = new Path2D(); hood.moveTo(-hw * 0.95, yT + d * 0.16); hood.quadraticCurveTo(0, yT + d * 0.44, hw * 0.95, yT + d * 0.16); hood.quadraticCurveTo(hw * 1.1, yT - d * 0.12, 0, yT - d * 0.12); hood.quadraticCurveTo(-hw * 1.1, yT - d * 0.12, -hw * 0.95, yT + d * 0.16); hood.closePath(); part(c, side ? moved(hood, -tw * 0.22, 0, 0.8, 1) : hood, shade(topC, 0.14), { off: 0 }); }
+  if (s.neck) { const n = s.neck, y = yT + d * 0.3, x = ox;
+    if (n.style === "tie") part(c, poly([[x - d * 0.05, y - d * 0.06], [x + d * 0.05, y - d * 0.06], [x + d * 0.08, y + d * 0.36], [x, y + d * 0.46], [x - d * 0.08, y + d * 0.36]]), n.color, { off: d * 0.02 });
+    else if (n.style === "bow") { for (const sg of side ? [1] : [-1, 1]) part(c, poly([[x, y], [x + sg * d * 0.17, y - d * 0.1], [x + sg * d * 0.17, y + d * 0.1]]), n.color, { off: 0 }); dot(g, x, y, d * 0.05, shade(n.color, 0.3)); }
+    else { part(c, rrect(-hw * 0.98, y - d * 0.12, tw * 0.98, d * 0.2, d * 0.09), n.color, { off: d * 0.03 }); part(c, poly([[hw * 0.2, y + d * 0.02], [hw * 0.62, y + d * 0.02], [hw * 0.7, y + d * 0.5], [hw * 0.3, y + d * 0.46]]), n.color, { off: d * 0.02 }); } }
+  // ---- head
+  const head = ell(cx, cy, r, r);
+  if (!side) for (const sg of [-1, 1]) part(c, ell(cx + sg * r * 0.98, cy + r * 0.14, r * 0.13, r * 0.17), s.skin, { off: 0, sh: skinSh });
+  part(c, head, s.skin, { thick: true, off: d * 0.075, sh: skinSh });
+  g.save(); g.clip(head);
+  if (hair.front.length) { g.fillStyle = "rgba(60,24,40,0.2)"; for (const q of hair.front) g.fill(moved(q, 0, d * 0.05)); } // fringe drop shadow
+  g.fillStyle = "rgba(255,255,255,0.3)"; g.beginPath(); g.ellipse(cx + c.light * r * 0.42, cy + r * 0.05, r * 0.3, r * 0.42, c.light * 0.35, 0, TAU); g.fill();
+  if (s.beard) { const b = ell(cx + (side ? r * 0.22 : 0), cy + r * 0.82, r * (side ? 0.72 : 0.92), r * 0.6); g.fillStyle = s.beard; g.fill(b); g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.8; g.stroke(b); }
+  g.restore();
+  g.strokeStyle = c.ink; g.lineWidth = c.lw; g.stroke(head);
+  if (side) { const ex = cx - r * 0.3, ey = cy + r * 0.16; part(c, ell(ex, ey, r * 0.14, r * 0.18), s.skin, { off: 0, sh: skinSh }); g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.7; g.beginPath(); g.arc(ex + r * 0.03, ey, r * 0.07, Math.PI * 0.6, Math.PI * 1.4); g.stroke(); }
+  if (s.cheeks) for (const x of side ? [r * 0.42] : [-r * 0.52, r * 0.52]) { g.save(); g.globalAlpha = 0.32; dot(g, cx + x, cy + r * 0.34, r * 0.17, "#ff6f86"); g.restore(); }
+  const wide = p.expr === "shock" || p.expr === "nervous";
+  const face: Partial<FaceSpec> = { eyes: wide ? "whites" : "dot", eyeSize: wide ? 0.21 : 0.12, eyeSpacing: 0.37, eyeY: 0.5, brows: "line", browScale: wide ? 0.9 : 1.25, mouthTier: 9, mouthWidth: 0.25, mouthY: s.beard ? 0.7 : 0.72, mouthScale: 1, catchlight: true, blush: false };
+  const fb: FaceBox = { x: cx + (side ? r * 0.06 : 0), y: cy + r * 0.08, w: d * 0.94, h: d * 0.94 };
+  drawFace(g, { ...face, ...s.face }, p, fb, { ink: c.ink, lw: c.lw * 0.92, skin: s.skin, side });
+  if (s.stache) { const y = cy + r * 0.3, x = cx + (side ? r * 0.62 : 0), q = r * 0.34; const wing = (sg: number) => { const w = new Path2D(); w.moveTo(x, y - q * 0.15); w.quadraticCurveTo(x + sg * q * 0.9, y - q * 0.7, x + sg * q * 1.45, y - q * 0.02); w.quadraticCurveTo(x + sg * q * 0.9, y + q * 0.28, x, y + q * 0.2); w.closePath(); return w; }; for (const sg of side ? [1, -0.5] : [-1, 1]) part(c, wing(sg), s.stache, { off: 0, lw: c.lw * 0.8 }); }
+  if (side && !s.beard) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.8; g.beginPath(); g.arc(cx + r * 0.9, cy + r * 0.22, r * 0.12, -Math.PI * 0.45, Math.PI * 0.5); g.stroke(); } // nose tick
+  if (hair.front.length) { inkUnion(c, hair.front, hcol);
+    g.save(); for (const q of hair.front) g.clip(q); g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); }
+  const ey = fb.y - fb.h / 2 + 0.5 * fb.h;
+  if (s.glasses || s.shades) { const gr = d * 0.14, xs = side ? [fb.x + fb.w * 0.2] : [fb.x - fb.w * 0.18, fb.x + fb.w * 0.18];
+    for (const x of xs) { const L = ell(x, ey, gr, gr * 0.92); if (s.shades) { g.fillStyle = s.shades; g.fill(L); g.save(); g.clip(L); g.fillStyle = "rgba(255,255,255,0.35)"; g.fillRect(x - gr, ey - gr, gr * 0.9, gr * 0.7); g.restore(); } g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.stroke(L); }
+    g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.beginPath(); if (side) { g.moveTo(xs[0] - gr, ey); g.lineTo(cx - r * 0.3, ey - gr * 0.1); } else { g.moveTo(xs[0] + gr, ey); g.lineTo(xs[1] - gr, ey); } g.stroke(); }
+  if (s.hat) bobbleHat(c, s.hat, cx, cy - (p.hatLift ?? 0) * d, r, side, p.hatTilt ?? 0);
+  // ---- near arms last: they may cross the torso and the head
+  if (side) drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined);
+  else { drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined); }
+}
+
+/**
+ * Pose-to-pose acting (measured on the toonworld reference: one HELD pose per clause, popped into over ~4-6 frames,
+ * landing 0-3 frames before its word; nothing drifts between poses except the idle breathing you add on top).
+ *   poseTrack([{ f: 0, pose: BOBBLE_POSES.idle }, { f: T.tipped - 3, pose: {...} }, ...], frame, fps)
+ * Numbers and limb targets blend with a small overshoot; expr / cue / view / hold / facing switch when the pop starts.
+ */
+export type PoseKey = { f: number; pose: KPose; blend?: number };
+const POSE_NUM = ["armL", "armR", "elbowL", "elbowR", "legL", "legR", "lean", "bob", "squash", "hatLift", "hatTilt", "mouth", "blink"] as const;
+const POSE_NUM0: Record<string, number> = { squash: 1 };
+export function poseTrack(keys: PoseKey[], f: number, fps = 30): KPose {
+  let i = 0;
+  while (i < keys.length - 1 && keys[i + 1].f <= f) i++;
+  const B = keys[i].pose, A = i > 0 ? keys[i - 1].pose : B;
+  const n = ((keys[i].blend ?? 5) * fps) / 30, t = i > 0 ? clamp((f - keys[i].f) / n) : 1;
+  if (t >= 1) return { ...B };
+  const c1 = 1.9, u = 1 + (c1 + 1) * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); // outBack: a little overshoot = the "pop"
+  const out: KPose = { ...B };
+  const o = out as Record<string, unknown>, a = A as Record<string, unknown>, b = B as Record<string, unknown>;
+  for (const k of POSE_NUM) { const va = a[k] as number | undefined, vb = b[k] as number | undefined; if (va !== undefined || vb !== undefined) o[k] = lerp(va ?? POSE_NUM0[k] ?? 0, vb ?? POSE_NUM0[k] ?? 0, u); }
+  if (A.look || B.look) out.look = [lerp(A.look?.[0] ?? 0, B.look?.[0] ?? 0, u), lerp(A.look?.[1] ?? 0, B.look?.[1] ?? 0, u)];
+  if (A.limbs || B.limbs) {
+    const L: NonNullable<KPose["limbs"]> = {};
+    for (const k of ["handL", "handR", "footL", "footR"] as const) {
+      const va = A.limbs?.[k], vb = B.limbs?.[k];
+      if (va && vb) L[k] = [lerp(va[0], vb[0], u), lerp(va[1], vb[1], u)];
+      else if (t > 0.45 ? vb : va) L[k] = (t > 0.45 ? vb : va)!; // IK target <-> angle pose: switch mid-pop
+    }
+    out.limbs = L;
+  }
+  return out;
 }
 
 // ================================================================ 6. FLATVEC (characters.md 2.7 / 5.3 F)
@@ -1666,6 +1936,27 @@ export const KIND_PRESETS = {
   stickLady: { id: "stickLady", kind: "stick", color: "#3a2f3f", head: "#fbf6ee", hair: { style: "bun", color: "#7a4a2a" }, skirt: "#8e5bb5", hat: { style: "boater", color: "#f0d58a", band: "#5b7fd6" }, cheeks: true, build: "slim" },
   stickKid: { id: "stickKid", kind: "stick", color: "#3d8fd6", head: "#fbf6ee", hair: { style: "spikes", color: "#2a2228" }, hat: { style: "beanie", color: "#e0563b" }, heightHeads: 4.2, cheeks: true },
   stickProf: { id: "stickProf", kind: "stick", color: "#3b3340", head: "#fbf6ee", hair: { style: "side", color: "#d9d4cc" }, beard: "#e6e1d8", glasses: "#2b2230", coat: { color: "#7a5a3a", buttons: "#2b2230" }, neckwear: { style: "tie", color: "#2f6fb0" }, build: "slim" },
+  // bobble pack (5.3 I): one silhouette (hair/hat) + one outfit shape + one accent per character
+  bbHero: { id: "bbHero", kind: "bobble", skin: "#f6cfae", hair: { style: "cap", color: "#6a3d22" }, top: { color: "#e2483a", style: "jacket", accent: "#ffd23f" }, legs: "#2f4a7a", shoes: "#2b2230" },
+  bbGirl: { id: "bbGirl", kind: "bobble", skin: "#f6cfae", hair: { style: "pony", color: "#b5562a" }, top: { color: "#2fb3a6", style: "hoodie" }, legs: "#3a3f5c", shoes: "#e2483a", cheeks: true, build: "slim" },
+  bbKid: { id: "bbKid", kind: "bobble", skin: "#e9b58c", hair: { style: "spiky", color: "#2a2228" }, top: { color: "#f39a2b", style: "tee", accent: "#fff3d6" }, legs: "#3d6fb0", shoes: "#d8344e", cheeks: true, heightHeads: 2.7 },
+  bbGrandpa: { id: "bbGrandpa", kind: "bobble", skin: "#f3c9a4", hair: { style: "bald", color: "#dddddd" }, stache: "#e9e6ee", glasses: "#2b2230", top: { color: "#7a5a3a", style: "vest", accent: "#f1e7d2" }, legs: "#6b6f7a", shoes: "#4a3528", build: "stout" },
+  bbGrandma: { id: "bbGrandma", kind: "bobble", skin: "#fbe3d0", hair: { style: "bun", color: "#cfcad6" }, glasses: "#8a4b6a", top: { color: "#a77bd0", style: "dress", accent: "#f4efe6" }, legs: "#fbe3d0", shoes: "#6a4a8a", cheeks: true },
+  bbBoss: { id: "bbBoss", kind: "bobble", skin: "#f6cfae", hair: { style: "side", color: "#1f1a22" }, top: { color: "#26355e", style: "suit" }, neck: { style: "tie", color: "#c8323a" }, legs: "#1f2b4d", shoes: "#16131a" },
+  bbWorker: { id: "bbWorker", kind: "bobble", skin: "#c98e66", hat: { style: "hardhat", color: "#f5c21b" }, stache: "#2a2228", top: { color: "#3f6fb5", style: "overall", accent: "#f08a24" }, legs: "#3f6fb5", shoes: "#5a3c2e" },
+  bbCop: { id: "bbCop", kind: "bobble", skin: "#f3c9a4", hat: { style: "cap", color: "#22305a", accent: "#11182e" }, hair: { style: "buzz", color: "#4a3020" }, top: { color: "#2c3f78", style: "uniform" }, legs: "#22305a", shoes: "#16131a" },
+  bbRanger: { id: "bbRanger", kind: "bobble", skin: "#e9b58c", hat: { style: "ranger", color: "#b08a4e", accent: "#5a4326" }, top: { color: "#7d8a55", style: "uniform", accent: "#f1c94a" }, legs: "#5d6640", shoes: "#3a2a1e", build: "stout" },
+  bbDoctor: { id: "bbDoctor", kind: "bobble", skin: "#8d5a3c", hair: { style: "bob", color: "#1f1a22" }, glasses: "#2b2230", top: { color: "#f4f6fa", style: "coat", accent: "#7fb6e8" }, legs: "#4aa3a0", shoes: "#f4f6fa" },
+  bbChef: { id: "bbChef", kind: "bobble", skin: "#f6cfae", hat: { style: "chef", color: "#fbfaf6" }, stache: "#2a2228", top: { color: "#d9534f", style: "apron" }, legs: "#3a3f5c", shoes: "#16131a", build: "stout" },
+  bbScientist: { id: "bbScientist", kind: "bobble", skin: "#fbe3d0", hair: { style: "curly", color: "#b9b4c4" }, glasses: "#2b2230", top: { color: "#f4f6fa", style: "coat" }, neck: { style: "bow", color: "#2f8f6a" }, legs: "#5a5f6e", shoes: "#2b2230", build: "slim" },
+  bbFarmer: { id: "bbFarmer", kind: "bobble", skin: "#e9b58c", hat: { style: "boater", color: "#f0d58a", accent: "#8a5a34" }, beard: "#8a5a34", top: { color: "#4f78b0", style: "overall", accent: "#d9534f" }, legs: "#4f78b0", shoes: "#5a3c2e" },
+  bbTeen: { id: "bbTeen", kind: "bobble", skin: "#c98e66", hat: { style: "beanie", color: "#3a3f5c", accent: "#f08a24" }, hair: { style: "long", color: "#2a2228" }, top: { color: "#8e5bd0", style: "hoodie" }, legs: "#2b2f3f", shoes: "#f4f6fa", build: "slim" },
+  bbAthlete: { id: "bbAthlete", kind: "bobble", skin: "#8d5a3c", hair: { style: "buzz", color: "#1f1a22" }, top: { color: "#f4f6fa", style: "tee", accent: "#e2483a" }, legs: "#e2483a", shoes: "#f5c21b" },
+  bbKing: { id: "bbKing", kind: "bobble", skin: "#f6cfae", hat: { style: "crown", color: "#f5c21b" }, beard: "#6a3d22", top: { color: "#b3263a", style: "coat", accent: "#f5c21b" }, legs: "#3a2f5c", shoes: "#2b2230", build: "stout" },
+  bbArtist: { id: "bbArtist", kind: "bobble", skin: "#fbe3d0", hat: { style: "beret", color: "#2b2230" }, hair: { style: "bob", color: "#c0542a" }, top: { color: "#f4f6fa", style: "tee", accent: "#2b2230" }, neck: { style: "scarf", color: "#d8344e" }, legs: "#2b2f3f", shoes: "#2b2230", cheeks: true, build: "slim" },
+  bbNerd: { id: "bbNerd", kind: "bobble", skin: "#f3c9a4", hair: { style: "cap", color: "#c9a13a" }, glasses: "#2b2230", top: { color: "#8fc6e8", style: "shirt" }, neck: { style: "bow", color: "#d8344e" }, legs: "#7a6a52", shoes: "#4a3528" },
+  bbLady: { id: "bbLady", kind: "bobble", skin: "#e9b58c", hair: { style: "long", color: "#3a2418" }, top: { color: "#8a2f4f", style: "suit" }, legs: "#5a1f36", shoes: "#16131a", cheeks: true, build: "slim" },
+  bbGent: { id: "bbGent", kind: "bobble", skin: "#f6cfae", hat: { style: "top", color: "#22252e", accent: "#8a2f3a" }, hair: { style: "side", color: "#5a3a26" }, stache: "#5a3a26", top: { color: "#33466e", style: "coat", accent: "#d8b04a" }, neck: { style: "bow", color: "#c0392b" }, legs: "#23293d", shoes: "#16131a" },
   // chibi
   storyteller: { id: "storyteller", kind: "chibi", skin: "#f6d3b8", hair: { color: "#3b2a2f", style: "short" }, top: { color: "#5f86e8", style: "hoodie" }, bottom: "#30364d" },
   kid: { id: "kid", kind: "chibi", skin: "#c98e66", hair: { color: "#1e1517", style: "bob" }, top: { color: "#f2b72f", style: "dress" }, bottom: "#5a3c2e", shoes: "#c8323a" },

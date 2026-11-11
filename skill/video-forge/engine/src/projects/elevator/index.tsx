@@ -18,7 +18,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
 import { cameraRig, CamKey, V3 } from "../../lib/camera";
 import { blinkAt, idlePose } from "../../lib/characters/toon";
-import { cueAt, KIND_PRESETS, KPose, StickSpec } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, BobbleSpec, cueAt, KIND_PRESETS, KPose, PoseKey, poseTrack } from "../../lib/characters/kinds";
 import { deepMerge, LOOKS, lookTimeline } from "../../lib/look";
 import { ProjectDef } from "../../lib/project";
 import { CharacterCard, CrowdPool } from "../../lib/three/cast";
@@ -50,7 +50,7 @@ export const timing = (fps: number) => {
   return {
     F,
     total: F(words[words.length - 1].end + 0.9),
-    rope1: F(at(W("rope"))), cut1: F(at(W("cut"))),
+    stood: F(at(W("stood"))), ordered: F(at(W("ordered"))), rope1: F(at(W("rope"))), cut1: F(at(W("cut"))),
     back: F(at(W("back")) - 0.1), snap0: F(at(W("snapped"))), fell: F(at(W("fell"))), everyone: F(at(W("everyone"))),
     nobody: F(at(W("nobody")) - 0.25), five: F(at(W("five"))), stairs: F(at(W("stairs"))),
     heck: F(at(HECK[0]) - 0.12), his: F(at(W("his", 50)) - 0.08), elisha: F(at(W("elisha"))),
@@ -68,22 +68,28 @@ export const timing = (fps: number) => {
 type TT = ReturnType<typeof timing>;
 const mp = (a: object, b: KPose): KPose => ({ ...(a as KPose), ...b });
 
-// ------------------------------------------------------------------------------------------------ cast (new stick kinds)
+// ------------------------------------------------------------------------------------------------ cast (bobble pack, 1850s wardrobe)
 const K = KIND_PRESETS;
-const otis: StickSpec = { ...(K.stickGent as StickSpec), id: "otis", stache: "#5a3a26", hair: { style: "side", color: "#5a3a26" } };
-const helper: StickSpec = { ...(K.stickWorker as StickSpec), id: "helper", hat: { style: "cap", color: "#3d6fb0" }, neckwear: { style: "scarf", color: "#e2a33a" } };
-const heckler: StickSpec = { id: "heckler", kind: "stick", color: "#4a3a2e", head: "#fbf6ee", hat: { style: "bowler", color: "#3b2f2a" }, beard: "#6b4a30", coat: { color: "#6b8a5a", buttons: "#2b2230" }, build: "stout" };
-const lady: StickSpec = { ...(K.stickLady as StickSpec), id: "lady" };
-const kid: StickSpec = { ...(K.stickKid as StickSpec), id: "kid" };
-const prof: StickSpec = { ...(K.stickProf as StickSpec), id: "prof" };
-const hoistMan: StickSpec = { id: "hoistMan", kind: "stick", color: "#3a3a44", head: "#fbf6ee", hat: { style: "cap", color: "#c0392b" }, hair: { style: "tuft", color: "#2a2228" } };
-const EXTRA: StickSpec[] = [
-  { id: "e1", kind: "stick", color: "#2f4a6a", head: "#fbf6ee", hat: { style: "top", color: "#2a2a33", band: "#4a6fa5" }, coat: { color: "#556b8a" } },
-  { id: "e2", kind: "stick", color: "#5a2f3f", head: "#fbf6ee", hair: { style: "long", color: "#3a2418" }, skirt: "#d0607a", cheeks: true },
-  { id: "e3", kind: "stick", color: "#3a3a3a", head: "#fbf6ee", hat: { style: "boater", color: "#e9d48a" }, stache: "#2a2228", neckwear: { style: "tie", color: "#2f8f6a" } },
-  { id: "e4", kind: "stick", color: "#6a4a2a", head: "#fbf6ee", hat: { style: "bowler", color: "#4a3a2a" }, coat: { color: "#8a6a3a" } },
-  { id: "e5", kind: "stick", color: "#2a5a5a", head: "#fbf6ee", hair: { style: "curly", color: "#2a2228" }, skirt: "#3fa0a0" },
-  { id: "e6", kind: "stick", color: "#3b3340", head: "#fbf6ee", hat: { style: "top", color: "#5a2f2f" }, beard: "#d9d4cc", coat: { color: "#4a4a52", tails: true } },
+const OTIS_HAT = (K.bbGent as BobbleSpec).hat!;
+const otis: BobbleSpec = { ...(K.bbGent as BobbleSpec), id: "otis" };
+const otisOld: BobbleSpec = { ...otis, id: "otisOld", hat: undefined, hair: { style: "side", color: "#bdb6ac" }, stache: "#bdb6ac" };
+const helper: BobbleSpec = { id: "helper", kind: "bobble", skin: "#e9b58c", hat: { style: "cap", color: "#6b5a44" }, hair: { style: "buzz", color: "#3a2a1e" },
+  top: { color: "#7a5a3a", style: "vest", accent: "#f1e7d2", sleeves: "long" }, neck: { style: "scarf", color: "#d9534f" }, legs: "#4a4f5c", shoes: "#3a2a1e", build: "stout" };
+const heckler: BobbleSpec = { id: "heckler", kind: "bobble", skin: "#f3c9a4", hat: { style: "bowler", color: "#3b2f2a" }, beard: "#6b4a30", top: { color: "#5f8a55", style: "coat", accent: "#2b2230" }, legs: "#4a3a2e", shoes: "#2b2230", build: "stout" };
+const lady: BobbleSpec = { id: "lady", kind: "bobble", skin: "#fbe3d0", hat: { style: "boater", color: "#f0d58a", accent: "#5b7fd6" }, hair: { style: "bob", color: "#7a4a2a" },
+  top: { color: "#8e5bb5", style: "dress", accent: "#f4efe6" }, legs: "#fbe3d0", shoes: "#5a3a7a", cheeks: true, build: "slim" };
+const kid: BobbleSpec = { id: "kid", kind: "bobble", skin: "#e9b58c", hat: { style: "cap", color: "#c0392b" }, hair: { style: "cap", color: "#2a2228" }, top: { color: "#3d8fd6", style: "shirt" }, legs: "#6b5a44", shoes: "#3a2a1e", cheeks: true, heightHeads: 2.7 };
+const prof: BobbleSpec = { id: "prof", kind: "bobble", skin: "#f3c9a4", hair: { style: "side", color: "#d9d4cc" }, beard: "#e6e1d8", glasses: "#2b2230", top: { color: "#7a5a3a", style: "suit" }, neck: { style: "tie", color: "#2f6fb0" }, legs: "#4a3a2e", shoes: "#2b2230", build: "slim" };
+const hoistMan: BobbleSpec = { id: "hoistMan", kind: "bobble", skin: "#e9b58c", hat: { style: "cap", color: "#c0392b" }, top: { color: "#5a6a7a", style: "overall", accent: "#d9c7a0" }, legs: "#5a6a7a", shoes: "#3a2a1e" };
+const EXTRA: BobbleSpec[] = [
+  { ...(K.bbGent as BobbleSpec), id: "e1", hat: { style: "top", color: "#3a2f2f", accent: "#4a6fa5" }, stache: undefined, top: { color: "#556b8a", style: "coat", accent: "#d8b04a" } },
+  { ...lady, id: "e2", hat: undefined, hair: { style: "long", color: "#3a2418" }, top: { color: "#d0607a", style: "dress", accent: "#f4efe6" } },
+  { ...(K.bbFarmer as BobbleSpec), id: "e3" },
+  { ...heckler, id: "e4", beard: undefined, stache: "#2a2228", top: { color: "#8a6a3a", style: "coat", accent: "#2b2230" }, build: "regular" },
+  { ...lady, id: "e5", hat: undefined, hair: { style: "bun", color: "#2a2228" }, top: { color: "#3fa0a0", style: "dress", accent: "#f4efe6" } },
+  { ...(K.bbGrandpa as BobbleSpec), id: "e6" },
+  { ...prof, id: "e7", beard: undefined, glasses: undefined, hat: { style: "bowler", color: "#4a3a2a" }, top: { color: "#4a4a52", style: "suit" } },
+  { ...(K.bbGrandma as BobbleSpec), id: "e8" },
 ];
 
 // ------------------------------------------------------------------------------------------------ geometry constants
@@ -108,22 +114,6 @@ const springFlat = (f: number, T: TT) => ease.outBack(clamp((f - (T.dropped - 3)
 /** Rope state: 0 intact, 1 cut. */
 const ropeCut = (f: number, T: TT) => (f >= T.snapped ? 1 : 0);
 
-/** Helper (axe) pose: idle -> wind-up on "swung" -> strike on "snapped" -> recoil. */
-function helperPose(f: number, T: TT): KPose {
-  const wind = ease.smoother(clamp((f - T.swung) / 14));
-  const strike = ease.inCubic(clamp((f - (T.snapped - 5)) / 5));
-  const handR: [number, number] = [lerp(lerp(1.0, -0.3, wind), 1.9, strike), lerp(lerp(1.6, 3.3, wind), 1.45, strike)];
-  const handL: [number, number] = [lerp(lerp(0.7, -0.5, wind), 1.6, strike), lerp(lerp(1.5, 3.0, wind), 1.4, strike)];
-  const prevF = f - 2;
-  const pw = ease.smoother(clamp((prevF - T.swung) / 14)), ps = ease.inCubic(clamp((prevF - (T.snapped - 5)) / 5));
-  const prev: KPose = { view: "side", limbs: { handR: [lerp(lerp(1.0, -0.3, pw), 1.9, ps), lerp(lerp(1.6, 3.3, pw), 1.45, ps)], handL: [lerp(lerp(0.7, -0.5, pw), 1.6, ps), lerp(lerp(1.5, 3.0, pw), 1.4, ps)] } };
-  return {
-    view: "side", facing: 1, limbs: { handR, handL }, hold: { item: "axe", angle: lerp(-20, 25, strike), len: 2.3 },
-    lean: lerp(lerp(0, -10, wind), 14, strike), expr: f >= T.snapped + 6 ? "shock" : f >= T.swung ? "determined" : "neutral",
-    prev: strike > 0 && strike < 1 ? prev : undefined,
-  };
-}
-
 const World: React.FC = () => {
   const { fps } = useVideoConfig();
   const T = timing(fps);
@@ -144,8 +134,10 @@ const World: React.FC = () => {
     // HOOK: low wide angle, the man high on the platform + the helper by the rope with the axe (first frame = the act)
     // audit: on a 6 s hold the constant push + two punches moved ~38 % closer and the helper fell out at the bottom;
     // a mid-hold key re-starts the push (holds push from their last key) and the lower aim keeps the ground in
-    { f: 0, pos: [6.4, 1.5, 12.0], look: [1.1, 3.6, 0], fov: 46 },
-    { f: 100, pos: [5.9, 1.5, 11.0], look: [1.1, 3.7, 0], glide: HOLD },
+    { f: 0, pos: [1.5, PY_HIGH + 1.25, 3.3], look: [-0.25, PY_HIGH + 1.45, 0.25], fov: 36, focus: 3.3 }, // hook frame 1 = the man, close, smug
+    { f: T.stood - 1, pos: [1.4, PY_HIGH + 1.25, 3.05], look: [-0.25, PY_HIGH + 1.45, 0.25], glide: HOLD },
+    { f: T.stood, pos: [6.4, 1.5, 12.0], look: [1.1, 3.6, 0], fov: 46, cut: true }, // cut on "stood high": how high, who holds the axe
+    { f: T.ordered + 20, pos: [5.9, 1.5, 11.0], look: [1.1, 3.7, 0], glide: HOLD },
     { f: T.back - PRE, pos: [5.6, 1.6, 10.3], look: [1.05, 3.8, 0], glide: HOLD },
     // flashback: an old warehouse hoist, the rope snaps, the platform falls (golden)
     { f: T.back, pos: [WH[0] + 4.2, 6.2, 2.2], look: [WH[0], 7.4, -5.6], fov: 40, dissolve: DZ },
@@ -193,7 +185,7 @@ const World: React.FC = () => {
   const rig = cameraRig(keys, {
     push: { rate: 0.0028, punches: [T.rope1, T.cut1, T.fell, T.five, T.stopped, T.wait + 2, T.jammed, T.y1861].map((p) => ({ f: p - 2, rate: 0.0065, n: 30 })) },
     kicks: [{ f: T.fell + 1, amp: 0.05 }, { f: T.snapped, amp: 0.035 }, { f: T.dropped + 2, amp: 0.06 }, { f: T.jammed + 2, amp: 0.02 }],
-    refFps: 30,
+    refFps: 30, handheld: 0.012, handheldSpeed: 0.4, // reference: a little handheld life in every shot
   });
 
   // shot audit (lib/three/audit.ts): what must read in each shot, checked at every key arrival and mid-hold
@@ -201,7 +193,8 @@ const World: React.FC = () => {
   const C = (name: string, x: number, y: number, z: number, h = 1.75): ShotSubject => ({ name, at: [x, y + h * 0.7, z], r: h / 2 }); // upper body: what a CU must keep
   const subjectsAt = (f: number): ShotSubject[] => {
     const py = platformY(f, T);
-    if (f < T.back) return [C("otis", -0.25, py + 0.16, 0.25, 1.78), C("helper", WINCH[0] - 0.75, 0, 0.55)];
+    if (f < T.stood) return [C("otis", -0.25, py + 0.16, 0.25, 1.85)];
+    if (f < T.back) return [C("otis", -0.25, py + 0.16, 0.25, 1.85), C("helper", WINCH[0] - 0.75, 0, 0.55)];
     if (f < T.nobody) { const hy = f < T.snap0 ? 6.6 : f < T.fell ? 6.6 * (1 - ((f - T.snap0) / (T.fell - T.snap0)) ** 2) : 0; return [C("hoist man", WH[0] - 0.25, hy + 0.14, WH[2] + 5.25, 1.72)]; }
     if (f < T.heck) return [{ name: "6-floor facade", at: [SX - 6.4, Math.min(16, 3 + (f - T.nobody) * 0.1), -6], r: 2.5, maxFrac: 2 }];
     if (f < T.his) return [C("heckler", -1.9, 0, 4.3, 1.72)];
@@ -338,22 +331,22 @@ const World: React.FC = () => {
         });
         const clouds = [0, 1, 2, 3].map((i) => { const c = cloudCard({ seed: "ec" + i, w: 42 }); c.position.set(-80 + i * 70, 55 + i * 5, -190); scene.add(c); return c; });
         const birds = [0, 1, 2].map(() => { const b = bird(); b.group.scale.setScalar(1.5); scene.add(b.group); return b; });
-        // ============ CAST (new stick kinds) + crowd
+        // ============ CAST (bobble pack) + crowd. pad = canvas room for props/gestures (raised axe, hat tip, cheering)
+        const pad = { top: 0.3, x: 0.4 };
         const cast = {
-          // pad = canvas room for props/gestures (raised axe, hat tip, pointing) so nothing is clipped at the card edge
-          otis: new CharacterCard(otis, 1.78, 1500, L.sun, undefined, { top: 0.3, x: 0.25 }), helper: new CharacterCard(helper, 1.75, 1500, L.sun, undefined, { top: 0.55, x: 0.45 }),
-          heckler: new CharacterCard(heckler, 1.72, 1500, L.sun, undefined, { x: 0.35 }),
-          lady: new CharacterCard(lady, 1.62, 1300, L.sun, undefined, { top: 0.15 }), kid: new CharacterCard(kid, 1.2, 1100, L.sun, undefined, { top: 0.25, x: 0.2 }), prof: new CharacterCard(prof, 1.74, 1300, L.sun),
-          hoistMan: new CharacterCard(hoistMan, 1.72, 1300, L.sun, undefined, { top: 0.25, x: 0.2 }), rider1: new CharacterCard(lady, 1.6, 900, L.sun), rider2: new CharacterCard(kid, 1.2, 800, L.sun),
-          otisOld: new CharacterCard({ ...otis, id: "otisOld", hat: undefined, hair: { style: "side", color: "#bdb6ac" }, stache: "#bdb6ac" }, 1.76, 1500, L.sun),
+          otis: new CharacterCard(otis, 1.85, 1600, L.sun, undefined, { top: 0.35, x: 0.4 }), helper: new CharacterCard(helper, 1.72, 1600, L.sun, undefined, { top: 0.5, x: 0.7 }),
+          heckler: new CharacterCard(heckler, 1.72, 1600, L.sun, undefined, pad),
+          lady: new CharacterCard(lady, 1.66, 1400, L.sun, undefined, pad), kid: new CharacterCard(kid, 1.2, 1100, L.sun, undefined, pad), prof: new CharacterCard(prof, 1.74, 1400, L.sun, undefined, pad),
+          hoistMan: new CharacterCard(hoistMan, 1.72, 1400, L.sun, undefined, pad), rider1: new CharacterCard(lady, 1.6, 900, L.sun, undefined, pad), rider2: new CharacterCard(kid, 1.2, 800, L.sun, undefined, pad),
+          otisOld: new CharacterCard(otisOld, 1.74, 1600, L.sun, undefined, pad),
         };
         Object.values(cast).forEach((c) => scene.add(c.group));
         const crowd = new CrowdPool(scene, L.sun);
-        const ring: [number, number][] = [[-4.5, 3.2], [-3.4, 5.2], [-5.6, 1.4], [3.8, 4.6], [5.4, 2.6], [1.2, 6.6], [-1.0, 7.4], [6.2, 5.6], [-6.6, 4.6], [4.4, 7.4], [-3.0, 8.6], [2.6, 8.8]];
-        ring.filter(([x, z]) => !blocksShot([x, 0, z], 0.7, rig.keys)).forEach(([x, z], i) => crowd.add({ spec: { ...EXTRA[i % EXTRA.length], id: "c" + i } as StickSpec, pos: [x, 0, z], expr: i % 3 ? "neutral" : "happy", seed: i + 1 }, 9));
+        const ring: [number, number][] = [[-4.5, 3.2], [-3.4, 5.2], [-5.6, 1.4], [3.8, 4.6], [5.4, 2.6], [1.2, 6.6], [-1.0, 7.4], [6.2, 5.6], [-6.6, 4.6], [4.4, 7.4], [-3.0, 8.6], [2.6, 8.8], [-7.6, 2.4], [7.4, 3.6], [-5.2, 7.0], [5.8, 8.4]];
+        ring.filter(([x, z]) => !blocksShot([x, 0, z], 0.7, rig.keys)).forEach(([x, z], i) => crowd.add({ spec: { ...EXTRA[i % EXTRA.length], id: "c" + i } as BobbleSpec, pos: [x, 0, z], expr: i % 3 ? "neutral" : "happy", seed: i + 1 }, 9));
         // street walkers
         [[SX - 30, SX + 20, 1.6], [SX + 24, SX - 26, -2.8], [SX - 18, SX + 30, 3.4]].forEach(([a, b, z], i) =>
-          crowd.add({ spec: { ...EXTRA[(i + 2) % EXTRA.length], id: "w" + i } as StickSpec, seed: 20 + i, path: { from: [a, 0, z], to: [b, 0, z], t0: 0, t1: T.total / fps } }, 12));
+          crowd.add({ spec: { ...EXTRA[(i + 2) % EXTRA.length], id: "w" + i } as BobbleSpec, seed: 20 + i, path: { from: [a, 0, z], to: [b, 0, z], t0: 0, t1: T.total / fps } }, 12));
         // FX
         const fx = new FxLayer(scene);
         fx.add("exclaim", { at: [1.0, PY_HIGH + 2.3, 0.4], f0: T.cut1 - 2, size: 0.55, color: "#ffd23f" });
@@ -429,52 +422,82 @@ const World: React.FC = () => {
         const ct = ease.smoother(clamp((f - T.three - 20) / (T.andOtis - T.three - 30)));
         w.car.position.y = 0.1 + ct * 12.6;
         w.towers.forEach((tw, i) => { tw.scale.y = Math.max(0.001, ease.outBack(clamp((f - T.decades - i * 4) / 34))); });
-        // ---- cast
-        const lead = 2;
-        // Otis: calm on the platform; hat tip on "tipped"; braced on the drop; arms out "see?" after
-        const tip = ease.smoother(clamp((f - T.tipped + 4) / 10)) * (1 - ease.smoother(clamp((f - T.tipped - 30) / 10)));
-        const brace = f >= T.dropped - 2 && f < T.dropped + 30;
-        const otisPose: KPose = mp(idlePose(f, FPS, 7), {
-          expr: brace ? "shock" : f >= T.dropped + 30 ? "smug" : f >= T.tipped - lead ? "happy" : "smug",
-          blink: blinkAt(f, FPS, "otis", [T.tipped - lead, T.dropped]),
-        });
-        otisPose.hatLift = 0.55 * tip; otisPose.hatTilt = -22 * tip;
-        if (tip > 0.01) otisPose.limbs = { handR: [lerp(1.0, 0.55, tip), lerp(1.6, 3.35, tip)] };
-        if (brace) { otisPose.limbs = { handL: [1.5, 2.1], handR: [1.5, 2.1] }; otisPose.squash = 0.93; }
-        if (f >= T.dropped + 30 && f < T.yousee) otisPose.limbs = { handL: [1.7, 1.6], handR: [1.7, 1.6] };
-        w.cast.otis.setPose(otisPose);
+        // ---- cast: pose-to-pose acting (kinds.ts poseTrack), one held pose per clause, popped 3 f before its word
+        const lead = 3, idle = (seed: number) => idlePose(f, FPS, seed) as KPose;
+        const act = (seed: number, keys: PoseKey[], extra: KPose = {}): KPose => ({ ...idle(seed), ...poseTrack(keys, f, FPS), ...extra });
+        const P = BOBBLE_POSES;
+        w.cast.otis.setPose(act(7, [
+          { f: 0, pose: { ...P.hips, expr: "smug" } },
+          { f: T.ordered - lead, pose: { limbs: { handR: [1.15, 1.0] }, expr: "determined" } }, // "cut it": a chop toward the rope
+          { f: T.cut1 + 14, pose: { ...P.hips, expr: "smug" } },
+          { f: T.elisha - lead, pose: { ...P.wave, expr: "happy" } },
+          { f: T.tipped - lead, pose: { hatLift: 0.5, hatTilt: -18, limbs: { handR: [0.5, 2.25] }, expr: "smug" } },
+          { f: T.helper - 6, pose: { ...P.hips, expr: "smug" } },
+          { f: T.dropped - lead, pose: { ...P.shock, squash: 0.92 }, blend: 3 },
+          { f: T.stopped - lead, pose: { ...P.shock, expr: "nervous" } },
+          { f: T.few, pose: { ...P.shrug, expr: "smug" } },
+          { f: T.yousee, pose: { ...P.hips, expr: "happy" } },
+          { f: T.spring - lead, pose: { limbs: { handR: [0.45, 2.1] }, expr: "happy", look: [0.2, -0.8] } }, // points up at the spring
+          { f: T.so2 - lead, pose: { ...P.shrug, expr: "happy" } },
+        ], { blink: blinkAt(f, FPS, "otis", [T.tipped - lead, T.dropped]) }));
         w.cast.otis.place(-0.25, py + 0.16, 0.25, cam.pos);
         w.cast.otis.group.visible = f < T.three;
-        w.cast.helper.setPose(helperPose(f, T));
-        w.cast.helper.place(WINCH[0] - 0.75, 0, 0.55, cam.pos); // left of the rope, swings toward +x into it
-        // heckler: smug, says "He's finished." (Rhubarb cues), shocked on the stop
-        w.cast.heckler.setPose(mp(idlePose(f, FPS, 3), {
-          expr: f >= T.dropped ? "shock" : "smug", blink: blinkAt(f, FPS, "heckler", [T.heck, T.dropped]),
-          cue: cueAt(f, FPS, HECK_CUES, lead), limbs: f >= T.heck - lead && f < T.his + 10 ? { handR: [2.0, 2.4] } : undefined, facing: 1,
-        }));
+        const axe = (angle: number): KPose["hold"] => ({ item: "axe", angle, len: 1.45 });
+        w.cast.helper.setPose(act(2, [
+          { f: 0, pose: { view: "side", limbs: { handR: [0.42, 1.05] }, hold: axe(-60), expr: "nervous" } }, // axe on the shoulder
+          { f: T.cut1 - lead, pose: { view: "side", limbs: { handR: [0.42, 1.05] }, hold: axe(-60), expr: "shock" } },
+          { f: T.swung - lead, pose: { view: "side", limbs: { handR: [-0.35, 1.95], handL: [-0.15, 1.75] }, hold: axe(-25), lean: -10, expr: "determined" }, blend: 12 },
+          { f: T.snapped - 5, pose: { view: "side", limbs: { handR: [1.15, 0.8], handL: [0.95, 0.72] }, hold: axe(25), lean: 14, expr: "angry" }, blend: 4 },
+          { f: T.snapped + 9, pose: { view: "side", limbs: { handR: [1.0, 0.6], handL: [0.8, 0.55] }, hold: axe(35), lean: 4, expr: "shock" } },
+        ]));
+        w.cast.helper.place(WINCH[0] - 0.75, 0, 0.55, cam.pos);
+        // heckler: smug, says "He's finished." (Rhubarb cues), jaw drops on the stop
+        w.cast.heckler.setPose(act(3, [
+          { f: 0, pose: { ...P.hips, expr: "smug" } },
+          { f: T.heck - lead, pose: { limbs: { handR: [1.05, 1.55] }, expr: "smug" } }, // points up at the platform, hand away from his mouth
+          { f: T.his + 8, pose: { ...P.hips, expr: "smug" } },
+          { f: T.dropped - lead, pose: { ...P.shock }, blend: 3 },
+        ], { cue: cueAt(f, FPS, HECK_CUES, 2), blink: blinkAt(f, FPS, "heckler", [T.heck, T.dropped]) }));
         w.cast.heckler.place(-1.9, 0, 4.3, cam.pos);
-        const crowdExpr = (base: KPose["expr"]) => (f >= T.dropped - 2 && f < T.nothing ? "shock" : f >= T.cut1 && f < T.heck ? "nervous" : base);
-        w.cast.lady.setPose(mp(idlePose(f, FPS, 4), { expr: crowdExpr("happy"), limbs: f >= T.dropped && f < T.nothing ? { handL: [0.3, 2.6], handR: [0.3, 2.6] } : undefined }));
+        w.cast.lady.setPose(act(4, [
+          { f: 0, pose: { expr: "happy" } },
+          { f: T.cut1 - lead, pose: { limbs: { handL: [0.22, 1.2], handR: [0.22, 1.2] }, expr: "nervous" } },
+          { f: T.dropped - lead, pose: { limbs: { handL: [0.4, 1.8], handR: [0.4, 1.8] }, expr: "shock" }, blend: 3 },
+          { f: T.nothing, pose: { ...P.cheer, expr: "happy" } },
+        ]));
         w.cast.lady.place(-0.15, 0, 4.4, cam.pos);
-        w.cast.kid.setPose(mp(idlePose(f, FPS, 5), { expr: f >= T.wait ? "laugh" : crowdExpr("happy"), limbs: f >= T.wait ? { handL: [1.1, 3.0], handR: [1.1, 3.0] } : undefined }));
+        w.cast.kid.setPose(act(5, [
+          { f: 0, pose: { ...P.point, limbs: { handR: [0.9, 1.5] }, expr: "happy" } },
+          { f: T.dropped - lead, pose: { ...P.shock }, blend: 3 },
+          { f: T.wait - lead, pose: { ...P.cheer } },
+        ]));
         w.cast.kid.place(0.55, 0, 4.65, cam.pos);
-        w.cast.prof.setPose(mp(idlePose(f, FPS, 6), { expr: f >= T.nothing ? "think" : crowdExpr("neutral"), limbs: f >= T.nothing ? { handR: [0.25, 2.55] } : undefined }));
+        w.cast.prof.setPose(act(6, [
+          { f: 0, pose: { ...P.think } },
+          { f: T.dropped - lead, pose: { ...P.shock }, blend: 3 },
+          { f: T.wait + 10, pose: { ...P.think, expr: "think" } },
+        ]));
         w.cast.prof.place(1.2, 0, 4.3, cam.pos);
-        // flashback worker rides the hoist down and sits up dizzy
-        const fallen = f >= T.fell;
-        w.cast.hoistMan.setPose(mp(idlePose(f, FPS, 8), { expr: fallen ? "cry" : f >= T.snap0 ? "shock" : "whistle",
-          limbs: f >= T.snap0 && !fallen ? { handL: [1.2, 3.1], handR: [1.2, 3.1] } : undefined, squash: fallen ? 0.9 : 1 }));
+        // flashback worker rides the hoist down, then sits holding his neck
+        w.cast.hoistMan.setPose(act(8, [
+          { f: 0, pose: { expr: "whistle" } },
+          { f: T.snap0 - 2, pose: { ...P.shock }, blend: 3 },
+          { f: T.fell, pose: { ...P.neck, squash: 0.9 }, blend: 3 },
+        ]));
         w.cast.hoistMan.place(hx - 0.25, hy + 0.14, hz + 0.35, cam.pos);
         w.cast.hoistMan.group.visible = f < T.nobody + 10;
         // 1857 riders wave from the car
         const cy = 0.1 + ct * 12.6 + 0.07;
-        w.cast.rider1.setPose({ expr: "laugh", limbs: { handR: [1.1, 2.9 + 0.2 * Math.sin(f * 0.5)] } } as KPose); w.cast.rider1.place(STORE[0] - 1.9, cy, STORE[2] + 5.4, cam.pos);
-        w.cast.rider2.setPose({ expr: "happy", limbs: { handL: [1.1, 2.9 + 0.2 * Math.cos(f * 0.5)] } } as KPose); w.cast.rider2.place(STORE[0] - 1.0, cy, STORE[2] + 5.4, cam.pos);
+        w.cast.rider1.setPose({ ...idle(11), expr: "laugh", limbs: { handR: [0.9, 1.55 + 0.12 * Math.sin(f * 0.5)] } }); w.cast.rider1.place(STORE[0] - 1.9, cy, STORE[2] + 5.4, cam.pos);
+        w.cast.rider2.setPose({ ...idle(12), expr: "happy", limbs: { handL: [0.9, 1.55 + 0.12 * Math.cos(f * 0.5)] } }); w.cast.rider2.place(STORE[0] - 1.0, cy, STORE[2] + 5.4, cam.pos);
         w.cast.rider1.group.visible = w.cast.rider2.group.visible = f >= T.three - 12 && f < T.andOtis + 12;
-        // old Otis: hat held to the chest on "died", looks up to the skyline on "skyscraper"
-        const up = f >= T.sky - lead;
-        w.cast.otisOld.setPose(mp(idlePose(f, FPS, 9), { expr: up ? "happy" : f >= T.died - lead ? "sad" : "neutral", look: up ? [0.2, -0.9] : undefined,
-          blink: blinkAt(f, FPS, "otisOld", [T.died - lead, T.sky - lead]), hold: { item: "hat", hat: otis.hat, hand: "R" }, limbs: { handR: [0.55, 0.95] } }));
+        // old Otis: hat held to the chest, sad on "died", looks up at the skyline on "skyscraper"
+        const hat: KPose["hold"] = { item: "hat", hat: OTIS_HAT, hand: "R" };
+        w.cast.otisOld.setPose(act(9, [
+          { f: 0, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "neutral" } },
+          { f: T.died - lead, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "sad", look: [0, 0.5] } },
+          { f: T.sky - lead, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "happy", look: [0.2, -0.9] } },
+        ], { blink: blinkAt(f, FPS, "otisOld", [T.died - lead, T.sky - lead]) }));
         w.cast.otisOld.place(SX + 2.2, 0, 4.4, cam.pos);
         w.cast.otisOld.group.visible = f >= T.andOtis - 12;
         w.crowd.update(f, FPS, cam.pos);
@@ -599,7 +622,7 @@ const Years: React.FC = () => {
     return <div key={y} style={{ position: "absolute", left: width * 0.08, top: height * 0.14, opacity: o, transform: `rotate(-6deg) scale(${k})`, padding: `${8 * u}px ${26 * u}px`,
       background: "#f4efe6", border: `${6 * u}px solid #140c10`, borderRadius: 16 * u, fontFamily: FONTS.heavy, fontSize: 72 * u, color: "#140c10" }}>{y}</div>;
   };
-  return <AbsoluteFill style={{ pointerEvents: "none" }}>{stamp("1854", 4, T.back)}{stamp("1857", T.three + 6, T.andOtis)}{stamp("1861", T.y1861, T.decades + 6)}</AbsoluteFill>;
+  return <AbsoluteFill style={{ pointerEvents: "none" }}>{stamp("1854", T.stood + 3, T.back)}{stamp("1857", T.three + 6, T.andOtis)}{stamp("1861", T.y1861, T.decades + 6)}</AbsoluteFill>;
 };
 
 export const elevatorShort: ProjectDef = {
@@ -610,7 +633,7 @@ export const elevatorShort: ProjectDef = {
     const travels = [T.his, T.slack, T.teeth];
     return [{
       id: "otis", frames: T.total,
-      innerCuts: [T.helper, T.wait],
+      innerCuts: [T.stood, T.helper, T.wait],
       innerSoft: [T.back, T.nobody, T.heck, T.yousee, T.three, T.andOtis],
       cues: Object.fromEntries(Object.entries(T).filter(([, v]) => typeof v === "number")) as Record<string, number>,
       events: [T.rope1, T.cut1, T.snap0, T.fell, T.five, T.snapped, T.dropped, T.dropped + 2, T.stopped, T.wait, T.jammed, T.so2, T.elevator2, T.y1861,

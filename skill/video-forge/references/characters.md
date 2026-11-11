@@ -1176,3 +1176,37 @@ The main sources are listed below; everything else is cited inline.
 - [Ready Player Me shutdown](https://genies.com/blog/ready-player-me-shutdown)
 - [Live2D SDK licence](https://help.live2d.com/en/sdk)
 - [Spine runtimes licence](https://eu.esotericsoftware.com/spine-runtimes-license)
+
+#### I) `bobble`: big-head figure for full-body acting in a 3D world (1.4, the default toonworld cast)
+
+Built after the case study (`styles/toonworld-explainer.casestudy.md` section 5) and the user's own reference figure
+(bean head, long jacket with a zip, straight thin legs). Original design: skin-toned head, hair cap or hat, outfit
+shapes; do not copy another channel's white-head cast.
+
+```ts
+bobble: {
+  skin: string;
+  heightHeads?: number;        // 3.4 default = tall, slim (long jacket, straight legs); 2.6 = short chibi-like build; kids 2.7
+  hair?: { style: "cap" | "side" | "spiky" | "curly" | "long" | "bob" | "bun" | "pony" | "buzz" | "bald"; color };
+  hat?:  { style: "cap" | "top" | "bowler" | "beanie" | "hardhat" | "chef" | "ranger" | "crown" | "boater" | "beret"; color; accent? };
+  top:   { color; style?: "jacket" | "hoodie" | "shirt" | "suit" | "tee" | "dress" | "overall" | "uniform" | "coat" | "vest" | "apron"; accent?; sleeves? };
+  legs?, shoes?, beard?, stache?, glasses?, shades?, neck?: { style: "tie" | "bow" | "scarf"; color }, cheeks?, build?: "slim" | "regular" | "stout";
+}
+```
+
+- **Rig:** two-bone IK on all four limbs (rubber-hose curves), fists, shoes. `limbs` targets are in head units relative
+  to the hip and scale with the torso, so `BOBBLE_POSES` (idle, wave, point, shrug, cheer, think, facepalm, neck, hips,
+  phone, shock, carry, sit, run, limp) work on every build. `hold` props (axe, cane, hat, flag, lever, bag),
+  `hatLift`/`hatTilt` for a hat tip. A held hat hangs crown-down from the hand so it never covers the face.
+- **Face:** the shared FaceRig with dot eyes + brows (16 expressions, Rhubarb cues); shock and nervous switch to ring
+  eyes with pupils, like the reference's reaction faces.
+- **Polish that makes it read as "designed"** (keep all five when you add a part): thick-thin ink outline; cel crescent
+  on head and torso from the scene's light side; the fringe's drop shadow on the forehead; the head's shadow on the
+  collar; a soft key highlight on the head, hair and chest.
+- **Pack:** 20 presets `KIND_PRESETS.bbHero ... bbGent` (hero, girl, kid, grandpa, grandma, boss, worker, cop, ranger,
+  doctor, chef, scientist, farmer, teen, athlete, king, artist, nerd, lady, gent): one silhouette (hair or hat) + one
+  outfit shape + one accent colour each. Recolour or swap parts for period wardrobe (see `projects/elevator`).
+- **Acting:** `poseTrack()` = one held pose per clause, popped over ~5 frames with a little overshoot, keyed 3 frames
+  before the word. Add `idlePose()` underneath for breathing. Give cards `pad` for props and raised arms.
+- Sheet: `render.mjs --project charsheet --format long --stills 190,220` (pack front / profile / acting; expressions,
+  cues, walk, pose library, props).

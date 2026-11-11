@@ -71,6 +71,8 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | sentence-by-sentence script x camera x cuts x light | `vfa breakdown ANALYSIS_DIR` (analyze with `--speech whisper` first) |
 | cast look-dev sheet | `node ENGINE/tools/render.mjs --project modelsheet --format long --stills 0,40` (40 = visemes + side view) |
 | new character kinds (objects, animals, blobs, stick, chibi, flat vector, microbes) + style passes | `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 0,40,70,100,130` |
+| **bobble character pack** (default cast for toonworld shorts: 20 presets `KIND_PRESETS.bb*`, big head, long jacket, IK limbs, props) | `kind: "bobble"` in `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 190,220` |
+| pose-to-pose acting (one held pose per clause, popped 3 f before its word) | `poseTrack([{ f, pose }], frame, fps)` + `BOBBLE_POSES` in `lib/characters/kinds.ts` |
 | thumbnails from the 3D world (variants, feed-size preview sheet, ranked by `thumbcheck`) | `node ENGINE/tools/thumbs.mjs --project ID [--kind long,short,hires] --out DIR`; variants in the project's `thumbnails` (see `projects/manhole/thumbs.ts`) |
 | render-speed benchmark before changing defaults | `node ENGINE/tools/bench.mjs --project ID --frames 180-299 --variants default,c4,veryfast,default` |
 | one-command iteration: stills, render, audio, QA, gap, judge pack, learning log | `node ENGINE/tools/produce.mjs --project ID --ref ... --style ... --change "..."` |
@@ -108,6 +110,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/director-loop.md`: the automated improvement loop (produce -> per-area judges -> fixers by file ownership -> learning log)
 - `references/external.md`: optional paid/external integrations (premium voices, AI video plates, Blender photoreal, upscalers) and how to label them
 - `references/styles/*.md`: measured style profiles with engine recipes (start: `toonworld-explainer.md`, a 149-short channel study)
+- `references/styles/toonworld-explainer.casestudy.md`: ONE hero short measured frame by frame (story beats, 20 scene changes, a gag prop per sentence, colour script, acting, captions, mix) - read it for "make a video like that one"
 - `references/reference-study.md`: the reference methodology this skill was built from, plus measured results
 
 Demo projects to copy from:

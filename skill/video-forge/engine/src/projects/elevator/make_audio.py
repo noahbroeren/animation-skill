@@ -76,7 +76,7 @@ tracks = [
 ]
 plan = {"duration": total / fps, "fps": fps, "target_lufs": -14, "true_peak": -1.5,  # AAC encode adds ~0.1-0.5 dB: -1.5 master -> <= -1.0 delivered
         "words": "words.json", "words_offset": 0.1, "duck_db": -3,
-        "music_sections": [[0, S(C["yousee"]), -13], [S(C["yousee"]), S(C["three"]), -15], [S(C["three"]), total / fps, -12]],
+        "music_sections": [[0, S(C["yousee"]), -19], [S(C["yousee"]), S(C["three"]), -21], [S(C["three"]), total / fps, -18]],  # reference short (vfa stems): music ~20 dB under the voice, playing 100 % of the runtime
         "reverb": {"rt60": 1.2, "wet": 0.45}, "tracks": tracks}
 json.dump(plan, open(os.path.join(PUB, "audio_plan.json"), "w"), indent=1)
 subprocess.run([sys.executable, os.path.join(AUDIO, "mix.py"), os.path.join(PUB, "audio_plan.json"), "--out", os.path.join(PUB, "master.wav"),

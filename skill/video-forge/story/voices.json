@@ -4,5 +4,11 @@
   "words": 162,
   "seconds": 59.58,
   "note": "ElevenLabs library voice 'Clark - The Trusted Narrator' (q6K6eJHlET6X3ASlVWD9), model eleven_v4, default settings; rate includes sentence pauses (elevator proof short, 2026-11-11)"
+ },
+ "clark-v4-tight": {
+  "wps": 3.144,
+  "words": 162,
+  "seconds": 51.52,
+  "note": "same ElevenLabs take as clark-v4, pauses capped at 0.2 s + atempo 1.12 (elevator v2, 2026-11-11)"
  }
 }

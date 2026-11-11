@@ -1,6 +1,6 @@
 # title: Why Elevators Don't Fall
 # style: toonworld-explainer
-# voice: clark-v4
+# voice: clark-v4-tight
 # topic: why elevators don't fall (Otis safety brake, 1854 New York demo)
 In 1854, a man stood high above a crowd and ordered the only rope holding him *cut*.
 Back then, if an elevator rope snapped, the platform fell, and so did everyone on it.

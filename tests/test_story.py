@@ -115,8 +115,8 @@ def test_voice_calibration_times_the_script_at_the_voice_rate():
     # learned on the elevator short: the style rate (3.63 w/s) predicted 48 s, the ElevenLabs narrator ran 59.6 s
     ex = os.path.join(SKILL, "story", "examples", "elevator.txt")
     r = story.lint(ex, None)
-    assert "voice clark-v4" in r["timed_at"] and 55 <= r["duration_s"] <= 68, r["timed_at"]
-    r2 = story.lint(ex, None, wps=3.63)
+    assert "voice clark-v4" in r["timed_at"] and 48 <= r["duration_s"] <= 68, r["timed_at"]
+    r2 = story.lint(ex, None, wps=4.2)
     assert r2["duration_s"] < r["duration_s"] - 8 and "--wps" in r2["timed_at"]
     assert any(i["severity"] == "INFO" and "voice rate" in i["issue"] for i in r["issues"])
     words = [{"word": f"w{i}", "start": i * 0.5, "end": i * 0.5 + 0.4} for i in range(21)]

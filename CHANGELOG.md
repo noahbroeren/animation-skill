@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4.0 - 2026-11-11
+- **Bobble character pack** (`kind: "bobble"`, `lib/characters/kinds.ts`): big-head figures with a long jacket and
+  straight legs (3.4 heads; 2.6 for the short build), two-bone IK on all limbs, fists and shoes, 11 outfits, 10 hair
+  styles, 10 hats, facial hair, glasses, neckwear, props and hat tip; cel shading with fringe and collar shadows.
+  20 presets `KIND_PRESETS.bb*`, `BOBBLE_POSES` (15 poses), charsheet pages 7-8.
+- **`poseTrack()`**: pose-to-pose acting, one held pose per clause with a pop.
+- **Case study of one hero short** (`references/styles/toonworld-explainer.casestudy.md`, fingerprint
+  `data/toonworld-explainer_case1_fingerprint.json`, numbers and paraphrase only): 14-beat scheme-and-comeuppance
+  story, 20 scene changes in 62 s (65 % soft), 3 setups in the first sentence, a gag prop per sentence, colour script
+  with a weather turn, POV reveal, captions, and a mix with music 20 dB under the voice.
+- **Story engine:** formula B (scheme and comeuppance) + a production checklist in `story-engine.md`.
+- **Elevator proof short v2:** bobble cast with period wardrobe, pose-to-pose acting, hook opens on a close-up and cuts
+  on the second clause, handheld rig, narration tightened 2.72 -> 3.14 w/s (59.6 s -> 51.8 s), music 19-21 dB under
+  the voice, bigger crowd.
+- Held hats hang crown-down from the hand (they covered the face); `StickHold.hat` accepts bobble hats.
+
 ## 1.3.0 - 2026-11-11
 Built a complete proof short with the skill ("Why Elevators Don't Fall", 9:16 2K, 60.6 s, ElevenLabs VO, new stick cast),
 then measured it frame by frame against the reference channel and fixed what the measurement and the review found.

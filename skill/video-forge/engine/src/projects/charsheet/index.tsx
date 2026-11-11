@@ -7,7 +7,7 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { CharacterSpec, Pose, walkPose } from "../../lib/characters/toon";
-import { Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
 import { ProjectDef } from "../../lib/project";
 import { FONTS } from "../../lib/two/text";
 
@@ -15,6 +15,8 @@ type Spec = KindSpec | CharacterSpec;
 type CellDef = { spec: Spec; pose: KPose; label: string; pass?: PassSpec; w?: number };
 type RowDef = { title: string; cells: CellDef[] };
 const K = KIND_PRESETS;
+const BB = (Object.keys(K) as (keyof typeof K)[]).filter((k) => k.startsWith("bb"));
+const PACK_POSES: KPose[] = ["wave", "cheer", "shock", "think", "hips", "point", "shrug", "phone", "neck", "carry"].map((n) => BOBBLE_POSES[n]);
 const TOON: CharacterSpec = { id: "worker", style: "toonworld", skin: "#fef4ee", hair: { color: "#5b3a24", style: "short" }, top: { color: "#f08a24" }, bottom: { color: "#3a4a78" }, hat: { style: "cap", color: "#e8b923" } };
 
 const kindOf = (s: Spec) => ("kind" in s ? s.kind : "toon");
@@ -106,6 +108,26 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
         { spec: K.stickProf, pose: { ...STICK_POSES.point, view: "side" }, label: "prof point" },
       ] },
     ] },
+    { title: "PAGE 7 · BOBBLE PACK · 20 characters (hair / hat silhouette + outfit shape + accent) · front · profile · a pose", h: 300, rows: [0, 1, 2, 3].map((ri) => ({ title: `pack ${ri * 5 + 1}-${ri * 5 + 5}`,
+      cells: BB.slice(ri * 5, ri * 5 + 5).flatMap((n, i) => [{ spec: K[n] as Spec, pose: { expr: "happy" } as KPose, label: n.slice(2).toLowerCase(), w: 165 }, { spec: K[n] as Spec, pose: { view: "side" } as KPose, label: "side", w: 130 },
+        { spec: K[n] as Spec, pose: PACK_POSES[(ri * 5 + i) % PACK_POSES.length], label: "acting", w: 178 }]) })) },
+    { title: "PAGE 8 · BOBBLE · expressions · Rhubarb cues · walk · pose library · props · hat tip", h: 150, rows: [
+      ...([["hero", K.bbHero], ["girl", K.bbGirl], ["grandpa", K.bbGrandpa]] as [string, Spec][]).map(([n, s]) => matrixRow(n, s, frame, fps)),
+      { title: "all 16", cells: KEXPRS.map((e) => ({ spec: K.bbKid as Spec, pose: { expr: e } as KPose, label: e })) },
+      { title: "poses", cells: Object.entries(BOBBLE_POSES).map(([n, p], i) => ({ spec: K[BB[(i * 3) % BB.length]] as Spec, pose: p, label: n, w: 150 })) },
+      { title: "props", cells: [
+        { spec: K.bbWorker, pose: { limbs: { handR: [0.6, 1.9], handL: [0.3, 1.7] }, hold: { item: "axe", angle: -10, len: 1.5 }, expr: "determined" }, label: "axe up", w: 150 },
+        { spec: K.bbGent, pose: { hatLift: 0.5, hatTilt: -18, limbs: { handR: [0.5, 2.25] }, expr: "smug" }, label: "hat tip", w: 150 },
+        { spec: K.bbGrandpa, pose: { limbs: { handR: [0.75, 0.1] }, hold: { item: "cane", angle: 70, len: 1.0 }, expr: "happy" }, label: "cane", w: 150 },
+        { spec: K.bbKid, pose: { limbs: { handR: [0.7, 1.6] }, hold: { item: "flag", angle: -80, len: 1.2 }, expr: "laugh" }, label: "flag", w: 150 },
+        { spec: K.bbLady, pose: { limbs: { handL: [0.6, 0.05] }, hold: { item: "bag", hand: "L" }, expr: "happy" }, label: "bag", w: 150 },
+        { spec: K.bbHero, pose: { ...BOBBLE_POSES.run }, label: "run", w: 170 },
+        { spec: K.bbBoss, pose: { ...BOBBLE_POSES.sit, expr: "smug" }, label: "sit", w: 170 },
+        { spec: K.bbCop, pose: { ...BOBBLE_POSES.point, view: "side", expr: "angry" }, label: "side point", w: 170 },
+        { spec: K.bbGirl, pose: { ...BOBBLE_POSES.cheer }, label: "cheer", w: 150 },
+        { spec: K.bbChef, pose: { ...BOBBLE_POSES.hips, expr: "angry" }, label: "hips", w: 150 },
+      ] },
+    ] },
   ];
 }
 
@@ -128,6 +150,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 6 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 8 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);

@@ -95,3 +95,28 @@ For on-screen speakers, also run `py AUDIO/lipsync.py vo.wav --script script.txt
 ## Honesty rules
 - Never present invented specifics (dates, names, numbers) as fact. Mark them STORY in claims.md, and keep the mechanism true.
 - Don't claim a hook "will perform": the scores are correlations from measured channels (see the n and the CIs in `hooks-topics.md`).
+
+## Formula B: scheme and comeuppance (measured on one 3.1 M-view hero short)
+
+Use it when the topic is "why people started doing X" or "how X was invented" and there is a character who games a
+rule. Full beat table with timings: `styles/toonworld-explainer.casestudy.md`.
+
+1. Hook = an ACT in progress with its consequence in the same sentence (present tense, <= 18 words).
+2. The rule he exploits (why the act pays).
+3. The reward, as a list of three.
+4. Escalation x3-4, each a new picture: again -> chooses victims (list of three) -> accomplice -> absurd peak.
+5. Authority pushes back: two short spoken lines (the official, then his cheeky excuse).
+6. Stakes restated in one sentence.
+7. The turn, announced by weather or light ("one rainy morning"), with an opponent who does NOT react.
+8. The reveal object, shown by one gesture.
+9. Reversal: the object proves the truth.
+10. Origin tag in <= 8 words that answers the title. No CTA.
+
+Production checklist for "a video like that one":
+- 3 setups inside the first sentence (close on the actor, wide of the situation, close on the consequence); first cut
+  before 1.5 s, on a word.
+- one gag prop or set per sentence that makes the claim concrete (aim for 14+ setups per minute);
+- a colour script per phase, and a weather / light change at the turn;
+- a point-of-view shot for the reveal (show the evidence as the characters see it);
+- pose-to-pose acting (`poseTrack`), every character in frame reacts to an incident;
+- narration 3.1-3.9 w/s with pauses capped at ~0.2 s; music the whole way, ~20 dB under the voice.

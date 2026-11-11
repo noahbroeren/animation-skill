@@ -334,3 +334,19 @@ Either aim the first key wider, or put a slow mid-hold key in (holds restart the
 **`motes()` (world kit).** Deterministic drifting dust / pollen / snow (`THREE.Points`, NOINK, audit-ignored):
 `const m = motes(scene, { center, size, n, px, color, seed }); ... m.update(frame, fps)`. Held shots are never
 dead-still (measured micro-animation gap on the elevator short).
+
+## Added in 1.4 (bobble cast + lessons from the hero-short case study)
+
+- **`kind: "bobble"`** (characters.md 5.3 I): `new CharacterCard(KIND_PRESETS.bbHero, 1.75, 1600, sun, undefined,
+  { top: 0.3, x: 0.4 })`. Any kind works in `CrowdPool`.
+- **`poseTrack(keys, frame, fps)`**: `keys = [{ f, pose, blend? }]`; holds each pose and pops into the next (outBack,
+  default 5 frames). Numbers and IK targets blend, `expr` / `cue` / `view` / `hold` switch at the pop. Typical use:
+  `card.setPose({ ...idlePose(f, fps, seed), ...poseTrack(keys, f, fps), cue: cueAt(...) })`.
+- **Handheld life:** `cameraRig(keys, { handheld: 0.012, handheldSpeed: 0.4 })` (the reference has a little handheld
+  motion in every shot).
+- **Hook cut:** open on a close-up of the actor and hard-cut to the wide on the second clause (`cut: true` on a word
+  cue, listed in `innerCuts`).
+- **Narration tempo:** `ffmpeg -af "silenceremove=stop_periods=-1:stop_duration=0.24:stop_threshold=-36dB:stop_silence=0.2,atempo=1.12"`
+  caps pauses at 0.2 s and speeds the read ~12 % without re-generating the voice; re-run `tts.py align` and
+  `lipsync.py` afterwards (word indices stay the same, so `timing()` keeps working).
+- **Music level:** `music_sections` at -18..-21 (the measured reference keeps music ~20 dB under the voice).
