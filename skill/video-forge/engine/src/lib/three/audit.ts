@@ -52,6 +52,9 @@ const describe = (o: THREE.Object3D) => {
 };
 
 /** Check each subject against the current camera: in frame, not at the edge, sensible size, and not occluded. */
+/** visible including every ancestor (1.7: a hidden prop group, or a set that is switched off, is not an occluder) */
+const shown = (o: THREE.Object3D | null): boolean => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; };
+
 export function auditView(scene: THREE.Scene, camera: THREE.PerspectiveCamera, subjects: ShotSubject[]): string[] {
   const out: string[] = [];
   camera.updateMatrixWorld(true);
@@ -73,7 +76,7 @@ export function auditView(scene: THREE.Scene, camera: THREE.PerspectiveCamera, s
       ray.set(camera.position, dir.normalize());
       ray.near = camera.near; ray.far = Math.max(0, d - Math.max(0.25, r * 0.5));
       ray.layers.enableAll(); ray.layers.disable(SHADOW_ONLY);
-      const hits = ray.intersectObjects(scene.children, true).filter((h) => (h.object as THREE.Mesh).isMesh && h.object.visible
+      const hits = ray.intersectObjects(scene.children, true).filter((h) => (h.object as THREE.Mesh).isMesh && shown(h.object)
         && !h.object.userData.auditIgnore && !transparentTexel(h));
       if (hits.length) { out.push(`"${s.name}" is OCCLUDED by ${describe(hits[0].object)} at ${hits[0].distance.toFixed(1)} m (subject at ${d.toFixed(1)} m)`); break; }
     }
@@ -92,7 +95,7 @@ export function cameraInside(scene: THREE.Scene, camera: THREE.PerspectiveCamera
   const out: string[] = [];
   scene.traverse((o) => {
     const m = o as THREE.Mesh;
-    if (!m.isMesh || !m.visible || m.userData.auditIgnore || m.geometry?.type !== "BoxGeometry") return;
+    if (!m.isMesh || !shown(m) || m.userData.auditIgnore || m.geometry?.type !== "BoxGeometry") return;
     const g = m.geometry as THREE.BoxGeometry, P = g.parameters;
     if (Math.max(P.width, P.height, P.depth) < 0.6 || Math.min(P.width, P.height, P.depth) < 0.25) return;
     _p.copy(camera.position).applyMatrix4(_inv.copy(m.matrixWorld).invert());

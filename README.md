@@ -32,10 +32,10 @@ The image above is the demo "Why manhole covers are round". It is 9:16 1440x2560
 ```
 skill/video-forge/            <- the Claude Skill (copy this folder into your skills directory)
   SKILL.md                    entry point (modes, production loop, non-negotiables)
-  references/                 workflow, analyzer, engine, craft, quality, longform, external, reference-study
+  references/                 workflow, analyzer, engine, board (storyboard as data), craft, quality, longform, external, reference-study
   analyzer/                   vfa: Python measurement toolkit (fetch, analyze, channel, compare, aggregate, qa, sbs)
   engine/                     Remotion + three.js production engine, render orchestrator, demo projects
-  audio/                      sfx.py, music.py, tts.py (offline TTS + word alignment), mix.py (mix + master)
+  audio/                      sfx.py, music.py, tts.py (offline TTS + word alignment), tighten.py, score.py (sound from the picture), mix.py (mix + master)
   scripts/doctor.mjs          dependency checker
   templates/                  style bible, series bible
 tests/                        ground-truth tests for the analyzer (synthetic videos with known motion/cuts)
@@ -72,6 +72,7 @@ Manual install: copy the folder yourself, then run `pip install -r analyzer/requ
 - "Make a 45-second short in that style about <topic>, but better: native 2K, captions, sound design."
 - "Turn this script into a 10-minute chaptered YouTube video in the documentary look, 4K."
 - "My video looks cheap compared to this one. Measure both and fix it."
+- "Here is a script. Make the short." (one command: `node tools/make.mjs --project ID`, see below)
 
 Or drive the tools directly:
 
@@ -79,7 +80,9 @@ Or drive the tools directly:
 py skill/video-forge/analyzer/vfa.py analyze ref.mp4                    # measure
 py skill/video-forge/analyzer/vfa.py compare ref_analysis ours_analysis # gap table
 cd skill/video-forge/engine
-node tools/new-project.mjs my-short --format short                      # scaffold
+node tools/make.mjs --project my-short                                  # script -> fact check -> voice -> storyboard -> stills -> audit -> render -> sound -> QA
+node tools/make.mjs --project my-short --from board --to stills         # the authoring loop: one named still per beat
+node tools/new-project.mjs my-short --format short                      # scaffold a hand-built project instead
 node tools/render.mjs --project lighthouse --format short --stills 0,200,400 --scale 0.5
 node tools/render.mjs --project pendulum --format long4k --audio public/pendulum/master.wav
 py ../analyzer/vfa.py qa out/.../pendulum_3840x2160_30fps.mp4 --plan out/.../timeline.json --min-class 4k
@@ -99,6 +102,9 @@ py ../analyzer/vfa.py qa out/.../pendulum_3840x2160_30fps.mp4 --plan out/.../tim
 | channel study (`vfa batch`, eras, views correlation) + sentence breakdowns (`vfa breakdown`) | **functional, tested** on 42 shorts of a 149-short channel |
 | toon shaders (painted cel world, card shading, wind, water), camera motion blur, DOF v2, knot grade, FX, one-word captions | **functional, tested** in the `manhole` demo (1440x2560, QA WARN with no FAIL) |
 | audio DSP (BS.1770 loudness, true-peak limiter, words-keyed ducking, sections, reverb, distance) | **functional, tested** (`tests/test_audio.py`; ffmpeg cross-check on every mix) |
+| **storyboard as data** (`lib/board.tsx`): beats on spoken words drive camera, light plan, acting, gags, crowds, shot audit and the sound cue sheet; `make.mjs` runs the whole chain with gates | **functional, tested** on the `coins` short (41 beats, 8 sets, 1440x2560) |
+| ready-made sets with marks (8 sets, old / modern, day / night), shot grammar (11 sizes incl. point-of-view, 7 moves, whip), vehicles with seated characters, rain + wet-ground reflection, three-quarter view, smear frames, reacting crowds | **functional**, checked on sheets (`setsheet`, `propsheet`, charsheet still 310) and in the `coins` short |
+| sound from the picture (`audio/score.py`): real samples first, synthesized fallback, music track, ambience per place, rain | functional; the sample library itself is local (`~/.video-forge/sounds/`, prompts in `audio/soundlib.json`), never in this repository |
 | automatic dissolve/transition classification, OCR/font identification, 60 fps demo render, side-view walk cycles, crowds pool | not implemented / not yet verified |
 
 ## Measured performance (RTX 5070, 16 threads)

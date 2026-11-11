@@ -1230,5 +1230,73 @@ profile acting). Run them after ANY change to the kind.
 | a year stamp covered the hero on the wide shot | overlays are placed per shot; check them on the cue stills like props |
 | heads never moved on the neck | `headTilt` (degrees) and a small automatic tilt per expression (sad and cry droop, think and laugh tip away) |
 
-Still weak (known): the profile hat tip crosses the face with the forearm; there is no 3/4 body view (only the head
-turns); fingers are symbolic; no smear frames on fast pops.
+Still weak (known): the profile hat tip crosses the face with the forearm; fingers are symbolic. (The missing 3/4 body
+view and the missing smear frames were added in 1.7, next section.)
+
+**Three-quarter view and smear frames (1.7).** Measured gap behind both: our characters moved half as much as the
+reference between poses (micro-animation 0.010 vs 0.020) and were only ever seen flat front or flat profile. Sheet:
+charsheet still 310 (`render.mjs --project charsheet --format long --stills 310`): the cast right and left, front / 3/4 /
+side of the same pose, every outfit, hat and hair in 3/4, the frames of two pops, a 3/4 walk cycle, a settle sequence.
+
+*Three-quarter view* (bobble only; every other kind draws its front view for `view: "three"`):
+
+```ts
+card.setPose({ ...BOBBLE_POSES.point, view: "three", facing: 1 });   // facing: 1 looks right, -1 looks left (mirror)
+{ ...BOBBLE_POSES.run, view: "three" }                                // profile poses work too (they carry targets: "side")
+```
+
+- It is a drawing of its own, not a squashed front view: torso 10 % narrower, the far shoulder tucked behind the body,
+  the far arm hanging behind the torso, legs overlapping with the near leg in front, the far foot a little higher,
+  both feet pointing where the character looks. Zip, buttons, lapels, tie, bow, apron bib, badge and strings slide to
+  the facing side; the far half of every collar is foreshortened. Head: features slide and the far eye, brow, lens and
+  moustache wing get narrower, the near ear sits on the head with the hairline behind it, a soft cheek on the face-side
+  silhouette, a temple arm on glasses; all 10 hair styles and 10 hats have a 3/4 drawing (cap peak, hardhat brim and
+  ridge, crown jewels turn; hair wraps the back of the skull). Same head size, line weight and polish as the front.
+- **Which arm is which:** R is the FAR arm (on the facing side), L is the near one. That is the front view turned, so
+  every front pose keeps its meaning: R point / wave / phone go toward the facing side, L gestures go behind.
+- **How front-view IK targets are mapped:** a target `[x, y]` (x = outward) becomes `x' = 0.8 * (+x for R, -x for L)`,
+  plus 0.1 head forward for hands (where the chest and the face went); y is unchanged. So shrug / cheer / hips spread to
+  both sides, think / facepalm / neck still land on the face, and `point` reaches the facing side. Poses written for
+  the profile (x = forward for both hands and feet) need `targets: "side"`; `sit`, `run` and `limp` already have it.
+- Arm and leg ANGLES (`armL`, `legR`, walk cycles) swing forward and back as in the profile, at 80 %, so `walkPose` +
+  `view: "three"` is a correct three-quarter walk (near leg in front, arms opposite, 60 % of the lean).
+- `turn` adds to the built-in turn: -1 brings the face back toward the camera, +1 pushes it toward the profile.
+- The far arm is drawn behind the body and the head; it comes in front only when its hand lands on the head or chest
+  (think, facepalm, a held hat) or tips the hat.
+
+When to use it: two characters talking (`facing: 1` on the left one, `-1` on the right one: they look at each other
+and still show both eyes to the audience), anyone looking at or pointing to something off to the side, a walk that
+should not be a flat profile. Keep the front view for a character talking TO the viewer and the profile for runs,
+sits and carries seen from the side. Change `view` only on a pose key (it switches when the pop starts).
+
+*Smear frames and settle* (`poseTrack` only; a pose that never went through `poseTrack` has neither field and draws
+exactly as before):
+
+- **Smear:** on a frame of a pop where a hand target travels more than ~0.45 head units, `poseTrack` adds
+  `smear: { handR: { from, to } }` (also `handL`, and `head` for a head thrown by lean / bob) and the bobble draws that
+  hand as ONE stretched, inked shape about three hands long along its arc around the shoulder, with a faint dry-brush
+  tail: a drawn smear, not a blur. The arm stays sharp and attached. At most 2 frames per pop; with the default blend
+  of 5 it is the frame after the key (keyed pose to keyed pose) or the third frame (from a pose without a hand target).
+- **Settle:** for ~8 frames after a key the pose carries `settle` (degrees): the hat, the hair mass, back hair, a held
+  prop and a coat / dress hem drag behind the pop, overshoot by 1.5 to 6 degrees and come to rest. The limbs are not
+  touched (they already overshoot through the outBack blend). The size follows how big the pose change was.
+- `{ f, pose, smear: false }` switches both off for the pop into that key.
+
+When to use them: leave the default on; it only fires on big accent poses (point, cheer, shock, a thrown wave). Switch
+it off (`smear: false`) on a key that is held for a thumbnail or a freeze frame, on slow blends you stretched on
+purpose, and when a prop must stay rock steady (a signed paper the viewer has to read).
+
+Limits found while building it:
+
+| limit | what to do |
+|---|---|
+| a smear frame looks odd as a still | do not pick the frame after a key for thumbnails or cue stills |
+| only hands driven by `limbs` targets smear (a missing target counts as the resting hand `[0.5, 0]`); arms posed with angles and feet never do | give accent poses hand targets |
+| a pop from a pose WITHOUT a hand target switches that hand at 45 % of the blend, so the smear is the only in-between | key both poses with a target when you want the eased arc |
+| handedness flips with `facing` (R is always the far arm) | pick the arm by what should be visible, not by left / right |
+| a prop held low in the far (R) hand is partly behind the body | use `hold: { hand: "L" }` when the prop must read |
+| the 3/4 hat tip still brushes the far edge of the face | tip the hat in the front view, or accept it for 5 frames |
+| front-view ANGLE poses that raise an arm sideways swing it forward instead | use `limbs` targets for gestures in 3/4 |
+| the far arm changes layer (behind / in front of the body) in one frame | fine inside a pop; avoid slow blends that drag a hand across the body edge |
+| sweat and vein marks can sit under the fringe or a hat, as in the front view | use `nervous` / `angry` on bare or short-haired heads when the mark matters |
+| settle moves a hat only while it is on the head, and never the small upright props (phone, cup, paper) | nothing to do |

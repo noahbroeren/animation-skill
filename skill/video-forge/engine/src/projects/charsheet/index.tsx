@@ -2,12 +2,13 @@
  * Character-kinds model sheet (lib/characters/kinds.ts): look-dev + consistency check for every new kind.
  *   node tools/render.mjs --project charsheet --format long --stills 0,40,70,100,130
  * Pages (30 frames each): 0 main kinds x expressions/visemes/side/walk, 1 style passes + walk cycles,
- * 2-3 more presets, 4 chibi 16 expressions, stick pose library + x-ray, microbes, blobs, objects.
+ * 2-3 more presets, 4 chibi 16 expressions, stick pose library + x-ray, microbes, blobs, objects,
+ * 7-10 bobble pack + audits (stills 190, 220, 250, 280), 11 bobble three-quarter view + smear frames (still 310).
  */
 import React, { useLayoutEffect, useRef } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { CharacterSpec, Pose, walkPose } from "../../lib/characters/toon";
-import { BOBBLE_POSES, BobbleSpec, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, BobbleSpec, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, PoseKey, poseTrack, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
 import { ProjectDef } from "../../lib/project";
 import { FONTS } from "../../lib/two/text";
 
@@ -37,7 +38,7 @@ function motion(s: Spec, f: number, fps: number): KPose {
   if (k === "microbe") return { lean: 6 * Math.sin((f / fps) * 4), squash: 1 + 0.06 * Math.sin((f / fps) * 8) };
   return walkPose(f, fps, k === "stick" ? 2.2 : 2.6, 1, k === "critter" ? 2.7 : 3.5) as KPose;
 }
-const walkAt = (s: Spec, f: number, fps: number, side: boolean): KPose => withSecondary((ff) => ({ ...motion(s, ff, fps), view: side ? "side" : "front" }), f, fps);
+const walkAt = (s: Spec, f: number, fps: number, side: boolean, view?: KPose["view"]): KPose => withSecondary((ff) => ({ ...motion(s, ff, fps), view: view ?? (side ? "side" : "front") }), f, fps);
 
 const Cell: React.FC<CellDef & { h: number; frame: number }> = ({ spec, pose, label, pass, w, h, frame }) => {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -175,7 +176,40 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
         { spec: K.bbLady, pose: { ...BOBBLE_POSES.think }, label: "think", w: 160 },
       ] },
     ] },
+    page11(fps),
   ];
+}
+
+/** PAGE 11 (still 310): the bobble three-quarter view and the smear / settle frames of poseTrack pops. */
+function page11(fps: number): { title: string; rows: RowDef[]; h: number } {
+  const P = BOBBLE_POSES, Q = (pose: KPose, more: KPose = {}): KPose => ({ ...pose, view: "three", ...more });
+  const base = (o: Partial<BobbleSpec>): Spec => ({ ...BASE, ...o }) as Spec;
+  const outfit = (st: (typeof OUTFITS)[number], o: Partial<BobbleSpec> = {}): Spec => base({ top: { ...BASE.top, style: st }, ...o });
+  const LEFT: KPose[] = [{ expr: "laugh" }, { expr: "shock" }, { cue: "D", expr: "happy" }, { expr: "angry" }, { expr: "nervous" }, { expr: "cry" }];
+  // a pop sampled around its key (frame 10): -1, 0, +1, +2, +3, +6
+  const seq = (name: string, spec: Spec, from: KPose, to: KPose, wide: number, narrow: number, offs = [-1, 0, 1, 2, 3, 6]): CellDef[] => {
+    const keys: PoseKey[] = [{ f: 0, pose: from }, { f: 10, pose: to }];
+    return offs.map((o) => ({ spec, pose: poseTrack(keys, 10 + o, fps), label: `${name} ${o > 0 ? "+" : ""}${o}`, w: o <= 0 ? narrow : wide }));
+  };
+  return { title: "PAGE 11 · BOBBLE THREE-QUARTER VIEW (view: \"three\", facing 1 / -1) · smear frames + settle on poseTrack pops", h: 200, rows: [
+    { title: "3/4 cast", cells: ([["hero", K.bbHero], ["girl", K.bbGirl], ["grandpa", K.bbGrandpa], ["boss", K.bbBoss], ["king", K.bbKing], ["doctor", K.bbDoctor]] as [string, Spec][]).flatMap(([n, sp], i) => [
+      { spec: sp, pose: Q({ expr: "happy" }), label: `${n} right`, w: 150 }, { spec: sp, pose: Q(LEFT[i], { facing: -1 }), label: `left ${LEFT[i].expr}${LEFT[i].cue ? " talk" : ""}`, w: 150 }]) },
+    { title: "compare", cells: ([["idle", 110], ["point", 180], ["wave", 150], ["hips", 130], ["think", 130]] as [string, number][]).flatMap(([n, w]) => [
+      { spec: K.bbHero as Spec, pose: { ...P[n], view: "front" } as KPose, label: `${n} front`, w }, { spec: K.bbHero as Spec, pose: Q(P[n]), label: "3/4", w }, { spec: K.bbHero as Spec, pose: { ...P[n], view: "side" } as KPose, label: "side", w }]) },
+    { title: "3/4 outfits", cells: [...OUTFITS.map((st) => ({ spec: outfit(st), pose: Q({}), label: st, w: 125 })),
+      { spec: outfit("suit", { neck: { style: "tie", color: "#c8323a" } }), pose: Q({ expr: "smug" }), label: "suit + tie", w: 125 },
+      { spec: outfit("shirt", { neck: { style: "bow", color: "#d8344e" } }), pose: Q({ expr: "happy" }), label: "shirt + bow", w: 125 },
+      { spec: base({ neck: { style: "scarf", color: "#d8344e" } }), pose: Q({}), label: "scarf", w: 125 },
+      { spec: base({ build: "slim", shades: "#1c1c26" }), pose: Q({ expr: "smug" }), label: "slim + shades", w: 125 },
+      { spec: base({ build: "stout", beard: "#6a3d22" }), pose: Q({ expr: "laugh" }), label: "stout + beard", w: 125 },
+      { spec: base({ stache: "#2a2228", glasses: "#2b2230" }), pose: Q({ expr: "think" }), label: "stache + glasses", w: 125 }] },
+    { title: "3/4 hats hair", cells: [...HATS.map((st) => ({ spec: base({ hat: { style: st, color: HATCOL[st] ?? "#3a3f5c" } }), pose: Q({}), label: st, w: 100 })),
+      ...HAIRS.map((st) => ({ spec: base({ hair: { style: st, color: "#6a3d22" } }), pose: Q({}), label: st, w: 100 }))] },
+    { title: "smear frames", cells: [...seq("point", K.bbHero, P.hips, P.point, 190, 100), ...seq("cheer", K.bbGirl, P.idle, P.cheer, 130, 95),
+      ...seq("3/4 point", K.bbBoss, Q(P.hips), Q(P.point), 185, 100, [0, 1, 2, 6])] },
+    { title: "3/4 walk settle", cells: [...Array.from({ length: 8 }, (_, i) => ({ spec: K.bbHero as Spec, pose: walkAt(K.bbHero, 60 + Math.round((i * 23) / 8), fps, false, "three"), label: `3/4 walk ${i + 1}/8`, w: 130 })),
+      ...seq("settle", K.bbGent, Q({ limbs: { handR: [0.75, 0.1] }, hold: { item: "cane", angle: 70, len: 1.0 } }), Q({ limbs: { handR: [0.9, 0.5] }, hold: { item: "cane", angle: 70, len: 1.0 }, turn: -0.8, lean: -4, expr: "shock" }), 150, 150)] },
+  ] };
 }
 
 const Sheet: React.FC = () => {
@@ -197,6 +231,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 10 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 11 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);

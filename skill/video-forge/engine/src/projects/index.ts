@@ -7,5 +7,8 @@ import { pendulumLong } from "./pendulum";
 import { smoke } from "./smoke";
 import { charsheet } from "./charsheet";
 import { elevatorShort } from "./elevator";
+import { setsheet } from "./setsheet";
+import { coinShort } from "./coins";
+import { propsheet } from "./propsheet";
 
-export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet, elevatorShort];
+export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet, elevatorShort, setsheet, propsheet, coinShort];

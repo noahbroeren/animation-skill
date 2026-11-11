@@ -30,6 +30,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | a known style ("2D characters in a 3D world", "like Ricks Clips", toon explainer, "like Zack D Films", "like Kurzgesagt", documentary) | **Style profile** | `references/styles/` (`toonworld-explainer.md`, `realistic3d-explainer.md`, `flat-vector-explainer.md`, `documentary-essay.md`): measured system + engine recipe |
 | "make it look better / richer / more professional", shaders, lighting, light setups, time of day, weather, colour, grading, palettes, banding | **Look development** | `references/shading-lighting.md` (working rules + status), then the matching report in `references/research/` |
 | "what kind of character", new cast, mascot, talking object, animal | **Character design** | `references/characters.md` (25 character types ranked by evidence, lip-sync tables, build specs) |
+| a script or a topic and "make the video", "one command", storyboard, many shots fast, a gag per sentence | **Storyboard (fastest path)** | `references/board.md`: `node ENGINE/tools/make.mjs --project ID` (script -> fact check -> voice -> words -> draft board -> stills -> audit -> render -> sound -> QA), ready-made sets with marks, shot grammar, light plan |
 | "keep improving it", "make it as good as the reference", overnight polish | **Director loop** | `references/director-loop.md` (`tools/produce.mjs` + per-area reviewer agents + learning log) |
 
 ## The production loop (B, C, D)
@@ -48,6 +49,8 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 7. **Sound.** Derive the SFX cues from the same timing code or `timeline.json`, then `py AUDIO/mix.py plan.json --out master.wav` (masters to -14 LUFS / -1 dBTP). Re-run render.mjs with `--audio master.wav`: cached chunks are only concatenated and muxed.
 8. **QA gate** (or all of 6-8 in one command: `node ENGINE/tools/produce.mjs --project ID --ref REF --ref-dir REF_DIR --style STYLE --change "..."`, then `py SKILL_DIR/analyzer/vfa_loop.py judgepack/collect/learn/lessons`; see `references/director-loop.md`). `vfa qa FINAL.mp4 --plan timeline.json --fps 30 --duration S --ref REF_fingerprint.json`. A FAIL blocks delivery. Then LOOK at the sheets and score the judge rubric in `references/quality.md`, ideally with a fresh-context reviewer agent. Fix the worst three problems, re-render, re-measure. Stop when the gap table is green or the residuals are explained.
 9. **Deliver.** Give the file path, resolution, whether it is native or upscaled (say which), fps, LUFS, the QA verdict, the remaining WARNs, and what was not verified.
+
+**Shortcut for a story short (the default since 1.7):** steps 2-8 are one command, `node ENGINE/tools/make.mjs --project ID`. It stops with one instruction when a stage needs you (script, fact check, voice, editing the draft storyboard) and continues on the next run. The video is one `Board` object (`engine/src/lib/board.tsx`, guide `references/board.md`): beats anchored on spoken words, each with a place (ready-made set), a lighting key, a named shot, the acting and a visual gag. Author loop: `make.mjs --project ID --from board --to stills`, look at `preview/stills_sheet.jpg` (one named still per beat), fix, repeat; then run to the end.
 
 ## Non-negotiables
 
@@ -81,6 +84,18 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | pose-to-pose acting (one held pose per clause, popped 3 f before its word) | `poseTrack([{ f, pose }], frame, fps)` + `BOBBLE_POSES` in `lib/characters/kinds.ts` |
 | thumbnails from the 3D world (variants, feed-size preview sheet, ranked by `thumbcheck`) | `node ENGINE/tools/thumbs.mjs --project ID [--kind long,short,hires] --out DIR`; variants in the project's `thumbnails` (see `projects/manhole/thumbs.ts`) |
 | render-speed benchmark before changing defaults | `node ENGINE/tools/bench.mjs --project ID --frames 180-299 --variants default,c4,veryfast,default` |
+| **one command from script to verified video** (stops where it needs you, resumes) | `node ENGINE/tools/make.mjs --project ID [--ref FP --style S] [--from board --to stills]` |
+| **storyboard as data**: beats on spoken words -> camera, light, acting, gags, crowd, audit, sound cues | `boardProject(board)` in `lib/board.tsx`; example `src/projects/coins`; guide `references/board.md` |
+| draft a storyboard from a script: place, key, shot and gag per sentence + "still needs a gag" | `py SKILL_DIR/story/story.py board script.txt --words words.json --id ID --out src/projects/ID` (lexicon: `story/gags.json`) |
+| **ready-made sets with marks** (street, alley, road, yard, shop, workshop, office, hall; old / modern; day / night) + small gag props | `buildSet(name, opts, origin)` and `PROPS` in `lib/three/sets.ts`; sheet: `render.mjs --project setsheet --format short --stills 0,30,...,510` |
+| name the shot, get the camera (wide, full, medium, close, two, insert, low, high, top, **pov**; push, orbit, crane, track, rise; cut, dissolve, glide, **whip**) | `frameShot` / `shotKeys` in `lib/shots.ts` |
+| **one light plan per video** (a lighting key per story phase: sun, fill, fog, sky, toon setup, look, practicals) | `lightPlan([[frame, key], ...])` + `LIGHT_KEYS` in `lib/three/lightplan.ts` |
+| vehicles with characters inside (cars, bus, truck, coach + horses, bicycle), driving a path | `lib/three/vehicles.ts`: `car` `bus` `truck` `carriage` `horse` `bicycle` `drive` `seatWorld` `seatPose`; sheet: `--project propsheet` |
+| rain, splash rings and a wet street with a real reflection | `rain(scene)` and `wetGround(w, d)` in `lib/three/weather.ts` |
+| three-quarter view, smear frames and settle on pops, a crowd that reacts | `view: "three"`, `poseTrack` (automatic), `CrowdPool.react([{ f, kind }])`; sheet: charsheet still 310 |
+| **sound from the picture**: real samples first, synthesis as the fallback, a licensed or generated music track, ambience per place, rain | `py AUDIO/score.py timeline.json --project-dir ENGINE/public/ID [--track NAME]` -> `sound_report.md`; library in `~/.video-forge/sounds/`, prompts in `audio/soundlib.json` |
+| tighten a narration take (pauses capped at 0.2 / 0.3 s, word times shifted) | `py AUDIO/tighten.py vo_raw.wav --words words_raw.json --out vo.wav --words-out words.json` |
+| one named still per beat, 10 frames after each cue, as a contact sheet | `render.mjs --project ID --stills cues+10 --scale 0.3`, then `py ENGINE/tools/sheet.py DIR/stills sheet.jpg` |
 | one-command iteration: stills, render, audio, QA, gap, judge pack, learning log | `node ENGINE/tools/produce.mjs --project ID --ref ... --style ... --change "..."` |
 | per-area reviewer packs, collect scores, learning log | `py SKILL_DIR/analyzer/vfa_loop.py judgepack OURS_DIR REF_DIR --out judge` / `collect judge` / `lessons STYLE` |
 | CC0 models/HDRIs (Poly Haven), Kenney packs | `node ENGINE/tools/fetch-assets.mjs search|get|kenney`, then `loadModel()` |
@@ -117,6 +132,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/hooks-topics.md`: measured topic, hook and title effects on 7 channels (1,184 Shorts, CIs, what replicates) plus the research rules they confirm or overrule
 - `references/director-loop.md`: the automated improvement loop (produce -> per-area judges -> fixers by file ownership -> learning log)
 - `references/external.md`: optional paid/external integrations (premium voices, AI video plates, Blender photoreal, upscalers) and how to label them
+- `references/board.md`: storyboard as data (the `Board` model, sets and marks, shot grammar and its nine rules, a gag per sentence, light plan, weather / vehicles / crowd, sound) - read it before making any story short
 - `references/shading-lighting.md`: the working rules for toon shading, lighting, rendering and colour, with a status table of what the engine does
 - `references/research/{toon-shading,lighting,rendering,colour}.md`: the four sourced research reports (4,300 lines: techniques, 20 lighting recipes, 12 palettes, 16 grade recipes, YouTube delivery measurements, ranked upgrade backlog)
 - `references/styles/*.md`: measured style profiles with engine recipes (start: `toonworld-explainer.md`, a 149-short channel study)
@@ -124,6 +140,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/reference-study.md`: the reference methodology this skill was built from, plus measured results
 
 Demo projects to copy from:
+- `engine/src/projects/coins`: **start here.** 9:16 story short written as ONE storyboard object (41 beats, 8 ready-made sets, light plan, shot grammar with orbit / whip / point-of-view, a gag per sentence, a coach arriving in the rain on a wet street, a car with a driver, reacting crowds, real sound effects and a music track).
 - `engine/src/projects/manhole`: 9:16 toonworld explainer built from the channel study. It uses the toon shaders, per-beat lighting, follow-cam down a shaft, FX, one-word captions, and section-arranged sound from cues.
 - `engine/src/projects/lighthouse`: 9:16 inked-3D story short with one persistent world, camera travel and pattern-synced 2D graphics.
 - `engine/src/projects/pendulum`: 16:9 chaptered long-form with multiple 3D scenes, charts, transitions and subtitles.

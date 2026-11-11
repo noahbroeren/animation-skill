@@ -80,6 +80,15 @@ For on-screen speakers, also run `py AUDIO/lipsync.py vo.wav --script script.txt
   ```
   `tests/test_story.py` checks that this plan compiles and runs without camera jumps at 30 and 60 fps.
 
+## 6b. Storyboard draft: a gag per sentence (1.7)
+
+`STORY board script.txt --words words.json --id ID --out ENGINE/src/projects/ID` writes a draft `Board` (one beat per clause,
+anchored on its first content word) and `board.md`: a table with the proposed place, lighting key, shot and gag for every
+clause, and the list **"still needs a gag"**. Proposals come from `story/gags.json`; add the topic's nouns there first.
+The draft is generic on purpose: replace each generic pick with the topic's own prop (`references/board.md`, section 4).
+`node ENGINE/tools/make.mjs --project ID` runs lint, the fact-check gate, the voice, alignment, this draft, stills, the audit
+pass and the produce loop as one resumable command.
+
 ## 7. Build, produce, improve
 - Build the world and cast (`references/engine.md`, `references/characters.md`).
 - Then run the director loop (`references/director-loop.md`): `produce.mjs` -> reviewers -> fixes -> `learn`.

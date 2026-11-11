@@ -76,6 +76,8 @@ const projAudio = path.join(ENGINE, "src", "projects", A.project, "make_audio.py
 const plan = path.join(ENGINE, "public", A.project, "audio_plan.json");
 const master = path.join(ENGINE, "public", A.project, "master.wav");
 if (fs.existsSync(projAudio)) { run(PY, [projAudio, path.join(out, "timeline.json")]); log("sound: make_audio.py"); }
+else if (T.sounds) { // a storyboard project (lib/board.tsx) carries its own cue sheet: real samples first, synthesis as the fallback
+  const r = run(PY, [path.join(SKILL, "audio", "score.py"), path.join(out, "timeline.json"), "--project-dir", path.join(ENGINE, "public", A.project)]); log("sound: " + (r.stdout.trim().split("\n").pop() ?? "score.py")); }
 else if (fs.existsSync(plan)) { run(PY, [path.join(SKILL, "audio", "mix.py"), plan, "--out", master]); log("sound: audio_plan.json"); }
 else log("sound: none found (video will be silent)");
 
@@ -101,6 +103,10 @@ if (A.ref) {
   run(PY, [path.join(SKILL, "analyzer", "vfa.py"), "compare", path.resolve(A.ref), path.join(qaDir, "analysis"), "--out", path.join(qaDir, "gap.md")], { allowFail: true });
   if (fs.existsSync(prevGap)) { const g = JSON.parse(fs.readFileSync(prevGap, "utf8")); gapRows = g.rows; matchScore = g.match_score; }
 }
+
+// 5b. colour per lighting key (the video-wide medians hide what each section does)
+let keygap = "";
+if (A.ref) { const k = run(PY, [path.join(SKILL, "analyzer", "vfa.py"), "keygap", path.join(qaDir, "analysis"), "--plan", path.join(out, "timeline.json"), "--ref", path.resolve(A.ref)], { allowFail: true }); keygap = k.stdout ?? ""; fs.writeFileSync(path.join(qaDir, "keygap.md"), keygap); }
 
 // 6. judge pack
 const pack = path.join(out, "judge");
@@ -128,6 +134,7 @@ const R = [`# Produce report: ${A.project} (iteration ${its.length})`, "",
   ...(fails.length ? ["## Blocking (FAIL)", ...fails.map((c) => `- ${c.check}: ${c.detail}`), ""] : []),
   ...(warns.length ? ["## Warnings", ...warns.map((c) => `- ${c.check}: ${c.detail}`), ""] : []),
   ...(worst.length ? ["## Biggest gaps vs reference", ...worst.map((r) => `- ${r.label}: ref ${r.ref.toFixed(3)} / ours ${r.ours.toFixed(3)} (gap ${r.gap}) -> ${r.advice}`), ""] : []),
+  ...(keygap ? ["## Colour per lighting key", keygap.split("\n").filter((l) => l.startsWith("|")).join("\n"), ""] : []),
   "## Next (director loop, references/director-loop.md)",
   `1. Look at \`${path.join(out, "stills_sheet.jpg")}\` and the QA contact sheets.`,
   `2. Spawn one reviewer agent per folder in \`${pack}\` (prompt.md); save answers as <area>/answer.json; run \`py analyzer/vfa_loop.py collect ${pack}\`.`,

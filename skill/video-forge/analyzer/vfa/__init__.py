@@ -1,2 +1,2 @@
 """video-forge analyzer: measure videos (references and our own renders) with numbers."""
-__version__ = "1.6.0"
+__version__ = "1.7.0"

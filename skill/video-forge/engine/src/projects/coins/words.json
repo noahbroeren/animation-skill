@@ -1,0 +1,862 @@
+[
+{
+"word": "This",
+"start": 0.0,
+"end": 0.28
+},
+{
+"word": "man",
+"start": 0.28,
+"end": 0.56
+},
+{
+"word": "shaves",
+"start": 0.56,
+"end": 0.86
+},
+{
+"word": "a",
+"start": 0.86,
+"end": 1.04
+},
+{
+"word": "sliver",
+"start": 1.04,
+"end": 1.38
+},
+{
+"word": "of",
+"start": 1.38,
+"end": 1.58
+},
+{
+"word": "silver",
+"start": 1.58,
+"end": 1.92
+},
+{
+"word": "off",
+"start": 1.92,
+"end": 2.22
+},
+{
+"word": "every",
+"start": 2.22,
+"end": 2.66
+},
+{
+"word": "coin",
+"start": 2.66,
+"end": 2.94
+},
+{
+"word": "he",
+"start": 2.94,
+"end": 3.12
+},
+{
+"word": "touches,",
+"start": 3.12,
+"end": 3.5
+},
+{
+"word": "then",
+"start": 3.7,
+"end": 3.9
+},
+{
+"word": "spends",
+"start": 3.9,
+"end": 4.22
+},
+{
+"word": "the",
+"start": 4.22,
+"end": 4.46
+},
+{
+"word": "coin",
+"start": 4.46,
+"end": 4.68
+},
+{
+"word": "anyway.",
+"start": 4.68,
+"end": 5.0
+},
+{
+"word": "In",
+"start": 5.288,
+"end": 5.408
+},
+{
+"word": "1600s",
+"start": 5.408,
+"end": 6.188
+},
+{
+"word": "England,",
+"start": 6.188,
+"end": 6.428
+},
+{
+"word": "coins",
+"start": 6.616,
+"end": 6.816
+},
+{
+"word": "are",
+"start": 6.816,
+"end": 7.016
+},
+{
+"word": "hammered",
+"start": 7.016,
+"end": 7.456
+},
+{
+"word": "by",
+"start": 7.456,
+"end": 7.576
+},
+{
+"word": "hand.",
+"start": 7.576,
+"end": 8.016
+},
+{
+"word": "No",
+"start": 8.304,
+"end": 8.464
+},
+{
+"word": "two",
+"start": 8.464,
+"end": 8.684
+},
+{
+"word": "edges",
+"start": 8.684,
+"end": 8.924
+},
+{
+"word": "match.",
+"start": 8.924,
+"end": 9.264
+},
+{
+"word": "A",
+"start": 9.552,
+"end": 9.672
+},
+{
+"word": "snip,",
+"start": 9.672,
+"end": 9.892
+},
+{
+"word": "a",
+"start": 10.08,
+"end": 10.14
+},
+{
+"word": "file,",
+"start": 10.14,
+"end": 10.44
+},
+{
+"word": "a",
+"start": 10.628,
+"end": 10.748
+},
+{
+"word": "little",
+"start": 10.748,
+"end": 10.868
+},
+{
+"word": "pile.",
+"start": 10.868,
+"end": 11.188
+},
+{
+"word": "By",
+"start": 11.476,
+"end": 11.616
+},
+{
+"word": "Friday,",
+"start": 11.616,
+"end": 11.976
+},
+{
+"word": "he",
+"start": 12.164,
+"end": 12.224
+},
+{
+"word": "has",
+"start": 12.224,
+"end": 12.384
+},
+{
+"word": "a",
+"start": 12.384,
+"end": 12.484
+},
+{
+"word": "lump",
+"start": 12.484,
+"end": 12.724
+},
+{
+"word": "of",
+"start": 12.724,
+"end": 12.904
+},
+{
+"word": "other",
+"start": 12.904,
+"end": 13.204
+},
+{
+"word": "people's",
+"start": 13.204,
+"end": 13.704
+},
+{
+"word": "silver.",
+"start": 13.704,
+"end": 13.984
+},
+{
+"word": "Then",
+"start": 14.272,
+"end": 14.492
+},
+{
+"word": "the",
+"start": 14.492,
+"end": 14.632
+},
+{
+"word": "baker",
+"start": 14.632,
+"end": 14.892
+},
+{
+"word": "clips,",
+"start": 14.892,
+"end": 15.272
+},
+{
+"word": "the",
+"start": 15.46,
+"end": 15.54
+},
+{
+"word": "barber",
+"start": 15.54,
+"end": 15.76
+},
+{
+"word": "clips,",
+"start": 15.76,
+"end": 16.16
+},
+{
+"word": "and",
+"start": 16.348,
+"end": 16.428
+},
+{
+"word": "soon",
+"start": 16.428,
+"end": 16.728
+},
+{
+"word": "everybody",
+"start": 16.728,
+"end": 17.268
+},
+{
+"word": "clips.",
+"start": 17.268,
+"end": 17.748
+},
+{
+"word": "By",
+"start": 18.036,
+"end": 18.236
+},
+{
+"word": "1695,",
+"start": 18.236,
+"end": 19.056
+},
+{
+"word": "a",
+"start": 19.244,
+"end": 19.344
+},
+{
+"word": "sack",
+"start": 19.344,
+"end": 19.624
+},
+{
+"word": "of",
+"start": 19.624,
+"end": 19.764
+},
+{
+"word": "coins",
+"start": 19.764,
+"end": 20.124
+},
+{
+"word": "weighs",
+"start": 20.124,
+"end": 20.364
+},
+{
+"word": "barely",
+"start": 20.364,
+"end": 20.704
+},
+{
+"word": "half",
+"start": 20.704,
+"end": 21.184
+},
+{
+"word": "of",
+"start": 21.184,
+"end": 21.344
+},
+{
+"word": "what",
+"start": 21.344,
+"end": 21.484
+},
+{
+"word": "it",
+"start": 21.484,
+"end": 21.604
+},
+{
+"word": "should.",
+"start": 21.604,
+"end": 21.864
+},
+{
+"word": "This",
+"start": 21.864,
+"end": 22.564
+},
+{
+"word": "shilling",
+"start": 22.564,
+"end": 22.964
+},
+{
+"word": "is",
+"start": 22.964,
+"end": 23.204
+},
+{
+"word": "too",
+"start": 23.204,
+"end": 23.424
+},
+{
+"word": "small.",
+"start": 23.424,
+"end": 23.884
+},
+{
+"word": "It",
+"start": 24.172,
+"end": 24.352
+},
+{
+"word": "shrank",
+"start": 24.352,
+"end": 24.712
+},
+{
+"word": "in",
+"start": 24.712,
+"end": 24.872
+},
+{
+"word": "the",
+"start": 24.872,
+"end": 24.972
+},
+{
+"word": "wash.",
+"start": 24.972,
+"end": 25.252
+},
+{
+"word": "The",
+"start": 25.54,
+"end": 25.6
+},
+{
+"word": "punishment",
+"start": 25.6,
+"end": 25.96
+},
+{
+"word": "is",
+"start": 25.96,
+"end": 26.54
+},
+{
+"word": "death.",
+"start": 26.54,
+"end": 26.9
+},
+{
+"word": "People",
+"start": 27.188,
+"end": 27.428
+},
+{
+"word": "clip",
+"start": 27.428,
+"end": 27.708
+},
+{
+"word": "anyway.",
+"start": 27.708,
+"end": 28.008
+},
+{
+"word": "So",
+"start": 28.296,
+"end": 28.496
+},
+{
+"word": "how",
+"start": 28.496,
+"end": 28.816
+},
+{
+"word": "do",
+"start": 28.816,
+"end": 28.936
+},
+{
+"word": "you",
+"start": 28.936,
+"end": 29.016
+},
+{
+"word": "stop",
+"start": 29.016,
+"end": 29.336
+},
+{
+"word": "a",
+"start": 29.336,
+"end": 29.516
+},
+{
+"word": "whole",
+"start": 29.516,
+"end": 29.776
+},
+{
+"word": "country?",
+"start": 29.776,
+"end": 30.256
+},
+{
+"word": "In",
+"start": 30.544,
+"end": 30.664
+},
+{
+"word": "1696,",
+"start": 30.664,
+"end": 31.624
+},
+{
+"word": "a",
+"start": 31.812,
+"end": 31.892
+},
+{
+"word": "new",
+"start": 31.892,
+"end": 32.112
+},
+{
+"word": "warden",
+"start": 32.112,
+"end": 32.552
+},
+{
+"word": "arrives",
+"start": 32.552,
+"end": 32.812
+},
+{
+"word": "at",
+"start": 32.812,
+"end": 33.032
+},
+{
+"word": "the",
+"start": 33.032,
+"end": 33.132
+},
+{
+"word": "mint,",
+"start": 33.132,
+"end": 33.312
+},
+{
+"word": "Isaac",
+"start": 33.5,
+"end": 33.84
+},
+{
+"word": "Newton.",
+"start": 33.84,
+"end": 34.18
+},
+{
+"word": "That",
+"start": 34.468,
+"end": 34.708
+},
+{
+"word": "year,",
+"start": 34.708,
+"end": 34.968
+},
+{
+"word": "every",
+"start": 35.188,
+"end": 35.508
+},
+{
+"word": "old",
+"start": 35.508,
+"end": 35.848
+},
+{
+"word": "hammered",
+"start": 35.848,
+"end": 36.348
+},
+{
+"word": "coin",
+"start": 36.348,
+"end": 36.488
+},
+{
+"word": "in",
+"start": 36.488,
+"end": 36.668
+},
+{
+"word": "England",
+"start": 36.668,
+"end": 36.968
+},
+{
+"word": "is",
+"start": 36.968,
+"end": 37.208
+},
+{
+"word": "called",
+"start": 37.208,
+"end": 37.528
+},
+{
+"word": "in",
+"start": 37.528,
+"end": 37.788
+},
+{
+"word": "and",
+"start": 37.788,
+"end": 38.048
+},
+{
+"word": "melted.",
+"start": 38.048,
+"end": 38.408
+},
+{
+"word": "You",
+"start": 38.696,
+"end": 38.816
+},
+{
+"word": "see,",
+"start": 38.816,
+"end": 38.976
+},
+{
+"word": "the",
+"start": 39.196,
+"end": 39.256
+},
+{
+"word": "replacements",
+"start": 39.256,
+"end": 39.776
+},
+{
+"word": "come",
+"start": 39.776,
+"end": 40.096
+},
+{
+"word": "from",
+"start": 40.096,
+"end": 40.276
+},
+{
+"word": "a",
+"start": 40.276,
+"end": 40.396
+},
+{
+"word": "machine",
+"start": 40.396,
+"end": 40.756
+},
+{
+"word": "the",
+"start": 40.756,
+"end": 41.016
+},
+{
+"word": "mint",
+"start": 41.016,
+"end": 41.216
+},
+{
+"word": "has",
+"start": 41.216,
+"end": 41.436
+},
+{
+"word": "used",
+"start": 41.436,
+"end": 41.696
+},
+{
+"word": "since",
+"start": 41.696,
+"end": 41.956
+},
+{
+"word": "1662,",
+"start": 41.956,
+"end": 43.116
+},
+{
+"word": "perfectly",
+"start": 43.304,
+"end": 43.784
+},
+{
+"word": "round",
+"start": 43.784,
+"end": 44.224
+},
+{
+"word": "with",
+"start": 44.224,
+"end": 44.504
+},
+{
+"word": "a",
+"start": 44.504,
+"end": 44.624
+},
+{
+"word": "marked",
+"start": 44.624,
+"end": 44.904
+},
+{
+"word": "edge.",
+"start": 44.904,
+"end": 45.284
+},
+{
+"word": "Shave",
+"start": 45.584,
+"end": 46.024
+},
+{
+"word": "one,",
+"start": 46.024,
+"end": 46.204
+},
+{
+"word": "and",
+"start": 46.404,
+"end": 46.484
+},
+{
+"word": "the",
+"start": 46.484,
+"end": 46.604
+},
+{
+"word": "edge",
+"start": 46.604,
+"end": 46.824
+},
+{
+"word": "shows",
+"start": 46.824,
+"end": 47.064
+},
+{
+"word": "the",
+"start": 47.064,
+"end": 47.264
+},
+{
+"word": "cut",
+"start": 47.264,
+"end": 47.484
+},
+{
+"word": "at",
+"start": 47.484,
+"end": 47.604
+},
+{
+"word": "once.",
+"start": 47.604,
+"end": 47.924
+},
+{
+"word": "The",
+"start": 47.924,
+"end": 48.564
+},
+{
+"word": "first",
+"start": 48.564,
+"end": 48.844
+},
+{
+"word": "time",
+"start": 48.844,
+"end": 49.064
+},
+{
+"word": "he",
+"start": 49.064,
+"end": 49.184
+},
+{
+"word": "tries,",
+"start": 49.184,
+"end": 49.444
+},
+{
+"word": "he's",
+"start": 49.632,
+"end": 49.832
+},
+{
+"word": "caught.",
+"start": 49.832,
+"end": 50.052
+},
+{
+"word": "And",
+"start": 50.34,
+"end": 50.48
+},
+{
+"word": "that",
+"start": 50.48,
+"end": 50.78
+},
+{
+"word": "is",
+"start": 50.78,
+"end": 50.98
+},
+{
+"word": "why",
+"start": 50.98,
+"end": 51.14
+},
+{
+"word": "a",
+"start": 51.14,
+"end": 51.28
+},
+{
+"word": "quarter",
+"start": 51.28,
+"end": 51.5
+},
+{
+"word": "still",
+"start": 51.5,
+"end": 51.86
+},
+{
+"word": "has",
+"start": 51.86,
+"end": 52.1
+},
+{
+"word": "119",
+"start": 52.1,
+"end": 53.28
+},
+{
+"word": "ridges,",
+"start": 53.28,
+"end": 53.78
+},
+{
+"word": "guarding",
+"start": 53.968,
+"end": 54.208
+},
+{
+"word": "silver",
+"start": 54.208,
+"end": 54.608
+},
+{
+"word": "it",
+"start": 54.608,
+"end": 54.768
+},
+{
+"word": "lost",
+"start": 54.768,
+"end": 55.028
+},
+{
+"word": "in",
+"start": 55.028,
+"end": 55.268
+},
+{
+"word": "1965.",
+"start": 55.268,
+"end": 55.708
+}
+]

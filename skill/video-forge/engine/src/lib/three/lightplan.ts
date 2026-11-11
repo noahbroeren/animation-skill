@@ -35,24 +35,26 @@ export type LightKey = {
   fog?: [number, number];
   /** multiply the preset's sun strength (e.g. 0.8 for a softer key) */
   sunGain?: number;
+  /** how far practical lamps and lit windows are on, 0..1 (sets follow it: `set.setNight(u.practicals)`) */
+  practicals?: number;
 };
 
 /** Ready-made keys, one per story use (lighting.md B1). The rain / dusk / fog / office numbers are design values. */
 export const LIGHT_KEYS: Record<string, LightKey> = {
-  day: { lights: "day", toon: "day", look: "toonworld-day", sunGlow: 0.3, cookie: 0.3 },
-  morning: { lights: "morning", toon: "day", look: "toonworld-day", sunGlow: 0.5, cookie: 0.2 },
-  golden: { lights: "golden", toon: "golden", look: "toonworld-golden", sunGlow: 0.8, cookie: 0.15 },
-  sunsetBack: { lights: "sunsetBack", toon: "sunsetBack", look: "toonworld-golden", sunGlow: 1.0 },
-  dusk: { lights: "dusk", toon: "dusk", look: "toonworld-dusk", sunGlow: 0.5 },
-  night: { lights: "night", toon: "night", look: "toonworld-night", sunGlow: 0.25 },
-  nightMoon: { lights: "nightMoon", toon: "night", look: "toonworld-night", sunGlow: 0.35 },
-  nightPractical: { lights: "nightPractical", toon: "night", look: "toonworld-night", sunGlow: 0.15 },
-  overcast: { lights: "overcast", toon: "overcast", look: "toonworld-overcast" },
-  rain: { lights: "rain", toon: "rain", look: "toonworld-rain" },
-  fog: { lights: "fog", toon: "fog", look: "toonworld-fog", sunGlow: 0.4 },
-  office: { lights: "interiorWindow", toon: "interiorWindow", look: "toonworld-office" },
-  interiorWarm: { lights: "interiorWarm", toon: "interior", look: "toonworld-interior" },
-  spotlight: { lights: "spotlight", toon: "night", look: "toonworld-night" },
+  day: { lights: "day", toon: "day", look: "toonworld-day", sunGlow: 0.3, cookie: 0.3, practicals: 0 },
+  morning: { lights: "morning", toon: "day", look: "toonworld-day", sunGlow: 0.5, cookie: 0.2, practicals: 0 },
+  golden: { lights: "golden", toon: "golden", look: "toonworld-golden", sunGlow: 0.8, cookie: 0.15, practicals: 0.15 },
+  sunsetBack: { lights: "sunsetBack", toon: "sunsetBack", look: "toonworld-golden", sunGlow: 1.0, practicals: 0.4 },
+  dusk: { lights: "dusk", toon: "dusk", look: "toonworld-dusk", sunGlow: 0.5, practicals: 0.7 },
+  night: { lights: "night", toon: "night", look: "toonworld-night", sunGlow: 0.25, practicals: 1 },
+  nightMoon: { lights: "nightMoon", toon: "night", look: "toonworld-night", sunGlow: 0.35, practicals: 0.8 },
+  nightPractical: { lights: "nightPractical", toon: "night", look: "toonworld-night", sunGlow: 0.15, practicals: 1 },
+  overcast: { lights: "overcast", toon: "overcast", look: "toonworld-overcast", practicals: 0.2 },
+  rain: { lights: "rain", toon: "rain", look: "toonworld-rain", practicals: 0.6 },
+  fog: { lights: "fog", toon: "fog", look: "toonworld-fog", sunGlow: 0.4, practicals: 0.4 },
+  office: { lights: "interiorWindow", toon: "interiorWindow", look: "toonworld-office", practicals: 0.3 },
+  interiorWarm: { lights: "interiorWarm", toon: "interior", look: "toonworld-interior", practicals: 0.8 },
+  spotlight: { lights: "spotlight", toon: "night", look: "toonworld-night", practicals: 0.2 },
 };
 
 const keyOf = (k: string | LightKey): LightKey => {
@@ -67,9 +69,11 @@ const smooth = (u: number) => u * u * (3 - 2 * u);
 
 export type LightHandles = { sun: THREE.DirectionalLight; hemi: THREE.HemisphereLight; amb: THREE.AmbientLight; skyM: THREE.Mesh; toon?: ToonUniforms };
 
-export function lightPlan(keys: [number, string | LightKey][], o: { fade?: number } = {}) {
+export function lightPlan(keys: ([number, string | LightKey] | [number, string | LightKey, number])[], o: { fade?: number } = {}) {
   const fade = o.fade ?? 14;
-  const ks = keys.map(([f, k]) => [f, keyOf(k)] as [number, LightKey]).sort((a, b) => a[0] - b[0]);
+  // optional third element = this change's own fade in frames (0 = switch exactly on the frame, for a key change on a hard cut:
+  // a fade that starts 14 frames before the cut showed up as a luminance zig-zag in QA)
+  const ks = keys.map(([f, k, fd]) => [f, keyOf(k), fd ?? fade] as [number, LightKey, number]).sort((a, b) => a[0] - b[0]);
   let H: LightHandles | null = null;
   const tmpA = new THREE.Color(), tmpB = new THREE.Color();
   /** the two keys around a frame and the eased mix between them (0 = a) */
@@ -77,7 +81,7 @@ export function lightPlan(keys: [number, string | LightKey][], o: { fade?: numbe
     let i = 0;
     while (i < ks.length - 1 && ks[i + 1][0] <= frame) i++;
     const next = ks[i + 1];
-    if (next && frame > next[0] - fade) return { a: ks[i][1], b: next[1], t: smooth(Math.min(1, Math.max(0, (frame - (next[0] - fade)) / fade))) };
+    if (next && next[2] > 0 && frame > next[0] - next[2]) return { a: ks[i][1], b: next[1], t: smooth(Math.min(1, Math.max(0, (frame - (next[0] - next[2])) / next[2]))) };
     return { a: ks[i][1], b: ks[i][1], t: 0 };
   };
   const mixC = (x: string, y: string, t: number, out: THREE.Color) => out.copy(tmpA.set(x)).lerp(tmpB.set(y), t);
@@ -102,7 +106,7 @@ export function lightPlan(keys: [number, string | LightKey][], o: { fade?: numbe
       return H.toon;
     },
     /** cross-fade every light value for this frame; `target` = what the shadow frustum centres on (the current place) */
-    update(frame: number, fps: number, u: { target?: [number, number, number] } = {}) {
+    update(frame: number, fps: number, u: { target?: [number, number, number]; cookieMul?: number } = {}) {
       if (!H) throw new Error("lightPlan.update: call build() first");
       const { a, b, t } = at(frame), A = LIGHTS[a.lights], B = LIGHTS[b.lights];
       const sunI = mixN(A.sunI * (a.sunGain ?? 1), B.sunI * (b.sunGain ?? 1), t);
@@ -125,10 +129,11 @@ export function lightPlan(keys: [number, string | LightKey][], o: { fade?: numbe
       }
       if (H.toon) {
         applyToonSetup(H.toon, toonOf(a), toonOf(b), t, sunI);
-        H.toon.uCookie.value = mixN(a.cookie ?? 0, b.cookie ?? 0, t);
+        H.toon.uCookie.value = mixN(a.cookie ?? 0, b.cookie ?? 0, t) * (u.cookieMul ?? 1); // no cloud shadows indoors
         H.toon.uCookieOff.value.set((frame / fps) * 0.7, (frame / fps) * 0.3);
       }
-      return { key: t < 0.5 ? a : b, mix: t, sunDir: d, night: Math.max(0, 1 - sunI / 1.6) };
+      return { key: t < 0.5 ? a : b, mix: t, sunDir: d, night: Math.max(0, 1 - sunI / 1.6), practicals: mixN(a.practicals ?? 0, b.practicals ?? 0, t),
+        skyTop: su.top.value as THREE.Color, skyHorizon: su.horizon.value as THREE.Color };
     },
   };
 }

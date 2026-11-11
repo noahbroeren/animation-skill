@@ -1,0 +1,52 @@
+{
+ "_doc": "Keyword -> picture. Used by `story.py board` to propose a set, a lighting key and a visual gag for every sentence. First match wins inside each list, so keep specific entries above general ones. 'set' = a ready-made set (engine/src/lib/three/sets.ts); 'prop' = a PROPS name or a custom prop to build; 'fx' = FxLayer kind; overlays: stamp / label / counter / big. Add your topic's nouns here before drafting a board.",
+ "sets": [
+  {"re": "\\b(alley|thie(f|ves)|steal|stole|smuggl|secret(ly)?|sneak|spy|crime|criminal|rob(s|bed|ber)?|gang)\\b", "set": "alley", "key": "nightPractical"},
+  {"re": "\\b(shop|store|market|sell|sold|buy|bought|customer|baker|merchant|price|counter|pay|paid|spend|spends|spent)\\b", "set": "shop", "key": "day"},
+  {"re": "\\b(workshop|forge|smith|hammer(ed)?|tool|craft|build|built|invent(ed|or)?|mechanic|garage|repair|engine)\\b", "set": "workshop", "key": "interiorWarm"},
+  {"re": "\\b(office|desk|boss|company|lawyer|clerk|official|warden|minister|bank|letter|contract|paperwork|bureau)\\b", "set": "office", "key": "office"},
+  {"re": "\\b(hall|court|judge|trial|parliament|factory|mint|palace|king|queen|museum|church|theatre|theater|exhibition|ceremony)\\b", "set": "hall", "key": "interiorWarm"},
+  {"re": "\\b(road|highway|drive|drove|driver|car|truck|bus|traffic|journey|travel(l?ed)?|miles?|kilomet)\\b", "set": "road", "key": "morning"},
+  {"re": "\\b(garden|yard|pool|swim|neighbou?r|home|house|family|barbecue|lawn|fence)\\b", "set": "yard", "key": "day"},
+  {"re": "\\b(street|town|city|village|crowd|everybody|everyone|people|public|london|paris|new york|rome)\\b", "set": "street", "key": "day"}
+ ],
+ "keys": [
+  {"re": "\\b(rain(y|ing|ed)?|storm|thunder|downpour|wet)\\b", "key": "rain", "rain": 1},
+  {"re": "\\b(night|midnight|dark(ness)?|moon(light)?|candle)\\b", "key": "nightPractical"},
+  {"re": "\\b(dawn|sunrise|morning|early)\\b", "key": "morning"},
+  {"re": "\\b(dusk|sunset|evening|twilight)\\b", "key": "dusk"},
+  {"re": "\\b(fog|mist|smoke|smog)\\b", "key": "fog"},
+  {"re": "\\b(winter|cold|grey|gray|gloomy|overcast)\\b", "key": "overcast"},
+  {"re": "\\b(died|death|dead|killed|hanged|executed|grave|funeral)\\b", "key": "dusk"}
+ ],
+ "gags": [
+  {"re": "\\b(coins?|penn(y|ies)|shillings?|dollars?|cents?|quarters?|dimes?|pounds?|silver|gold)\\b", "gag": {"prop": "coins", "opts": {"n": 8}}, "sfx": "coin"},
+  {"re": "\\b(money|rich|fortune|profit|wealth|salary|wage|paid|tax(es)?|fine|reward|bribe)\\b", "gag": {"prop": "moneyBag"}, "sfx": "coins"},
+  {"re": "\\b(treasure|chest|vault|safe)\\b", "gag": {"prop": "chest"}, "sfx": "thud"},
+  {"re": "\\b(weigh(s|ed)?|scale|balance|measure(d)?)\\b", "gag": {"prop": "scales"}, "sfx": "creak"},
+  {"re": "\\b(book|law|rule|contract|deed|record|document|letter|paper|map|plan)\\b", "gag": {"prop": "papers"}, "sfx": "swish"},
+  {"re": "\\b(sack|grain|flour|cargo|goods|crate|barrel|shipment)\\b", "gag": {"prop": "crate"}, "sfx": "thud"},
+  {"re": "\\b(sign|notice|poster|ban(ned)?|forbidden|illegal|warning)\\b", "gag": {"prop": "sign"}, "sfx": "thud"},
+  {"re": "\\b(meter|parking|vending|machine)\\b", "gag": {"prop": "parkingMeter"}, "sfx": "click"},
+  {"re": "\\b(snap(s|ped)?|br(eak|oke|oken)|crash(es|ed)?|smash(ed)?|collaps|explod|burst|hit|struck|slam)\\b", "gag": {"fx": "impact"}, "kick": 0.04, "sfx": "impact"},
+  {"re": "\\b(f(all|ell)|drop(s|ped)?|sink|sank|tumble)\\b", "gag": {"fx": "dust"}, "kick": 0.04, "sfx": "thud"},
+  {"re": "\\b(fast|speed|rush|race|run|ran|sudden(ly)?|instant(ly)?|at once)\\b", "gag": {"fx": "speedlines"}, "sfx": "whoosh"},
+  {"re": "\\b(idea|reali[sz]e|discover|invent|clever|genius|solution|trick|perfect(ly)?|shiny|new)\\b", "gag": {"fx": "sparkle"}, "sfx": "sparkle"},
+  {"re": "\\b(why|how|what|who|where|wonder|mystery|strange|odd|puzzl)\\b", "gag": {"fx": "question"}, "sfx": "pop"},
+  {"re": "\\b(wait|caught|stop|alarm|warning|careful|danger|watch out|problem)\\b", "gag": {"fx": "exclaim"}, "sfx": "pop"},
+  {"re": "\\b(nervous|worr(y|ied)|afraid|scared|sweat|panic|embarrass)\\b", "gag": {"fx": "sweat"}, "sfx": "pop"},
+  {"re": "\\b(fire|burn(s|ed|ing)?|melt(s|ed)?|hot|steam|boil|smoke)\\b", "gag": {"fx": "smoke"}, "sfx": "sizzle"},
+  {"re": "\\b(music|sing|song|whistl|danc)\\b", "gag": {"fx": "notes"}, "sfx": "chime"},
+  {"re": "\\b(water|splash|wave|sea|river|flood|leak)\\b", "gag": {"fx": "splash"}, "sfx": "splash"},
+  {"re": "\\b(death|died|dead|treason|guilty|banned|illegal|never|impossible|forbidden|caught|busted|fired)\\b", "gag": {"big": "@WORD"}, "sfx": "impact"}
+ ],
+ "crowd": [
+  {"re": "\\b(cheer|celebrat|applau|hooray|won|wins|victory|loved|famous)\\b", "crowd": "cheer"},
+  {"re": "\\b(laugh|joke|mock|ridicul|silly|absurd)\\b", "crowd": "laugh"},
+  {"re": "\\b(gasp|shock|stunned|caught|couldn't believe|wait)\\b", "crowd": "gasp"},
+  {"re": "\\b(angry|furious|protest|riot|complain|boo)\\b", "crowd": "boo"},
+  {"re": "\\b(everybody|everyone|the whole (town|city|country)|people)\\b", "crowd": "clap"}
+ ],
+ "pov": "\\b(see|sees|saw|look(s|ed)?|notice[sd]?|show(s|ed|n)?|spot(s|ted)?|read(s)?|watch(es|ed)?|proof|evidence)\\b",
+ "whip": "^(then|but|suddenly|so|and then|instead|meanwhile)\\b"
+}

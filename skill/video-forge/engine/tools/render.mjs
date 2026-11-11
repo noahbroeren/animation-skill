@@ -7,6 +7,7 @@
  *        [--image-format jpeg|png] [--frames 0-299] [--audio master.wav] [--scale 1] [--clean]
  *   node tools/render.mjs --project X --stills 0,45,120 [--scale 0.5]
  *   node tools/render.mjs --project X --stills cues [--scale 0.5]   # one still per named cue (story beats) + index.json
+ *   node tools/render.mjs --project X --stills cues+10              # the same, 10 frames after each cue (past the cut / pop-in)
  * - Shot audit: `[video-forge][shot-audit]` browser warnings (Stage3D `audit`) are printed and collected in
  *   <out>/shot_audit.log (one line per problem, deduplicated).
  *
@@ -75,7 +76,8 @@ const onBrowserLog = (l) => {
 
 if (A.stills) {
   const cueMap = comp.props.plan?.cues ?? {};
-  const named = String(A.stills) === "cues" ? Object.entries(cueMap).filter(([, v]) => typeof v === "number" && v < comp.durationInFrames).sort((a, b) => a[1] - b[1]) : null;
+  const cm = /^cues(?:\+(\d+))?$/.exec(String(A.stills)), plus = cm?.[1] ? Number(cm[1]) : 0;
+  const named = cm ? Object.entries(cueMap).filter(([, v]) => typeof v === "number" && v < comp.durationInFrames).map(([k, v]) => [k, Math.min(comp.durationInFrames - 1, v + plus)]).sort((a, b) => a[1] - b[1]) : null;
   const frames = named ? [...new Set(named.map(([, v]) => v))] : String(A.stills).split(",").map(Number);
   const dir = path.join(out, "stills");
   fs.mkdirSync(dir, { recursive: true });

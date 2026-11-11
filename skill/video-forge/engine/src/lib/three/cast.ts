@@ -134,7 +134,26 @@ export class CharacterCard {
 }
 
 // ------------------------------------------------------------------ crowds
-import { walkPose as _walk, blinkAt as _blink, mergePose as _merge, Expression as _Ex } from "../characters/toon";
+import { walkPose as _walk, blinkAt as _blink, mergePose as _merge, idlePose as _idle, Expression as _Ex } from "../characters/toon";
+import { BOBBLE_POSES as _BP, poseTrack as _track, PoseKey as _PoseKey } from "../characters/kinds";
+import { hash32 as _hash } from "../time";
+
+/**
+ * Crowd reactions (1.7): the background reacts to what happens, a few frames late and each in their own way
+ * (measured: micro-animation 0.010 against 0.020 in the reference; a crowd that pops on the same frame reads as one
+ * object). `pool.react([{ f: T.dropped, kind: "gasp", at: [0, 5, 0] }, { f: T.stopped, kind: "cheer" }])`.
+ */
+export type CrowdEvent = { f: number; kind: "gasp" | "cheer" | "laugh" | "boo" | "look" | "clap" | "point" | "sad"; at?: [number, number, number]; dur?: number };
+const REACT: Record<CrowdEvent["kind"], KPose[]> = {
+  gasp: [_BP.shock, { limbs: { handL: [0.4, 1.8], handR: [0.4, 1.8] }, expr: "shock" }, { limbs: { handR: [0.28, 1.72] }, hands: { R: "open" }, expr: "shock", squash: 0.96 }],
+  cheer: [_BP.cheer, _BP.wave, { limbs: { handR: [0.7, 2.0] }, hands: { R: "fist" }, expr: "laugh" }],
+  laugh: [{ expr: "laugh", lean: -5 }, { expr: "laugh", limbs: { handR: [0.3, 1.2] }, hands: { R: "open" } }, { expr: "laugh", limbs: { handR: [1.0, 1.3] }, hands: { R: "point" } }],
+  boo: [{ expr: "angry", limbs: { handR: [0.9, 1.75] }, hands: { R: "fist" } }, { expr: "disgust", limbs: { handL: [0.5, 1.0], handR: [0.5, 1.0] } }, { expr: "angry", lean: 6 }],
+  look: [{ expr: "neutral" }, { expr: "think" }, { expr: "nervous" }],
+  clap: [{ expr: "happy", limbs: { handL: [0.16, 1.3], handR: [0.16, 1.3] }, hands: { L: "open", R: "open" } }],
+  point: [_BP.point, { limbs: { handR: [1.1, 1.3] }, hands: { R: "point" }, expr: "shock" }],
+  sad: [{ expr: "sad", lean: 5 }, { expr: "sad", limbs: { handR: [0.25, 1.65] }, hands: { R: "open" } }, { expr: "cry" }],
+};
 
 export type CrowdMember = {
   spec: AnySpec; heightM?: number; pass?: PassSpec;
@@ -152,6 +171,11 @@ export type CrowdMember = {
  */
 export class CrowdPool {
   members: { m: CrowdMember; card: CharacterCard }[] = [];
+  private events: CrowdEvent[] = [];
+  /** scene events the crowd reacts to (each member a few frames late, with their own variant, turning toward `at`) */
+  react(events: CrowdEvent[]) { this.events = [...events].sort((a, b) => a.f - b.f); return this; }
+  /** hide / show a member group (e.g. a crowd that belongs to one place) */
+  setVisible(v: boolean) { for (const { card } of this.members) card.group.visible = v; }
   constructor(private scene: THREE.Scene, private sun?: THREE.DirectionalLight, private tierFor = (d: number) => (d < 6 ? 1200 : d < 14 ? 700 : d < 30 ? 420 : 240)) {}
   add(m: CrowdMember, camDistanceHint = 10) {
     const card = new CharacterCard(m.spec, m.heightM ?? 1.5, this.tierFor(camDistanceHint), this.sun, m.pass);
@@ -176,8 +200,24 @@ export class CrowdPool {
         dir = (m.path.to[0] - m.path.from[0]) * rx + (m.path.to[2] - m.path.from[2]) * rz >= 0 ? 1 : -1;
       }
       const fr = active ? f2 : (m.cueWindows?.[0]?.[0] ?? 0);
-      card.setPose(_merge(moving ? _walk(fr + (m.seed ?? 0) * 5, fps, 2.6) : {}, { expr: m.expr ?? "neutral", facing: dir as 1 | -1,
-        blink: _blink(fr, fps, m.spec.id + (m.seed ?? 0)), view: moving ? "side" : "front" }), fr, fps);
+      let pose = _merge(moving ? _walk(fr + (m.seed ?? 0) * 5, fps, 2.6) : (this.events.length ? _idle(fr, fps, (m.seed ?? 0) + 3) : {}), { expr: m.expr ?? "neutral", facing: dir as 1 | -1,
+        blink: _blink(fr, fps, m.spec.id + (m.seed ?? 0)), view: moving ? "side" : "front" }) as KPose;
+      if (this.events.length && !moving) {
+        const sd = m.seed ?? 0, delay = Math.round(((1 + (_hash("crowd" + sd) % 8)) * fps) / 30);
+        const base: KPose = { expr: (m.expr ?? "neutral") as KPose["expr"] }, keys: _PoseKey[] = [{ f: -1e6, pose: base }];
+        let clap = false;
+        for (let i = 0; i < this.events.length; i++) {
+          const ev = this.events[i], f0 = ev.f + delay, v = REACT[ev.kind], dur = Math.round(((ev.dur ?? 50) * fps) / 30);
+          let turn = 0;
+          if (ev.at) { const fx = p[0] - camPos[0], fz = p[2] - camPos[2]; turn = ((ev.at[0] - p[0]) * -fz + (ev.at[2] - p[2]) * fx >= 0 ? 1 : -1) * 0.7; }
+          keys.push({ f: f0, pose: { ...v[(sd + i) % v.length], turn }, blend: 4 }, { f: f0 + dur + delay * 2, pose: { ...base, turn: turn * 0.5 }, blend: 8 });
+          if (ev.kind === "clap" && frame >= f0 && frame < f0 + dur) clap = true;
+        }
+        keys.sort((a, b) => a.f - b.f);
+        pose = { ...pose, ..._track(keys, frame, fps) };
+        if (clap) { const o = 0.07 * (0.5 + 0.5 * Math.sin((frame / fps) * 34 + sd)); pose.limbs = { handL: [0.08 + o, 1.3], handR: [0.08 + o, 1.3] }; }
+      }
+      card.setPose(pose, fr, fps);
       card.place(p[0], p[1], p[2], camPos);
     }
   }

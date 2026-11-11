@@ -95,3 +95,44 @@ Appended automatically by `vfa_loop.py learn` after each measured iteration. A c
 - regressed: shadow tint b (blue-/yellow+) gap 0.46 -> 0.9 (ours -4.455 -> -3.564, ref -5.367)
 - improved: warmth (R-B) gap 2.11 -> 0.64 (ours -0.006704 -> 0.03005, ref 0.04604)
 
+## 2026-11-11 - coins
+
+- change: travel instead of cuts inside a place, settle after cuts, DOF by shot size, interior lift, warmer office key, three-quarter dialogue, den restaged out of the clipper's own shadow
+- match score: 50.0 -> 50.0
+- regressed: move ease-in frames gap 0.75 -> 1.25 (ours 6 -> 4, ref 9)
+- improved: frames with fast camera motion gap 7.01 -> 5.37 (ours 0.2035 -> 0.2854, ref 0.5539)
+- regressed: glide length (frames) gap 4.0 -> 5.2 (ours 24 -> 18, ref 44)
+- improved: camera jerk gap 2.87 -> 1.27 (ours 4.084 -> 18.24, ref 29.48)
+- regressed: move ease-out frames gap 1.12 -> 1.62 (ours 7 -> 5, ref 11.5)
+- improved: colorfulness gap 3.55 -> 3.05 (ours 0.1884 -> 0.2033, ref 0.2948)
+- regressed: highlight tint a gap 1.58 -> 2.5 (ours 5.091 -> 6.94, ref 1.936)
+- improved: highlight tint b gap 3.97 -> 1.78 (ours -2.14 -> 2.238, ref 5.806)
+- improved: mean brightness gap 3.48 -> 1.56 (ours 0.3255 -> 0.4025, ref 0.4649)
+- improved: black floor (p1) gap 0.98 -> 0.2 (ours 0.07843 -> 0.102, ref 0.09804)
+- regressed: saturation gap 1.43 -> 1.87 (ours 0.4226 -> 0.4054, ref 0.48)
+- regressed: shadow tint a (green-/magenta+) gap 0.19 -> 0.48 (ours 10.94 -> 11.52, ref 10.57)
+- improved: warmth (R-B) gap 1.27 -> 0.16 (ours 0.01429 -> 0.04211, ref 0.04604)
+- improved: average shot length gap 22.9 -> 20.7 (ours 2.47 -> 3.787, ref 16.21)
+- improved: cuts per minute gap 6.86 -> 4.04 (ours 23.24 -> 14.79, ref 2.667)
+- improved: DOF centre/border sharpness gap 2.99 -> 2.0 (ours 1.055 -> 1.351, ref 1.952)
+- regressed: edge density (detail) gap 1.19 -> 1.83 (ours 0.04281 -> 0.03327, ref 0.06065)
+
+## 2026-11-11 - coins
+
+- change: longer travels (24 f), bigger settle and pushes, more saturated room palettes and grade, stronger idle micro-motion, depth of field off on wides
+- match score: 50.0 -> 50.0
+- improved: frames with fast camera motion gap 5.37 -> 4.78 (ours 0.2854 -> 0.3149, ref 0.5539)
+- improved: glide length (frames) gap 5.2 -> 4.8 (ours 18 -> 20, ref 44)
+- regressed: camera jerk gap 1.27 -> 2.16 (ours 18.24 -> 10.42, ref 29.48)
+- improved: move ease-out frames gap 1.62 -> 1.12 (ours 5 -> 7, ref 11.5)
+- improved: colorfulness gap 3.05 -> 2.22 (ours 0.2033 -> 0.2283, ref 0.2948)
+- regressed: highlight tint a gap 2.5 -> 3.1 (ours 6.94 -> 8.128, ref 1.936)
+- improved: highlight tint b gap 1.78 -> 1.19 (ours 2.238 -> 3.435, ref 5.806)
+- improved: saturation gap 1.87 -> 0.9 (ours 0.4054 -> 0.444, ref 0.48)
+- regressed: shadow tint a (green-/magenta+) gap 0.48 -> 1.05 (ours 11.52 -> 12.67, ref 10.57)
+- improved: shadow tint b (blue-/yellow+) gap 0.82 -> 0.57 (ours -3.723 -> -4.233, ref -5.367)
+- regressed: warmth (R-B) gap 0.16 -> 0.75 (ours 0.04211 -> 0.06471, ref 0.04604)
+- regressed: average shot length gap 20.7 -> 23.07 (ours 3.787 -> 2.367, ref 16.21)
+- regressed: cuts per minute gap 4.04 -> 7.21 (ours 14.79 -> 24.3, ref 2.667)
+- regressed: DOF centre/border sharpness gap 2.0 -> 2.34 (ours 1.351 -> 1.249, ref 1.952)
+

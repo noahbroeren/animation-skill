@@ -7,6 +7,8 @@
   py story.py beats    script.txt [--words words.json] --out DIR     # beats.json/.md: timing, beat, shot, camera move,
                                                                      # light, FX, SFX per sentence
   py story.py scaffold DIR/beats.json --out PROJECT_DIR/story_plan.ts   # typed plan the engine project imports
+  py story.py board    script.txt --words words.json --id ID --out PROJECT_DIR   # DRAFT storyboard (lib/board.tsx): a place,
+                                                                     # key, shot and gag per sentence + board.md (what still needs a gag)
   py story.py hooks    "hook A" "hook B" ...  [--style S]            # rank hook variants (formula + measured data)
   py story.py titles   [script.txt] ["title" ...] [--subject S --fact F --contrast C]   # generate + rank titles
   py story.py export   script.txt --out vo.txt [--per-speaker DIR]   # clean spoken text for TTS (tags stripped)
@@ -31,6 +33,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
 TARGETS = json.load(open(os.path.join(HERE, "targets.json"), encoding="utf-8"))
 
 BEATS = ["hook", "setting", "mock", "escalation", "incident", "mystery", "pivot", "explanation", "payoff"]
@@ -521,6 +524,7 @@ def main():
     p = sub.add_parser("verify"); p.add_argument("claims")
     p = sub.add_parser("beats"); p.add_argument("script"); p.add_argument("--style"); p.add_argument("--words"); p.add_argument("--out", required=True); p.add_argument("--wps", type=float)
     p = sub.add_parser("scaffold"); p.add_argument("beats"); p.add_argument("--out", required=True)
+    p = sub.add_parser("board"); p.add_argument("script"); p.add_argument("--style"); p.add_argument("--words"); p.add_argument("--id", required=True); p.add_argument("--out", required=True, help="project folder: writes index.draft.tsx (or index.tsx if none exists) and board.md")
     p = sub.add_parser("hooks"); p.add_argument("hooks", nargs="+"); p.add_argument("--style")
     p = sub.add_parser("export"); p.add_argument("script"); p.add_argument("--out", required=True); p.add_argument("--per-speaker")
     p = sub.add_parser("titles"); p.add_argument("items", nargs="*", help="optional script.txt, then extra title candidates")
@@ -557,6 +561,22 @@ def main():
         json.dump(B, open(os.path.join(a.out, "beats.json"), "w", encoding="utf-8"), indent=1)
         open(os.path.join(a.out, "beats.md"), "w", encoding="utf-8").write(beats_md(B))
         print(f"{a.out}: {len(B['beats'])} beats, {B['duration_s']} s ({B['timed_from']})")
+    elif a.cmd == "board":
+        import board as _board
+        sc = parse(a.script)
+        _, T = load_style(a.style or sc["head"].get("style"))
+        T = with_voice(T, sc["head"], None)
+        S = sc["sentences"]
+        infer_beats(S, T)
+        time_sentences(S, T, a.words)
+        words = json.load(open(a.words, encoding="utf-8")) if a.words else None
+        D = _board.draft(sc, S, words, a.id)
+        os.makedirs(a.out, exist_ok=True)
+        tgt = os.path.join(a.out, "index.tsx" if not os.path.exists(os.path.join(a.out, "index.tsx")) else "index.draft.tsx")
+        open(tgt, "w", encoding="utf-8").write(_board.to_ts(D))
+        open(os.path.join(a.out, "board.md"), "w", encoding="utf-8").write(_board.to_md(D))
+        have = sum(1 for r in D["rows"] if r["gag"])
+        print(f"{tgt}: {len(D['beats'])} beats, {len(D['places'])} places, {have}/{len(D['beats'])} with a proposed gag (see board.md)")
     elif a.cmd == "scaffold":
         open(a.out, "w", encoding="utf-8", newline="\n").write(scaffold(a.beats))
         print(f"{a.out}: generated plan (fill SHOTS, see header)")

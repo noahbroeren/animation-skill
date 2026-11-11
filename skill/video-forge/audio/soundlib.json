@@ -1,0 +1,27 @@
+{
+ "_doc": "The starter sound library that audio/score.py looks for in ~/.video-forge/sounds/ (NAME.wav, 48 kHz). The audio is NOT in this repository: generated and licensed sounds stay on your machine (most generators' terms forbid redistributing the files as a library). These are the prompts and lengths that built it with ElevenLabs Sound Effects v2 (prompt_influence 0.5) and ElevenLabs Music v2.5; 18 effects cost 169 credits and the 62 s track 930 credits in November 2026. Any recording or licensed pack works: save it under the same name. Without a file, score.py falls back to the synthesized stand-in named in `synth` (null = the cue is skipped).",
+ "sounds": [
+  {"name": "snip", "seconds": 0.6, "synth": "click", "prompt": "One crisp snip of heavy metal shears cutting a thin piece of metal, close and dry, no reverb"},
+  {"name": "coin", "seconds": 1.0, "synth": "ding", "prompt": "A single silver coin dropped on a wooden counter, bright metallic ring, short, close and dry"},
+  {"name": "coins", "seconds": 2.5, "synth": "sparkle", "prompt": "A sack of silver coins poured out, cascading metallic clinking, close and dry"},
+  {"name": "hammer", "seconds": 0.8, "synth": "impact", "prompt": "A single hammer blow on a small anvil, sharp metallic clang, dry workshop, no echo"},
+  {"name": "rasp", "seconds": 1.5, "synth": "creak", "prompt": "A metal file rasping the edge of a coin, three short scraping strokes, close and dry"},
+  {"name": "hooves", "seconds": 4, "synth": "rumble", "prompt": "A horse-drawn carriage arriving on wet cobblestones, trotting hooves and rattling wheels slowing to a stop"},
+  {"name": "thunder", "seconds": 3.5, "synth": "rumble", "prompt": "Distant rolling thunder, one roll, no rain"},
+  {"name": "rain_loop", "seconds": 10, "loop": true, "synth": "wind", "prompt": "Steady rain falling on a cobbled street at night, no thunder, no voices, no music"},
+  {"name": "sizzle", "seconds": 2.5, "synth": "whoosh", "prompt": "Metal coins dropping into molten metal in a hot crucible, sizzling hiss and steam"},
+  {"name": "press", "seconds": 1.2, "synth": "thud", "prompt": "A heavy iron screw press stamping once: a deep mechanical thunk followed by a small metallic clink"},
+  {"name": "car", "seconds": 3.5, "synth": "whoosh", "prompt": "A small car pulling up and stopping at the curb, light brake squeak, engine idling"},
+  {"name": "crowd_cheer", "seconds": 2.5, "synth": null, "prompt": "A small street crowd of about eight people cheering and laughing briefly, lively, outdoors"},
+  {"name": "crowd_gasp", "seconds": 1.5, "synth": null, "prompt": "A small crowd gasping in surprise all at once, short"},
+  {"name": "crowd_clap", "seconds": 2.5, "synth": null, "prompt": "A small group of people applauding briefly, outdoors"},
+  {"name": "crowd_laugh", "seconds": 2, "synth": null, "prompt": "A small group of people laughing briefly, warm, indoors"},
+  {"name": "whoosh", "seconds": 0.7, "synth": "whoosh", "prompt": "A fast cartoon whoosh, air swish passing by, short, dry"},
+  {"name": "impact", "seconds": 0.9, "synth": "impact", "prompt": "A punchy low thud impact hit, cartoon, short, dry"},
+  {"name": "street_day", "seconds": 10, "loop": true, "synth": "wind", "prompt": "Quiet old market street ambience, distant chatter and footsteps, a few birds, no music"}
+ ],
+ "music": [
+  {"name": "music_sneaky", "seconds": 62, "prompt": "Playful, sneaky orchestral underscore for a cartoon history short about a heist: pizzicato strings, bassoon, clarinet, light percussion and a soft harpsichord, mischievous and steadily building, around 104 bpm, a calmer middle section, then a bright confident ending with a final button hit. Instrumental only, no vocals."}
+ ],
+ "licence_note": "Check the terms of whatever produced a file before you publish with it. Generated effects and music are tied to the generating account's plan; recorded or bought sounds to their own licence. Keep a line per file in ~/.video-forge/sounds/LICENCES.md."
+}

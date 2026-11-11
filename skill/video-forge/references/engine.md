@@ -444,3 +444,29 @@ lightens the ink line); lamps light cards too; `alphaToCoverage` smooths the sil
 **Dark shots:** render intermediates as PNG (`render.mjs --image-format png`): JPEG frames erase the dither.
 
 Measured on the elevator short (cue stills and QA) in the CHANGELOG entry for 1.6.0.
+
+## Added in 1.7 (storyboard as data, sets, shot grammar, weather, vehicles, sound from the picture)
+
+Full guide: `references/board.md`. The pieces, bottom up:
+
+| piece | file | what it gives |
+|---|---|---|
+| light plan | `lib/three/lightplan.ts` | `lightPlan([[frame, key], ...], { fade })` -> `look(frame)`, `build(scene)`, `toonify(scene)`, `update(frame, fps, { target, cookieMul })`. A `LightKey` bundles `lights()` preset, toon setup, look, sun glow, cloud shadows, fog and `practicals` (how far lamps and lit windows are on). 14 keys in `LIGHT_KEYS`; `tweak(key, lookOverride)`. |
+| sets | `lib/three/sets.ts` | `buildSet(name, opts, origin)` -> `{ group, marks, wide, camBox, crowdSpots, setNight(n), setSky(top, horizon), update(f, fps) }`. Eight sets, `era: "old" | "modern"`, composed for 9:16 (narrow and tall). `PROPS`: table, chair, stool, crate, barrel, coins, moneyBag, chest, sack, scales, candle, book, papers, trashBin, mailbox, hydrant, parkingMeter, vendingMachine, ladder, plant, sign. |
+| shot grammar | `lib/shots.ts` | `frameShot(spec, aspect, box)` and `shotKeys(spec, { f0, f1, aspect, via })` on top of `frameDistance()`. Sizes wide / full / medium / close / xclose / two / group / insert / low / high / top / pov; moves push / pull / orbit (true arc through a Bezier control point) / crane / track / tilt / rise; ways in cut / dissolve / glide / whip. |
+| vehicles | `lib/three/vehicles.ts` | `car` (sedan, hatch, pickup, van, taxi, police), `bus`, `truck`, `carriage` (+ `horse` with walk / trot), `bicycle`; `drive(v, path, u)` (arc-length Catmull-Rom, steering, bounce, lean), `seatWorld`, `seatPose`. Cabins are solid up to the sill so a seated card shows head and shoulders and nothing else. |
+| weather | `lib/three/weather.ts` | `rain(scene)` (world-anchored streaks + splash rings that follow the camera) and `wetGround(w, d)` (planar reflection by a second render from the mirrored camera, smeared and broken by puddle noise and drop ripples; skipped in the normal / depth pass; costs nothing at amount 0). |
+| crowd reactions | `lib/three/cast.ts` | `pool.react([{ f, kind, at, dur }])`: gasp, cheer, laugh, boo, look, clap, point, sad; each member 1-8 frames late with their own variant, turning toward `at`; idle breathing when a pool has events. `pool.setVisible(v)`. |
+| characters | `lib/characters/kinds.ts` | `view: "three"` (three-quarter, `facing` picks the side, front-view IK targets are remapped), smear frames and settle emitted by `poseTrack` (`PoseKey.smear: false` to switch off). |
+| the board | `lib/board.tsx` | `boardProject(board)` -> `ProjectDef`. `planBoard(board, fps)` (pure: cue frames, cuts, dissolves) and `boardSounds(board, fps)` (cue sheet). Only the current place (and the one a dissolve touches) is drawn. |
+| timeline | `lib/timeline.tsx` | `SceneDef.sounds / music / rain / places` pass through `plan()` into `timeline.json`. |
+| audit | `lib/three/audit.ts` | hidden objects (any invisible ancestor) are no longer occluders. |
+| tools | `tools/make.mjs`, `tools/sheet.py`, `render.mjs --stills cues+N`, `produce.mjs` | one command with gates; named contact sheet; stills N frames after each cue; produce runs `score.py` for boards and adds the per-key colour table to the report. |
+| audio | `audio/score.py`, `audio/tighten.py`, `audio/soundlib.json` | the mix from the picture's cue sheet (real samples first); pause-capped narration with shifted word times; the prompts of the starter sound library. |
+
+Bugs found on the way (both were silent):
+- `toonWater()` never compiled: `#include <fog_vertex>` sat in the middle of a line and three.js only resolves includes at
+  line start. No project used it, so nothing failed until the yard set's pool rendered as grass.
+- `Raycaster` hits invisible meshes; the shot audit reported a hidden prop as an occluder.
+
+Measured lessons (coin short, first board): see the nine rules in `references/board.md` section 3.

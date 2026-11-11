@@ -94,15 +94,15 @@ interior|dusk|rain|overcast|fog|office`. The new ones are design values anchored
    intermediates as PNG (`--image-format png`): JPEG frames erase the dither in a third or more of the blocks.
 7. **Palettes and looks:** 12 palettes with hex values and 16 look recipes are in `research/colour.md` (sections B, C).
 
-## 5. Status: what the engine does now (1.6) and what is still open
+## 5. Status: what the engine does now (1.7) and what is still open
 
 | area | in the engine | still open (see the reports' upgrade lists) |
 |---|---|---|
 | cel model | split form x cast ramp, shade hue rules, terminator band, form-following fill, rim, painted drift, cloud-shadow cookie | ramp LUT textures, stylised specular, `fwidth` crisp-band option, halftone / hatch presets |
-| lights | sun + 19 presets, lamps light world and cards as capped pools, `lightShafts()`, sky sun glow | lighting keys with one timeline (`lightRig`), per-card light controls, directional backlight rim, rain / wet kit |
+| lights | sun + 19 presets, lamps light world and cards as capped pools, `lightShafts()`, sky sun glow, **one light plan per video** (`lightPlan`, 14 keys, practicals follow the key), **rain + wet ground** (`weather.ts`) | per-card light controls, directional backlight rim, shadow frustum per shot |
 | outlines | depth + normal ink with distance weight, coloured ink | object-ID edges, light-aware line weight, ink parity for wind-displaced and alpha-cut meshes |
 | grounding | tinted SSAO on the world, contact blobs, shadow bias fixed | shadow frustum fitted per shot, edge-aware AO blur, two-layer contact shadows |
-| image | MSAA 4x, alpha-to-coverage cut-outs, DOF, camera motion blur, bloom, triangular dither | in-frame accumulation (AA + soft shadows + true motion blur), post height fog, planar reflections, environment light for PBR props |
+| image | MSAA 4x, alpha-to-coverage cut-outs, DOF, camera motion blur, bloom, triangular dither, **planar reflection for wet ground** | in-frame accumulation (AA + soft shadows + true motion blur: camera-only blur smears a followed subject, so boards cut it to 15 % on follows), post height fog, environment light for PBR props |
 | colour | zone tints fixed, hue-preserving clip, OKLab toolkit, OKLab look cross-fades, 5 new toonworld looks | palettes as data with checks, `vfa gradefit`, LUT in/out, delivery-proxy QA, caption contrast with colour-blind simulation |
 
 **Measure per lighting key.** `vfa keygap` prints luma, saturation, warmth and highlight / shadow tint per section. The

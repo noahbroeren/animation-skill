@@ -1,0 +1,19 @@
+# title: Why You Can't Shave a Coin
+# style: toonworld-explainer
+# voice: clark-v4-tight
+# topic: coin clipping in 17th-century England, machine-struck coins with marked edges (1662), the Great Recoinage and Newton at the Mint (1696)
+This man shaves a sliver of silver off every coin he touches, then spends the coin *anyway*.
+In sixteen-hundreds England, coins are hammered by hand. No two edges match.
+A snip, a file, a little pile. By Friday he has a lump of other people's silver.
+Then the baker clips, the barber clips, and soon *everybody* clips.
+[place:hall] By 1695, a sack of coins weighs barely *half* of what it should.
+@officer: This shilling is too small.
+@clipper: It shrank in the wash.
+The punishment is death. People clip anyway.
+So how do you stop a whole country?
+[place:alley] In 1696, a new warden arrives at the Mint. Isaac Newton.
+That year, every old hammered coin in England is called in and *melted*.
+[beat:pivot] You see, the replacements come from a machine the Mint has used since 1662: perfectly round, with a marked edge.
+Shave one, and the edge shows the cut at once.
+The first time he tries, he's *caught*.
+[place:street] And that is why a quarter still has one hundred nineteen ridges, guarding silver it lost in 1965.

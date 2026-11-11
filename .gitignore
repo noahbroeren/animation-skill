@@ -29,3 +29,14 @@ skill/video-forge/engine/public/assets/polyhaven/models/*
 # elevator demo: raw ElevenLabs takes + their alignments (vo.wav is the spliced, committed source)
 skill/video-forge/engine/public/elevator/narr*
 skill/video-forge/engine/public/elevator/heck*
+
+# storyboard projects (audio/score.py): generated and licensed sounds never enter the repository
+skill/video-forge/engine/public/*/sounds_used/
+skill/video-forge/engine/public/*/sounds/
+skill/video-forge/engine/public/*/ambience.wav
+skill/video-forge/engine/public/*/vo_raw.mp3
+skill/video-forge/engine/public/*/words_raw.json
+skill/video-forge/engine/public/*/sections.json
+skill/video-forge/engine/public/*/audio_plan.json
+skill/video-forge/engine/public/*/sound_report.md
+skill/video-forge/engine/public/*/master_mixreport.json

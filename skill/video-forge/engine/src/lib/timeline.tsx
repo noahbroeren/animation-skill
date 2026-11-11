@@ -27,6 +27,11 @@ export type SceneDef = {
   events?: number[]; // local frames of intended big visual changes (graphic slams, flashes) -> QA won't call them glitches
   cues?: Record<string, number>; // named local frames (story beats) -> timeline.json "cues" -> sound design reads them
   chapter?: string;
+  /** sound cue sheet from the picture (lib/board.tsx): local frames -> timeline.json -> audio/score.py */
+  sounds?: { f: number; name: string; lu?: number; pan?: number; anchor?: number; on_word?: boolean }[];
+  music?: { f: number; mode: string }[];
+  rain?: { f: number; amount: number }[];
+  places?: { f: number; set: string; interior: boolean }[];
 };
 
 const DEF_FRAMES: Record<TransitionType, number> = { cut: 0, crossfade: 14, dip: 18, whip: 10, zoom: 14, wipe: 16, flash: 8, "slide-up": 12 };
@@ -39,6 +44,7 @@ export function plan(scenes: SceneDef[]) {
   const soft: number[] = [];
   const events: number[] = [];
   const cues: Record<string, number> = {};
+  const sounds: NonNullable<SceneDef["sounds"]> = [], music: NonNullable<SceneDef["music"]> = [], rain: NonNullable<SceneDef["rain"]> = [], places: NonNullable<SceneDef["places"]> = [];
   scenes.forEach((s, i) => {
     const ov = i === 0 ? 0 : tf(s.transition);
     const start = i === 0 ? 0 : at - ov;
@@ -48,9 +54,13 @@ export function plan(scenes: SceneDef[]) {
     for (const c of s.innerSoft ?? []) soft.push(start + c);
     for (const e of s.events ?? []) events.push(start + e);
     for (const [k, v] of Object.entries(s.cues ?? {})) cues[`${s.id}.${k}`] = start + v;
+    for (const x of s.sounds ?? []) sounds.push({ ...x, f: start + x.f });
+    for (const x of s.music ?? []) music.push({ ...x, f: start + x.f });
+    for (const x of s.rain ?? []) rain.push({ ...x, f: start + x.f });
+    for (const x of s.places ?? []) places.push({ ...x, f: start + x.f });
     at = start + s.frames;
   });
-  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues };
+  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues, ...(sounds.length ? { sounds, music, rain, places } : {}) };
 }
 
 const Wrap: React.FC<{ children: React.ReactNode; enter?: Transition; exit?: Transition; frames: number }> = ({ children, enter, exit, frames }) => {

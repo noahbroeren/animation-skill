@@ -291,7 +291,9 @@ export function toonWater(w = 200, h = 200, o: { far?: string; near?: string; cr
       #include <fog_pars_vertex>
       varying vec3 vW; varying float vDist;
       void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; vec4 mvPosition = viewMatrix * wp; vDist = -mvPosition.z;
-        gl_Position = projectionMatrix * mvPosition; #include <fog_vertex> }`,
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }`, // 1.7: the include sat mid-line, three only resolves includes at line start, so the shader never compiled
     fragmentShader: /* glsl */ `
       #include <fog_pars_fragment>
       uniform float uTime; uniform vec3 uFar; uniform vec3 uNear; uniform vec3 uCrest; uniform vec3 uGlint;

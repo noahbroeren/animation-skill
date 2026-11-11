@@ -713,5 +713,337 @@
     "result": "improved"
    }
   ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "coins",
+  "change": "travel instead of cuts inside a place, settle after cuts, DOF by shot size, interior lift, warmer office key, three-quarter dialogue, den restaged out of the clipper's own shadow",
+  "note": "",
+  "match_score_before": 50.0,
+  "match_score_after": 50.0,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.75,
+    "gap_after": 1.25,
+    "ours_before": 6.0,
+    "ours_after": 4.0,
+    "ref": 9.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 7.01,
+    "gap_after": 5.37,
+    "ours_before": 0.20345032718619868,
+    "ours_after": 0.28537596210775606,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 4.0,
+    "gap_after": 5.2,
+    "ours_before": 24.0,
+    "ours_after": 18.0,
+    "ref": 44.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 2.87,
+    "gap_after": 1.27,
+    "ours_before": 4.084134958087149,
+    "ours_after": 18.2374180190297,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 1.12,
+    "gap_after": 1.62,
+    "ours_before": 7.0,
+    "ours_after": 5.0,
+    "ref": 11.5,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.colorfulness.median",
+    "label": "colorfulness",
+    "gap_before": 3.55,
+    "gap_after": 3.05,
+    "ours_before": 0.18840065055174068,
+    "ours_after": 0.20331864188697393,
+    "ref": 0.2947719466551656,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 1.58,
+    "gap_after": 2.5,
+    "ours_before": 5.0911829471588135,
+    "ours_after": 6.940413951873779,
+    "ref": 1.936219334602356,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 3.97,
+    "gap_after": 1.78,
+    "ours_before": -2.139638304710388,
+    "ours_after": 2.2377753257751465,
+    "ref": 5.8063578605651855,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_mean.median",
+    "label": "mean brightness",
+    "gap_before": 3.48,
+    "gap_after": 1.56,
+    "ours_before": 0.3254851698875427,
+    "ours_after": 0.40251246094703674,
+    "ref": 0.46486346423625946,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_p1.median",
+    "label": "black floor (p1)",
+    "gap_before": 0.98,
+    "gap_after": 0.2,
+    "ours_before": 0.0784313725490196,
+    "ours_after": 0.10196078431372549,
+    "ref": 0.09803921568627451,
+    "result": "improved"
+   },
+   {
+    "metric": "color.sat_mean.median",
+    "label": "saturation",
+    "gap_before": 1.43,
+    "gap_after": 1.87,
+    "ours_before": 0.4226302206516266,
+    "ours_after": 0.40536002814769745,
+    "ref": 0.48001131415367126,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 0.19,
+    "gap_after": 0.48,
+    "ours_before": 10.943455696105957,
+    "ours_after": 11.520150661468506,
+    "ref": 10.56808090209961,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.warmth.median",
+    "label": "warmth (R-B)",
+    "gap_before": 1.27,
+    "gap_after": 0.16,
+    "ours_before": 0.014294727705419064,
+    "ours_after": 0.04210501350462437,
+    "ref": 0.04604286700487137,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 22.9,
+    "gap_after": 20.7,
+    "ours_before": 2.469565217391304,
+    "ours_after": 3.7866666666666666,
+    "ref": 16.20724959882321,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 6.86,
+    "gap_after": 4.04,
+    "ours_before": 23.23943661971831,
+    "ours_after": 14.788732394366198,
+    "ref": 2.666844444444444,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.dof_ratio.median",
+    "label": "DOF centre/border sharpness",
+    "gap_before": 2.99,
+    "gap_after": 2.0,
+    "ours_before": 1.0545260029745211,
+    "ours_after": 1.3507124681870772,
+    "ref": 1.9517237917353885,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.edge_density.median",
+    "label": "edge density (detail)",
+    "gap_before": 1.19,
+    "gap_after": 1.83,
+    "ours_before": 0.04281314388736264,
+    "ours_after": 0.03326966002747253,
+    "ref": 0.060645604395604395,
+    "result": "regressed"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "coins",
+  "change": "longer travels (24 f), bigger settle and pushes, more saturated room palettes and grade, stronger idle micro-motion, depth of field off on wides",
+  "note": "",
+  "match_score_before": 50.0,
+  "match_score_after": 50.0,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 5.37,
+    "gap_after": 4.78,
+    "ours_before": 0.28537596210775606,
+    "ours_after": 0.3148809523809524,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 5.2,
+    "gap_after": 4.8,
+    "ours_before": 18.0,
+    "ours_after": 20.0,
+    "ref": 44.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 1.27,
+    "gap_after": 2.16,
+    "ours_before": 18.2374180190297,
+    "ours_after": 10.419339321392716,
+    "ref": 29.484029725217365,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 1.62,
+    "gap_after": 1.12,
+    "ours_before": 5.0,
+    "ours_after": 7.0,
+    "ref": 11.5,
+    "result": "improved"
+   },
+   {
+    "metric": "color.colorfulness.median",
+    "label": "colorfulness",
+    "gap_before": 3.05,
+    "gap_after": 2.22,
+    "ours_before": 0.20331864188697393,
+    "ours_after": 0.22828315525855208,
+    "ref": 0.2947719466551656,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 2.5,
+    "gap_after": 3.1,
+    "ours_before": 6.940413951873779,
+    "ours_after": 8.127871990203857,
+    "ref": 1.936219334602356,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 1.78,
+    "gap_after": 1.19,
+    "ours_before": 2.2377753257751465,
+    "ours_after": 3.4346375465393066,
+    "ref": 5.8063578605651855,
+    "result": "improved"
+   },
+   {
+    "metric": "color.sat_mean.median",
+    "label": "saturation",
+    "gap_before": 1.87,
+    "gap_after": 0.9,
+    "ours_before": 0.40536002814769745,
+    "ours_after": 0.4440132975578308,
+    "ref": 0.48001131415367126,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 0.48,
+    "gap_after": 1.05,
+    "ours_before": 11.520150661468506,
+    "ours_after": 12.670108795166016,
+    "ref": 10.56808090209961,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.shadow_b.median",
+    "label": "shadow tint b (blue-/yellow+)",
+    "gap_before": 0.82,
+    "gap_after": 0.57,
+    "ours_before": -3.7225769758224487,
+    "ours_after": -4.2331013679504395,
+    "ref": -5.367428779602051,
+    "result": "improved"
+   },
+   {
+    "metric": "color.warmth.median",
+    "label": "warmth (R-B)",
+    "gap_before": 0.16,
+    "gap_after": 0.75,
+    "ours_before": 0.04210501350462437,
+    "ours_after": 0.06470800191164017,
+    "ref": 0.04604286700487137,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 20.7,
+    "gap_after": 23.07,
+    "ours_before": 3.7866666666666666,
+    "ours_after": 2.3666666666666667,
+    "ref": 16.20724959882321,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 4.04,
+    "gap_after": 7.21,
+    "ours_before": 14.788732394366198,
+    "ours_after": 24.295774647887324,
+    "ref": 2.666844444444444,
+    "result": "regressed"
+   },
+   {
+    "metric": "texture.dof_ratio.median",
+    "label": "DOF centre/border sharpness",
+    "gap_before": 2.0,
+    "gap_after": 2.34,
+    "ours_before": 1.3507124681870772,
+    "ours_after": 1.2489635977460476,
+    "ref": 1.9517237917353885,
+    "result": "regressed"
+   }
+  ]
  }
 ]

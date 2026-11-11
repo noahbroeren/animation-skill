@@ -1,6 +1,51 @@
 # Changelog
 
-## 1.7.0 - in progress
+## 1.7.0 - 2026-11-11
+- **Storyboard as data** (`engine/src/lib/board.tsx`, guide `references/board.md`). A short is ONE `Board`: the cast,
+  the places and a list of beats anchored on spoken words. Each beat names the place, the lighting key, the shot and how
+  it arrives, what every character does and the visual gag. The runtime derives the camera path, the light plan,
+  pose-to-pose acting, crowd reactions, the shot audit subjects, the QA edit plan and the sound cue sheet from it.
+- **One command from script to verified video**: `node tools/make.mjs --project ID`. Stages script (lint) -> claims
+  (fact-check gate) -> voice -> words (align + `tighten.py`) -> board (draft + compile) -> stills -> audit (1/8 size,
+  shot audit must be clean) -> produce (native render, sound, mux, QA, per-key colour table). It stops with one
+  instruction when a stage needs a person or the agent and continues on the next run.
+- **A gag per sentence**: `story.py board` drafts the board from a script (place, key, shot and gag per clause from
+  `story/gags.json`) and lists the sentences that still need a concrete gag.
+- **Ready-made sets with marks** (`lib/three/sets.ts`): street, alley, road, yard (pool), shop, workshop (garage),
+  office, hall; `era: "old" | "modern"`; practical lamps and lit windows follow the lighting key; 21 small gag props.
+  Composed for 9:16: narrow, tall, dressing stacked upward. Sheet project `setsheet` (day, night, rain).
+- **Shot grammar** (`lib/shots.ts`): wide, full, medium, close, xclose, two, group, insert, low, high, top and
+  point-of-view; moves push, pull, orbit (a true arc), crane, track, tilt, rise; arrivals cut (with an 11-frame
+  settle), dissolve, glide (travel), whip. Inside a place the board travels the camera instead of cutting.
+- **One light plan per video** (`lib/three/lightplan.ts`): 14 lighting keys, each bundling sun, fill, fog, sky, toon
+  setup, look, cloud shadows and practicals; a key change on a cut switches on the frame, on a dissolve it fades with it.
+- **Vehicles with characters inside** (`lib/three/vehicles.ts`): car (6 bodies), bus, truck, coach with horses
+  (walk / trot), bicycle; `drive()` along a path, seats tuned so a seated card shows head and shoulders. Sheet `propsheet`.
+- **Rain and a wet street** (`lib/three/weather.ts`): world-anchored streaks, splash rings, and a wet ground with a
+  real planar reflection broken by puddle noise and drop ripples.
+- **Characters**: a true three-quarter view (`view: "three"`), smear frames and settle on `poseTrack` pops, crowds that
+  react (`CrowdPool.react`: gasp, cheer, laugh, boo, look, clap, point, sad; each member late in their own way), idle
+  micro-motion on posed hands and heads. Charsheet page 11 (still 310).
+- **Sound from the picture** (`audio/score.py`): the board's cue sheet becomes the mix; real samples first
+  (`~/.video-forge/sounds/`), synthesis as the fallback, a generated or licensed music track shaped by the board's
+  music marks, ambience per place, rain. `sound_report.md` says which cue used what. The audio itself is never in the
+  repository; `audio/soundlib.json` has the prompts of the starter library. `audio/tighten.py` caps narration pauses.
+- **Proof short 2, "Why You Can't Shave a Coin"** (`projects/coins`, 41 beats, 8 sets, 56.8 s, 1440x2560): script lint
+  98/100, fact-check gate PASS (and the script says the marked edge is from 1662, not Newton's), ElevenLabs narration
+  tightened 62.0 -> 55.9 s (2.77 -> 3.08 words/s), 79 sound cues (32 real samples, 46 synthesized, 1 skipped), a
+  generated music track. Native render in about 4 minutes (only the current set is drawn).
+  Measured over three produce iterations (QA verdict WARN each time, 0 FAIL; the one WARN left is style match 16/32 against the
+  channel fingerprint, 16/32 against the hero short): mean brightness 0.33 -> 0.40 (reference 0.47, hero short 0.40),
+  fast-motion frames 0.20 -> 0.32 (0.55 / 0.39), DOF ratio 1.06 -> 1.25 (1.95 / 1.43), colourfulness 0.19 -> 0.23 (0.29),
+  highlight b -2.1 -> 3.4 (5.8), micro-animation 0.010 -> 0.012 (0.020), flicker warning gone (a key change that faded in
+  before its cut). Still open: the cut detector reads the 24-frame travels as cuts (23 detected, 11 planned), edge density
+  0.037 against 0.061 (close-ups in rooms, depth of field), micro-animation.
+- **Bugs found** (both silent): `toonWater()` never compiled (an `#include` in the middle of a line); the shot audit
+  counted hidden meshes as occluders. Also: a moving-average with a 14,400-tap convolution made `score.py` take minutes
+  (cumulative sum now, 6 s for the whole mix).
+- Lessons recorded in `references/board.md` (nine rules): two people must stand within 1.3 m for a 9:16 two-shot; a
+  character's own shadow can put his props in shade; a low sun is wrong indoors; dress the crowd for the era; camera
+  motion blur smears a followed subject; a key change on a cut must not fade in early (it measured as flicker).
 - **Highlight warmth found and fixed (elevator v8).** The video-wide "highlight tint b 11.1 vs 5.8" was not a day-grade
   problem: the night section's highlights had flipped from -0.8 to +14 once lamps lit the set, and that section sat at
   the middle of the sorted frames. Fix: pale night key, day tints back to the v3 values, no global highlight zone tint.

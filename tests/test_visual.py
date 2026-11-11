@@ -35,9 +35,19 @@ CASES = [  # (name, project, format, frame)
     ("charsheet_bobble_rig_220", "charsheet", "long", 220),  # expressions, cues, walk, pose library, props
     ("charsheet_bobble_audit_250", "charsheet", "long", 250),  # 1.6 audit: walk, head turn, hands, props, outfits, hair
     ("charsheet_bobble_audit_280", "charsheet", "long", 280),  # hats, hat + hair, builds, facial hair + glasses, profile acting  # 1.3 stick cast: hats/hair/coats/props/hat tip
+    ("charsheet_bobble_threeq_310", "charsheet", "long", 310),  # 1.7 three-quarter view (cast, outfits, hats, hair), smear frames, settle, 3/4 walk
     ("elevator_640", "elevator", "short", 640),  # hat tip on a padded card
     ("elevator_925", "elevator", "short", 925),  # crowd CU framed with frameDistance, no occluders
     ("elevator_1100", "elevator", "short", 1100),  # night diagram over the 3D platform
+    ("setsheet_street_0", "setsheet", "short", 0),  # 1.7 ready-made sets: old street by day
+    ("setsheet_yard_90", "setsheet", "short", 90),  # yard with the pool (toonWater compiles)
+    ("setsheet_shop_120", "setsheet", "short", 120),  # interior: three walls, beamed ceiling, shelves, window
+    ("setsheet_alley_rain_510", "setsheet", "short", 510),  # rain streaks, splash rings, wet-ground reflection at night
+    ("propsheet_cars_150", "propsheet", "long", 150),  # 1.7 vehicles with seated characters, front three-quarter
+    ("propsheet_coach_60", "propsheet", "long", 60),  # coach + horses, open carriage, bicycle
+    ("coins_spends_130", "coins", "short", 130),  # 1.7 storyboard project: two-shot in the shop, three-quarter views
+    ("coins_coach_960", "coins", "short", 960),  # coach arriving at night in the rain (follow shot, wet street)
+    ("coins_round_1312", "coins", "short", 1312),  # insert on the milled coin, depth of field by shot size
 ]
 SSIM_MIN, SHIFT_MAX = 0.93, 6.0
 
