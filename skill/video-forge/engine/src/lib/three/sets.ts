@@ -17,7 +17,8 @@
 import * as THREE from "three";
 import { rng } from "../time";
 import type { V3 } from "../camera";
-import { toonWater } from "./shaders";
+import { NOINK } from "./post";
+import { toonWater, windSway, windUniforms } from "./shaders";
 import { canvasTexture, flat, paint } from "./textures";
 import { awning, barrel, bench, brickTexture, cart, crate, fence, flowerBox, house, lampPost, lantern, rowFacade, shadowed, signBoard, textTexture, tree } from "./world";
 
@@ -180,12 +181,108 @@ export const PROPS: Record<string, (o?: { color?: string; n?: number; text?: str
 };
 
 // ------------------------------------------------------------------------------------------------ the sets
-type Ctx = { g: THREE.Group; lamps: { l: THREE.PointLight; i: number }[]; glows: { m: THREE.MeshLambertMaterial | THREE.MeshBasicMaterial; day: number; night: number; col?: THREE.Color }[]; panes: THREE.MeshBasicMaterial[]; upd: ((f: number, fps: number) => void)[] };
+type Ctx = { wind: ReturnType<typeof windUniforms>; g: THREE.Group; lamps: { l: THREE.PointLight; i: number }[]; glows: { m: THREE.MeshLambertMaterial | THREE.MeshBasicMaterial; day: number; night: number; col?: THREE.Color; k?: number }[]; panes: THREE.MeshBasicMaterial[]; upd: ((f: number, fps: number) => void)[] };
 const lampAt = (c: Ctx, x: number, y: number, z: number, i = 2.2, color = "#ffd9a0", dist = 9) => { const l = new THREE.PointLight(color, 0, dist, 1.3); l.position.set(x, y, z); c.g.add(l); c.lamps.push({ l, i }); return l; };
 const litWindow = (c: Ctx, w: number, h: number, x: number, y: number, z: number, ry = 0, color = "#ffd27a") => {
   const m = new THREE.MeshBasicMaterial({ color: "#3d4660" }); c.glows.push({ m, day: 0, night: 1, col: new THREE.Color(color) });
   const g = windowOn(w, h, m, "#3a2618"); c.g.add(at(g, x, y, z, ry)); return g;
 };
+
+
+// ------------------------------------------------------------------------------------------------ life + dressing kit (1.8)
+/**
+ * LIFE: things that move in every set, all pure functions of the frame. Measured on the coin short: micro-animation
+ * 0.012 against 0.020 in the reference; a held shot of a room had nothing moving but the characters' idle.
+ * DRESSING: real geometry on the walls (the ink pass draws what has edges). Measured edge density 3.7 % against 6.1 %.
+ */
+const T2 = (f: number, fps: number) => f / fps;
+/** rising puffs: chimney smoke, forge fumes, steam */
+function smoke(c: Ctx, x: number, y: number, z: number, o: { n?: number; color?: string; rise?: number; size?: number; drift?: number; speed?: number } = {}) {
+  const n = o.n ?? 6, puffs = Array.from({ length: n }, (_, i) => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: o.color ?? "#e9e6ee", transparent: true, opacity: 0, depthWrite: false }));
+    m.layers.set(NOINK); m.userData.auditIgnore = true; c.g.add(m); return { m, i }; });
+  c.upd.push((f, fps) => { for (const { m, i } of puffs) { const ph = (T2(f, fps) * (o.speed ?? 0.22) + i / n) % 1, sz = (o.size ?? 0.5) * (0.35 + ph * 1.3);
+    m.position.set(x + Math.sin(ph * 5 + i * 1.7) * 0.3 * ph + (o.drift ?? 0.5) * ph * ph, y + ph * (o.rise ?? 3.2), z + Math.cos(ph * 4 + i) * 0.2 * ph); m.scale.setScalar(sz);
+    (m.material as THREE.MeshLambertMaterial).opacity = 0.62 * (1 - ph) * Math.min(1, ph * 7); } });
+}
+/** embers rising from a fire */
+function sparks(c: Ctx, x: number, y: number, z: number, n = 9) {
+  const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 1.7, 0.5) }), ps = Array.from({ length: n }, (_, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.03), mat); m.layers.set(NOINK); m.userData.auditIgnore = true; c.g.add(m); return m; });
+  c.upd.push((f, fps) => ps.forEach((m, i) => { const ph = (T2(f, fps) * (0.7 + (i % 3) * 0.2) + i * 0.37) % 1; m.position.set(x + Math.sin(i * 2.4 + ph * 6) * 0.25, y + ph * 1.5, z + Math.cos(i * 1.3 + ph * 5) * 0.2); m.visible = ph < 0.85; m.scale.setScalar(1.4 * (1 - ph)); }));
+}
+/** anything that hangs sways: `pivot` is rotated around the given axis */
+const sway = (c: Ctx, pivot: THREE.Object3D, axis: "x" | "z" | "y", amp: number, speed: number, phase = 0) => { c.upd.push((f, fps) => { pivot.rotation[axis] = amp * Math.sin(T2(f, fps) * speed + phase) + amp * 0.35 * Math.sin(T2(f, fps) * speed * 2.3 + phase * 1.7); }); return pivot; };
+/** a sign on an iron bracket that swings (faces +z and -z); the wall is at x = 0 on its left */
+function hangSign(c: Ctx, text: string, x: number, y: number, z: number, ry = 0, o: { w?: number; bg?: string; fg?: string } = {}) {
+  const g = new THREE.Group(), iron = lam({ color: "#2b2f3a" }), w = o.w ?? 1.3;
+  g.add(box(w + 0.3, 0.05, 0.05, iron, w / 2, 0, 0, false), box(0.05, 0.5, 0.05, iron, 0.05, -0.2, 0, false));
+  const piv = new THREE.Group(); piv.position.set(w / 2 + 0.05, -0.05, 0); g.add(piv);
+  const sg = signBoard(text, { w, h: 0.5, bg: o.bg ?? "#2b2230", fg: o.fg ?? "#f1c94a" }); sg.position.y = -0.42; piv.add(sg);
+  for (const sx of [-1, 1]) piv.add(box(0.02, 0.2, 0.02, iron, sx * (w / 2 - 0.12), -0.1, 0, false));
+  sway(c, piv, "x", 0.09, 1.9, x * 1.3 + z); c.g.add(at(g, x, y, z, ry)); return g;
+}
+/** a line of pennants between two points, sagging, each one fluttering */
+function bunting(c: Ctx, a: V3, b: V3, n = 12, cols = ["#e04a3a", "#f2c94c", "#3a7fd0", "#f4efe6"]) {
+  const ry = Math.atan2(-(b[2] - a[2]), b[0] - a[0]);
+  for (let k = 0; k <= n; k++) { const u = k / n, sag = 0.5 * Math.sin(u * Math.PI); const piv = new THREE.Group(); piv.position.set(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u - sag, a[2] + (b[2] - a[2]) * u); piv.rotation.y = ry;
+    const tri = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.46, 3), lam({ color: cols[k % cols.length] })); tri.rotation.x = Math.PI; tri.position.y = -0.25; tri.scale.z = 0.2; piv.add(tri); c.g.add(piv); sway(c, piv, "x", 0.2, 2.3, k * 0.7); }
+}
+/** two curtains at a window (faces +z), breathing a little */
+function curtains(c: Ctx, w: number, h: number, x: number, y: number, z: number, color = "#a8423a", ry = 0) {
+  const g = new THREE.Group(), m = lam({ color, side: THREE.DoubleSide });
+  for (const sx of [-1, 1]) { const piv = new THREE.Group(); piv.position.set(sx * (w / 2 + 0.12), h / 2, 0.1); const cl = new THREE.Mesh(new THREE.PlaneGeometry(0.46, h + 0.3, 3, 1), m); cl.position.set(-sx * 0.2, -h / 2, 0); piv.add(cl);
+    for (let k = 0; k < 3; k++) piv.add(box(0.03, h + 0.3, 0.03, lam({ color: "#000000", transparent: true, opacity: 0.18 }), -sx * (0.06 + k * 0.14), -h / 2, 0.012, false)); // fold lines
+    g.add(piv); sway(c, piv, "y", 0.07, 1.1, sx + x); }
+  g.add(box(w + 0.9, 0.06, 0.06, lam({ color: "#3a2618" }), 0, h / 2 + 0.16, 0.1, false)); c.g.add(at(g, x, y, z, ry)); return g;
+}
+const picture = (w: number, h: number, col: string, frame = "#c9a23a") => { const g = new THREE.Group(); g.add(box(w, h, 0.05, lam({ color: frame }), 0, 0, 0, false), box(w - 0.14, h - 0.14, 0.02, lam({ color: col }), 0, 0, 0.03, false), box((w - 0.14) * 0.5, (h - 0.14) * 0.35, 0.02, lam({ color: "#f4efe6" }), -w * 0.1, -h * 0.12, 0.04, false)); return g; };
+const poster = (text: string, w = 0.8, h = 1.0, bg = "#f1e7d2", fg = "#3a2618") => { const g = new THREE.Group(); const lines = text.split("|");
+  g.add(box(w, h, 0.02, lam({ color: bg }), 0, 0, 0, false)); lines.forEach((t, i) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.86, (h * 0.8) / lines.length), new THREE.MeshLambertMaterial({ map: textTexture(t, { w: 256, h: 96, bg, fg }) })); m.position.set(0, h * 0.4 - ((i + 0.5) * h * 0.8) / lines.length, 0.012); g.add(m); });
+  for (const sx of [-1, 1]) g.add(box(0.03, 0.03, 0.03, lam({ color: "#3b3f4c" }), sx * (w / 2 - 0.05), h / 2 - 0.05, 0.02, false)); return g; };
+/** a board on brackets with real jars, boxes and bottles on it (faces +z) */
+function wallShelf(w: number, seed: string, wood = "#7a5234") {
+  const g = new THREE.Group(), r = rng(seed), wm = lam({ color: wood }), cols = ["#e9dcc6", "#c0392b", "#d8a53a", "#5b8fd6", "#6aa84f", "#8e5bb5", "#f4efe6", "#b07a4a"];
+  g.add(box(w, 0.05, 0.28, wm, 0, 0, 0.14, false)); for (const sx of [-1, 1]) g.add(box(0.05, 0.22, 0.22, wm, sx * (w / 2 - 0.12), -0.12, 0.11, false));
+  for (let x = -w / 2 + 0.14; x < w / 2 - 0.1;) { const k = r(), ww = 0.1 + r() * 0.1, hh = 0.14 + r() * 0.22, col = lam({ color: cols[Math.floor(r() * cols.length)] });
+    if (k < 0.4) g.add(cyl(ww / 2, ww / 2, hh, col, x + ww / 2, hh / 2 + 0.03, 0.14, 10), cyl(ww * 0.35, ww * 0.35, 0.04, lam({ color: "#3a2618" }), x + ww / 2, hh + 0.05, 0.14, 8));
+    else if (k < 0.75) g.add(box(ww, hh, 0.16, col, x + ww / 2, hh / 2 + 0.03, 0.14, false));
+    else { g.add(cyl(ww * 0.45, ww * 0.5, hh * 0.7, col, x + ww / 2, hh * 0.35 + 0.03, 0.14, 10), cyl(ww * 0.16, ww * 0.2, hh * 0.4, col, x + ww / 2, hh * 0.9 + 0.03, 0.14, 8)); }
+    x += ww + 0.05 + r() * 0.06; }
+  return g;
+}
+const pilaster = (h: number, color: string, w = 0.2) => { const g = new THREE.Group(), m = lam({ color }); g.add(box(w, h, 0.1, m, 0, h / 2, 0.05, false), box(w + 0.1, 0.16, 0.14, m, 0, 0.08, 0.07, false), box(w + 0.1, 0.16, 0.14, m, 0, h - 0.08, 0.07, false)); return g; };
+function cabinet(w: number, h: number, d: number, color = "#7a5234", rows = 3, cols = 2) {
+  const g = new THREE.Group(), m = lam({ map: paint.planks(color, [2, 1], false) }), dk = lam({ color: "#4a2f1c" }), br = lam({ color: "#d8b04a" });
+  g.add(box(w, h, d, m, 0, h / 2, 0), box(w + 0.08, 0.06, d + 0.06, dk, 0, h + 0.03, 0));
+  for (let r0 = 0; r0 < rows; r0++) for (let c0 = 0; c0 < cols; c0++) { const dw = w / cols - 0.1, dh = (h - 0.12) / rows - 0.08, x = -w / 2 + (c0 + 0.5) * (w / cols), y = 0.08 + (r0 + 0.5) * ((h - 0.12) / rows);
+    g.add(box(dw, dh, 0.03, dk, x, y, d / 2 + 0.012, false), cyl(0.03, 0.03, 0.04, br, x, y, d / 2 + 0.04, 8).rotateX(Math.PI / 2)); }
+  return shadowed(g);
+}
+/** a rail with things hanging from it (pots, herbs, sausages, tools), each swinging a little */
+function hangingRow(c: Ctx, w: number, kind: "pots" | "herbs" | "sausages" | "tools", x: number, y: number, z: number, ry = 0) {
+  const g = new THREE.Group(), iron = lam({ color: "#2b2f3a" }), n = Math.max(3, Math.round(w / 0.42));
+  g.add(cyl(0.02, 0.02, w, iron, 0, 0, 0, 6).rotateZ(Math.PI / 2));
+  for (let i = 0; i < n; i++) { const piv = new THREE.Group(); piv.position.set(-w / 2 + ((i + 0.5) * w) / n, 0, 0); piv.add(box(0.012, 0.16, 0.012, iron, 0, -0.08, 0, false));
+    if (kind === "pots") { piv.add(cyl(0.11, 0.08, 0.14, lam({ color: i % 2 ? "#b0603a" : "#c9823a" }), 0, -0.24, 0, 12)); }
+    else if (kind === "herbs") { const h = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.34, 6), lam({ color: i % 2 ? "#4f9a35" : "#6aa84f", flatShading: true })); h.rotation.x = Math.PI; h.position.y = -0.32; piv.add(h); }
+    else if (kind === "sausages") { for (let k = 0; k < 3; k++) { const sg = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), lam({ color: "#a8423a" })); sg.scale.set(1, 1.7, 1); sg.position.y = -0.22 - k * 0.15; piv.add(sg); } }
+    else { piv.add(box(0.05, 0.36, 0.03, lam({ color: "#b0603a" }), 0, -0.3, 0, false), i % 2 ? box(0.2, 0.1, 0.05, lam({ color: "#8d96a6" }), 0, -0.5, 0, false) : cyl(0.09, 0.09, 0.03, lam({ color: "#8d96a6" }), 0, -0.52, 0, 10).rotateX(Math.PI / 2)); }
+    g.add(piv); sway(c, piv, "z", 0.05, 1.5, i * 1.1 + x); }
+  c.g.add(at(g, x, y, z, ry)); return g;
+}
+/** a wall light that flickers (a glow, not a light source: the lamp pools come from the set's own lamps) */
+function sconce(c: Ctx, x: number, y: number, z: number, ry = 0) {
+  const g = new THREE.Group(), iron = lam({ color: "#2b2f3a" }); g.add(box(0.06, 0.3, 0.06, iron, 0, 0, 0.03, false), box(0.06, 0.06, 0.22, iron, 0, -0.1, 0.12, false));
+  const fm = new THREE.MeshLambertMaterial({ color: "#fff1c8", emissive: new THREE.Color("#ffc860"), emissiveIntensity: 1 }); const fl = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), fm); fl.scale.y = 1.6; fl.position.set(0, 0.04, 0.22); g.add(fl);
+  g.add(cyl(0.05, 0.06, 0.05, iron, 0, -0.06, 0.22, 8)); const gl = { m: fm, day: 0.7, night: 2.0, k: 1 }; c.glows.push(gl);
+  c.upd.push((f, fps) => { gl.k = 0.82 + 0.18 * Math.sin(T2(f, fps) * 9.3 + x * 3) * Math.sin(T2(f, fps) * 5.1 + z); fl.scale.y = 1.5 + 0.25 * Math.sin(T2(f, fps) * 11 + x); });
+  c.g.add(at(g, x, y, z, ry)); return g;
+}
+const flickerGlow = (c: Ctx, gl: { k?: number }, seed: number) => c.upd.push((f, fps) => { gl.k = 0.86 + 0.14 * Math.sin(T2(f, fps) * 8.7 + seed) * Math.sin(T2(f, fps) * 4.9 + seed * 2.1); });
+const chandelier = (c: Ctx, x: number, y: number, z: number, drop = 2.2) => { const piv = new THREE.Group(), iron = lam({ color: "#2b2f3a" }); piv.position.set(x, y, z); piv.add(cyl(0.015, 0.015, drop, iron, 0, -drop / 2, 0, 6));
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.035, 6, 20), iron); ring.rotation.x = Math.PI / 2; ring.position.y = -drop; piv.add(ring);
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2, fm = new THREE.MeshLambertMaterial({ color: "#fff1c8", emissive: new THREE.Color("#ffc860"), emissiveIntensity: 1 }); piv.add(cyl(0.025, 0.025, 0.14, lam({ color: "#f4efe6" }), Math.cos(a) * 0.55, -drop + 0.09, Math.sin(a) * 0.55, 6));
+    const fl = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), fm); fl.scale.y = 1.6; fl.position.set(Math.cos(a) * 0.55, -drop + 0.2, Math.sin(a) * 0.55); piv.add(fl); const gl = { m: fm, day: 0.8, night: 2.0, k: 1 }; c.glows.push(gl); flickerGlow(c, gl, i + x); }
+  c.g.add(piv); sway(c, piv, "z", 0.025, 0.9, x); return piv; };
 
 type SetCore = Omit<SetInstance, "group" | "setNight" | "setSky" | "update" | "name" | "camBox"> & { camBox?: { min: V3; max: V3 } };
 function street(o: SetOpts, c: Ctx): SetCore {
@@ -215,9 +312,12 @@ function street(o: SetOpts, c: Ctx): SetCore {
   for (let i = 0; i < 6; i++) { const x = -27 + i * 10.8; const lp = old ? lampPost({ color: "#2b2f3a" }) : lampPost({ h: 4.2 }); c.g.add(at(lp, x, 0.16, -4.9, -Math.PI / 2)); if (i >= 2 && i <= 3) lampAt(c, x, 3.1, -4.4, 2.6);
     c.glows.push({ m: (lp.children[3] as THREE.Mesh).material as THREE.MeshBasicMaterial, day: 0.35, night: 1, col: new THREE.Color(3, 2.4, 1.4) }); }
   if (old) { c.g.add(at(cart({ load: "barrels", seed }), -9.5, 0, 3.4, 0.3), at(cart({ load: "crates", seed: seed + "2" }), 14, 0, -3.3, 2.9)); c.g.add(at(bench(), 6.4, 0.16, -5.9)); }
-  else { for (let i = 0; i < 5; i++) c.g.add(at(tree({ seed: seed + "t" + i, h: 4.4 }), -24 + i * 12, 0.16, 6.3)); c.g.add(at(PROPS.mailbox(), -5.4, 0.16, -5.5), at(PROPS.hydrant(), 4.6, 0.16, -5.0), at(bench(), 9.2, 0.16, -6.1), at(PROPS.parkingMeter(), 1.6, 0.16, -4.95));
+  else { for (let i = 0; i < 5; i++) { const tr = tree({ seed: seed + "t" + i, h: 4.4 }); windSway(tr, c.wind, 2); c.g.add(at(tr, -24 + i * 12, 0.16, 6.3)); } c.g.add(at(PROPS.mailbox(), -5.4, 0.16, -5.5), at(PROPS.hydrant(), 4.6, 0.16, -5.0), at(bench(), 9.2, 0.16, -6.1), at(PROPS.parkingMeter(), 1.6, 0.16, -4.95));
     marks.meter = [1.6, 0.16, -4.95]; marks.parking = [1.8, 0, -3.2]; }
-  const crowdSpots: V3[] = [[-6, 0.16, -5.6], [7.5, 0.16, -5.5], [-11, 0.16, -5.9], [12.6, 0.16, -5.7], [-4, 0.16, 5.6], [5.5, 0.16, 5.8], [-9, 0.16, 5.5], [10.5, 0.16, 5.9], [16, 0.16, -5.6], [-17, 0.16, -5.5]];
+  for (const [x, y] of [[-9.6, 13.2], [4.9, 14.6], [12.2, 12.4], [-17, 15.2]] as [number, number][]) smoke(c, x, y, -11.2, { size: 0.7, rise: 4.5, drift: 1.4 });
+  [["ALES", -3.4], ["BREAD", 3.6], ["BOOTS", 10.8]].forEach(([t, x], i) => hangSign(c, t as string, (x as number) - 0.7, 4.6, -7.4, 0, { bg: ["#7a2a2a", "#1f4d3a", "#1f2b4d"][i] }));
+  if (old) { bunting(c, [-9, 7.2, -7.6], [9, 6.4, 7.0], 16); bunting(c, [12, 7.0, -7.6], [-2, 6.8, 7.0], 14); }
+  const crowdSpots: V3[] = [[-6, 0.16, -5.6], [7.5, 0.16, -5.5], [-11, 0.16, -5.9], [12.6, 0.16, -5.7], [16, 0.16, -5.6], [-17, 0.16, -5.5], [-2.6, 0.16, -5.5], [3.4, 0.16, -5.7], [-8.6, 0.16, -5.4], [9.8, 0.16, -5.4]]; // far pavement only: an extra on the camera side stands in front of the lens
   return { marks, wide: { pos: [4.2, 2.1, 12.5], look: [0, 3.2, -6], fov: 44 }, radius: 46, interior: false, crowdSpots };
 }
 
@@ -231,10 +331,11 @@ function alley(o: SetOpts, c: Ctx): SetCore {
   c.g.add(at(doorOn("#5a3a26"), -2.98, 0, -3.2, Math.PI / 2)); litWindow(c, 1.1, 1.0, -2.98, 2.0, -5.4, Math.PI / 2); litWindow(c, 0.9, 1.1, -2.98, 5.2, -1.2, Math.PI / 2);
   litWindow(c, 0.9, 1.1, 2.98, 4.6, -7.5, -Math.PI / 2, "#ffc27a"); litWindow(c, 1.2, 1.3, 0.9, 5.4, -14.98, 0, "#ffd9a0");
   c.g.add(at(doorOn("#3f2c20", 1.3, 2.3), -1.1, 0, -14.98));
-  const title = o.title ?? o.signs?.[0] ?? (old ? "THE DOG & DUCK" : "BAR"); const hang = signBoard(title, { w: 1.7, h: 0.6, bg: "#2b2230", fg: "#f1c94a" }); c.g.add(at(hang, -2.3, 3.3, -2.2, Math.PI / 2));
-  c.g.add(box(0.06, 0.06, 1.2, lam({ color: "#2b2f3a" }), -2.6, 3.7, -2.2, false));
-  const ln = lantern(); c.g.add(at(ln, -2.55, 2.75, -4.3)); c.glows.push({ m: (ln.children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial, day: 0.5, night: 1.6 }); lampAt(c, -2.0, 2.7, -4.0, 3.0, "#ffcf8a", 8);
-  const ln2 = lantern(); c.g.add(at(ln2, 2.55, 3.0, -9.5)); c.glows.push({ m: (ln2.children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial, day: 0.5, night: 1.6 }); lampAt(c, 2.0, 2.9, -9.3, 2.2, "#ffcf8a", 7);
+  const title = o.title ?? o.signs?.[0] ?? (old ? "THE DOG & DUCK" : "BAR"); hangSign(c, title, -3.0, 3.9, -2.2, 0, { w: 1.5 });
+  smoke(c, 1.4, 9.2, -16.5, { size: 0.8, rise: 4, drift: 1.2 }); smoke(c, -2.4, 0.3, -12.5, { size: 0.3, rise: 1.6, drift: 0.2, n: 4, color: "#cfd6e6" });
+  c.g.add(at(poster("REWARD|FOR|CLIPPERS", 0.8, 1.0), 3.0, 1.9, -3.4, -Math.PI / 2), at(poster("NO|LOITERING", 0.7, 0.7), -3.0, 1.9, 0.6, Math.PI / 2), at(wallShelf(1.4, seed + "ws"), 3.0, 1.5, -10.6, -Math.PI / 2));
+  const ln = lantern(); c.g.add(at(ln, -2.55, 2.75, -4.3)); { const gl = { m: (ln.children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial, day: 0.5, night: 1.6, k: 1 }; c.glows.push(gl); flickerGlow(c, gl, 3); } lampAt(c, -2.0, 2.7, -4.0, 3.0, "#ffcf8a", 8);
+  const ln2 = lantern(); c.g.add(at(ln2, 2.55, 3.0, -9.5)); { const gl = { m: (ln2.children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial, day: 0.5, night: 1.6, k: 1 }; c.glows.push(gl); flickerGlow(c, gl, 7); } lampAt(c, 2.0, 2.9, -9.3, 2.2, "#ffcf8a", 7);
   for (const [x, z, k] of [[2.4, -1.6, "b"], [2.5, -2.5, "c"], [2.2, -3.3, "c2"], [-2.5, -8.5, "b"], [2.4, -12.4, "c"], [-2.4, 1.8, "b"], [-2.3, -11.2, "s"]] as [number, number, string][]) {
     const it = k === "b" ? barrel() : k === "s" ? PROPS.sack() : crate(k === "c2" ? 0.46 : 0.66, { seed: seed + x + z }); c.g.add(at(it, x, k === "c2" ? 0.66 : 0, z, r() * 0.6)); }
   c.g.add(cyl(0.07, 0.07, 9, lam({ color: "#3b3f4c" }), 2.9, 4.5, 0.8, 8), box(1.6, 0.05, 0.9, lam({ color: "#6b4a30" }), 2.5, 2.6, -6.2), box(2.2, 0.06, 0.06, lam({ color: "#2b2f3a" }), 0, 6.4, -6));
@@ -318,10 +419,22 @@ function shop(o: SetOpts, c: Ctx): SetCore {
   c.g.add(box(cw, 0.96, 0.8, wood, cx, 0.48, cz), box(cw + 0.2, 0.08, 0.96, lam({ color: old ? "#4a2f1c" : "#e9e2d2" }), cx, 1.0, cz));
   for (let i = 0; i < 4; i++) c.g.add(box(cw / 4 - 0.16, 0.6, 0.03, lam({ color: old ? "#8a5a34" : "#9a7a5a" }), cx - cw / 2 + (i + 0.5) * (cw / 4), 0.48, cz + 0.41, false));
   c.g.add(at(old ? PROPS.scales() : box(0.5, 0.32, 0.4, lam({ color: "#39404e" }), 0, 0.16, 0), cx + 1.25, 1.04, cz));
-  const title = signBoard(o.title ?? (old ? "GOLDSMITH" : "SHOP"), { w: 4.2, h: 0.72, bg: old ? "#2b2230" : "#1f2b4d", fg: "#f1c94a" }); c.g.add(at(title, 0, H - 0.95, -D / 2 + 0.1));
+  const title = signBoard(o.title ?? (old ? "GOLDSMITH" : "SHOP"), { w: 4.2, h: 0.72, bg: old ? "#2b2230" : "#1f2b4d", fg: "#f1c94a" }); c.g.add(at(title, 0, H - 0.62, -D / 2 + 0.1));
   const hl = hangingLamp(1.3, !old); c.g.add(at(hl.group, 0.3, H, 0.2)); c.glows.push({ m: hl.bulb, day: 0.6, night: 1.8 }); lampAt(c, 0.3, H - 1.5, 0.4, 3.2, "#ffdcae", 10);
   c.g.add(at(rug(3.0, 2.0), 0.2, 0, 1.5), at(barrel(), -3.1, 0, 0.2), at(PROPS.sack(), -2.9, 0, 0.9), at(crate(0.7, { seed }), 3.0, 0, 1.8, 0.3), at(PROPS.plant(), 3.1, 0, 3.0));
   const marks: Record<string, V3> = { keeper: [cx + 0.55, 0, cz - 0.9], customer: [-0.8, 0, 0.6], customer2: [1.5, 0, 1.0], door: [-W / 2 + 1.0, 0, 1.6], shelf: [2.4, 0, -D / 2 + 1.1], counterTop: [cx - 0.7, 1.04, cz + 0.05], counterTop2: [cx + 0.2, 1.04, cz + 0.1], center: [0.2, 0, 0.8] };
+  // 1.8 dressing + life: the walls above head height carry the detail, the floor edges the clutter, the middle stays clear
+  const trimC = old ? "#6b4a30" : "#b8a88e";
+  hangingRow(c, 2.4, old ? "sausages" : "pots", cx, 3.72, cz - 0.15); // below the title board, above every head
+  curtains(c, 1.6, 1.6, 0, 2.3, -D / 2 + 0.05, old ? "#a8423a" : "#3d6b8a");
+  c.g.add(at(wallShelf(2.0, seed + "w1"), -W / 2 + 0.02, 3.5, -1.4, Math.PI / 2), at(wallShelf(1.6, seed + "w2"), -W / 2 + 0.02, 4.2, -1.4, Math.PI / 2),
+    at(poster(old ? "FRESH|BREAD|1d" : "SALE|TODAY", 0.8, 1.0), W / 2 - 0.02, 4.15, -0.6, -Math.PI / 2), at(picture(0.9, 0.7, "#5b8fd6"), -W / 2 + 0.02, 2.7, 3.0, Math.PI / 2),
+    at(poster("OPEN", 0.7, 0.4, "#2f8f6a", "#f4efe6"), W / 2 - 0.02, 2.3, 2.7, -Math.PI / 2), at(pilaster(H, trimC), -1.17, 0, -D / 2 + 0.02), at(pilaster(H, trimC), 1.17, 0, -D / 2 + 0.02),
+    at(shadowed(stool()), 2.3, 0, -0.1), at(crate(0.5, { seed: seed + "c2" }), 3.05, 0.7, 1.85, 0.6), at(PROPS.sack(), -3.3, 0, 2.2, 0.4));
+  for (let i = 0; i < 3; i++) c.g.add(cyl(0.07, 0.07, 0.2 - i * 0.03, lam({ color: ["#d8a53a", "#c0392b", "#6aa84f"][i] }), cx - 1.55 + i * 0.17, 1.14 - i * 0.015, cz - 0.2, 10));
+  c.g.add(cyl(0.06, 0.09, 0.07, lam({ color: "#d8b04a" }), cx + 0.78, 1.075, cz + 0.22, 10));
+  const broom = new THREE.Group(); broom.add(box(0.04, 1.5, 0.04, lam({ color: "#b98a52" }), 0, 0.75, 0, false), box(0.3, 0.22, 0.08, lam({ color: "#d8b04a" }), 0, 0.11, 0, false)); broom.rotation.z = 0.16; c.g.add(at(broom, -3.55, 0, -2.3));
+  sway(c, hl.group, "z", 0.03, 1.1, 1);
   return { marks, wide: { pos: [0.3, 1.8, 8.6], look: [0.1, 2.3, -2], fov: 46 }, radius: 14, interior: true, crowdSpots: [[-2.4, 0, 2.2], [2.6, 0, 0.4]] as V3[], ...rm };
 }
 
@@ -345,13 +458,23 @@ function workshop(o: SetOpts, c: Ctx): SetCore {
     const hl = hangingLamp(1.2, true); c.g.add(at(hl.group, 1.2, H, -0.3)); c.glows.push({ m: hl.bulb, day: 0.8, night: 1.8 }); lampAt(c, 1.2, H - 1.5, -0.1, 3.4, "#f4f0e6", 11);
   } else {
     const fx = 2.7, fz = -D / 2 + 0.9; c.g.add(box(1.9, 1.2, 1.4, lam({ map: brickTexture("#7a4a3a", "#b8a590", [2, 1]) }), fx, 0.6, fz), box(1.3, 3.9, 1.0, lam({ map: brickTexture("#6f4436", "#b8a590", [1, 4]) }), fx, 3.15, fz - 0.2));
-    const fire = new THREE.MeshLambertMaterial({ color: "#ff8a3a", emissive: new THREE.Color("#ff6a1a"), emissiveIntensity: 1.6 }); c.g.add(box(1.15, 0.3, 0.9, fire, fx, 1.3, fz + 0.1, false)); c.glows.push({ m: fire, day: 1.2, night: 2.2 });
+    const fire = new THREE.MeshLambertMaterial({ color: "#ff8a3a", emissive: new THREE.Color("#ff6a1a"), emissiveIntensity: 1.6 }); c.g.add(box(1.15, 0.3, 0.9, fire, fx, 1.3, fz + 0.1, false)); { const gl = { m: fire, day: 1.2, night: 2.2, k: 1 }; c.glows.push(gl); flickerGlow(c, gl, 11); }
+    smoke(c, fx, 1.6, fz + 0.25, { size: 0.32, rise: 2.4, drift: 0.05, n: 5, color: "#bfb6c6" }); sparks(c, fx, 1.45, fz + 0.3);
+    for (let i = 0; i < 4; i++) { const lg = cyl(0.11, 0.11, 0.7, lam({ map: paint.planks("#6b4a30", [1, 1], true) }), fx + 1.0, 0.11 + (i > 1 ? 0.2 : 0), fz + 0.9 + (i % 2) * 0.24 + (i > 1 ? 0.12 : 0), 8); lg.rotation.z = Math.PI / 2; c.g.add(lg); }
     const fl = lampAt(c, fx - 0.2, 1.7, fz + 0.9, 2.6, "#ff9a4a", 7); c.upd.push((f, fps) => { fl.userData.flick = 0.85 + 0.15 * Math.sin((f / fps) * 9.1) * Math.sin((f / fps) * 5.3 + 1.2); });
     c.g.add(cyl(0.3, 0.34, 0.6, lam({ map: paint.planks("#6b4a30", [2, 1], true) }), 1.2, 0.3, -0.9)); const anvil = new THREE.Group(); anvil.add(box(0.7, 0.14, 0.26, tool, 0, 0.3, 0), box(0.3, 0.2, 0.2, tool, 0, 0.14, 0), box(0.5, 0.08, 0.3, tool, 0, 0.04, 0)); const horn = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.34, 8), tool); horn.rotation.z = -Math.PI / 2; horn.position.set(0.5, 0.3, 0); anvil.add(horn); c.g.add(at(shadowed(anvil), 1.2, 0.6, -0.9));
     c.g.add(at(barrel(), 3.3, 0, 0.8), at(crate(0.7, { seed }), -3.3, 0, -0.6), at(PROPS.sack(), 3.2, 0, 2.6));
     const hl = hangingLamp(1.4); c.g.add(at(hl.group, -0.8, H, -0.4)); c.glows.push({ m: hl.bulb, day: 0.6, night: 1.8 }); lampAt(c, -0.8, H - 1.6, -0.2, 2.8, "#ffd9a0", 9);
     Object.assign(marks, { anvil: [0.3, 0, -0.4] as V3, anvilTop: [1.2, 0.98, -0.9] as V3, forge: [2.0, 0, -1.6] as V3 });
   }
+  // 1.8 dressing + life
+  c.g.add(at(wallShelf(1.8, seed + "w1"), W / 2 - 0.02, 2.3, 1.0, -Math.PI / 2), at(wallShelf(1.5, seed + "w2"), W / 2 - 0.02, 3.1, 1.0, -Math.PI / 2), at(cabinet(1.3, 1.1, 0.5), -W / 2 + 0.3, 0, 0.1, Math.PI / 2),
+    at(poster(old ? "KING'S|WEIGHTS" : "SAFETY|FIRST", 0.8, 1.0), -W / 2 + 0.02, 2.7, -1.5, Math.PI / 2), at(picture(0.7, 0.9, "#2f8f6a", "#6b4a30"), -W / 2 + 0.02, 3.2, 2.6, Math.PI / 2),
+    at(pilaster(H, old ? "#4a3626" : "#8a8f9a"), -0.55, 0, -D / 2 + 0.02), cyl(0.2, 0.16, 0.34, lam({ color: "#6f7888" }), bx + 1.95, 0.17, bz + 1.0, 12));
+  hangingRow(c, 2.0, "tools", old ? -0.2 : -0.4, H - 1.25, -D / 2 + 0.7);
+  const coil = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.06, 8, 18), lam({ color: "#c9a46a" })); c.g.add(at(coil, W / 2 - 0.08, 1.7, -1.7, -Math.PI / 2));
+  const chain = new THREE.Group(); for (let i = 0; i < 9; i++) { const ln = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.014, 5, 8), lam({ color: "#3b3f4c" })); ln.position.y = -i * 0.085; ln.rotation.y = i % 2 ? Math.PI / 2 : 0; chain.add(ln); }
+  chain.add(box(0.1, 0.16, 0.04, lam({ color: "#3b3f4c" }), 0, -0.86, 0, false)); c.g.add(at(chain, old ? 0.6 : 3.0, H - 0.2, 1.6)); sway(c, chain, "z", 0.06, 1.3, 2);
   return { marks, wide: { pos: [0.3, 1.8, 8.8], look: [0.1, 2.2, -2], fov: 46 }, radius: 15, interior: true, crowdSpots: [[2.6, 0, 2.2], [-2.8, 0, 2.8]] as V3[], ...rm };
 }
 
@@ -373,6 +496,19 @@ function office(o: SetOpts, c: Ctx): SetCore {
   c.g.add(at(doorOn(old ? "#5a3a26" : "#f4efe6"), W / 2 - 0.02, 0, 1.6, -Math.PI / 2), at(rug(3.6, 2.4, old ? "#7a2f3a" : "#3b5a8a"), 0.3, 0, 1.0), at(PROPS.plant(), 3.2, 0, 3.0), at(shadowed(chair(old ? "#5a2f2a" : "#6f7888")), -1.6, 0, 0.7, 2.6));
   const hl = hangingLamp(1.3, !old); c.g.add(at(hl.group, 0.3, H, 0.2)); c.glows.push({ m: hl.bulb, day: 0.6, night: 1.8 }); lampAt(c, 0.3, H - 1.5, 0.4, 3.0, old ? "#ffd9a0" : "#fff3dc", 10);
   const marks: Record<string, V3> = { desk: [dx + 0.05, 0, dz - 0.75], deskTop: [dx - 0.1, 0.85, dz + 0.1], deskTop2: [dx + 0.6, 0.85, dz + 0.2], guest: [-0.8, 0, 0.9], guest2: [1.7, 0, 1.1], window: [-1.3, 0, -D / 2 + 1.0], door: [W / 2 - 1.0, 0, 1.6], books: [-W / 2 + 1.1, 0, -0.9], center: [0.3, 0, 0.8] };
+  // 1.8 dressing + life
+  const cur = old ? "#7a2f3a" : "#3b5a8a";
+  curtains(c, 2.2, 2.3, -1.3, 2.7, -D / 2 + 0.05, cur); curtains(c, 1.2, 2.3, 1.3, 2.7, -D / 2 + 0.05, cur);
+  c.g.add(at(cabinet(1.2, 1.3, 0.5, old ? "#6b3f26" : "#b9905e"), -W / 2 + 0.3, 0, 2.4, Math.PI / 2), at(poster(old ? "MAP OF|LONDON" : "PLAN|2026", 1.1, 0.9, "#e9dcc6"), W / 2 - 0.02, 2.5, 3.0, -Math.PI / 2),
+    at(picture(0.8, 1.0, "#7a4a8a"), -W / 2 + 0.02, 4.4, 1.4, Math.PI / 2), at(wallShelf(1.6, seed + "w"), W / 2 - 0.02, 4.25, -1.2, -Math.PI / 2), at(PROPS.chest(), -W / 2 + 0.75, 0, 3.6, Math.PI / 2),
+    at(pilaster(H, old ? "#4a3626" : "#f4efe6"), 0.2, 0, -D / 2 + 0.02), at(PROPS.candle(), -W / 2 + 0.3, 1.36, 2.2));
+  for (let i = 0; i < 4; i++) c.g.add(at(PROPS.book({ color: ["#8a2f2a", "#2f6fb0", "#2f8f6a", "#c9a23a"][i] }), 2.2 + (i % 2) * 0.03, i * 0.075, -2.6, i * 0.25));
+  sconce(c, -W / 2 + 0.04, 3.0, 0.4, Math.PI / 2); sconce(c, W / 2 - 0.04, 3.0, 0.3, -Math.PI / 2);
+  const rack = new THREE.Group(); rack.add(cyl(0.03, 0.03, 1.8, lam({ color: "#4a2f1c" }), 0, 0.9, 0, 8), cyl(0.22, 0.26, 0.05, lam({ color: "#4a2f1c" }), 0, 0.025, 0, 12));
+  for (let i = 0; i < 3; i++) { const pg = box(0.24, 0.03, 0.03, lam({ color: "#4a2f1c" }), 0.1, 1.7, 0, false); const pv = new THREE.Group(); pv.rotation.y = (i / 3) * Math.PI * 2; pv.add(pg); rack.add(pv); }
+  rack.add(box(0.34, 0.7, 0.1, lam({ color: old ? "#3a2f36" : "#6f7888" }), 0.2, 1.3, 0, false)); c.g.add(at(shadowed(rack), W / 2 - 0.55, 0, 3.3));
+  const pend = new THREE.Group(); pend.position.set(W / 2 - 0.2, 3.02, -1.2); pend.add(box(0.015, 0.5, 0.015, lam({ color: "#c9a23a" }), 0, -0.25, 0, false), cyl(0.07, 0.07, 0.02, lam({ color: "#c9a23a" }), 0, -0.52, 0, 12).rotateZ(Math.PI / 2)); c.g.add(pend); sway(c, pend, "x", 0.28, 3.1, 0);
+  sway(c, hl.group, "z", 0.03, 1.0, 2);
   return { marks, wide: { pos: [0.3, 1.8, 8.6], look: [0.2, 2.3, -2], fov: 46 }, radius: 14, interior: true, crowdSpots: [[2.7, 0, 2.4]] as V3[], ...rm };
 }
 
@@ -394,6 +530,12 @@ function hall(o: SetOpts, c: Ctx): SetCore {
   for (const [x, z] of [[-2.4, -1], [2.4, -1], [0, 3.4]] as [number, number][]) { const hl = hangingLamp(2.4, !old); c.g.add(at(hl.group, x, H, z)); c.glows.push({ m: hl.bulb, day: 0.6, night: 1.8 }); }
   lampAt(c, 0, H - 3.4, 0.5, 3.4, "#ffe2b8", 16);
   const crowdSpots: V3[] = []; for (let i = 0; i < 12; i++) crowdSpots.push([-3.4 + (i % 6) * 1.35 + ((i * 7) % 3) * 0.2, 0, 2.6 + Math.floor(i / 6) * 1.4 + ((i * 5) % 3) * 0.25]);
+  // 1.8 dressing + life
+  bunting(c, [-4.7, H - 0.75, -1.4], [4.7, H - 0.75, -1.4], 14); bunting(c, [-4.7, H - 0.9, 2.8], [4.7, H - 0.9, 2.8], 14); // above the title board
+  chandelier(c, 0, H, -1.6, 2.8); chandelier(c, -2.7, H, 3.0, 2.3); chandelier(c, 2.7, H, 3.0, 2.3);
+  for (const sx of [-1, 1]) { for (const z of [-1.8, 2.6]) sconce(c, sx * (W / 2 - 0.04), 3.0, z, sx > 0 ? -Math.PI / 2 : Math.PI / 2);
+    c.g.add(at(poster(old ? "WEIGHTS|AND|MEASURES" : "NOTICE", 1.0, 1.2), sx * 5.5, 2.2, -D / 2 + 0.04), at(bench(), sx * 5.7, 0, 0.6, sx > 0 ? -Math.PI / 2 : Math.PI / 2), at(PROPS.sack(), sx * 5.6, 0, -4.6, sx),
+      at(crate(0.7, { seed: seed + "h" + sx }), sx * 5.4, 0, -5.6, 0.2), at(pilaster(H, old ? "#5a4636" : "#9aa2b4", 0.3), sx * 1.8, 0, -D / 2 + 0.02)); }
   return { marks, wide: { pos: [0.8, 2.2, 13.2], look: [0, 3.6, -5], fov: 48 }, radius: 24, interior: true, crowdSpots, ...rm };
 }
 
@@ -403,7 +545,7 @@ export const SET_NAMES = Object.keys(BUILDERS) as SetName[];
 /** Build a set at `origin` (marks, crowd spots and the wide camera come back in WORLD space). */
 export function buildSet(name: SetName, o: SetOpts = {}, origin: V3 = [0, 0, 0]): SetInstance {
   const b = BUILDERS[name]; if (!b) throw new Error(`buildSet: unknown set "${name}" (have: ${SET_NAMES.join(", ")})`);
-  const c: Ctx = { g: new THREE.Group(), lamps: [], glows: [], panes: [], upd: [] };
+  const c: Ctx = { wind: windUniforms(), g: new THREE.Group(), lamps: [], glows: [], panes: [], upd: [] };
   const s = b(o, c);
   c.g.position.set(...origin);
   const off = (p: V3): V3 => [p[0] + origin[0], p[1] + origin[1], p[2] + origin[2]];
@@ -414,10 +556,10 @@ export function buildSet(name: SetName, o: SetOpts = {}, origin: V3 = [0, 0, 0])
     camBox: { min: off(s.camBox?.min ?? [-60, 0.3, -30]), max: off(s.camBox?.max ?? [60, 40, 40]) },
     setNight(n) { night = n; const k = s.interior ? 0.35 + 0.65 * n : n; // interiors keep their lamps on by day, dimmer
       for (const { l, i } of c.lamps) l.intensity = i * k * (l.userData.flick ?? 1);
-      for (const gl of c.glows) { const v = gl.day + (gl.night - gl.day) * n; const m = gl.m as THREE.MeshLambertMaterial;
+      for (const gl of c.glows) { const v = (gl.day + (gl.night - gl.day) * n) * (gl.k ?? 1); const m = gl.m as THREE.MeshLambertMaterial;
         if ((m as THREE.MeshLambertMaterial).isMeshLambertMaterial) m.emissiveIntensity = v; else if (gl.col) (gl.m as THREE.MeshBasicMaterial).color.set("#3d4660").lerp(gl.col, v); } },
     setSky(top, horizon) { const t = new THREE.Color(top), h = new THREE.Color(horizon); for (const p of c.panes) p.color.copy(h).lerp(t, 0.35); },
-    update(f, fps) { for (const u of c.upd) u(f, fps); if (c.upd.length) inst.setNight(night); },
+    update(f, fps) { c.wind.uWindTime.value = f / fps; for (const u of c.upd) u(f, fps); if (c.upd.length) inst.setNight(night); },
   };
   inst.setNight(0);
   return inst;

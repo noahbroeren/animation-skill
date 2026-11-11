@@ -190,7 +190,7 @@ export type KPose = Omit<Pose, "expr" | "view"> & {
   expr?: KExpr; cue?: Cue; gait?: number; jiggle?: number; tail?: number; headDip?: number;
   limbs?: { handL?: V2; handR?: V2; footL?: V2; footR?: V2 }; prev?: KPose;
   /** stick extras: held prop, hat lifted off the head (head units) and tilted (deg; hat tip / doff). */
-  hold?: StickHold; hatLift?: number; hatTilt?: number;
+  hold?: StickHold; hold2?: StickHold; hatLift?: number; hatTilt?: number;
   /** bobble extras: head turn -1 (toward -x) .. 1 (toward +x) in the front view; hand shapes (default fist). */
   turn?: number; hands?: { L?: HandShape; R?: HandShape };
   /** head tilt in degrees around the neck (+ = toward +x / the facing side). Unset: a small tilt that fits the expression. */
@@ -541,7 +541,9 @@ export type StickSpec = KBase & {
 };
 /** Held props for stick figures: drawn along the forearm of the holding hand (angle = extra rotation in deg). */
 export type HandShape = "fist" | "point" | "open";
-export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper"; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
+/** 1.8: `shears` (`open` 0..1), `coin` (`len` = radius in head units, `cut` = a shaved flat), `file`, `hammer`, `sack`, `quill`: tools belong IN the hand.
+ *  A prop floating next to an empty hand reads as clip art (reviewer, coin short). A second prop goes in `KPose.hold2`. */
+export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper" | "shears" | "coin" | "file" | "hammer" | "sack" | "quill" | "bar"; open?: number; cut?: boolean; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
 export type ChibiSpec = KBase & {
   kind: "chibi"; skin: string;
   hair?: { color: string; style: "short" | "bob" | "spiky" | "long" | "bun" | "curly" | "bald" | "side" };
@@ -1274,6 +1276,31 @@ function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: numb
     if (h.item === "phone") { part(c, rrect(-d * 0.085, -d * 0.3, d * 0.17, d * 0.32, d * 0.035), h.color ?? "#23262e", { off: 0 }); g.fillStyle = "#9fd8ff"; g.fill(rrect(-d * 0.06, -d * 0.27, d * 0.12, d * 0.22, d * 0.015)); }
     else if (h.item === "cup") { part(c, poly([[-d * 0.1, -d * 0.24], [d * 0.1, -d * 0.24], [d * 0.075, 0], [-d * 0.075, 0]]), h.color ?? "#f4efe6", { off: d * 0.02 }); part(c, rrect(-d * 0.115, -d * 0.28, d * 0.23, d * 0.06, d * 0.02), "#7a4a2a", { off: 0 }); }
     else { part(c, rrect(-d * 0.16, -d * 0.42, d * 0.32, d * 0.42, d * 0.02), h.color ?? "#fbfaf6", { off: d * 0.02 }); g.strokeStyle = "rgba(40,30,50,0.55)"; g.lineWidth = c.lw * 0.6; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(-d * 0.11, -d * (0.34 - i * 0.075)); g.lineTo(d * (i === 3 ? 0.02 : 0.11), -d * (0.34 - i * 0.075)); g.stroke(); } }
+  } else if (h.item === "coin") {
+    g.rotate(-ang); const r = (h.len ?? 0.3) * d, cx = d * 0.05, cy = -r * 0.75; // held between finger and thumb, above the fist
+    const pth = new Path2D(); const N = 28; for (let i = 0; i <= N; i++) { const a2 = (i / N) * Math.PI * 2; let x = Math.cos(a2) * r, y = Math.sin(a2) * r; if (h.cut) { const dd = x * 0.8 - y * 0.6 - r * 0.72; if (dd > 0) { x -= 0.8 * dd; y += 0.6 * dd; } } if (i) pth.lineTo(cx + x, cy + y); else pth.moveTo(cx + x, cy + y); }
+    pth.closePath(); part(c, pth, h.color ?? "#dfe3ec", { off: d * 0.02, thick: true });
+    g.strokeStyle = "#9aa2b4"; g.lineWidth = c.lw * 0.9; g.beginPath(); g.arc(cx, cy, r * 0.72, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = "#b4bccb"; g.beginPath(); g.arc(cx + r * 0.05, cy - r * 0.12, r * 0.26, 0, Math.PI * 2); g.fill(); g.beginPath(); g.ellipse(cx, cy + r * 0.46, r * 0.4, r * 0.24, 0, Math.PI, 0); g.fill();
+  } else if (h.item === "shears") {
+    const o = 0.1 + 0.5 * (h.open ?? 0.6), Lb = (h.len ?? 0.95) * d;
+    for (const sgn of [1, -1]) { g.save(); g.rotate(sgn * o * 0.5);
+      part(c, poly([[d * 0.02, -w * 0.16], [Lb, -w * 0.04], [Lb, w * 0.1], [d * 0.02, w * 0.16]]), "#c3cbd8", { off: 0 });
+      g.strokeStyle = c.ink; g.lineWidth = c.lw * 1.6; g.beginPath(); g.ellipse(-d * 0.14, sgn * d * 0.1, d * 0.12, d * 0.09, 0, 0, Math.PI * 2); g.stroke(); g.restore(); }
+    part(c, ell(d * 0.03, 0, w * 0.2, w * 0.2), "#5c6678", { off: 0 });
+  } else if (h.item === "file" || h.item === "quill") {
+    const Lf = (h.len ?? 0.9) * d;
+    if (h.item === "file") { part(c, rrect(-d * 0.1, -w * 0.3, d * 0.3, w * 0.6, w * 0.2), wood, { off: 0 }); part(c, rrect(d * 0.2, -w * 0.2, Lf, w * 0.4, w * 0.08), "#8d96a6", { off: 0 }); }
+    else { part(c, poly([[-d * 0.05, 0], [Lf, -w * 0.5], [Lf * 0.92, w * 0.15]]), h.color ?? "#f8f4ea", { off: 0 }); }
+  } else if (h.item === "hammer") {
+    const Lh = (h.len ?? 1.0) * d; part(c, rrect(-Lh * 0.18, -w * 0.3, Lh, w * 0.6, w * 0.25), wood, { off: 0 });
+    part(c, rrect(Lh * 0.66, -d * 0.24, d * 0.3, d * 0.48, d * 0.05), "#7d8696", { off: d * 0.04, thick: true });
+  } else if (h.item === "bar") {
+    g.rotate(-ang); part(c, poly([[-d * 0.34, d * 0.02], [d * 0.34, d * 0.02], [d * 0.26, -d * 0.2], [-d * 0.26, -d * 0.2]]), h.color ?? "#e4e8f0", { off: d * 0.03, thick: true });
+    g.strokeStyle = "#ffffff"; g.lineWidth = c.lw * 1.4; g.beginPath(); g.moveTo(-d * 0.18, -d * 0.14); g.lineTo(d * 0.1, -d * 0.14); g.stroke();
+  } else if (h.item === "sack") {
+    g.rotate(-ang); const pth = new Path2D(); pth.moveTo(-d * 0.28, d * 0.55); pth.quadraticCurveTo(-d * 0.42, d * 0.1, -d * 0.1, -d * 0.02); pth.lineTo(d * 0.1, -d * 0.02); pth.quadraticCurveTo(d * 0.42, d * 0.1, d * 0.28, d * 0.55); pth.closePath();
+    part(c, pth, h.color ?? "#c9b48a", { off: d * 0.04, thick: true }); part(c, rrect(-d * 0.12, -d * 0.08, d * 0.24, d * 0.08, d * 0.03), "#6b3f26", { off: 0 });
   } else if (h.item === "bag") {
     part(c, rrect(-d * 0.35, d * 0.05, d * 0.7, d * 0.55, d * 0.1), h.color ?? "#7a4a2a", { off: d * 0.05 });
   } else if (h.item === "hat" && h.hat) {
@@ -1647,6 +1674,8 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
     part(c, ell(A.e[0], A.e[1], d * 0.085, d * 0.085), hcol2, { off: d * 0.015, sh: skinSh });
   };
   const holdArm = p.hold ? (p.hold.hand === "L" ? 0 : 1) : -1;
+  const hold2Arm = p.hold2 ? (p.hold2.hand === "L" ? 0 : 1) : -1;
+  const holdOf = (arm: number) => (holdArm === arm ? p.hold : hold2Arm === arm ? p.hold2 : undefined);
   // head tilt around the neck: the cheapest big acting cue (curious, sad, smug); expressions bring a small default
   const TILT: Partial<Record<KExpr, number>> = { sad: 5, cry: 6, think: -7, smug: -4, laugh: -5, embarrassed: 5, scheming: 4, whistle: -4, disgust: -3, nervous: 2 };
   const tiltDeg = p.headTilt ?? TILT[p.expr ?? "neutral"] ?? 0, neckY = cy + r * 0.86;
@@ -1655,8 +1684,8 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if (hair.back.length) { g.save(); headXf(); if (sv) { g.translate(cx, cy - r * 0.3); g.rotate(rad(sv * 0.9)); g.translate(-cx, -(cy - r * 0.3)); } inkUnion(c, hair.back, shade(hcol, 0.12)); g.restore(); }
   // three-quarter: the far (R) arm hangs behind the body; it comes in front only when its hand lands on the head or the chest
   const farE = R.arms[1].e, farFront = three && (!!R.hatAt || Math.hypot(farE[0] - cx, farE[1] - cy) < r * 1.2 || (Math.abs(farE[0]) < tw * 0.42 && farE[1] > yT && farE[1] < hem));
-  if (side) { drawLeg(R.legs[0]); drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); }
-  else if (three) { if (!farFront) drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined); drawLeg(R.legs[1]); }
+  if (side) { drawLeg(R.legs[0]); drawArm(R.arms[0], holdOf(0)); }
+  else if (three) { if (!farFront) drawArm(R.arms[1], holdOf(1)); drawLeg(R.legs[1]); }
   // ---- legs under the torso
   if (side) drawLeg(R.legs[1]); else if (three) drawLeg(R.legs[0]); else { drawLeg(R.legs[0]); drawLeg(R.legs[1]); }
   // ---- torso
@@ -1737,9 +1766,9 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   g.restore();
   if (s.hat && R.hatAt) bobbleHat(c, s.hat, R.hatAt[0], R.hatAt[1], r, side, p.hatTilt ?? 0, three); // a lifted hat follows the hand, not the head
   // ---- near arms last: they may cross the torso and the head
-  if (side) drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined);
-  else if (three) { if (farFront) drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined); drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); }
-  else { drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined); }
+  if (side) drawArm(R.arms[1], holdOf(1));
+  else if (three) { if (farFront) drawArm(R.arms[1], holdOf(1)); drawArm(R.arms[0], holdOf(0)); }
+  else { drawArm(R.arms[0], holdOf(0)); drawArm(R.arms[1], holdOf(1)); }
 }
 
 /**

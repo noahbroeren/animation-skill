@@ -143,7 +143,7 @@ import { hash32 as _hash } from "../time";
  * (measured: micro-animation 0.010 against 0.020 in the reference; a crowd that pops on the same frame reads as one
  * object). `pool.react([{ f: T.dropped, kind: "gasp", at: [0, 5, 0] }, { f: T.stopped, kind: "cheer" }])`.
  */
-export type CrowdEvent = { f: number; kind: "gasp" | "cheer" | "laugh" | "boo" | "look" | "clap" | "point" | "sad"; at?: [number, number, number]; dur?: number };
+export type CrowdEvent = { f: number; kind: "gasp" | "cheer" | "laugh" | "boo" | "look" | "clap" | "point" | "sad" | "snip"; at?: [number, number, number]; dur?: number };
 const REACT: Record<CrowdEvent["kind"], KPose[]> = {
   gasp: [_BP.shock, { limbs: { handL: [0.4, 1.8], handR: [0.4, 1.8] }, expr: "shock" }, { limbs: { handR: [0.28, 1.72] }, hands: { R: "open" }, expr: "shock", squash: 0.96 }],
   cheer: [_BP.cheer, _BP.wave, { limbs: { handR: [0.7, 2.0] }, hands: { R: "fist" }, expr: "laugh" }],
@@ -151,6 +151,9 @@ const REACT: Record<CrowdEvent["kind"], KPose[]> = {
   boo: [{ expr: "angry", limbs: { handR: [0.9, 1.75] }, hands: { R: "fist" } }, { expr: "disgust", limbs: { handL: [0.5, 1.0], handR: [0.5, 1.0] } }, { expr: "angry", lean: 6 }],
   look: [{ expr: "neutral" }, { expr: "think" }, { expr: "nervous" }],
   clap: [{ expr: "happy", limbs: { handL: [0.16, 1.3], handR: [0.16, 1.3] }, hands: { L: "open", R: "open" } }],
+  // everybody is at it: shears in one hand, a coin in the other (the blades open and close in update())
+  snip: [{ expr: "scheming", limbs: { handR: [0.55, 1.05], handL: [0.3, 1.0] }, hold: { item: "shears", hand: "R", open: 0.7, len: 0.8 }, hold2: { item: "coin", hand: "L", len: 0.2 } },
+    { expr: "smug", limbs: { handR: [0.6, 1.25], handL: [0.35, 1.2] }, hold: { item: "shears", hand: "R", open: 0.7, len: 0.8 }, hold2: { item: "coin", hand: "L", len: 0.2 } }],
   point: [_BP.point, { limbs: { handR: [1.1, 1.3] }, hands: { R: "point" }, expr: "shock" }],
   sad: [{ expr: "sad", lean: 5 }, { expr: "sad", limbs: { handR: [0.25, 1.65] }, hands: { R: "open" } }, { expr: "cry" }],
 };
@@ -215,6 +218,7 @@ export class CrowdPool {
         }
         keys.sort((a, b) => a.f - b.f);
         pose = { ...pose, ..._track(keys, frame, fps) };
+        if (pose.hold?.item === "shears" && this.events.some((e) => e.kind === "snip")) pose.hold = { ...pose.hold, open: Math.sin((frame / fps) * 9 + sd * 1.3) > 0.2 ? 0.75 : 0.05 };
         if (clap) { const o = 0.07 * (0.5 + 0.5 * Math.sin((frame / fps) * 34 + sd)); pose.limbs = { handL: [0.08 + o, 1.3], handR: [0.08 + o, 1.3] }; }
       }
       card.setPose(pose, fr, fps);

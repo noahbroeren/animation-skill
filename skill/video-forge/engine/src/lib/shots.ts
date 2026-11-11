@@ -26,7 +26,7 @@ import { CamKey, frameDistance, V3 } from "./camera";
 
 export type ShotSize = "wide" | "full" | "medium" | "close" | "xclose" | "two" | "group" | "insert" | "low" | "high" | "top" | "pov";
 export type ShotMove = "hold" | "push" | "pull" | "orbit" | "crane" | "track" | "tilt" | "rise";
-export type Subject = { at: V3; h: number };
+export type Subject = { at: V3; h: number; /** world height of the eyes: closer shots put them 38 % from the top of the frame */ eye?: number };
 export type ShotSpec = {
   size: ShotSize;
   on: Subject | Subject[];
@@ -92,6 +92,9 @@ export function frameShot(spec: ShotSpec, aspect: number, box?: { min: V3; max: 
   const side = (spec.side ?? 0) * Math.tan(rad(fov) / 2) * aspect * dist * 0.42;
   let pos: V3 = [cx + dir[0] * horiz - right[0] * side, spec.size === "top" ? base + dist : camY, cz + dir[2] * horiz - right[2] * side];
   const look: V3 = [cx - right[0] * side, spec.size === "low" ? mid + H * 0.12 : spec.size === "top" ? base + H * 0.4 : eyeLine, cz - right[2] * side];
+  // eye line: reviewers measured our eyes at 58 % from the top (40 % of dead headroom) against about 40 % in the reference
+  const eyes = subs.map((s) => s.eye).filter((e): e is number => e !== undefined);
+  if (eyes.length && (spec.size === "medium" || spec.size === "close" || spec.size === "xclose" || spec.size === "two")) look[1] = Math.max(...eyes) - (spec.size === "two" ? 0.07 : 0.12) * 2 * dist * Math.tan(rad(fov) / 2);
   pos = clampBox(pos, box);
   return { pos, look, fov, focus: Math.hypot(pos[0] - look[0], pos[1] - look[1], pos[2] - look[2]) };
 }
@@ -119,7 +122,8 @@ export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: nu
   // SETTLE: a shot that arrives by a cut starts a little wide and off to one side and lands on its framing in 11 frames
   // (fast out, soft landing). Fast-cut shorts get their camera energy here: measured fast-motion frames 20 % with plain
   // holds-and-pushes against 55 % in the reference.
-  const st = o.settle ?? 0.12, settle = via === "cut" && st > 0 && o.f1 - o.f0 > 30 && spec.size !== "pov"; // 0.26 landed like a punch: 0.12 over 16 frames
+  const st = o.settle ?? 0, // off by default since 1.8: with soft cuts and travels a settle only adds a twitch
+    settle = via === "cut" && st > 0 && o.f1 - o.f0 > 30 && spec.size !== "pov"; // 0.26 landed like a punch: 0.12 over 16 frames
   let pre: CamKey | null = null;
   if (settle) { const v: V3 = [a.pos[0] - a.look[0], a.pos[1] - a.look[1], a.pos[2] - a.look[2]], L = Math.hypot(v[0], v[2]) || 1, sg = o.f0 % 2 ? 1 : -1, r: V3 = [(v[2] / L) * sg, 0, (-v[0] / L) * sg], d = Math.hypot(...v) * st * 0.55;
     const p = clampBox([a.look[0] + v[0] * (1 + st) + r[0] * d, a.look[1] + v[1] * (1 + st * 0.6), a.look[2] + v[2] * (1 + st) + r[2] * d], o.box);

@@ -46,6 +46,8 @@ export type Act = {
   /** a BOBBLE_POSES name or a pose object; held until the next beat that sets one */
   pose?: string | KPose;
   expr?: KExpr; turn?: number; view?: "front" | "side" | "three"; facing?: 1 | -1; hold?: StickHold | null;
+  /** a second prop, in the other hand (a coin in the left, shears in the right) */
+  hold2?: StickHold | null;
   /** look toward another actor or a mark (sets the head turn) */
   look?: string;
   /** mouth flaps over the words of this beat */
@@ -61,8 +63,8 @@ export type Gag =
   | { fx: FxKind; on: string; size?: number; color?: string; dy?: number }
   | { stamp: string; side?: "left" | "right"; color?: string; until?: string }
   | { label: string; y?: number; color?: string; until?: string }
-  | { counter: { from?: number; to: number; prefix?: string; suffix?: string; decimals?: number }; y?: number; until?: string }
-  | { big: string; color?: string; until?: string };
+  | { counter: { from?: number; to: number; prefix?: string; suffix?: string; decimals?: number }; y?: number; color?: string; until?: string }
+  | { big: string; color?: string; y?: number; until?: string };
 export type BoardShot = Omit<ShotSpec, "on" | "from"> & {
   /** actor ids, prop ids, marks or coordinates; omitted on a `wide` = the set's establishing camera */
   on?: string | string[] | V3; from?: string;
@@ -87,6 +89,8 @@ export type Beat = {
   sfx?: (string | Omit<SoundCue, "f"> & { df?: number })[];
   /** music arrangement from this beat on */
   music?: "calm" | "build" | "full" | "stop" | "thin";
+  /** rack the focus to this actor / prop / mark from this beat on (until the next shot) */
+  focus?: string;
   kick?: number; punch?: boolean;
   /** rain amount from this beat on (0 = dry) */
   rain?: number;
@@ -153,7 +157,8 @@ export function planBoard(b: Board, fps: number) {
   const shotBeats = beats.filter((x) => x.i === 0 || x.shot || x.newPlace);
   const cuts = shotBeats.filter((x) => x.i > 0 && viaOf(x) === "cut").map((x) => x.f), soft = shotBeats.filter((x) => x.i > 0 && (viaOf(x) === "dissolve" || viaOf(x) === "whip")).map((x) => (viaOf(x) === "whip" ? x.f - 3 : x.f)); // a whip is a planned soft transition (it starts 3 frames before its cue)
   // travel windows (pure: the same arithmetic the camera uses): length follows the shot before, 12-28 frames, 60 % before the cue
-  const glideLen = (k: number) => (k > 0 ? Math.max(12, Math.min(28, Math.round((shotBeats[k].f - shotBeats[k - 1].f) * 0.5))) : 0);
+  // 1.8: 20-40 frames. Reviewers called the 12-28 frame re-framings "teleports between keyframes" (reference glide: 44 f)
+  const glideLen = (k: number) => (k > 0 ? Math.max(20, Math.min(40, Math.round((shotBeats[k].f - shotBeats[k - 1].f) * 0.5))) : 0);
   const travels = shotBeats.map((x, k) => (k > 0 && viaOf(x) === "glide" ? ([x.f + Math.round(glideLen(k) * 0.4) - glideLen(k), x.f + Math.round(glideLen(k) * 0.4)] as [number, number]) : null)).filter((t): t is [number, number] => !!t);
   return { words, beats, T, total, end, viaOf, shotBeats, cuts, soft, F, travels, glideLen };
 }
@@ -192,7 +197,7 @@ const MODERN_SETS = new Set(["road", "office"]);
 /** Rooms measured dark (mean luma 0.29-0.33 against 0.47 in the reference): wood and brick under a toon ramp. A gamma lift keeps the whites. */
 export const INTERIOR_LIFT = { grade: { gamma: 1.22 } };
 /** Depth of field by shot size [maxBlur, aperture]: the closer the shot, the softer the background (measured centre / border sharpness 1.06 without it, 1.95 in the reference). */
-const DOF_BY_SIZE: Record<string, [number, number]> = { xclose: [13, 1.25], close: [11, 1.15], medium: [8, 1.0], insert: [10, 1.1], pov: [8, 1.0], two: [6, 0.85], full: [5, 0.8], low: [5, 0.8], high: [4, 0.75], group: [4, 0.75] }; // wides stay sharp: the set is the picture
+const DOF_BY_SIZE: Record<string, [number, number]> = { xclose: [15, 1.4], close: [14, 1.35], medium: [11, 1.15], insert: [16, 1.5], pov: [9, 1.0], two: [9, 1.05], full: [6, 0.85], low: [6, 0.85], wide: [3, 0.6], high: [4, 0.75], group: [4, 0.75] }; // wides stay sharp: the set is the picture
 const specOf = (s: BobbleSpec | keyof typeof KIND_PRESETS): BobbleSpec => (typeof s === "string" ? (KIND_PRESETS[s] as BobbleSpec) : s);
 const VEH = { car, bus, truck, carriage, bicycle } as Record<string, (o?: Record<string, unknown>) => Vehicle>;
 const TALK: Cue[] = ["D", "C", "B", "E", "C", "F", "B", "D"];
@@ -235,13 +240,14 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
       const dur = walking ? Math.max(6, Math.round((Math.hypot(to[0] - prev![0], to[2] - prev![2]) / (a.speed ?? 1.5)) * fps)) : 0;
       A.segs.push({ f: bt.f, f1: bt.f + dur, from: walking ? prev : null, to, place: bt.placeNow, hide: !!a.hide, seat: a.seat === undefined ? (last?.seat && a.at === undefined && a.walk === undefined ? last.seat : null) : a.seat });
     }
-    if (a.pose !== undefined || a.expr || a.turn !== undefined || a.view || a.facing || a.hold !== undefined) {
+    if (a.pose !== undefined || a.expr || a.turn !== undefined || a.view || a.facing || a.hold !== undefined || a.hold2 !== undefined) {
       const base = typeof a.pose === "string" ? BOBBLE_POSES[a.pose] : a.pose;
       if (typeof a.pose === "string" && !base) throw new Error(`board "${b.id}": unknown pose "${a.pose}" (${Object.keys(BOBBLE_POSES).join(", ")})`);
       const prevPose = A.keys.length ? A.keys[A.keys.length - 1].pose : {};
       const pose: KPose = { ...(a.pose !== undefined ? base : prevPose) };
       if (a.expr) pose.expr = a.expr; if (a.turn !== undefined) pose.turn = a.turn; if (a.view) (pose as { view?: string }).view = a.view; if (a.facing) pose.facing = a.facing;
       if (a.hold !== undefined) pose.hold = a.hold ?? undefined; else if (a.pose !== undefined && prevPose.hold && !pose.hold) pose.hold = prevPose.hold; // a prop stays in the hand until put down
+      if (a.hold2 !== undefined) pose.hold2 = a.hold2 ?? undefined; else if (a.pose !== undefined && prevPose.hold2 && !pose.hold2) pose.hold2 = prevPose.hold2;
       A.keys.push({ f: Math.max(0, bt.f - (a.lead ?? 3)), pose, blend: bt.i === 0 ? 1 : 5 });
     }
     if (a.talk) A.talk.push([bt.f, P.end(bt.i), bt.wi, P.beats[bt.i + 1]?.wi ?? P.words.length]);
@@ -267,7 +273,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   }
   const subjectOf = (name: string | V3, f: number, place: string, h = 1): Subject => {
     if (Array.isArray(name)) return { at: mark(name, place), h };
-    if (cast[name]) { const p = actorPos(name, f) ?? mark("center", place); return { at: p, h: cast[name].h * (cast[name].spec.hat ? 1.12 : 1) }; }
+    if (cast[name]) { const p = actorPos(name, f) ?? mark("center", place); return { at: p, h: cast[name].h * (cast[name].spec.hat ? 1.12 : 1), eye: p[1] + cast[name].h * 0.8 }; }
     const pr = props.find((x) => x.id === name); if (pr) { const hh = h === 1 ? 0.5 : h; return { at: pr.center ? [pr.at[0], pr.at[1] - hh / 2, pr.at[2]] : pr.at, h: hh }; }
     if (vehicles[name]) { placeVehicle(name, f); const p = vehicles[name].v.group.position; return { at: [p.x, p.y, p.z], h: vehicles[name].v.height }; }
     return { at: mark(name, place), h };
@@ -309,7 +315,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     keys.push(...ks);
   });
   const rig = cameraRig(keys, { refFps: 30, handheld: b.rig?.handheld ?? 0.012, handheldSpeed: 0.4, follow: follows,
-    push: { rate: b.rig?.push ?? 0.0016, punches: P.beats.filter((x) => x.punch).map((x) => ({ f: x.f - 2, rate: 0.0065, n: 28 })) },
+    push: { rate: b.rig?.push ?? 0.0024, punches: P.beats.filter((x) => x.punch).map((x) => ({ f: x.f - 2, rate: 0.0065, n: 28 })) },
     kicks: P.beats.filter((x) => x.kick).map((x) => ({ f: x.f, amp: x.kick! })) });
   // crowds, walkers, dust
   const crowds: Record<string, CrowdPool> = {};
@@ -333,7 +339,8 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   for (const bt of P.beats) for (const g of gagsOf(bt)) if ("fx" in g) { const s = subjectOf(g.on, bt.f + 1, bt.placeNow); fx.add(g.fx, { at: [s.at[0], s.at[1] + s.h + (g.dy ?? 0.3), s.at[2] + 0.1], f0: bt.f, size: g.size ?? 0.55, color: g.color ?? "#ffd23f" }); }
   LP.toonify(scene);
   const placeAt = (f: number) => { let p = P.beats[0].placeNow; for (const x of P.beats) if (x.f <= f) p = x.placeNow; else break; return p; };
-  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows };
+  const focusEv = P.beats.filter((x) => x.focus || x.i === 0 || x.shot || x.newPlace).map((x) => ({ f: x.f, name: x.focus ?? null }));
+  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv };
 }
 type BoardWorld = ReturnType<typeof makeWorld>;
 
@@ -367,7 +374,12 @@ function updateWorld(w: BoardWorld, P: BoardPlan, f: number, fps: number): CamSt
         pose.limbs = L as KPose["limbs"]; }
       pose.headTilt = (pose.headTilt ?? 0) + 2.6 * Math.sin(t * 1.3 + ph) + 1.2 * Math.sin(t * 2.9 + ph * 2);
       pose.lean = (pose.lean ?? 0) + 1.4 * Math.sin(t * 1.1 + ph * 0.7);
-      pose.bob = (pose.bob ?? 0) + 0.012 * Math.sin(t * 2.2 + ph * 1.9); }
+      pose.bob = (pose.bob ?? 0) + 0.012 * Math.sin(t * 2.2 + ph * 1.9);
+      // eyes are never parked: a slow drift plus a quick glance every ~3 s; hair, hat and coat hem keep swaying a little
+      if (pose.look === undefined) { const cyc = (t * 0.31 + seed * 0.37) % 1, dart = cyc < 0.07 ? (seed % 2 ? 0.55 : -0.55) : 0; pose.look = [0.22 * Math.sin(t * 0.8 + ph) + dart, 0.1 * Math.sin(t * 0.6 + ph * 1.4)]; }
+      pose.settle = (pose.settle ?? 0) + 1.5 * Math.sin(t * 1.9 + ph) + 0.6 * Math.sin(t * 4.1 + ph * 2.3); }
+    // a small nod on every spoken word: the acting breathes with the narration
+    if (!st.walking) { const t = f / fps; for (const wd of P.words) { if (wd.start > t) break; const dt = t - wd.start; if (dt < 0.2 && wd.word.length > 3) { const pu = Math.sin((dt / 0.2) * Math.PI); pose.bob = (pose.bob ?? 0) - 0.02 * pu; pose.headTilt = (pose.headTilt ?? 0) + 1.6 * pu * (seed % 2 ? 1 : -1); } } }
     pose.blink = blinkAt(f, fps, id, A.keys.map((k) => k.f));
     A.card.blob.visible = !st.seg.seat; // a seated card has no contact shadow on the ground
     A.card.setPose(pose, f, fps); A.card.place(st.pos[0], st.pos[1], st.pos[2], cam.pos);
@@ -382,8 +394,15 @@ function updateWorld(w: BoardWorld, P: BoardPlan, f: number, fps: number): CamSt
   w.R?.update(f, fps, cam.look, ra, w.origin(pid)[1]);
   w.wet.forEach((x, i) => x.update(f, fps, w.wetIds[i] === pid ? ra : 0));
   w.fx.update(f, cam.pos, fps);
-  return cam;
+  // rack focus: `focus` on a beat pulls the focal plane to that subject over 10 frames
+  { type FE = { f: number; name: string | null }; let cur = null as FE | null, prev = null as FE | null; for (const e of w.focusEv) { if (e.f > f) break; prev = cur; cur = e; }
+    const dist = (n: string | null) => { if (!n) return cam.focus; const s = w.subjectOf(n, f, pid); return Math.hypot(cam.pos[0] - s.at[0], cam.pos[1] - (s.at[1] + s.h * 0.7), cam.pos[2] - s.at[2]); };
+    if (cur) { const t = clamp((f - cur.f) / 10), e = t * t * (3 - 2 * t); cam.focus = lerp(prev && cur.name ? dist(prev.name) : dist(cur.name), dist(cur.name), e); } }
+  return driftCam(cam, f, fps);
 }
+
+/** The camera is never perfectly level or still: a slow roll drift on top of the rig (reference: a long roll over a 13 s take). */
+const driftCam = (c: CamState, f: number, fps: number): CamState => ({ ...c, roll: c.roll + 1.1 * Math.sin((f / fps) * 0.42 + 1) + 0.45 * Math.sin((f / fps) * 0.97) });
 
 // ------------------------------------------------------------------------------------------------ 2D overlays from the gags
 const Overlays: React.FC<{ P: BoardPlan }> = ({ P }) => {
@@ -398,9 +417,9 @@ const Overlays: React.FC<{ P: BoardPlan }> = ({ P }) => {
       padding: `${8 * u}px ${26 * u}px`, background: g.color ?? "#f4efe6", border: `${6 * u}px solid #140c10`, borderRadius: 16 * u, fontFamily: FONTS.heavy, fontSize: 70 * u, color: "#140c10" }}>{g.stamp}</div>);
     else if ("label" in g) out.push(<div key={key} style={{ position: "absolute", left: 0, right: 0, top: height * (g.y ?? 0.2), textAlign: "center", opacity: o, transform: `scale(${k})`, fontFamily: FONTS.heavy, fontSize: 78 * u, color: g.color ?? "#ffd23f", ...stroke(4) }}>{g.label}</div>);
     else if ("counter" in g) { const c = g.counter, v = lerp(c.from ?? 0, c.to, ease.outCubic(clamp(t / Math.min(1.1, Math.max(0.3, (f1 - bt.f) / fps * 0.6)))));
-      out.push(<div key={key} style={{ position: "absolute", left: 0, right: 0, top: height * (g.y ?? 0.16), textAlign: "center", opacity: o, transform: `scale(${0.85 + 0.15 * k})`, fontFamily: FONTS.heavy, fontSize: 150 * u, color: "#ffffff", ...stroke(6) }}>
+      out.push(<div key={key} style={{ position: "absolute", left: 0, right: 0, top: height * (g.y ?? 0.16), textAlign: "center", opacity: o, transform: `scale(${0.85 + 0.15 * k})`, fontFamily: FONTS.heavy, fontSize: 150 * u, color: g.color ?? "#ffd23f", ...stroke(7) }}>
         {c.prefix ?? ""}{v.toFixed(c.decimals ?? 0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}{c.suffix ?? ""}</div>); }
-    else if ("big" in g) out.push(<div key={key} style={{ position: "absolute", left: 0, right: 0, top: height * 0.3, textAlign: "center", opacity: o, transform: `rotate(-4deg) scale(${k * (1 + 0.04 * Math.sin(t * 9))})`, fontFamily: FONTS.heavy, fontSize: 170 * u, color: g.color ?? "#ff3b3b", ...stroke(8) }}>{g.big}</div>);
+    else if ("big" in g) out.push(<div key={key} style={{ position: "absolute", left: 0, right: 0, top: height * (g.y ?? 0.3), textAlign: "center", opacity: o, transform: `rotate(-4deg) scale(${k * (1 + 0.04 * Math.sin(t * 9))})`, fontFamily: FONTS.heavy, fontSize: 170 * u, color: g.color ?? "#ff3b3b", ...stroke(8) }}>{g.big}</div>);
   });
   return <AbsoluteFill style={{ pointerEvents: "none" }}>{out}</AbsoluteFill>;
 };
@@ -418,7 +437,8 @@ export function boardProject(b: Board): ProjectDef {
         const d = DOF_BY_SIZE[sz]; if (d) l = { ...l, dof: { ...l.dof, enabled: true, maxBlur: d[0], aperture: d[1] } };
         // camera motion blur smears a subject the camera is following (it is still on screen): keep only a trace of it
         return w.follows!.some((x) => f >= x.f0 && f <= x.f1) ? { ...l, motionBlur: l.motionBlur * 0.15 } : l; }}
-        camAt={(f, fp) => ref.current!.rig.at(f, fp)} dissolveAt={(f, fp) => ref.current!.rig.dissolveAt(f, fp)} cuts={P.cuts}
+        camAt={(f, fp) => driftCam(ref.current!.rig.at(f, fp), f, fp)} cuts={P.cuts}
+        dissolveAt={(f, fp) => { const d = ref.current!.rig.dissolveAt(f, fp); return d ? { a: driftCam(d.a, f, fp), b: driftCam(d.b, f, fp), t: d.t } : null; }}
         audit={(f, w) => { if (f % 6) return null; const a = w.audit.find((x) => f >= x.f0 && f < x.f1); if (!a) return null;
           return a.subs.map((n): ShotSubject | null => { const s = w.subjectOf(n, f, a.place); return w.cast[n] && !w.actorState(n, f) ? null : { name: n, at: [s.at[0], s.at[1] + s.h * 0.72, s.at[2]], r: s.h * 0.3 }; }).filter((x): x is ShotSubject => !!x); }}
         build={(ctx) => { const w = makeWorld(b, P, ctx); ref.current = w; return w; }}
@@ -435,7 +455,7 @@ export function boardProject(b: Board): ProjectDef {
         events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 6, x.f, x.f + 6] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
         sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels,
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
-          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} yAt={(fr) => { y = undefined; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
+          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={110} yAt={(fr) => { y = 0.7; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
       };
       return [scene];
     },
