@@ -120,7 +120,7 @@ const proofCoin = (api: BoardApi) => { const g = new THREE.Group(), r = new THRE
   const sliver = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 0.03), lam({ color: "#ffffff", emissive: new THREE.Color("#ffffff"), emissiveIntensity: 0.4 })); g.add(sliver);
   const arc = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.016, 6, 24, 1.3), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 0.5, 0.4) })); arc.rotation.z = 0.6 - 0.65; arc.position.z = 0.05; r.add(arc);
   return { group: g, update(f: number, fps: number) { const T = api.T, t = f / fps, tb = (f - T.shave) / fps;
-    const show = clamp((f - T.marked) / 14) * (1 - clamp((f - T.shave + 14) / 12)); r.rotation.y = 1.2 * ease.smooth(show) + 0.12 * Math.sin(t * 1.3); // edge-on for "a marked edge", face-on for the bite
+    const show = clamp((f - T.marked + 4) / 16) * (1 - clamp((f - T.shave + 16) / 14)); r.rotation.y = 1.05 * ease.smooth(show) + 0.12 * Math.sin(t * 1.3); // edge-on for "a marked edge", face-on for the bite
     const bitten = tb > 0.34; whole.visible = !bitten; cutC.visible = bitten;
     sh.visible = tb > -0.25 && tb < 1.0; const inn = ease.outCubic(clamp((tb + 0.25) / 0.3)), open = tb < 0.3 ? 0.5 : 0.5 * (1 - clamp((tb - 0.3) / 0.05)); sh.position.set(0.9 - 0.42 * inn, 0.62 - 0.28 * inn, 0.06);
     for (const { b, s } of blades) b.rotation.z = s * open * 0.5;
@@ -242,7 +242,7 @@ const beats: Beat[] = [
     gag: { prop: "press", id: "press", at: [0.7, 0.6, -5.0], in: "none" } },
   { at: "machine", id: "machine", caption: 0.86, shot: { size: "full", on: "press", h: 2.5, angle: 16, move: "orbit", amount: -16 }, sfx: [{ name: "press", lu: -8, df: 6 }, { name: "press", lu: -8, df: 33 }, { name: "press", lu: -9, df: 60 }] },
   { at: "perfectly", id: "round", shot: { size: "insert", on: "proof", h: 0.66, move: "push", amount: 0.18 }, gag: { prop: "proofCoin", id: "proof", origin: "center", at: [0.55, 2.0, -1.6] } }, // (in front of the press, clear of Newton: hiding him on the cue was a one-frame jump)
-  { at: "marked", id: "marked" },
+  { at: "marked", id: "marked", event: [0, 6, 12] },
   { at: "shave", id: "shave", sfx: [{ name: "snip", lu: -6, df: 10 }], kick: 0.02 },
   { at: "cut", id: "cut", punch: true, sfx: ["ding"] },
   // ---- L (1458-1540). Comeuppance in one shot: he tries, the ridges snap, Newton walks in with the proof. CAUGHT holds.

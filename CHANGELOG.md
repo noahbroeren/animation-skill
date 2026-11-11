@@ -32,11 +32,17 @@
   frame, three different clipping poses).
 - Fixed: the release bump had been rewriting a dependency's version in `package-lock.json` since 1.7.0 (restored; the
   lock's own version now follows the release).
-- Measured on the coin short (same script, voice and sound; 1.7.1 -> 1.8.0): detected cuts 13 -> 4 (11 transitions, all soft), average shot (detector) 4.1 -> 11.3 s against 16.2 s in the reference,
-  hardest transition 18.6 -> 7.0, micro-animation 0.013 -> 0.015 (reference 0.020), background blur ratio 1.23 -> 1.39,
-  QA WARN with 0 FAIL. Final numbers of the last render: `renders/coins_final/report.md`.
-- Still weak (next): camera travel is slower than the reference (fast-motion frames and glide length), the day
-  interiors are warmer than the reference, and props stacked for 9:16 do not always fit the 16:9 frame.
+- Measured on the coin short (same script, voice and sound; 1.7.1 -> 1.8.0, final render): cuts per minute 13.7 -> 8.5,
+  average shot by the detector 4.1 -> 6.3 s (reference 16.2 s), hardest transition 18.6 -> 7.6, travel length 18.5 -> 29
+  frames (44), micro-animation 0.013 -> 0.017 (0.020), edge density 3.6 -> 4.4 % (6.1 %), background blur ratio 1.23 ->
+  1.42 (1.95), mean brightness 0.40 -> 0.39 (0.47). QA: WARN with 0 FAIL for 9:16 (two detected jumps are the proof coin
+  turning, declared with `event`), PASS for the 16:9 version.
+- Worse, and said so: the automatic style match fell from 18/32 to 15/32. The grade is warmer than the reference (0.11
+  against 0.05), and the shade is now neutral where the reference is cool (shadow b -0.1 against -5.4): the reviewer
+  called the violet shade mud, the measurement calls the neutral one too warm. That trade is not settled.
+- Still weak (next): camera travel is slower than the reference (fast-motion frames 36 % against 55 %), light is flat
+  (no window slab in the office, no rim light on the cards), props have hairlines next to heavy character outlines, the
+  proof coin's shears have no hand, and props stacked for 9:16 do not always fit the 16:9 frame.
 
 ## 1.7.1 - 2026-11-11
 - **The cuts were too hard (user feedback on the coin short), and most of them were a bug.** The board's camera

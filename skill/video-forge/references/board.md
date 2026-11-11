@@ -169,6 +169,7 @@ is showing in the same frames, a `big` word held under 1 s, and boards where few
 | `aim` on a held prop | absolute direction on screen in degrees (0 right, 90 up, 180 left), so shears point AT the coin whatever the arm does |
 | `crowd: "snip"` | everybody is at it (shears and a coin, blades opening and closing); the other kinds: gasp, cheer, laugh, boo, look, clap, point, sad |
 | gag `big` with `y`, `counter` with `color` | where the big word sits, the counter's colour (yellow by default) |
+| `event: [0, 6]` on a beat | frames (relative to the beat) where a prop changes the picture on purpose (a coin turns edge-on, something breaks). QA lists a jump it detects there for a look instead of failing the edit plan. Gags, crowd reactions and kicks declare themselves |
 | `caption: 0.8` on a beat | caption height from that beat on (captions are 110 px at 70 % of the height by default) |
 
 **Rules (each one was a defect in the first board):**

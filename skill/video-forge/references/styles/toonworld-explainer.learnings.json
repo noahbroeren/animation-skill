@@ -1449,5 +1449,217 @@
     "result": "improved"
    }
   ]
+ },
+ {
+  "date": "2026-11-12",
+  "project": "coins",
+  "change": "second review: hook insert on the hands with a flying chip, travels 30-60 f or soft cut, DOF blended over travels, nothing at the frame edge, no text that repeats the caption, neutral shade, brighter rooms",
+  "note": "",
+  "match_score_before": 53.1,
+  "match_score_after": 50.0,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.0,
+    "gap_after": 0.5,
+    "ours_before": 9.0,
+    "ours_after": 11.0,
+    "ref": 9.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 4.96,
+    "gap_after": 3.84,
+    "ours_before": 0.30600118835412954,
+    "ours_after": 0.3621203097081596,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 3.0,
+    "gap_after": 2.5,
+    "ours_before": 29.0,
+    "ours_after": 31.5,
+    "ref": 44.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 0.91,
+    "gap_after": 0.39,
+    "ours_before": 21.405441582026103,
+    "ours_after": 26.03387028205875,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.push_in_shot_frac",
+    "label": "push-in shot fraction",
+    "gap_before": 5.33,
+    "gap_after": 2.5,
+    "ours_before": 0.2,
+    "ours_after": 0.625,
+    "ref": 1.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 1.38,
+    "gap_after": 0.5,
+    "ours_before": 6.0,
+    "ours_after": 9.5,
+    "ref": 11.5,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 0.04,
+    "gap_after": 0.96,
+    "ours_before": 5.895220041275024,
+    "ours_after": 3.887661099433899,
+    "ref": 5.8063578605651855,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.luma_mean.median",
+    "label": "mean brightness",
+    "gap_before": 2.58,
+    "gap_after": 1.93,
+    "ours_before": 0.3616093546152115,
+    "ours_after": 0.3877064883708954,
+    "ref": 0.46486346423625946,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_p1.median",
+    "label": "black floor (p1)",
+    "gap_before": 0.78,
+    "gap_after": 1.76,
+    "ours_before": 0.11372549019607843,
+    "ours_after": 0.13333333333333333,
+    "ref": 0.09803921568627451,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.sat_mean.median",
+    "label": "saturation",
+    "gap_before": 1.02,
+    "gap_after": 1.47,
+    "ours_before": 0.43926937878131866,
+    "ours_after": 0.4214092195034027,
+    "ref": 0.48001131415367126,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.shadow_b.median",
+    "label": "shadow tint b (blue-/yellow+)",
+    "gap_before": 1.59,
+    "gap_after": 2.65,
+    "ours_before": -2.1871683597564697,
+    "ours_after": -0.06282195635139942,
+    "ref": -5.367428779602051,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 8.26,
+    "gap_after": 16.59,
+    "ours_before": 11.253333333333334,
+    "ours_after": 6.2518518518518515,
+    "ref": 16.20724959882321,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 0.53,
+    "gap_after": 1.95,
+    "ours_before": 4.265402843601896,
+    "ours_after": 8.530805687203792,
+    "ref": 2.666844444444444,
+    "result": "regressed"
+   },
+   {
+    "metric": "texture.dof_ratio.median",
+    "label": "DOF centre/border sharpness",
+    "gap_before": 2.15,
+    "gap_after": 1.76,
+    "ours_before": 1.3067936985719948,
+    "ours_after": 1.4238502589365165,
+    "ref": 1.9517237917353885,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.edge_density.median",
+    "label": "edge density (detail)",
+    "gap_before": 1.45,
+    "gap_after": 1.09,
+    "ours_before": 0.0389412345467033,
+    "ours_after": 0.04430266998626374,
+    "ref": 0.060645604395604395,
+    "result": "improved"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-12",
+  "project": "coins",
+  "change": "coin turn slower and declared as an intended picture change (QA read it as two cuts)",
+  "note": "",
+  "match_score_before": 50.0,
+  "match_score_after": 46.9,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.5,
+    "gap_after": 0.12,
+    "ours_before": 11.0,
+    "ours_after": 8.5,
+    "ref": 9.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 2.5,
+    "gap_after": 3.0,
+    "ours_before": 31.5,
+    "ours_after": 29.0,
+    "ref": 44.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.push_in_shot_frac",
+    "label": "push-in shot fraction",
+    "gap_before": 2.5,
+    "gap_after": 3.33,
+    "ours_before": 0.625,
+    "ours_after": 0.5,
+    "ref": 1.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 0.5,
+    "gap_after": 1.12,
+    "ours_before": 9.5,
+    "ours_after": 7.0,
+    "ref": 11.5,
+    "result": "regressed"
+   }
+  ]
  }
 ]

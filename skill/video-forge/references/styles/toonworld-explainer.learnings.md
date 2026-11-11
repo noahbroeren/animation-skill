@@ -192,3 +192,32 @@ Appended automatically by `vfa_loop.py learn` after each measured iteration. A c
 - improved: micro-animation activity gap 1.71 -> 0.86 (ours 0.01342 -> 0.01685, ref 0.02028)
 - improved: DOF centre/border sharpness gap 2.41 -> 2.15 (ours 1.228 -> 1.307, ref 1.952)
 
+## 2026-11-12 - coins
+
+- change: second review: hook insert on the hands with a flying chip, travels 30-60 f or soft cut, DOF blended over travels, nothing at the frame edge, no text that repeats the caption, neutral shade, brighter rooms
+- match score: 53.1 -> 50.0
+- regressed: move ease-in frames gap 0.0 -> 0.5 (ours 9 -> 11, ref 9)
+- improved: frames with fast camera motion gap 4.96 -> 3.84 (ours 0.306 -> 0.3621, ref 0.5539)
+- improved: glide length (frames) gap 3.0 -> 2.5 (ours 29 -> 31.5, ref 44)
+- improved: camera jerk gap 0.91 -> 0.39 (ours 21.41 -> 26.03, ref 29.48)
+- improved: push-in shot fraction gap 5.33 -> 2.5 (ours 0.2 -> 0.625, ref 1)
+- improved: move ease-out frames gap 1.38 -> 0.5 (ours 6 -> 9.5, ref 11.5)
+- regressed: highlight tint b gap 0.04 -> 0.96 (ours 5.895 -> 3.888, ref 5.806)
+- improved: mean brightness gap 2.58 -> 1.93 (ours 0.3616 -> 0.3877, ref 0.4649)
+- regressed: black floor (p1) gap 0.78 -> 1.76 (ours 0.1137 -> 0.1333, ref 0.09804)
+- regressed: saturation gap 1.02 -> 1.47 (ours 0.4393 -> 0.4214, ref 0.48)
+- regressed: shadow tint b (blue-/yellow+) gap 1.59 -> 2.65 (ours -2.187 -> -0.06282, ref -5.367)
+- regressed: average shot length gap 8.26 -> 16.59 (ours 11.25 -> 6.252, ref 16.21)
+- regressed: cuts per minute gap 0.53 -> 1.95 (ours 4.265 -> 8.531, ref 2.667)
+- improved: DOF centre/border sharpness gap 2.15 -> 1.76 (ours 1.307 -> 1.424, ref 1.952)
+- improved: edge density (detail) gap 1.45 -> 1.09 (ours 0.03894 -> 0.0443, ref 0.06065)
+
+## 2026-11-12 - coins
+
+- change: coin turn slower and declared as an intended picture change (QA read it as two cuts)
+- match score: 50.0 -> 46.9
+- improved: move ease-in frames gap 0.5 -> 0.12 (ours 11 -> 8.5, ref 9)
+- regressed: glide length (frames) gap 2.5 -> 3.0 (ours 31.5 -> 29, ref 44)
+- regressed: push-in shot fraction gap 2.5 -> 3.33 (ours 0.625 -> 0.5, ref 1)
+- regressed: move ease-out frames gap 0.5 -> 1.12 (ours 9.5 -> 7, ref 11.5)
+

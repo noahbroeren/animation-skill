@@ -92,6 +92,9 @@ export type Beat = {
   /** rack the focus to this actor / prop / mark from this beat on (until the next shot) */
   focus?: string;
   kick?: number; punch?: boolean;
+  /** frames (relative to the beat) where a prop changes the picture on purpose (it turns, breaks, flips): QA then reads a
+   *  detected jump there as intended and lists it for a look instead of failing the edit plan. A gag, crowd or kick does this by itself. */
+  event?: number[];
   /** rain amount from this beat on (0 = dry) */
   rain?: number;
   /** caption height (fraction of the frame) from this beat on */
@@ -468,7 +471,7 @@ export function boardProject(b: Board): ProjectDef {
       const P = planFor(fps), S = boardSounds(b, fps);
       const scene: SceneDef = {
         id: "board", frames: P.total, innerCuts: P.cuts, innerSoft: P.soft, cues: Object.fromEntries(P.beats.map((x) => [x.id, x.f])),
-        events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 6, x.f, x.f + 6] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
+        events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(x.event ?? []).map((d) => x.f + d), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 6, x.f, x.f + 6] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
         sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps),
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
           return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={110} yAt={(fr) => { y = 0.7; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
