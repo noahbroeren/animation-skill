@@ -1,11 +1,33 @@
 # Changelog
 
-## 1.2.0 - 2026-11-10
+## 1.2.0 - 2026-11-11
+- **Topic, hook and title research (measured, `analyzer/vfa/topics.py`, `references/hooks-topics.md`):**
+  - `vfa topics CHANNEL`: outlier score (views vs the 20 neighbouring uploads), topic/title/hook classifiers, bootstrap CIs, hook
+    transcripts from subtitles with a whisper fallback. Polite: cached, `--sleep-requests`, backs off 60/180/540 s on HTTP 429
+    and the bot wall, and stops after repeated blocks. `--no-network` re-analyses from cache.
+  - `vfa topics-aggregate`: which effects replicate across channels. `vfa hookcheck` and the new `vfa titlecheck` score drafts on
+    the data (CI-weighted, shrunk, the style's own channel x2; nested lexicons such as why -> curiosity count once).
+  - Measured on 7 channels (1,184 Shorts, 365 hooks), numbers only in `references/styles/data/topics_*.json`:
+    - Titles with a negation or contradiction: x1.56 [1.22-2.20], 7 of 7 channels, and not a Why/How confound.
+    - Titles with Why/How: x1.12. With This/These: x0.84.
+    - Machine 'how it works' topics: x0.90.
+    - No hook type replicates across channels. On the reference channel, longer and more concrete absurd-fact hooks lead.
+    - Slower narration does better on 3 of 7 channels and faster narration on none. This overrules the 'brisk 150-180 wpm' rule.
+  - `story.py titles`: fills the measured title forms from `--subject/--fact/--contrast` and ranks them. `lint` warns on a weak
+    `# title:`. `hooks` shows the measured score next to the blend.
+  - `vfa thumbcheck` is now a `vfa` subcommand.
 - **Director loop (automated improvement):**
   - `engine/tools/produce.mjs`: one command for stills -> render -> audio -> mux -> QA -> gap -> judge pack -> learning log -> report.
   - `analyzer/vfa_loop.py`: `judgepack` (per-area reviewer packs with side-by-sides, rubric and JSON answer schema for 11 areas), `collect` (scores + fixes grouped by file owner), `learn`/`lessons` (per-style learning log: which changes moved which metrics).
   - `references/director-loop.md`: protocol for reviewer agents per area, fixer agents with file ownership, stop rule, cost control.
   - Proven on the manhole demo: reference match 50 -> 59.4 -> 62.5 -> 65.6 over three loops (11 reviewer agents, QA 0 FAIL, 1 WARN), and the learning log holds the confirmed and rejected rules.
+- **Thumbnail generator:**
+  - `tools/thumbs.mjs` + `lib/thumbs.tsx`: variants rendered from the real 3D world, with a camera override, heavy outlined 1-4 word text, accents and a pop grade.
+  - Sizes: long 1280x720, Shorts cover 1080x1920, hires 2560x1440.
+  - A feed-size preview sheet on light and dark UI.
+  - `analyzer/vfa/thumbcheck.py` ranks variants by OCR readability at feed size, contrast, focal clarity, subject size, the timestamp zone, colour pop and diversity.
+  - Character cards face the thumbnail camera.
+  - The manhole demo has 7 variants, scoring 79-97.
 - **Story engine (`story/story.py`, `references/story-engine.md`):**
   - Steps: `lint`, `hooks`, `claims` + `verify`, `export`, `beats`, `scaffold`.
     - `lint` checks the script against the measured formula of a style: duration at the measured speech rate, hook length and type, one pivot inside the measured window, a re-hook interval, no call to action, and a loopable ending.

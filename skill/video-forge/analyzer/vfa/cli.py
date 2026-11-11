@@ -18,6 +18,13 @@
   vfa similar     REF_DIR OURS_DIR [--out PATH]              per-shot CLIP nearest neighbours + style similarity 0-100
   vfa pose        VIDEO|ANALYSIS_DIR [--stride 1]            face/body coverage, lip-sync r + lag, blinks, gestures
   vfa analyze ... --deep [--deep-skip stems,pose]            run the extras and store summaries in fingerprint["deep"]
+  topic / hook / title research (metadata + subtitles only; see vfa/topics.py):
+  vfa topics      CHANNEL_URL --out DIR [--max 300] [--subs-top 30 --subs-bottom 30] [--subs-mid 0] [--local DIR]
+                  [--summary-out FILE]                       outlier score, topic/hook/title lifts with 90% CIs
+  vfa topics-aggregate DIR... --out D [--summary-out FILE]   which effects replicate across channels
+  vfa hookcheck   "hook sentence" [--style toonworld-explainer] [--data DIR_OR_JSON...]   score a draft hook
+  vfa titlecheck  "title" ["title" ...] [--style S] [--hook "first sentence"] [--data ...]   score / rank titles
+  vfa thumbcheck  PNG... [--kind long|short|hires] [--sheet S.jpg] [--out J]   score thumbnails at feed size
 """
 from __future__ import annotations
 
@@ -28,6 +35,10 @@ import sys
 
 
 def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["thumbcheck"]:  # own argparse in vfa/thumbcheck.py
+        from .thumbcheck import main as _tc
+        return _tc(argv[1:])
     ap = argparse.ArgumentParser(prog="vfa", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -114,6 +125,42 @@ def main(argv=None):
     p.add_argument("ours")
     p.add_argument("--out", help="output path without extension (default OURS/similar)")
 
+    p = sub.add_parser("topics")
+    p.add_argument("url", help="channel URL (/shorts or /videos appended from --tab)")
+    p.add_argument("--out", required=True)
+    p.add_argument("--max", type=int, default=300)
+    p.add_argument("--tab", default="shorts", choices=["shorts", "videos"])
+    p.add_argument("--subs-top", type=int, default=30)
+    p.add_argument("--subs-bottom", type=int, default=30)
+    p.add_argument("--subs-mid", type=int, default=0, help="random middle sample for less biased hook stats")
+    p.add_argument("--local", action="append", default=[], help="dir with <id>.info.json / subs / transcript.json to reuse")
+    p.add_argument("--min-age-days", type=int, default=14)
+    p.add_argument("--no-network", action="store_true")
+    p.add_argument("--whisper-model", default="small")
+    p.add_argument("--k", type=int, default=10, help="neighbours on each side for the outlier score")
+    p.add_argument("--summary-out", help="numbers-only summary json (e.g. references/styles/data/topics_<channel>.json)")
+    p.add_argument("--style", help="style profile this channel informs (hookcheck weights it x2)")
+    p.add_argument("--last", type=int, help="only the newest N uploads (one format era)")
+    p.add_argument("--skip-newest", type=int, default=0, help="exclude the N newest uploads without per-video requests")
+
+    p = sub.add_parser("topics-aggregate")
+    p.add_argument("dirs", nargs="+")
+    p.add_argument("--out", required=True)
+    p.add_argument("--summary-out")
+
+    p = sub.add_parser("titlecheck")
+    p.add_argument("titles", nargs="+")
+    p.add_argument("--style")
+    p.add_argument("--hook", help="the video's first sentence (helps the topic classifier)")
+    p.add_argument("--data", nargs="*")
+    p.add_argument("--json", action="store_true")
+
+    p = sub.add_parser("hookcheck")
+    p.add_argument("text")
+    p.add_argument("--style")
+    p.add_argument("--data", nargs="*", help="topics dirs / topics.json / summary files (default: references/styles/data)")
+    p.add_argument("--json", action="store_true")
+
     a = ap.parse_args(argv)
 
     if a.cmd == "probe":
@@ -181,6 +228,37 @@ def main(argv=None):
         r = run_qa(a.video, out, a.min_class, a.fps, a.duration, a.plan, a.ref, a.lufs, a.freeze, a.mixreport)
         print(open(os.path.join(out, "qa.md"), encoding="utf-8").read())
         sys.exit(1 if r["verdict"] == "FAIL" else 0)
+    elif a.cmd == "topics":
+        from .topics import run_topics
+        res = run_topics(a.url, a.out, a.max, a.tab, a.subs_top, a.subs_bottom, a.subs_mid, a.local, a.min_age_days,
+                         not a.no_network, a.whisper_model, a.k, a.summary_out, a.style, last=a.last,
+                         skip_newest=a.skip_newest)
+        print(f"{res['channel']['used']} videos, {res['channel']['hooks']} hooks, {res['requests']} yt-dlp calls"
+              f"{' (RATE LIMITED)' if res['rate_limited'] else ''} -> {os.path.join(a.out, 'topics.md')}")
+    elif a.cmd == "topics-aggregate":
+        from .topics import aggregate
+        res = aggregate(a.dirs, a.out, a.summary_out)
+        rep = [k for k, v in res["features"].items() if v["replicates"]]
+        print(f"{len(res['channels'])} channels; replicating: {', '.join(rep) or 'none'} -> {os.path.join(a.out, 'aggregate.md')}")
+    elif a.cmd == "titlecheck":
+        from .topics import titlecheck, titlecheck_text
+        rs = sorted((titlecheck(t, a.style, a.data, a.hook) for t in a.titles), key=lambda r: -r["score"])
+        if a.json:
+            print(json.dumps(rs, indent=1))
+        elif len(rs) == 1:
+            print(titlecheck_text(rs[0]))
+        else:
+            for r in rs:
+                print(f"{r['score']:3d}  x{r['predicted_x_views']:<5} {r['title']}   [{', '.join(r['features']) or '-'}; topic {r['topic']}]")
+            print("\nBest: " + titlecheck_text(rs[0]))
+    elif a.cmd == "hookcheck":
+        from .topics import hookcheck, hookcheck_text
+        r = hookcheck(a.text, a.style, a.data)
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+        print(json.dumps(r, indent=1) if a.json else hookcheck_text(r))
     elif a.cmd == "sbs":
         from .visuals import side_by_side
         side_by_side(a.out, list(zip(a.ref.split(","), a.ours.split(","))))

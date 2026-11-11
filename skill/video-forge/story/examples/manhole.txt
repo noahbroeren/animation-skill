@@ -1,4 +1,4 @@
-# title: Why manhole covers are round
+# title: Why Square Manhole Covers Don't Work
 # style: toonworld-explainer
 # topic: why manhole covers are round (geometry: constant width)
 In 1890, a mayor ordered every manhole cover in town made perfectly *square*.

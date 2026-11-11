@@ -8,6 +8,7 @@
                                                                      # light, FX, SFX per sentence
   py story.py scaffold DIR/beats.json --out PROJECT_DIR/story_plan.ts   # typed plan the engine project imports
   py story.py hooks    "hook A" "hook B" ...  [--style S]            # rank hook variants (formula + measured data)
+  py story.py titles   [script.txt] ["title" ...] [--subject S --fact F --contrast C]   # generate + rank titles
   py story.py export   script.txt --out vo.txt [--per-speaker DIR]   # clean spoken text for TTS (tags stripped)
 
 Script format (plain text, one or more sentences per line):
@@ -171,6 +172,16 @@ def measured_hookcheck(text: str, style: str):
         return None
 
 
+def measured_titlecheck(title: str, style: str, hook: str | None = None):
+    """Measured title model (vfa topics/titlecheck); None when the analyzer is not importable."""
+    sys.path.insert(0, os.path.join(HERE, "..", "analyzer"))
+    try:
+        from vfa import topics  # type: ignore
+        return topics.titlecheck(title, style=style, hook=hook)
+    except Exception:
+        return None
+
+
 def lint(path: str, style: str | None) -> dict:
     sc = parse(path)
     name, T = load_style(style or sc["head"].get("style"))
@@ -236,10 +247,15 @@ def lint(path: str, style: str | None) -> dict:
     if not any(re.search(r"\d", s["text"]) for s in S):
         add("INFO", "no numbers in the script", "concrete numbers make it feel real (fact-check them)")
     mh = measured_hookcheck(hook["text"], name)
+    mt = measured_titlecheck(sc["head"]["title"], name, hook["text"]) if sc["head"].get("title") else None
+    if not sc["head"].get("title"):
+        add("INFO", "no '# title:' header", "add one and rank variants with `story.py titles`")
+    elif isinstance(mt, dict) and mt["score"] < 50:
+        add("WARN", f"title scores {mt['score']}/100 on the measured title data", "; ".join(mt["suggestions"][:2]) or "run `story.py titles`")
     pen = {"FAIL": 25, "WARN": 8, "INFO": 2}
     score = max(0, 100 - sum(pen[i["severity"]] for i in issues))
     return {"style": name, "duration_s": round(dur, 1), "sentences": len(S), "score": score, "hook": hook["text"],
-            "hook_signals": hs, "measured_hook": mh, "beats": [s["beat"] for s in S], "issues": issues}
+            "hook_signals": hs, "measured_hook": mh, "measured_title": mt, "beats": [s["beat"] for s in S], "issues": issues}
 
 
 # ------------------------------------------------------------------------------------------------ claims
@@ -417,6 +433,51 @@ def rank_hooks(hooks: list[str], style: str | None) -> list[dict]:
     return sorted(out, key=lambda r: -r["score"])
 
 
+# ------------------------------------------------------------------------------------------------ titles
+SMALL = {"a", "an", "the", "and", "or", "but", "of", "in", "on", "at", "to", "for", "by", "as", "is"}
+
+
+def title_case(t: str) -> str:
+    w = t.split()
+    return " ".join(x if (x.isupper() and len(x) > 1) else (x.capitalize() if i == 0 or x.lower() not in SMALL else x.lower())
+                    for i, x in enumerate(w))
+
+
+def title_variants(subject: str, fact: str | None, contrast: str | None) -> list[str]:
+    """Fill the measured title forms (references/hooks-topics.md): Why/How first, a negation/contradiction, the
+    reference channel's 'The [X] That [Y]' label. No This/These, no ALL-CAPS, key words in the first ~40 chars."""
+    S = subject.strip()
+    out = []
+    if fact:
+        out += [f"Why {S} {fact}", f"{S} {fact} for a Reason"]
+    if contrast:
+        out += [f"Why {contrast} {S} Don't Work", f"Why {S} Can't Be {contrast}", f"The Town That Made {contrast} {S}"]
+    out += [f"Why Nobody Makes {contrast + ' ' if contrast else ''}{S}".replace("  ", " "), f"The Real Reason {S} {fact or 'Work'}"]
+    seen, res = set(), []
+    for t in out:
+        t = title_case(re.sub(r"\s+", " ", t).strip())
+        if t.lower() not in seen:
+            seen.add(t.lower())
+            res.append(t)
+    return res
+
+
+def rank_titles(titles: list[str], style: str | None, hook: str | None = None) -> list[dict]:
+    name, _ = load_style(style)
+    out = []
+    for t in titles:
+        mt = measured_titlecheck(t, name, hook)
+        if isinstance(mt, dict):
+            out.append({"title": t, "score": mt["score"], "x_views": mt["predicted_x_views"], "features": mt["features"],
+                        "topic": mt["topic"], "chars": mt["chars"], "suggestions": mt["suggestions"]})
+        else:  # fallback without the analyzer: the replicated rules only
+            low = t.lower()
+            sc = 50 + 6 * bool(re.match(r"\s*(why|how)\b", low)) + 10 * bool(re.search(r"\b(don't|doesn't|can't|isn't|aren't|never|nobody|not)\b", low)) \
+                - 8 * bool(re.search(r"\b(this|these)\b", low)) - 8 * bool(re.search(r"\b[A-Z]{2,}\b", t))
+            out.append({"title": t, "score": sc, "x_views": None, "features": [], "topic": None, "chars": len(t), "suggestions": []})
+    return sorted(out, key=lambda r: -r["score"])
+
+
 # ------------------------------------------------------------------------------------------------ cli
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -428,6 +489,10 @@ def main():
     p = sub.add_parser("scaffold"); p.add_argument("beats"); p.add_argument("--out", required=True)
     p = sub.add_parser("hooks"); p.add_argument("hooks", nargs="+"); p.add_argument("--style")
     p = sub.add_parser("export"); p.add_argument("script"); p.add_argument("--out", required=True); p.add_argument("--per-speaker")
+    p = sub.add_parser("titles"); p.add_argument("items", nargs="*", help="optional script.txt, then extra title candidates")
+    p.add_argument("--subject", help="the thing, plural noun phrase, e.g. 'manhole covers'")
+    p.add_argument("--fact", help="its odd behaviour, e.g. 'are round'"); p.add_argument("--contrast", help="the wrong alternative, e.g. 'square'")
+    p.add_argument("--style"); p.add_argument("--json", action="store_true")
     a = ap.parse_args()
     if a.cmd == "lint":
         r = lint(a.script, a.style)
@@ -469,7 +534,34 @@ def main():
     elif a.cmd == "hooks":
         for r in rank_hooks(a.hooks, a.style):
             flags = [k for k, v in r["signals"].items() if v]
-            print(f"{r['score']:5.1f}  ({r['words']} w)  {r['hook']}   [{', '.join(flags)}]")
+            m = r["measured"]
+            ms = f" measured {m['score']} (x{m['predicted_x_views']})" if isinstance(m, dict) else ""
+            print(f"{r['score']:5.1f}  ({r['words']} w){ms}  {r['hook']}   [{', '.join(flags)}]")
+    elif a.cmd == "titles":
+        items, style, hook, cands = list(a.items), a.style, None, []
+        if items and os.path.exists(items[0]):
+            sc = parse(items.pop(0))
+            style = style or sc["head"].get("style")
+            hook = sc["sentences"][0]["text"] if sc["sentences"] else None
+            if sc["head"].get("title"):
+                cands.append(sc["head"]["title"])
+        cands += items
+        if a.subject:
+            cands += title_variants(a.subject, a.fact, a.contrast)
+        if not cands:
+            ap.error("give a script with a '# title:' header, --subject/--fact/--contrast, or title candidates")
+        seen = set()
+        cands = [c for c in cands if not (c.lower() in seen or seen.add(c.lower()))]
+        R = rank_titles(cands, style, hook)
+        if a.json:
+            print(json.dumps(R, indent=1))
+        else:
+            for r in R:
+                xv = f"x{r['x_views']}" if r["x_views"] else "  -  "
+                print(f"{r['score']:3d}  {xv:<6} {r['chars']:3d}c  {r['title']}   [{', '.join(r['features']) or '-'}]")
+            if R[0]["suggestions"]:
+                print("\nfor the best one: " + " | ".join(R[0]["suggestions"]))
+            print("\nScores are correlations from 7 measured channels (references/hooks-topics.md), not a promise.")
 
 
 if __name__ == "__main__":

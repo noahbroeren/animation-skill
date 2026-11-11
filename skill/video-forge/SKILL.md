@@ -69,6 +69,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | sentence-by-sentence script x camera x cuts x light | `vfa breakdown ANALYSIS_DIR` (analyze with `--speech whisper` first) |
 | cast look-dev sheet | `node ENGINE/tools/render.mjs --project modelsheet --format long --stills 0,40` (40 = visemes + side view) |
 | new character kinds (objects, animals, blobs, stick, chibi, flat vector, microbes) + style passes | `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 0,40,70,100,130` |
+| thumbnails from the 3D world (variants, feed-size preview sheet, ranked by `thumbcheck`) | `node ENGINE/tools/thumbs.mjs --project ID [--kind long,short,hires] --out DIR`; variants in the project's `thumbnails` (see `projects/manhole/thumbs.ts`) |
 | render-speed benchmark before changing defaults | `node ENGINE/tools/bench.mjs --project ID --frames 180-299 --variants default,c4,veryfast,default` |
 | one-command iteration: stills, render, audio, QA, gap, judge pack, learning log | `node ENGINE/tools/produce.mjs --project ID --ref ... --style ... --change "..."` |
 | per-area reviewer packs, collect scores, learning log | `py SKILL_DIR/analyzer/vfa_loop.py judgepack OURS_DIR REF_DIR --out judge` / `collect judge` / `lessons STYLE` |
@@ -80,7 +81,9 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | side-by-side judge sheet | `vfa sbs --ref a.jpg,b.jpg --ours c.jpg,d.jpg --out sbs.jpg` |
 | final gate | `vfa qa VIDEO --plan timeline.json --ref REF` |
 | new production | `node ENGINE/tools/new-project.mjs ID` |
-| script lint, hook ranking, fact-check gate, beat sheet + camera plan, TTS text | `py SKILL_DIR/story/story.py lint|hooks|claims|verify|beats|scaffold|export` |
+| script lint, hook ranking, title variants, fact-check gate, beat sheet + camera plan, TTS text | `py SKILL_DIR/story/story.py lint|hooks|titles|claims|verify|beats|scaffold|export` |
+| which topics / hooks / titles out-perform on a channel (outlier score, CIs) | `vfa topics CHANNEL_URL --out DIR --summary-out references/styles/data/topics_<ch>.json`, `vfa topics-aggregate` |
+| score a draft hook or rank titles on the measured data | `vfa hookcheck "hook" --style S`, `vfa titlecheck "t1" "t2" --style S` |
 | stills / full render / 4K | `node ENGINE/tools/render.mjs --project ID [--stills 0,90] [--format long4k]` |
 | live preview + scrubbing | `cd ENGINE && npx remotion studio` |
 | SFX pack, score bed, offline TTS, align, mix/master | `AUDIO/sfx.py`, `music.py`, `tts.py`, `mix.py` |
@@ -95,6 +98,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/longform.md`: series bible, chapters, consistency across episodes, chunked renders, disk/time budgeting
 - `references/characters.md`: character-type research (what works where, evidence), viseme/lip-sync tables, specs for new kinds
 - `references/story-engine.md`: topic -> hook variants -> script to the measured formula -> fact-check gate -> beat sheet + generated camera plan
+- `references/hooks-topics.md`: measured topic, hook and title effects on 7 channels (1,184 Shorts, CIs, what replicates) plus the research rules they confirm or overrule
 - `references/director-loop.md`: the automated improvement loop (produce -> per-area judges -> fixers by file ownership -> learning log)
 - `references/external.md`: optional paid/external integrations (premium voices, AI video plates, Blender photoreal, upscalers) and how to label them
 - `references/styles/*.md`: measured style profiles with engine recipes (start: `toonworld-explainer.md`, a 149-short channel study)

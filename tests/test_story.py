@@ -101,6 +101,16 @@ for (const fps of [30, 60]) {
         shutil.rmtree(d, ignore_errors=True)
 
 
+def test_titles_generate_and_rank():
+    v = story.title_variants("manhole covers", "are round", "square")
+    assert "Why Manhole Covers Are Round" in v and "Why Square Manhole Covers Don't Work" in v
+    assert all(not t.lower().startswith("this") for t in v) and len(set(map(str.lower, v))) == len(v)
+    r = story.rank_titles(["This manhole cover is INSANE", "Why Square Manhole Covers Don't Work"], "toonworld-explainer")
+    assert r[0]["title"].startswith("Why Square")  # measured data (or the fallback rules) agree
+    L = story.lint(EX, None)
+    assert L["measured_title"] is None or L["measured_title"]["score"] >= 50
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

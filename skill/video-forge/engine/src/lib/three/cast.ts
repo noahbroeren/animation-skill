@@ -58,6 +58,7 @@ export class CharacterCard {
     this.mesh.castShadow = false;
     this.mesh.receiveShadow = true;
     this.mesh.layers.set(NOINK);
+    this.mesh.userData.faceCamera = true; // Stage3D re-aims it under a camera override (thumbnails)
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: this.tex, alphaTest: 0.5 });
     this.shadowCaster = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, side: THREE.DoubleSide }));
     this.shadowCaster.customDepthMaterial = depth;

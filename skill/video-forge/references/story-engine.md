@@ -83,7 +83,11 @@ For on-screen speakers, also run `py AUDIO/lipsync.py vo.wav --script script.txt
 ## 7. Build, produce, improve
 - Build the world and cast (`references/engine.md`, `references/characters.md`).
 - Then run the director loop (`references/director-loop.md`): `produce.mjs` -> reviewers -> fixes -> `learn`.
-- Make thumbnails from the finished world with `tools/thumbs.mjs`. Titles come from the measured title patterns in `references/hooks-topics.md`.
+- Make thumbnails from the finished world with `tools/thumbs.mjs`.
+- Titles: `STORY titles script.txt --subject "manhole covers" --fact "are round" --contrast square` fills the measured
+  forms (Why/How first, a negation such as "Don't Work", the reference channel's "The [X] That [Y]") and ranks them with
+  `vfa titlecheck`. Pick the winner unless it misleads, and put it in the `# title:` header; `lint` warns below 50.
+  No "This/These", no ALL-CAPS, hashtags in the description.
 
 ## Honesty rules
 - Never present invented specifics (dates, names, numbers) as fact. Mark them STORY in claims.md, and keep the mechanism true.

@@ -6,6 +6,7 @@ import React from "react";
 import { AbsoluteFill, Audio, staticFile } from "remotion";
 import { FormatId, FORMATS } from "./formats";
 import { plan, SceneDef, Timeline } from "./timeline";
+import type { ThumbVariant } from "./thumbs";
 
 export type ProjectCtx = { fps: number; width: number; height: number; format: FormatId; vertical: boolean };
 export type ProjectDef = {
@@ -18,6 +19,8 @@ export type ProjectDef = {
   /** public/ path of the mixed master for studio preview (renders are muted and muxed by tools/render.mjs) */
   audio?: string;
   overlay?: (ctx: ProjectCtx) => React.ReactNode; // whole-video layers (captions, watermark-free branding, etc.)
+  /** thumbnail variants rendered from the world (lib/thumbs.tsx, composition `<id>-thumb`, tools/thumbs.mjs) */
+  thumbnails?: (fps: number) => ThumbVariant[];
 };
 
 export type ProjectProps = { project: string; format: FormatId; fps: number; preview?: boolean };

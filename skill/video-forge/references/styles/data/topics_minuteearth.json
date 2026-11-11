@@ -1,0 +1,1117 @@
+{
+ "kind": "vfa-topics-summary",
+ "version": 1,
+ "channel": {
+  "name": "MinuteEarth",
+  "handle": "@MinuteEarth",
+  "url": "https://www.youtube.com/@minuteearth/shorts",
+  "tab": "shorts",
+  "listed": 114,
+  "used": 109,
+  "hooks": 50,
+  "hook_sources": {
+   "subs": 49,
+   "whisper-small-8s": 1
+  },
+  "fetched": "2026-11-10",
+  "date_range_known": [
+   "20210617",
+   "20261009"
+  ],
+  "median_views": 161000.0,
+  "followers": 3340000,
+  "style": null
+ },
+ "params": {
+  "max": 300,
+  "last": null,
+  "skip_newest": 5,
+  "k": 10,
+  "subs_top": 20,
+  "subs_bottom": 20,
+  "subs_mid": 10,
+  "min_age_days": 0,
+  "min_n": 8,
+  "ci": 0.9,
+  "bootstrap": 2000
+ },
+ "channel_median_outlier": 0.0244,
+ "n": 109,
+ "hook_n": 50,
+ "topic": {
+  "body_medicine": {
+   "n": 18,
+   "n_all": 109,
+   "median": 0.0202,
+   "lift": -0.0042,
+   "ci90": [
+    -0.2526,
+    0.357
+   ],
+   "x_views": 0.99,
+   "delta_vs_without": -0.0042,
+   "too_few": false,
+   "n_without": 91,
+   "confident": false
+  },
+  "animals_nature": {
+   "n": 35,
+   "n_all": 109,
+   "median": 0.0064,
+   "lift": -0.018,
+   "ci90": [
+    -0.1838,
+    0.0591
+   ],
+   "x_views": 0.959,
+   "delta_vs_without": -0.0201,
+   "too_few": false,
+   "n_without": 74,
+   "confident": false
+  },
+  "history": {
+   "n": 1,
+   "n_all": 109,
+   "median": -0.182,
+   "lift": -0.2064,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 0.622,
+   "delta_vs_without": -0.2084,
+   "too_few": true,
+   "n_without": 108,
+   "confident": false
+  },
+  "engineering_how": {
+   "n": 5,
+   "n_all": 109,
+   "median": 0.0765,
+   "lift": 0.0521,
+   "ci90": [
+    -0.2247,
+    2.0309
+   ],
+   "x_views": 1.127,
+   "delta_vs_without": 0.0665,
+   "too_few": true,
+   "n_without": 104,
+   "confident": false
+  },
+  "space_physics": {
+   "n": 21,
+   "n_all": 109,
+   "median": -0.0196,
+   "lift": -0.044,
+   "ci90": [
+    -0.2197,
+    0.2557
+   ],
+   "x_views": 0.904,
+   "delta_vs_without": -0.0488,
+   "too_few": false,
+   "n_without": 88,
+   "confident": false
+  },
+  "money_economics": {
+   "n": 0,
+   "n_all": 109,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true
+  },
+  "law_crime": {
+   "n": 2,
+   "n_all": 109,
+   "median": -0.0089,
+   "lift": -0.0333,
+   "ci90": [
+    -0.3205,
+    0.2539
+   ],
+   "x_views": 0.926,
+   "delta_vs_without": -0.0333,
+   "too_few": true,
+   "n_without": 107,
+   "confident": false
+  },
+  "food": {
+   "n": 3,
+   "n_all": 109,
+   "median": 0.5593,
+   "lift": 0.5349,
+   "ci90": [
+    0.0,
+    0.7327
+   ],
+   "x_views": 3.427,
+   "delta_vs_without": 0.5494,
+   "too_few": true,
+   "n_without": 106,
+   "confident": false
+  },
+  "disasters_survival": {
+   "n": 4,
+   "n_all": 109,
+   "median": -0.0106,
+   "lift": -0.035,
+   "ci90": [
+    -0.0597,
+    -0.0258
+   ],
+   "x_views": 0.923,
+   "delta_vs_without": -0.0406,
+   "too_few": true,
+   "n_without": 105,
+   "confident": false
+  },
+  "psychology_behaviour": {
+   "n": 1,
+   "n_all": 109,
+   "median": -0.0168,
+   "lift": -0.0412,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 0.909,
+   "delta_vs_without": -0.0432,
+   "too_few": true,
+   "n_without": 108,
+   "confident": false
+  },
+  "tech": {
+   "n": 1,
+   "n_all": 109,
+   "median": 0.0686,
+   "lift": 0.0442,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 1.107,
+   "delta_vs_without": 0.0496,
+   "too_few": true,
+   "n_without": 108,
+   "confident": false
+  },
+  "everyday_objects": {
+   "n": 2,
+   "n_all": 109,
+   "median": 0.1803,
+   "lift": 0.1559,
+   "ci90": [
+    -0.1193,
+    0.431
+   ],
+   "x_views": 1.432,
+   "delta_vs_without": 0.1559,
+   "too_few": true,
+   "n_without": 107,
+   "confident": false
+  },
+  "geopolitics_military": {
+   "n": 0,
+   "n_all": 109,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true
+  },
+  "other": {
+   "n": 16,
+   "n_all": 109,
+   "median": 0.0357,
+   "lift": 0.0113,
+   "ci90": [
+    -0.044,
+    0.0809
+   ],
+   "x_views": 1.026,
+   "delta_vs_without": 0.0336,
+   "too_few": false,
+   "n_without": 93,
+   "confident": false
+  }
+ },
+ "title": {
+  "t_question": {
+   "n": 49,
+   "n_all": 109,
+   "median": 0.0285,
+   "lift": 0.0041,
+   "ci90": [
+    -0.0325,
+    0.0444
+   ],
+   "x_views": 1.009,
+   "delta_vs_without": 0.029,
+   "too_few": false,
+   "n_without": 60,
+   "confident": false
+  },
+  "t_number": {
+   "n": 5,
+   "n_all": 109,
+   "median": 0.1927,
+   "lift": 0.1683,
+   "ci90": [
+    -0.7568,
+    1.0671
+   ],
+   "x_views": 1.473,
+   "delta_vs_without": 0.1828,
+   "too_few": true,
+   "n_without": 104,
+   "confident": false
+  },
+  "t_emoji": {
+   "n": 9,
+   "n_all": 109,
+   "median": 0.0835,
+   "lift": 0.0591,
+   "ci90": [
+    -0.2064,
+    0.1683
+   ],
+   "x_views": 1.146,
+   "delta_vs_without": 0.0645,
+   "too_few": false,
+   "n_without": 100,
+   "confident": false
+  },
+  "t_caps_word": {
+   "n": 16,
+   "n_all": 109,
+   "median": -0.1773,
+   "lift": -0.2017,
+   "ci90": [
+    -0.2687,
+    -0.0576
+   ],
+   "x_views": 0.628,
+   "delta_vs_without": -0.2162,
+   "too_few": false,
+   "n_without": 93,
+   "confident": true
+  },
+  "t_you": {
+   "n": 11,
+   "n_all": 109,
+   "median": 0.0244,
+   "lift": 0.0,
+   "ci90": [
+    -0.3143,
+    0.112
+   ],
+   "x_views": 1.0,
+   "delta_vs_without": 0.0034,
+   "too_few": false,
+   "n_without": 98,
+   "confident": false
+  },
+  "t_why_how": {
+   "n": 38,
+   "n_all": 109,
+   "median": 0.0543,
+   "lift": 0.0299,
+   "ci90": [
+    -0.0145,
+    0.061
+   ],
+   "x_views": 1.071,
+   "delta_vs_without": 0.0624,
+   "too_few": false,
+   "n_without": 71,
+   "confident": false
+  },
+  "t_starts_why_how": {
+   "n": 37,
+   "n_all": 109,
+   "median": 0.0686,
+   "lift": 0.0442,
+   "ci90": [
+    -0.0109,
+    0.0628
+   ],
+   "x_views": 1.107,
+   "delta_vs_without": 0.0751,
+   "too_few": false,
+   "n_without": 72,
+   "confident": false
+  },
+  "t_this": {
+   "n": 11,
+   "n_all": 109,
+   "median": -0.0773,
+   "lift": -0.1017,
+   "ci90": [
+    -0.3567,
+    0.0082
+   ],
+   "x_views": 0.791,
+   "delta_vs_without": -0.1065,
+   "too_few": false,
+   "n_without": 98,
+   "confident": false
+  },
+  "t_superlative": {
+   "n": 11,
+   "n_all": 109,
+   "median": 0.0733,
+   "lift": 0.0489,
+   "ci90": [
+    -0.0407,
+    0.2169
+   ],
+   "x_views": 1.119,
+   "delta_vs_without": 0.0544,
+   "too_few": false,
+   "n_without": 98,
+   "confident": false
+  },
+  "t_forbidden_impossible": {
+   "n": 2,
+   "n_all": 109,
+   "median": 0.298,
+   "lift": 0.2736,
+   "ci90": [
+    0.0591,
+    0.4881
+   ],
+   "x_views": 1.878,
+   "delta_vs_without": 0.2845,
+   "too_few": true,
+   "n_without": 107,
+   "confident": false
+  },
+  "t_curiosity": {
+   "n": 40,
+   "n_all": 109,
+   "median": 0.0709,
+   "lift": 0.0465,
+   "ci90": [
+    -0.0034,
+    0.0696
+   ],
+   "x_views": 1.113,
+   "delta_vs_without": 0.0872,
+   "too_few": false,
+   "n_without": 69,
+   "confident": false
+  },
+  "t_hashtag": {
+   "n": 11,
+   "n_all": 109,
+   "median": 0.4037,
+   "lift": 0.3793,
+   "ci90": [
+    -0.0223,
+    1.0671
+   ],
+   "x_views": 2.395,
+   "delta_vs_without": 0.3937,
+   "too_few": false,
+   "n_without": 98,
+   "confident": false
+  },
+  "t_the_that": {
+   "n": 2,
+   "n_all": 109,
+   "median": 0.1226,
+   "lift": 0.0982,
+   "ci90": [
+    -0.0293,
+    0.2256
+   ],
+   "x_views": 1.254,
+   "delta_vs_without": 0.0982,
+   "too_few": true,
+   "n_without": 107,
+   "confident": false
+  },
+  "t_negation": {
+   "n": 13,
+   "n_all": 109,
+   "median": 0.0901,
+   "lift": 0.0657,
+   "ci90": [
+    0.0157,
+    0.4881
+   ],
+   "x_views": 1.163,
+   "delta_vs_without": 0.09,
+   "too_few": false,
+   "n_without": 96,
+   "confident": true
+  }
+ },
+ "hook": {
+  "absurd_fact": {
+   "n": 32,
+   "n_all": 50,
+   "median": 0.0593,
+   "lift": 0.1362,
+   "ci90": [
+    -0.0297,
+    0.6584
+   ],
+   "x_views": 1.368,
+   "delta_vs_without": 0.3507,
+   "too_few": false,
+   "n_without": 18,
+   "confident": false,
+   "share_top": 0.75,
+   "share_bottom": 0.45,
+   "share_diff": 0.3,
+   "share_diff_ci90": [
+    0.05,
+    0.55
+   ]
+  },
+  "question": {
+   "n": 7,
+   "n_all": 50,
+   "median": -0.2929,
+   "lift": -0.216,
+   "ci90": [
+    -0.3231,
+    0.876
+   ],
+   "x_views": 0.608,
+   "delta_vs_without": -0.2164,
+   "too_few": true,
+   "n_without": 43,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.2,
+   "share_diff": -0.1,
+   "share_diff_ci90": [
+    -0.3,
+    0.1
+   ]
+  },
+  "if_you": {
+   "n": 2,
+   "n_all": 50,
+   "median": 0.0606,
+   "lift": 0.1375,
+   "ci90": [
+    -0.266,
+    0.541
+   ],
+   "x_views": 1.372,
+   "delta_vs_without": 0.1375,
+   "too_few": true,
+   "n_without": 48,
+   "confident": false,
+   "share_top": 0.05,
+   "share_bottom": 0.05,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    -0.1,
+    0.1
+   ]
+  },
+  "this_is_meet": {
+   "n": 3,
+   "n_all": 50,
+   "median": 1.0471,
+   "lift": 1.124,
+   "ci90": [
+    -0.3655,
+    1.2176
+   ],
+   "x_views": 13.305,
+   "delta_vs_without": 1.1244,
+   "too_few": true,
+   "n_without": 47,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.05,
+   "share_diff": 0.05,
+   "share_diff_ci90": [
+    -0.1,
+    0.2
+   ]
+  },
+  "number_superlative": {
+   "n": 10,
+   "n_all": 50,
+   "median": 0.5597,
+   "lift": 0.6366,
+   "ci90": [
+    0.1054,
+    0.8777
+   ],
+   "x_views": 4.331,
+   "delta_vs_without": 0.7499,
+   "too_few": false,
+   "n_without": 40,
+   "confident": true,
+   "share_top": 0.3,
+   "share_bottom": 0.1,
+   "share_diff": 0.2,
+   "share_diff_ci90": [
+    0.0,
+    0.4
+   ]
+  },
+  "forbidden_impossible": {
+   "n": 1,
+   "n_all": 50,
+   "median": 0.5125,
+   "lift": 0.5894,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 3.885,
+   "delta_vs_without": 0.5898,
+   "too_few": true,
+   "n_without": 49,
+   "confident": false,
+   "share_top": 0.05,
+   "share_bottom": 0.0,
+   "share_diff": 0.05,
+   "share_diff_ci90": [
+    0.0,
+    0.15
+   ]
+  },
+  "second_person": {
+   "n": 10,
+   "n_all": 50,
+   "median": -0.3004,
+   "lift": -0.2235,
+   "ci90": [
+    -0.2907,
+    0.541
+   ],
+   "x_views": 0.598,
+   "delta_vs_without": -0.2771,
+   "too_few": false,
+   "n_without": 40,
+   "confident": false,
+   "share_top": 0.15,
+   "share_bottom": 0.3,
+   "share_diff": -0.15,
+   "share_diff_ci90": [
+    -0.35,
+    0.05
+   ]
+  },
+  "story_open": {
+   "n": 3,
+   "n_all": 50,
+   "median": 0.6554,
+   "lift": 0.7323,
+   "ci90": [
+    0.5894,
+    0.8291
+   ],
+   "x_views": 5.399,
+   "delta_vs_without": 0.762,
+   "too_few": true,
+   "n_without": 47,
+   "confident": false,
+   "share_top": 0.15,
+   "share_bottom": 0.0,
+   "share_diff": 0.15,
+   "share_diff_ci90": [
+    0.05,
+    0.3
+   ]
+  },
+  "comparison": {
+   "n": 1,
+   "n_all": 50,
+   "median": 0.8697,
+   "lift": 0.9466,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 8.843,
+   "delta_vs_without": 0.947,
+   "too_few": true,
+   "n_without": 49,
+   "confident": false,
+   "share_top": 0.05,
+   "share_bottom": 0.0,
+   "share_diff": 0.05,
+   "share_diff_ci90": [
+    0.0,
+    0.15
+   ]
+  },
+  "curiosity_gap": {
+   "n": 7,
+   "n_all": 50,
+   "median": 0.3424,
+   "lift": 0.4193,
+   "ci90": [
+    -0.2529,
+    0.8777
+   ],
+   "x_views": 2.626,
+   "delta_vs_without": 0.4197,
+   "too_few": true,
+   "n_without": 43,
+   "confident": false,
+   "share_top": 0.15,
+   "share_bottom": 0.15,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    -0.2,
+    0.2
+   ]
+  },
+  "contrast_twist": {
+   "n": 5,
+   "n_all": 50,
+   "median": -0.2929,
+   "lift": -0.216,
+   "ci90": [
+    -0.3655,
+    1.1684
+   ],
+   "x_views": 0.608,
+   "delta_vs_without": -0.2164,
+   "too_few": true,
+   "n_without": 45,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.15,
+   "share_diff": -0.05,
+   "share_diff_ci90": [
+    -0.2,
+    0.1
+   ]
+  },
+  "setup_opener": {
+   "n": 2,
+   "n_all": 50,
+   "median": -0.3965,
+   "lift": -0.3196,
+   "ci90": [
+    -0.4606,
+    -0.1787
+   ],
+   "x_views": 0.479,
+   "delta_vs_without": -0.3208,
+   "too_few": true,
+   "n_without": 48,
+   "confident": false,
+   "share_top": 0.0,
+   "share_bottom": 0.1,
+   "share_diff": -0.1,
+   "share_diff_ci90": [
+    -0.2,
+    0.0
+   ]
+  },
+  "imperative": {
+   "n": 0,
+   "n_all": 50,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true,
+   "share_top": 0.0,
+   "share_bottom": 0.0,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    0.0,
+    0.0
+   ]
+  },
+  "no_speech": {
+   "n": 0,
+   "n_all": 50,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true,
+   "share_top": 0.0,
+   "share_bottom": 0.0,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "duration": {
+  "<20s": {
+   "n": 2,
+   "n_all": 50,
+   "median": -0.2732,
+   "lift": -0.1963,
+   "ci90": [
+    -0.2149,
+    -0.1777
+   ],
+   "x_views": 0.636,
+   "delta_vs_without": -0.1975,
+   "too_few": true,
+   "n_without": 48,
+   "confident": false,
+   "share_top": 0.0,
+   "share_bottom": 0.05,
+   "share_diff": -0.05,
+   "share_diff_ci90": [
+    -0.15,
+    0.0
+   ]
+  },
+  "20-35s": {
+   "n": 8,
+   "n_all": 50,
+   "median": 0.8134,
+   "lift": 0.8903,
+   "ci90": [
+    0.3065,
+    1.1305
+   ],
+   "x_views": 7.768,
+   "delta_vs_without": 0.9567,
+   "too_few": false,
+   "n_without": 42,
+   "confident": true,
+   "share_top": 0.3,
+   "share_bottom": 0.1,
+   "share_diff": 0.2,
+   "share_diff_ci90": [
+    0.0,
+    0.4
+   ]
+  },
+  "35-50s": {
+   "n": 7,
+   "n_all": 50,
+   "median": -0.1066,
+   "lift": -0.0297,
+   "ci90": [
+    -0.2502,
+    0.7323
+   ],
+   "x_views": 0.934,
+   "delta_vs_without": -0.0301,
+   "too_few": true,
+   "n_without": 43,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.1,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    -0.15,
+    0.15
+   ]
+  },
+  "50-61s": {
+   "n": 24,
+   "n_all": 50,
+   "median": -0.2279,
+   "lift": -0.151,
+   "ci90": [
+    -0.2183,
+    0.5379
+   ],
+   "x_views": 0.706,
+   "delta_vs_without": -0.2047,
+   "too_few": false,
+   "n_without": 26,
+   "confident": false,
+   "share_top": 0.45,
+   "share_bottom": 0.6,
+   "share_diff": -0.15,
+   "share_diff_ci90": [
+    -0.4,
+    0.1
+   ]
+  },
+  ">61s": {
+   "n": 9,
+   "n_all": 50,
+   "median": -0.075,
+   "lift": 0.0019,
+   "ci90": [
+    -0.2093,
+    0.541
+   ],
+   "x_views": 1.004,
+   "delta_vs_without": 0.0316,
+   "too_few": false,
+   "n_without": 41,
+   "confident": false,
+   "share_top": 0.15,
+   "share_bottom": 0.15,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    -0.2,
+    0.2
+   ]
+  }
+ },
+ "numeric": {
+  "t_words": {
+   "n": 109,
+   "rho_outlier": 0.046,
+   "ci90": [
+    -0.113,
+    0.21
+   ],
+   "rho_log_views": 0.035,
+   "median": 6.0,
+   "too_few": false
+  },
+  "t_chars": {
+   "n": 109,
+   "rho_outlier": -0.012,
+   "ci90": [
+    -0.173,
+    0.151
+   ],
+   "rho_log_views": -0.036,
+   "median": 36.0,
+   "too_few": false
+  },
+  "t_caps_words": {
+   "n": 109,
+   "rho_outlier": -0.228,
+   "ci90": [
+    -0.353,
+    -0.085
+   ],
+   "rho_log_views": -0.206,
+   "median": 0.0,
+   "too_few": false
+  },
+  "duration": {
+   "n": 50,
+   "rho_outlier": -0.233,
+   "ci90": [
+    -0.438,
+    0.008
+   ],
+   "rho_log_views": -0.233,
+   "median": 55.0,
+   "too_few": false
+  },
+  "hook_words": {
+   "n": 50,
+   "rho_outlier": 0.15,
+   "ci90": [
+    -0.113,
+    0.369
+   ],
+   "rho_log_views": 0.175,
+   "median": 15.5,
+   "too_few": false
+  },
+  "first_word_s": {
+   "n": 50,
+   "rho_outlier": -0.16,
+   "ci90": [
+    -0.398,
+    0.09
+   ],
+   "rho_log_views": -0.122,
+   "median": 0.16,
+   "too_few": false
+  },
+  "wps": {
+   "n": 49,
+   "rho_outlier": 0.086,
+   "ci90": [
+    -0.171,
+    0.371
+   ],
+   "rho_log_views": 0.092,
+   "median": 3.04,
+   "too_few": false
+  },
+  "age_rank": {
+   "n": 109,
+   "rho_outlier": -0.09,
+   "ci90": [
+    -0.265,
+    0.093
+   ],
+   "rho_log_views": -0.286,
+   "median": 54.0,
+   "too_few": false
+  }
+ },
+ "findings": [
+  "OVER hook: absurd_fact: 75% of top-N vs 45% of bottom-N (diff +30%, 90% CI +5%..+55%, n=32)",
+  "UNDER title has an ALL-CAPS word: median x0.63 views vs channel norm (n=16, 90% CI x0.54-x0.88)",
+  "OVER title has a negation (don't/never/nobody/not): median x1.16 views vs channel norm (n=13, 90% CI x1.04-x3.08)",
+  "suggestive title has a #hashtag: median x2.39 views vs channel norm (n=11, 90% CI x0.95-x11.67)",
+  "too few to trust (3) topic: food: median x3.43 views vs channel norm (n=3, 90% CI x1.00-x5.40)",
+  "suggestive title has this/these: median x0.79 views vs channel norm (n=11, 90% CI x0.44-x1.02)",
+  "suggestive hook: number_superlative: 30% of top-N vs 10% of bottom-N (diff +20%, 90% CI +0%..+40%, n=10)",
+  "suggestive duration 20-35s: 30% of top-N vs 10% of bottom-N (diff +20%, 90% CI +0%..+40%, n=8)",
+  "too few to trust hook: story_open: 15% of top-N vs 0% of bottom-N (diff +15%, 90% CI +5%..+30%, n=3)",
+  "suggestive hook: second_person: 15% of top-N vs 30% of bottom-N (diff -15%, 90% CI -35%..+5%, n=10)",
+  "suggestive duration 50-61s: 45% of top-N vs 60% of bottom-N (diff -15%, 90% CI -40%..+10%, n=24)",
+  "too few to trust (5) title has a number: median x1.47 views vs channel norm (n=5, 90% CI x0.18-x11.67)",
+  "too few to trust hook: setup_opener: 0% of top-N vs 10% of bottom-N (diff -10%, 90% CI -20%..+0%, n=2)",
+  "too few to trust hook: question: 10% of top-N vs 20% of bottom-N (diff -10%, 90% CI -30%..+10%, n=7)",
+  "rank-correlation ALL-CAPS words in title vs outlier: rho=-0.23 (n=109, 90% CI -0.35..-0.09)",
+  "weak rank-correlation duration (s) vs outlier: rho=-0.23 (n=50, 90% CI -0.44..+0.01)"
+ ],
+ "hook_templates_top": [
+  {
+   "template": "The [...] would [...] and [...] [person] [...].",
+   "outlier": 2.0553,
+   "types": [
+    "absurd_fact",
+    "number_superlative"
+   ],
+   "topic": "engineering_how"
+  },
+  {
+   "template": "This is a [...], the [...] of a [...] and a [...].",
+   "outlier": 1.1407,
+   "types": [
+    "this_is_meet"
+   ],
+   "topic": "animals_nature"
+  },
+  {
+   "template": "[...] and then [...] their [...], [...] to the [...].",
+   "outlier": 1.1397,
+   "types": [
+    "absurd_fact"
+   ],
+   "topic": "animals_nature"
+  },
+  {
+   "template": "A one [...] to a [N] [...] [person] [...], it's [...] a [N] [...].",
+   "outlier": 1.0915,
+   "types": [
+    "absurd_fact",
+    "contrast_twist",
+    "number_superlative"
+   ],
+   "topic": "animals_nature"
+  },
+  {
+   "template": "[...] to [...] that [person] [...] be [...] to [...] because [...] that actually [...] of [...].",
+   "outlier": 1.0474,
+   "types": [
+    "absurd_fact",
+    "curiosity_gap"
+   ],
+   "topic": "other"
+  },
+  {
+   "template": "[...] a [...] you are not [...] [did] to all of your [...].",
+   "outlier": 1.0471,
+   "types": [
+    "second_person",
+    "this_is_meet"
+   ],
+   "topic": "body_medicine"
+  },
+  {
+   "template": "[...] the [...] an [...] and a [...]?",
+   "outlier": 0.8697,
+   "types": [
+    "comparison",
+    "question"
+   ],
+   "topic": "body_medicine"
+  },
+  {
+   "template": "[...] are [...]. it [...] out a [...] how [...] on their [...] [did] [N] of",
+   "outlier": 0.8008,
+   "types": [
+    "absurd_fact",
+    "curiosity_gap",
+    "number_superlative"
+   ],
+   "topic": "animals_nature"
+  },
+  {
+   "template": "Why do [...] at a [...], [...]?",
+   "outlier": 0.7991,
+   "types": [
+    "curiosity_gap",
+    "question"
+   ],
+   "topic": "body_medicine"
+  },
+  {
+   "template": "There are a [...] are so [...] to [...].",
+   "outlier": 0.7932,
+   "types": [
+    "absurd_fact"
+   ],
+   "topic": "space_physics"
+  },
+  {
+   "template": "For the most [...], the [...] [person] [...] at [...] not only [...] only [...] on [...]",
+   "outlier": 0.7571,
+   "types": [
+    "absurd_fact",
+    "number_superlative"
+   ],
+   "topic": "food"
+  },
+  {
+   "template": "When [...], it's [did] a [...].",
+   "outlier": 0.7522,
+   "types": [
+    "absurd_fact",
+    "story_open"
+   ],
+   "topic": "space_physics"
+  }
+ ],
+ "canonical_templates": {
+  "absurd_fact": "[person] did [absurd act] to [goal].",
+  "forbidden_impossible": "[X] is illegal / impossible in [place], yet [people] still [do it].",
+  "if_you": "If you [everyday act], you'd [surprising consequence].",
+  "question": "Why do [familiar things] [odd behaviour]?",
+  "this_is_meet": "This is [person/object], and [it does something absurd].",
+  "number_superlative": "[N] [people/things] [did extreme thing] -- the [most/first] [X] ever.",
+  "story_open": "In [year], [person] [did something strange] ...",
+  "second_person": "You [do everyday thing] every day, but [hidden fact].",
+  "comparison": "[X] is [N] times [bigger/deadlier] than [Y].",
+  "curiosity_gap": "Nobody knows why [X], until [person] [found out].",
+  "contrast_twist": "[X] seems [normal], but [twist]."
+ },
+ "example_titles": [
+  "Grolar Bears #Shorts",
+  "How worms wormed their way into American soil!",
+  "The Coyote Paradox",
+  "Adult Cats Only Meow At Humans #shorts",
+  "Opossum vs Possum #shorts"
+ ],
+ "note": "Correlation only. Lifts are log10 multipliers vs the channel's own neighbour-median (outlier score). Templates are abstracted skeletons, not transcripts."
+}

@@ -260,3 +260,31 @@ critter eyes make sad/smug subtle, the flatvec bird's visemes are small, the ske
 about 1.4x on the full manhole short (78-128 s vs 141-145 s, Ryzen 7 9800X3D + RTX 5070); x264 `medium` instead of `slow`; CRF 14
 (about 15 Mbps at 1440p30, meeting YouTube's upload recommendation; CRF 16 gave about 10 Mbps). Re-run the benchmark on a new
 machine before changing these: `node tools/bench.mjs --project ID --frames 0-299 --variants old,default,old,default`.
+
+**Thumbnails (`lib/thumbs.tsx`, `tools/thumbs.mjs`, `analyzer/vfa/thumbcheck.py`).** A project opts in with
+`thumbnails: (fps) => ThumbVariant[]` (see `projects/manhole/thumbs.ts`, 7 variants). Each variant freezes a frame of
+the real world.
+- **Camera:** an override, absolute pos/look/fov or relative dolly/orbit/lift/dutch/shift/pan. Character cards and other
+  `userData.faceCamera` billboards are re-aimed at the override camera.
+- **Overlay:** 1-4 auto-fitted heavy words with a highlight word or colour pill, placed left/right/top/bottom and never in the
+  bottom-right timestamp zone.
+- **Accents and pop:** arrow, circle, ?/! burst, X/check, and a "pop" grade with a focal vignette and scrim.
+- **Sizes:** `long` 1280x720, `short` 1080x1920 cover, `hires` 2560x1440, each kept under 2 MB.
+
+`thumbs.mjs` writes a sheet that shows every variant at real feed sizes on light and dark UI. `thumbcheck` scores it
+(0-100):
+- OCR readability at 168x94 (25)
+- text size (10)
+- word count (8)
+- WCAG contrast (12)
+- focal clarity (15)
+- subject size (10)
+- timestamp zone (5)
+- colour pop (10)
+- diversity of the set (5)
+
+Scores rank a set; they are not absolute quality. LOOK at the sheet. Known weak spots: the OCR is flaky on single huge
+words, and cartoon-face subject size is underestimated.
+
+YouTube specs, checked 2026-11-10: recommended 3840x2160 for videos and 2160x3840 for Shorts; minimum 640 px; 2 MB on
+mobile and 50 MB on desktop. Custom Shorts thumbnails can only be set in YouTube Studio on desktop.

@@ -1,0 +1,1113 @@
+{
+ "kind": "vfa-topics-summary",
+ "version": 1,
+ "channel": {
+  "name": "Veritasium",
+  "handle": "@veritasium",
+  "url": "https://www.youtube.com/@veritasium/shorts",
+  "tab": "shorts",
+  "listed": 95,
+  "used": 90,
+  "hooks": 50,
+  "hook_sources": {
+   "subs": 49,
+   "whisper-small-8s": 1
+  },
+  "fetched": "2026-11-10",
+  "date_range_known": [
+   "20210719",
+   "20261009"
+  ],
+  "median_views": 5450000.0,
+  "followers": 21400000,
+  "style": null
+ },
+ "params": {
+  "max": 300,
+  "last": null,
+  "skip_newest": 5,
+  "k": 10,
+  "subs_top": 20,
+  "subs_bottom": 20,
+  "subs_mid": 10,
+  "min_age_days": 0,
+  "min_n": 8,
+  "ci": 0.9,
+  "bootstrap": 2000
+ },
+ "channel_median_outlier": -0.0392,
+ "n": 90,
+ "hook_n": 50,
+ "topic": {
+  "body_medicine": {
+   "n": 5,
+   "n_all": 90,
+   "median": 0.1368,
+   "lift": 0.1759,
+   "ci90": [
+    -0.5215,
+    0.6215
+   ],
+   "x_views": 1.499,
+   "delta_vs_without": 0.1826,
+   "too_few": true,
+   "n_without": 85,
+   "confident": false
+  },
+  "animals_nature": {
+   "n": 6,
+   "n_all": 90,
+   "median": -0.0583,
+   "lift": -0.0192,
+   "ci90": [
+    -0.13,
+    0.2913
+   ],
+   "x_views": 0.957,
+   "delta_vs_without": -0.0294,
+   "too_few": true,
+   "n_without": 84,
+   "confident": false
+  },
+  "history": {
+   "n": 1,
+   "n_all": 90,
+   "median": 0.0783,
+   "lift": 0.1174,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 1.31,
+   "delta_vs_without": 0.1241,
+   "too_few": true,
+   "n_without": 89,
+   "confident": false
+  },
+  "engineering_how": {
+   "n": 14,
+   "n_all": 90,
+   "median": -0.0908,
+   "lift": -0.0516,
+   "ci90": [
+    -0.3112,
+    0.2264
+   ],
+   "x_views": 0.888,
+   "delta_vs_without": -0.0618,
+   "too_few": false,
+   "n_without": 76,
+   "confident": false
+  },
+  "space_physics": {
+   "n": 27,
+   "n_all": 90,
+   "median": 0.1654,
+   "lift": 0.2046,
+   "ci90": [
+    -0.1024,
+    0.2652
+   ],
+   "x_views": 1.602,
+   "delta_vs_without": 0.2137,
+   "too_few": false,
+   "n_without": 63,
+   "confident": false
+  },
+  "money_economics": {
+   "n": 2,
+   "n_all": 90,
+   "median": -0.1134,
+   "lift": -0.0742,
+   "ci90": [
+    -0.682,
+    0.5335
+   ],
+   "x_views": 0.843,
+   "delta_vs_without": -0.0742,
+   "too_few": true,
+   "n_without": 88,
+   "confident": false
+  },
+  "law_crime": {
+   "n": 4,
+   "n_all": 90,
+   "median": -0.2797,
+   "lift": -0.2405,
+   "ci90": [
+    -0.438,
+    0.3224
+   ],
+   "x_views": 0.575,
+   "delta_vs_without": -0.2507,
+   "too_few": true,
+   "n_without": 86,
+   "confident": false
+  },
+  "food": {
+   "n": 1,
+   "n_all": 90,
+   "median": 0.3372,
+   "lift": 0.3764,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": 2.379,
+   "delta_vs_without": 0.383,
+   "too_few": true,
+   "n_without": 89,
+   "confident": false
+  },
+  "disasters_survival": {
+   "n": 2,
+   "n_all": 90,
+   "median": -0.0736,
+   "lift": -0.0344,
+   "ci90": [
+    -0.0597,
+    -0.0091
+   ],
+   "x_views": 0.924,
+   "delta_vs_without": -0.0446,
+   "too_few": true,
+   "n_without": 88,
+   "confident": false
+  },
+  "psychology_behaviour": {
+   "n": 7,
+   "n_all": 90,
+   "median": -0.016,
+   "lift": 0.0232,
+   "ci90": [
+    -0.395,
+    0.4599
+   ],
+   "x_views": 1.055,
+   "delta_vs_without": 0.0298,
+   "too_few": true,
+   "n_without": 83,
+   "confident": false
+  },
+  "tech": {
+   "n": 3,
+   "n_all": 90,
+   "median": 0.0994,
+   "lift": 0.1386,
+   "ci90": [
+    -0.4424,
+    0.7218
+   ],
+   "x_views": 1.376,
+   "delta_vs_without": 0.1452,
+   "too_few": true,
+   "n_without": 87,
+   "confident": false
+  },
+  "everyday_objects": {
+   "n": 5,
+   "n_all": 90,
+   "median": 0.427,
+   "lift": 0.4662,
+   "ci90": [
+    -0.0091,
+    0.7591
+   ],
+   "x_views": 2.925,
+   "delta_vs_without": 0.4753,
+   "too_few": true,
+   "n_without": 85,
+   "confident": false
+  },
+  "geopolitics_military": {
+   "n": 0,
+   "n_all": 90,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true
+  },
+  "other": {
+   "n": 13,
+   "n_all": 90,
+   "median": -0.0689,
+   "lift": -0.0297,
+   "ci90": [
+    -0.2169,
+    0.0161
+   ],
+   "x_views": 0.934,
+   "delta_vs_without": -0.0529,
+   "too_few": false,
+   "n_without": 77,
+   "confident": false
+  }
+ },
+ "title": {
+  "t_question": {
+   "n": 31,
+   "n_all": 90,
+   "median": -0.1079,
+   "lift": -0.0687,
+   "ci90": [
+    -0.13,
+    0.0161
+   ],
+   "x_views": 0.854,
+   "delta_vs_without": -0.2073,
+   "too_few": false,
+   "n_without": 59,
+   "confident": false
+  },
+  "t_number": {
+   "n": 4,
+   "n_all": 90,
+   "median": 0.0571,
+   "lift": 0.0963,
+   "ci90": [
+    -0.0361,
+    0.5335
+   ],
+   "x_views": 1.248,
+   "delta_vs_without": 0.0963,
+   "too_few": true,
+   "n_without": 86,
+   "confident": false
+  },
+  "t_emoji": {
+   "n": 0,
+   "n_all": 90,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true
+  },
+  "t_caps_word": {
+   "n": 8,
+   "n_all": 90,
+   "median": -0.0723,
+   "lift": -0.0331,
+   "ci90": [
+    -0.1734,
+    0.1921
+   ],
+   "x_views": 0.927,
+   "delta_vs_without": -0.0331,
+   "too_few": false,
+   "n_without": 82,
+   "confident": false
+  },
+  "t_you": {
+   "n": 14,
+   "n_all": 90,
+   "median": -0.0738,
+   "lift": -0.0347,
+   "ci90": [
+    -0.0925,
+    0.2508
+   ],
+   "x_views": 0.923,
+   "delta_vs_without": -0.0449,
+   "too_few": false,
+   "n_without": 76,
+   "confident": false
+  },
+  "t_why_how": {
+   "n": 32,
+   "n_all": 90,
+   "median": -0.0404,
+   "lift": -0.0013,
+   "ci90": [
+    -0.1057,
+    0.1966
+   ],
+   "x_views": 0.997,
+   "delta_vs_without": -0.0048,
+   "too_few": false,
+   "n_without": 58,
+   "confident": false
+  },
+  "t_starts_why_how": {
+   "n": 26,
+   "n_all": 90,
+   "median": -0.0404,
+   "lift": -0.0013,
+   "ci90": [
+    -0.104,
+    0.1738
+   ],
+   "x_views": 0.997,
+   "delta_vs_without": -0.0048,
+   "too_few": false,
+   "n_without": 64,
+   "confident": false
+  },
+  "t_this": {
+   "n": 12,
+   "n_all": 90,
+   "median": -0.0498,
+   "lift": -0.0106,
+   "ci90": [
+    -0.313,
+    0.3085
+   ],
+   "x_views": 0.976,
+   "delta_vs_without": -0.0208,
+   "too_few": false,
+   "n_without": 78,
+   "confident": false
+  },
+  "t_superlative": {
+   "n": 13,
+   "n_all": 90,
+   "median": 0.2021,
+   "lift": 0.2413,
+   "ci90": [
+    -0.0601,
+    0.4148
+   ],
+   "x_views": 1.743,
+   "delta_vs_without": 0.2504,
+   "too_few": false,
+   "n_without": 77,
+   "confident": false
+  },
+  "t_forbidden_impossible": {
+   "n": 4,
+   "n_all": 90,
+   "median": -0.0383,
+   "lift": 0.0009,
+   "ci90": [
+    -0.046,
+    0.2661
+   ],
+   "x_views": 1.002,
+   "delta_vs_without": 0.0009,
+   "too_few": true,
+   "n_without": 86,
+   "confident": false
+  },
+  "t_curiosity": {
+   "n": 39,
+   "n_all": 90,
+   "median": -0.0483,
+   "lift": -0.0091,
+   "ci90": [
+    -0.1057,
+    0.1386
+   ],
+   "x_views": 0.979,
+   "delta_vs_without": -0.0323,
+   "too_few": false,
+   "n_without": 51,
+   "confident": false
+  },
+  "t_hashtag": {
+   "n": 2,
+   "n_all": 90,
+   "median": 0.4866,
+   "lift": 0.5258,
+   "ci90": [
+    0.4604,
+    0.5912
+   ],
+   "x_views": 3.356,
+   "delta_vs_without": 0.5337,
+   "too_few": true,
+   "n_without": 88,
+   "confident": false
+  },
+  "t_the_that": {
+   "n": 0,
+   "n_all": 90,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true
+  },
+  "t_negation": {
+   "n": 5,
+   "n_all": 90,
+   "median": 0.1761,
+   "lift": 0.2152,
+   "ci90": [
+    -0.3263,
+    0.7136
+   ],
+   "x_views": 1.641,
+   "delta_vs_without": 0.2244,
+   "too_few": true,
+   "n_without": 85,
+   "confident": false
+  }
+ },
+ "hook": {
+  "absurd_fact": {
+   "n": 20,
+   "n_all": 50,
+   "median": 0.3537,
+   "lift": 0.4007,
+   "ci90": [
+    -0.0013,
+    0.5696
+   ],
+   "x_views": 2.516,
+   "delta_vs_without": 0.5671,
+   "too_few": false,
+   "n_without": 30,
+   "confident": false,
+   "share_top": 0.55,
+   "share_bottom": 0.25,
+   "share_diff": 0.3,
+   "share_diff_ci90": [
+    0.05,
+    0.55
+   ]
+  },
+  "question": {
+   "n": 11,
+   "n_all": 50,
+   "median": -0.4535,
+   "lift": -0.4065,
+   "ci90": [
+    -0.5736,
+    0.4227
+   ],
+   "x_views": 0.392,
+   "delta_vs_without": -0.5318,
+   "too_few": false,
+   "n_without": 39,
+   "confident": false,
+   "share_top": 0.15,
+   "share_bottom": 0.35,
+   "share_diff": -0.2,
+   "share_diff_ci90": [
+    -0.4,
+    0.05
+   ]
+  },
+  "if_you": {
+   "n": 8,
+   "n_all": 50,
+   "median": 0.1551,
+   "lift": 0.2022,
+   "ci90": [
+    -0.636,
+    0.5366
+   ],
+   "x_views": 1.593,
+   "delta_vs_without": 0.2022,
+   "too_few": false,
+   "n_without": 42,
+   "confident": false,
+   "share_top": 0.2,
+   "share_bottom": 0.15,
+   "share_diff": 0.05,
+   "share_diff_ci90": [
+    -0.15,
+    0.25
+   ]
+  },
+  "this_is_meet": {
+   "n": 5,
+   "n_all": 50,
+   "median": -0.3655,
+   "lift": -0.3185,
+   "ci90": [
+    -0.5727,
+    -0.0275
+   ],
+   "x_views": 0.48,
+   "delta_vs_without": -0.4438,
+   "too_few": true,
+   "n_without": 45,
+   "confident": false,
+   "share_top": 0.0,
+   "share_bottom": 0.15,
+   "share_diff": -0.15,
+   "share_diff_ci90": [
+    -0.3,
+    -0.05
+   ]
+  },
+  "number_superlative": {
+   "n": 19,
+   "n_all": 50,
+   "median": 0.0783,
+   "lift": 0.1253,
+   "ci90": [
+    -0.0219,
+    0.4227
+   ],
+   "x_views": 1.334,
+   "delta_vs_without": 0.1529,
+   "too_few": false,
+   "n_without": 31,
+   "confident": false,
+   "share_top": 0.4,
+   "share_bottom": 0.25,
+   "share_diff": 0.15,
+   "share_diff_ci90": [
+    -0.1,
+    0.4
+   ]
+  },
+  "forbidden_impossible": {
+   "n": 0,
+   "n_all": 50,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true,
+   "share_top": 0.0,
+   "share_bottom": 0.0,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    0.0,
+    0.0
+   ]
+  },
+  "second_person": {
+   "n": 19,
+   "n_all": 50,
+   "median": 0.3757,
+   "lift": 0.4227,
+   "ci90": [
+    -0.3052,
+    0.5991
+   ],
+   "x_views": 2.647,
+   "delta_vs_without": 0.4411,
+   "too_few": false,
+   "n_without": 31,
+   "confident": false,
+   "share_top": 0.5,
+   "share_bottom": 0.35,
+   "share_diff": 0.15,
+   "share_diff_ci90": [
+    -0.1,
+    0.4
+   ]
+  },
+  "story_open": {
+   "n": 2,
+   "n_all": 50,
+   "median": 0.2158,
+   "lift": 0.2628,
+   "ci90": [
+    0.1253,
+    0.4003
+   ],
+   "x_views": 1.831,
+   "delta_vs_without": 0.2727,
+   "too_few": true,
+   "n_without": 48,
+   "confident": false,
+   "share_top": 0.05,
+   "share_bottom": 0.0,
+   "share_diff": 0.05,
+   "share_diff_ci90": [
+    0.0,
+    0.15
+   ]
+  },
+  "comparison": {
+   "n": 0,
+   "n_all": 50,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true,
+   "share_top": 0.0,
+   "share_bottom": 0.0,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    0.0,
+    0.0
+   ]
+  },
+  "curiosity_gap": {
+   "n": 8,
+   "n_all": 50,
+   "median": -0.5175,
+   "lift": -0.4705,
+   "ci90": [
+    -0.5436,
+    0.0672
+   ],
+   "x_views": 0.338,
+   "delta_vs_without": -0.5404,
+   "too_few": false,
+   "n_without": 42,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.3,
+   "share_diff": -0.2,
+   "share_diff_ci90": [
+    -0.4,
+    0.0
+   ]
+  },
+  "contrast_twist": {
+   "n": 2,
+   "n_all": 50,
+   "median": 0.4618,
+   "lift": 0.5089,
+   "ci90": [
+    0.401,
+    0.6168
+   ],
+   "x_views": 3.228,
+   "delta_vs_without": 0.5187,
+   "too_few": true,
+   "n_without": 48,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.0,
+   "share_diff": 0.1,
+   "share_diff_ci90": [
+    0.0,
+    0.25
+   ]
+  },
+  "setup_opener": {
+   "n": 3,
+   "n_all": 50,
+   "median": -0.0325,
+   "lift": 0.0146,
+   "ci90": [
+    -0.4073,
+    0.4572
+   ],
+   "x_views": 1.034,
+   "delta_vs_without": 0.0158,
+   "too_few": true,
+   "n_without": 47,
+   "confident": false,
+   "share_top": 0.05,
+   "share_bottom": 0.05,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    -0.1,
+    0.1
+   ]
+  },
+  "imperative": {
+   "n": 3,
+   "n_all": 50,
+   "median": -0.4816,
+   "lift": -0.4345,
+   "ci90": [
+    -0.8195,
+    0.2802
+   ],
+   "x_views": 0.368,
+   "delta_vs_without": -0.4358,
+   "too_few": true,
+   "n_without": 47,
+   "confident": false,
+   "share_top": 0.0,
+   "share_bottom": 0.1,
+   "share_diff": -0.1,
+   "share_diff_ci90": [
+    -0.2,
+    0.0
+   ]
+  },
+  "no_speech": {
+   "n": 0,
+   "n_all": 50,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true,
+   "share_top": 0.0,
+   "share_bottom": 0.0,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "duration": {
+  "<20s": {
+   "n": 0,
+   "n_all": 50,
+   "median": null,
+   "lift": null,
+   "ci90": [
+    null,
+    null
+   ],
+   "x_views": null,
+   "delta_vs_without": null,
+   "too_few": true,
+   "share_top": 0.0,
+   "share_bottom": 0.0,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    0.0,
+    0.0
+   ]
+  },
+  "20-35s": {
+   "n": 2,
+   "n_all": 50,
+   "median": 0.5735,
+   "lift": 0.6206,
+   "ci90": [
+    0.474,
+    0.7671
+   ],
+   "x_views": 4.174,
+   "delta_vs_without": 0.6303,
+   "too_few": true,
+   "n_without": 48,
+   "confident": false,
+   "share_top": 0.1,
+   "share_bottom": 0.0,
+   "share_diff": 0.1,
+   "share_diff_ci90": [
+    0.0,
+    0.2
+   ]
+  },
+  "35-50s": {
+   "n": 7,
+   "n_all": 50,
+   "median": -0.0325,
+   "lift": 0.0146,
+   "ci90": [
+    -0.5136,
+    0.5991
+   ],
+   "x_views": 1.034,
+   "delta_vs_without": 0.0158,
+   "too_few": true,
+   "n_without": 43,
+   "confident": false,
+   "share_top": 0.15,
+   "share_bottom": 0.15,
+   "share_diff": 0.0,
+   "share_diff_ci90": [
+    -0.2,
+    0.2
+   ]
+  },
+  "50-61s": {
+   "n": 13,
+   "n_all": 50,
+   "median": 0.4207,
+   "lift": 0.4677,
+   "ci90": [
+    -0.2883,
+    0.6018
+   ],
+   "x_views": 2.936,
+   "delta_vs_without": 0.4861,
+   "too_few": false,
+   "n_without": 37,
+   "confident": false,
+   "share_top": 0.35,
+   "share_bottom": 0.2,
+   "share_diff": 0.15,
+   "share_diff_ci90": [
+    -0.1,
+    0.4
+   ]
+  },
+  ">61s": {
+   "n": 28,
+   "n_all": 50,
+   "median": -0.0718,
+   "lift": -0.0247,
+   "ci90": [
+    -0.4073,
+    0.0633
+   ],
+   "x_views": 0.945,
+   "delta_vs_without": -0.4927,
+   "too_few": false,
+   "n_without": 22,
+   "confident": false,
+   "share_top": 0.4,
+   "share_bottom": 0.65,
+   "share_diff": -0.25,
+   "share_diff_ci90": [
+    -0.5,
+    0.0
+   ]
+  }
+ },
+ "numeric": {
+  "t_words": {
+   "n": 90,
+   "rho_outlier": -0.043,
+   "ci90": [
+    -0.203,
+    0.135
+   ],
+   "rho_log_views": -0.172,
+   "median": 6.0,
+   "too_few": false
+  },
+  "t_chars": {
+   "n": 90,
+   "rho_outlier": -0.041,
+   "ci90": [
+    -0.218,
+    0.125
+   ],
+   "rho_log_views": -0.192,
+   "median": 35.5,
+   "too_few": false
+  },
+  "t_caps_words": {
+   "n": 90,
+   "rho_outlier": -0.046,
+   "ci90": [
+    -0.196,
+    0.099
+   ],
+   "rho_log_views": 0.02,
+   "median": 0.0,
+   "too_few": false
+  },
+  "duration": {
+   "n": 50,
+   "rho_outlier": -0.331,
+   "ci90": [
+    -0.546,
+    -0.047
+   ],
+   "rho_log_views": -0.371,
+   "median": 69.0,
+   "too_few": false
+  },
+  "hook_words": {
+   "n": 50,
+   "rho_outlier": 0.196,
+   "ci90": [
+    -0.06,
+    0.418
+   ],
+   "rho_log_views": 0.171,
+   "median": 15.5,
+   "too_few": false
+  },
+  "first_word_s": {
+   "n": 50,
+   "rho_outlier": -0.392,
+   "ci90": [
+    -0.585,
+    -0.173
+   ],
+   "rho_log_views": -0.148,
+   "median": 0.0,
+   "too_few": false
+  },
+  "wps": {
+   "n": 50,
+   "rho_outlier": -0.25,
+   "ci90": [
+    -0.489,
+    -0.013
+   ],
+   "rho_log_views": -0.354,
+   "median": 2.965,
+   "too_few": false
+  },
+  "age_rank": {
+   "n": 90,
+   "rho_outlier": 0.004,
+   "ci90": [
+    -0.181,
+    0.19
+   ],
+   "rho_log_views": -0.547,
+   "median": 44.5,
+   "too_few": false
+  }
+ },
+ "findings": [
+  "OVER hook: absurd_fact: 55% of top-N vs 25% of bottom-N (diff +30%, 90% CI +5%..+55%, n=20)",
+  "suggestive title has a superlative: median x1.74 views vs channel norm (n=13, 90% CI x0.87-x2.60)",
+  "suggestive topic: space_physics: median x1.60 views vs channel norm (n=27, 90% CI x0.79-x1.84)",
+  "too few to trust (5) topic: everyday_objects: median x2.93 views vs channel norm (n=5, 90% CI x0.98-x5.74)",
+  "suggestive duration >61s: 40% of top-N vs 65% of bottom-N (diff -25%, 90% CI -50%..+0%, n=28)",
+  "suggestive hook: question: 15% of top-N vs 35% of bottom-N (diff -20%, 90% CI -40%..+5%, n=11)",
+  "suggestive hook: curiosity_gap: 10% of top-N vs 30% of bottom-N (diff -20%, 90% CI -40%..+0%, n=8)",
+  "too few to trust (4) topic: law_crime: median x0.57 views vs channel norm (n=4, 90% CI x0.36-x2.10)",
+  "too few to trust hook: this_is_meet: 0% of top-N vs 15% of bottom-N (diff -15%, 90% CI -30%..-5%, n=5)",
+  "suggestive hook: second_person: 50% of top-N vs 35% of bottom-N (diff +15%, 90% CI -10%..+40%, n=19)",
+  "suggestive hook: number_superlative: 40% of top-N vs 25% of bottom-N (diff +15%, 90% CI -10%..+40%, n=19)",
+  "suggestive duration 50-61s: 35% of top-N vs 20% of bottom-N (diff +15%, 90% CI -10%..+40%, n=13)",
+  "too few to trust (5) title has a negation (don't/never/nobody/not): median x1.64 views vs channel norm (n=5, 90% CI x0.47-x5.17)",
+  "too few to trust (5) topic: body_medicine: median x1.50 views vs channel norm (n=5, 90% CI x0.30-x4.18)",
+  "too few to trust hook: imperative: 0% of top-N vs 10% of bottom-N (diff -10%, 90% CI -20%..+0%, n=3)",
+  "too few to trust hook: contrast_twist: 10% of top-N vs 0% of bottom-N (diff +10%, 90% CI +0%..+25%, n=2)",
+  "too few to trust duration 20-35s: 10% of top-N vs 0% of bottom-N (diff +10%, 90% CI +0%..+20%, n=2)",
+  "rank-correlation duration (s) vs outlier: rho=-0.33 (n=50, 90% CI -0.55..-0.05)",
+  "rank-correlation voice starts at (s) vs outlier: rho=-0.39 (n=50, 90% CI -0.58..-0.17)",
+  "rank-correlation speech rate (words/s) vs outlier: rho=-0.25 (n=50, 90% CI -0.49..-0.01)"
+ ],
+ "hook_templates_top": [
+  {
+   "template": "What will [...] to this [...] if you [...] the [...]?",
+   "outlier": 1.0486,
+   "types": [
+    "if_you",
+    "question",
+    "second_person"
+   ],
+   "topic": "everyday_objects"
+  },
+  {
+   "template": "[...] [did] [N], [N] [...] to [...] to [...] in.",
+   "outlier": 0.9004,
+   "types": [
+    "absurd_fact",
+    "number_superlative"
+   ],
+   "topic": "psychology_behaviour"
+  },
+  {
+   "template": "[...] to [...] into this [...].",
+   "outlier": 0.795,
+   "types": [
+    "absurd_fact"
+   ],
+   "topic": "space_physics"
+  },
+  {
+   "template": "These [N] [...] were [did] at [...] the [...], by [Name] [Name] [Name] [Name].",
+   "outlier": 0.72,
+   "types": [
+    "absurd_fact",
+    "number_superlative"
+   ],
+   "topic": "everyday_objects"
+  },
+  {
+   "template": "There is this [...] [Name] [...] that [person] [...].",
+   "outlier": 0.6826,
+   "types": [
+    "absurd_fact"
+   ],
+   "topic": "tech"
+  },
+  {
+   "template": "[...] to [...] of [...] the no you [...] because [...] you [...] to do [...]",
+   "outlier": 0.6744,
+   "types": [
+    "absurd_fact",
+    "second_person"
+   ],
+   "topic": "law_crime"
+  },
+  {
+   "template": "[...] [did] [...] the [...], their [did] [...] [did] the [...] on the [...], and [...] it [...] a [...]",
+   "outlier": 0.6243,
+   "types": [
+    "absurd_fact"
+   ],
+   "topic": "engineering_how"
+  },
+  {
+   "template": "This [...] one [...] your [...].",
+   "outlier": 0.5823,
+   "types": [
+    "second_person"
+   ],
+   "topic": "body_medicine"
+  },
+  {
+   "template": "The [...] is [...]. you [...] the [...] a [...] with a [...] that [...] from the [...] in [...] but",
+   "outlier": 0.5697,
+   "types": [
+    "contrast_twist",
+    "second_person"
+   ],
+   "topic": "animals_nature"
+  },
+  {
+   "template": "You [...] never [...] a [...] imagine you [...] your [Name] in a [...] and [...]",
+   "outlier": 0.5547,
+   "types": [
+    "second_person"
+   ],
+   "topic": "space_physics"
+  },
+  {
+   "template": "If you [...] a [...] its [...], the [...] the [...] [did].",
+   "outlier": 0.552,
+   "types": [
+    "curiosity_gap",
+    "if_you",
+    "second_person"
+   ],
+   "topic": "space_physics"
+  },
+  {
+   "template": "[...] with [Name] and [...] to [...] to [...] [N], [N] from his [did] [...].",
+   "outlier": 0.4944,
+   "types": [
+    "absurd_fact",
+    "number_superlative"
+   ],
+   "topic": "money_economics"
+  }
+ ],
+ "canonical_templates": {
+  "absurd_fact": "[person] did [absurd act] to [goal].",
+  "forbidden_impossible": "[X] is illegal / impossible in [place], yet [people] still [do it].",
+  "if_you": "If you [everyday act], you'd [surprising consequence].",
+  "question": "Why do [familiar things] [odd behaviour]?",
+  "this_is_meet": "This is [person/object], and [it does something absurd].",
+  "number_superlative": "[N] [people/things] [did extreme thing] -- the [most/first] [X] ever.",
+  "story_open": "In [year], [person] [did something strange] ...",
+  "second_person": "You [do everyday thing] every day, but [hidden fact].",
+  "comparison": "[X] is [N] times [bigger/deadlier] than [Y].",
+  "curiosity_gap": "Nobody knows why [X], until [person] [found out].",
+  "contrast_twist": "[X] seems [normal], but [twist]."
+ },
+ "example_titles": [
+  "What happens if you cut the green rope?",
+  "Can you swim in shade balls?",
+  "I waterproofed myself with aerogel!",
+  "Falling ladders - why does this happen?",
+  "The Google Interview Question Everyone Gets Wrong"
+ ],
+ "note": "Correlation only. Lifts are log10 multipliers vs the channel's own neighbour-median (outlier score). Templates are abstracted skeletons, not transcripts."
+}

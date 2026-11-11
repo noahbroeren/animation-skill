@@ -30,6 +30,7 @@ import { bench, bird, blocksShot, cloudCard, fence, flowerBox, house, lampPost, 
 import { FONTS, useU, WordCaptions } from "../../lib/two/text";
 import { clamp, ease, lerp, springAt } from "../../lib/time";
 import WORDS from "./words.json";
+import { manholeThumbs } from "./thumbs";
 import CUES from "./cues.json"; // Rhubarb mouth cues from the VO (audio/lipsync.py vo.wav --script script.txt --out cues.json)
 
 const OFF = 0.1;
@@ -387,7 +388,7 @@ const Diagram: React.FC = () => {
                 <line x1={-S / 2} y1={S / 2 + 34} x2={S / 2} y2={S / 2 + 34} stroke="#ffffff" strokeWidth={8} strokeLinecap="round" />
                 <text x={0} y={S / 2 + 82} textAnchor="middle" fill="#fff" fontFamily={FONTS.heavy} fontSize={52}>side = 1</text>
                 <line x1={-S / 2} y1={S / 2} x2={-S / 2 + S * diag} y2={S / 2 - S * diag} stroke="#ffd23f" strokeWidth={9} strokeLinecap="round" />
-                {diag > 0.6 && <text x={-S / 2} y={-S / 2 - 26} fill="#ffd23f" fontFamily={FONTS.heavy} fontSize={56} opacity={clamp((diag - 0.6) * 3)}>diagonal = 1.41</text>}
+                {diag > 0.6 && <text x={0} y={-S / 2 - 26} textAnchor="middle" fill="#ffd23f" fontFamily={FONTS.heavy} fontSize={50} opacity={clamp((diag - 0.6) * 3)}>diagonal = 1.41</text>}
               </>}
               {tilt > 0.9 && slide < 1 && <text x={0} y={-holeD / 2 - 24} textAnchor="middle" fill="#9dffb0" fontFamily={FONTS.heavy} fontSize={56}>fits!</text>}
             </g>
@@ -410,6 +411,7 @@ const Diagram: React.FC = () => {
 
 export const manholeShort: ProjectDef = {
   id: "manhole", title: "Why manhole covers are round", defaultFormat: "short", fps: 30, audio: "manhole/master.wav",
+  thumbnails: (fps) => manholeThumbs(timing(fps), { World, Diagram }),
   scenes: ({ fps }) => {
     const T = timing(fps);
     return [{

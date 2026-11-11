@@ -8,7 +8,7 @@
  *  - Native resolution: the canvas is exactly the composition size (pixel ratio 1).
  *  - Async assets (images/GLTF) use delayRender via ctx.wait(promise).
  */
-import React, { useLayoutEffect, useMemo, useRef } from "react";
+import React, { createContext, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { continueRender, delayRender, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
 import { CamState } from "../camera";
@@ -42,6 +42,10 @@ export type Stage3DProps<W> = {
 
 type Inst<W> = { ctx: StageCtx; world: W; post: PostPipeline };
 
+/** Camera override (thumbnails, inserts): when provided, replaces the camera that `update()` returns; motion blur
+ *  and dissolves are off for that frame. Receives the project camera so overrides can be relative. */
+export const CamOverride = createContext<((cam: CamState, frame: number) => CamState) | null>(null);
+
 function applyCam(c: THREE.PerspectiveCamera, cam: CamState, aspect: number) {
   c.position.set(...cam.pos);
   c.up.set(0, 1, 0);
@@ -56,6 +60,7 @@ function applyCam(c: THREE.PerspectiveCamera, cam: CamState, aspect: number) {
 export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096, camAt, dissolveAt, cuts }: Stage3DProps<W>) {
   const frame = useCurrentFrame() + frameOffset;
   const { width, height, fps } = useVideoConfig();
+  const camOverride = useContext(CamOverride);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inst = useRef<Inst<W> | null>(null);
   const pending = useRef<Promise<unknown>[]>([]);
@@ -100,7 +105,17 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
   drawRef.current = () => {
     const it = inst.current;
     if (!it) return;
-    const cam = update(it.world, frame, it.ctx);
+    const cam0 = update(it.world, frame, it.ctx);
+    const cam = camOverride ? camOverride(cam0, frame) : cam0;
+    if (camOverride) { // billboards (character cards, FX sprites) must face the OVERRIDE camera, not the video camera
+      it.ctx.scene.updateMatrixWorld(true);
+      const wp = new THREE.Vector3();
+      it.ctx.scene.traverse((o) => {
+        if (!o.userData.faceCamera) return;
+        o.getWorldPosition(wp);
+        o.rotation.set(0, Math.atan2(cam.pos[0] - wp.x, cam.pos[2] - wp.z), 0);
+      });
+    }
     const c = it.ctx.camera;
     c.position.set(...cam.pos);
     c.up.set(0, 1, 0);
@@ -112,14 +127,14 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
     it.ctx.scene.updateMatrixWorld(true);
     const lk = typeof look === "function" ? look(frame) : look;
     let prevViewProj: THREE.Matrix4 | undefined;
-    const prev = camAt && frame > 0 ? camAt(frame - 1, fps) : null;
+    const prev = camAt && frame > 0 && !camOverride ? camAt(frame - 1, fps) : null;
     const jump = prev ? Math.hypot(prev.pos[0] - cam.pos[0], prev.pos[1] - cam.pos[1], prev.pos[2] - cam.pos[2]) > 0.35 * cam.focus : false; // undeclared cut
     if (prev && lk.motionBlur > 0 && !cuts?.includes(frame) && !jump) {
       const pc = (it as any).prevCam ?? ((it as any).prevCam = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
       applyCam(pc, prev, width / height);
       prevViewProj = new THREE.Matrix4().multiplyMatrices(pc.projectionMatrix, pc.matrixWorldInverse);
     }
-    const dz = dissolveAt ? dissolveAt(frame, fps) : null;
+    const dz = dissolveAt && !camOverride ? dissolveAt(frame, fps) : null;
     if (dz) {
       const ca = (it as any).dzA ?? ((it as any).dzA = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
       const cb = (it as any).dzB ?? ((it as any).dzB = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
