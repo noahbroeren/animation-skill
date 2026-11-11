@@ -57,3 +57,41 @@ Appended automatically by `vfa_loop.py learn` after each measured iteration. A c
 - regressed: shadow tint a (green-/magenta+) gap 0.99 -> 1.42 (ours 12.56 -> 13.4, ref 10.57)
 - regressed: micro-animation activity gap 2.72 -> 3.3 (ours 0.009391 -> 0.00709, ref 0.02028)
 
+## 2026-11-11 - elevator
+
+- change: iter2 (elevator proof short, stick cast): 3 cuts -> camera travels (16 f whip-crane, 28 f push-in, 34 f crane), grade from the gap table (highlights +R/-G, shadows less magenta, sat 1.14), DOF on all day shots, bunting sway, master -1.5 dBTP
+- note: measured vs the shipped fingerprint; iter1 used the same aggregate
+- match score: 53.1 -> 75.0
+- improved: true peak gap 1.1 -> 0.6 (ours -0.9 -> -1.4, ref -2)
+- improved: frames with camera motion gap 1.52 -> 0.58 (ours 0.8349 -> 0.9289, ref 0.9873)
+- improved: frames with fast camera motion gap 6.62 -> 6.07 (ours 0.2231 -> 0.2503, ref 0.5539)
+- regressed: glide length (frames) gap 3.4 -> 4.2 (ours 27 -> 23, ref 44)
+- improved: camera jerk gap 3.07 -> 0.21 (ours 2.3 -> 27.6, ref 29.48)
+- regressed: move ease-out frames gap 0.62 -> 0.88 (ours 9 -> 8, ref 11.5)
+- improved: colorfulness gap 1.06 -> 0.34 (ours 0.3266 -> 0.3051, ref 0.2948)
+- improved: highlight tint a gap 5.69 -> 0.68 (ours -9.439 -> 3.29, ref 1.936)
+- regressed: highlight tint b gap 0.7 -> 3.02 (ours 7.207 -> -0.2335, ref 5.806)
+- regressed: black floor (p1) gap 0.0 -> 0.78 (ours 0.09804 -> 0.1137, ref 0.09804)
+- improved: contrast gap 0.95 -> 0.3 (ours 0.1807 -> 0.2121, ref 0.2046)
+- improved: saturation gap 1.4 -> 0.32 (ours 0.536 -> 0.4927, ref 0.48)
+- regressed: shadow tint b (blue-/yellow+) gap 0.16 -> 0.46 (ours -5.045 -> -4.455, ref -5.367)
+- regressed: warmth (R-B) gap 1.76 -> 2.11 (ours 0.001936 -> -0.006704, ref 0.04604)
+- improved: average shot length gap 10.19 -> 6.64 (ours 10.09 -> 20.19, ref 16.21)
+- improved: cuts per minute gap 0.76 -> 0.23 (ours 4.953 -> 1.981, ref 2.667)
+- improved: DOF centre/border sharpness gap 2.74 -> 2.4 (ours 1.128 -> 1.231, ref 1.952)
+- improved: edge density (detail) gap 1.17 -> 0.75 (ours 0.04304 -> 0.04942, ref 0.06065)
+- regressed: ink lines on edges gap 0.02 -> 0.6 (ours 0.3494 -> 0.3034, ref 0.351)
+
+## 2026-11-11 - elevator
+
+- change: iter3: warmer highs [.03,-.004,-.03], DOF maxBlur 9, motes() dust in hall+street, hook re-framed after the shot audit, longer travels (20/36 f)
+- note: motes did NOT move micro-animation (.0070 -> .0070): the metric is motion-compensated residual energy, it scales with character PIXEL AREA; thin stick casts read ~1/3 of bean-head cards. Don't chase it with particles; use bigger gestures/closer framing or accept the style difference.
+- match score: 75.0 -> 78.1
+- improved: frames with fast camera motion gap 6.07 -> 5.53 (ours 0.2503 -> 0.2773, ref 0.5539)
+- regressed: glide length (frames) gap 4.2 -> 5.1 (ours 23 -> 18.5, ref 44)
+- regressed: camera jerk gap 0.21 -> 1.91 (ours 27.6 -> 12.55, ref 29.48)
+- improved: highlight tint b gap 3.02 -> 0.19 (ours -0.2335 -> 6.186, ref 5.806)
+- improved: shadow tint a (green-/magenta+) gap 1.87 -> 1.53 (ours 14.31 -> 13.62, ref 10.57)
+- regressed: shadow tint b (blue-/yellow+) gap 0.46 -> 0.9 (ours -4.455 -> -3.564, ref -5.367)
+- improved: warmth (R-B) gap 2.11 -> 0.64 (ours -0.006704 -> 0.03005, ref 0.04604)
+

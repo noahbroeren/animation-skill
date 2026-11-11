@@ -431,5 +431,287 @@
     "result": "regressed"
    }
   ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "elevator",
+  "change": "iter2 (elevator proof short, stick cast): 3 cuts -> camera travels (16 f whip-crane, 28 f push-in, 34 f crane), grade from the gap table (highlights +R/-G, shadows less magenta, sat 1.14), DOF on all day shots, bunting sway, master -1.5 dBTP",
+  "note": "measured vs the shipped fingerprint; iter1 used the same aggregate",
+  "match_score_before": 53.1,
+  "match_score_after": 75.0,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "audio.true_peak_dbtp",
+    "label": "true peak",
+    "gap_before": 1.1,
+    "gap_after": 0.6,
+    "ours_before": -0.9,
+    "ours_after": -1.4,
+    "ref": -2.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_creep",
+    "label": "frames with camera motion",
+    "gap_before": 1.52,
+    "gap_after": 0.58,
+    "ours_before": 0.83489784649365,
+    "ours_after": 0.9288864388092613,
+    "ref": 0.9873284054910243,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 6.62,
+    "gap_after": 6.07,
+    "ours_before": 0.22308117062396465,
+    "ours_after": 0.25027563395810365,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 3.4,
+    "gap_after": 4.2,
+    "ours_before": 27.0,
+    "ours_after": 23.0,
+    "ref": 44.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 3.07,
+    "gap_after": 0.21,
+    "ours_before": 2.300071972835041,
+    "ours_after": 27.604314583378418,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 0.62,
+    "gap_after": 0.88,
+    "ours_before": 9.0,
+    "ours_after": 8.0,
+    "ref": 11.5,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.colorfulness.median",
+    "label": "colorfulness",
+    "gap_before": 1.06,
+    "gap_after": 0.34,
+    "ours_before": 0.3265795419428085,
+    "ours_after": 0.3050736196557079,
+    "ref": 0.2947719466551656,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 5.69,
+    "gap_after": 0.68,
+    "ours_before": -9.438995361328125,
+    "ours_after": 3.2904891967773438,
+    "ref": 1.936219334602356,
+    "result": "improved"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 0.7,
+    "gap_after": 3.02,
+    "ours_before": 7.207327365875244,
+    "ours_after": -0.23354563117027283,
+    "ref": 5.8063578605651855,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.luma_p1.median",
+    "label": "black floor (p1)",
+    "gap_before": 0.0,
+    "gap_after": 0.78,
+    "ours_before": 0.09803921568627451,
+    "ours_after": 0.11372549019607843,
+    "ref": 0.09803921568627451,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.luma_std.median",
+    "label": "contrast",
+    "gap_before": 0.95,
+    "gap_after": 0.3,
+    "ours_before": 0.1807265728712082,
+    "ours_after": 0.21210066974163055,
+    "ref": 0.20457380264997482,
+    "result": "improved"
+   },
+   {
+    "metric": "color.sat_mean.median",
+    "label": "saturation",
+    "gap_before": 1.4,
+    "gap_after": 0.32,
+    "ours_before": 0.5359793901443481,
+    "ours_after": 0.49265843629837036,
+    "ref": 0.48001131415367126,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_b.median",
+    "label": "shadow tint b (blue-/yellow+)",
+    "gap_before": 0.16,
+    "gap_after": 0.46,
+    "ours_before": -5.044500827789307,
+    "ours_after": -4.455346584320068,
+    "ref": -5.367428779602051,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.warmth.median",
+    "label": "warmth (R-B)",
+    "gap_before": 1.76,
+    "gap_after": 2.11,
+    "ours_before": 0.001936130691319704,
+    "ours_after": -0.0067037856206297874,
+    "ref": 0.04604286700487137,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 10.19,
+    "gap_after": 6.64,
+    "ours_before": 10.094444444444445,
+    "ours_after": 20.18888888888889,
+    "ref": 16.20724959882321,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 0.76,
+    "gap_after": 0.23,
+    "ours_before": 4.953219592735278,
+    "ours_after": 1.981287837094111,
+    "ref": 2.666844444444444,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.dof_ratio.median",
+    "label": "DOF centre/border sharpness",
+    "gap_before": 2.74,
+    "gap_after": 2.4,
+    "ours_before": 1.128357173989062,
+    "ours_after": 1.2313262792401187,
+    "ref": 1.9517237917353885,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.edge_density.median",
+    "label": "edge density (detail)",
+    "gap_before": 1.17,
+    "gap_after": 0.75,
+    "ours_before": 0.04303528502747253,
+    "ours_after": 0.04941620879120879,
+    "ref": 0.060645604395604395,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.ink_on_edges.median",
+    "label": "ink lines on edges",
+    "gap_before": 0.02,
+    "gap_after": 0.6,
+    "ours_before": 0.3494157557482096,
+    "ours_after": 0.30341811112911066,
+    "ref": 0.35101842557508733,
+    "result": "regressed"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "elevator",
+  "change": "iter3: warmer highs [.03,-.004,-.03], DOF maxBlur 9, motes() dust in hall+street, hook re-framed after the shot audit, longer travels (20/36 f)",
+  "note": "motes did NOT move micro-animation (.0070 -> .0070): the metric is motion-compensated residual energy, it scales with character PIXEL AREA; thin stick casts read ~1/3 of bean-head cards. Don't chase it with particles; use bigger gestures/closer framing or accept the style difference.",
+  "match_score_before": 75.0,
+  "match_score_after": 78.1,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 6.07,
+    "gap_after": 5.53,
+    "ours_before": 0.25027563395810365,
+    "ours_after": 0.2772877618522602,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 4.2,
+    "gap_after": 5.1,
+    "ours_before": 23.0,
+    "ours_after": 18.5,
+    "ref": 44.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 0.21,
+    "gap_after": 1.91,
+    "ours_before": 27.604314583378418,
+    "ours_after": 12.553464217963718,
+    "ref": 29.484029725217365,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.high_b.median",
+    "label": "highlight tint b",
+    "gap_before": 3.02,
+    "gap_after": 0.19,
+    "ours_before": -0.23354563117027283,
+    "ours_after": 6.185812473297119,
+    "ref": 5.8063578605651855,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 1.87,
+    "gap_after": 1.53,
+    "ours_before": 14.308860778808594,
+    "ours_after": 13.619545936584473,
+    "ref": 10.56808090209961,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_b.median",
+    "label": "shadow tint b (blue-/yellow+)",
+    "gap_before": 0.46,
+    "gap_after": 0.9,
+    "ours_before": -4.455346584320068,
+    "ours_after": -3.5642056465148926,
+    "ref": -5.367428779602051,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.warmth.median",
+    "label": "warmth (R-B)",
+    "gap_before": 2.11,
+    "gap_after": 0.64,
+    "ours_before": -0.0067037856206297874,
+    "ours_after": 0.030053306370973587,
+    "ref": 0.04604286700487137,
+    "result": "improved"
+   }
+  ]
  }
 ]

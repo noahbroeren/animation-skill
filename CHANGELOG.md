@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.3.0 - 2026-11-11
+Built a complete proof short with the skill ("Why Elevators Don't Fall", 9:16 2K, 60.6 s, ElevenLabs VO, new stick cast),
+then measured it frame by frame against the reference channel and fixed what the measurement and the review found.
+Match vs the reference fingerprint: iteration 1 17/32 (53.1) -> iteration 2 24/32 (75.0); every QA check PASS.
+
+- **Engine bugs found by measuring the proof short:**
+  - `cameraRig` push punches re-applied on every later hold (shots crept in by up to ~40 %). Fixed (`lib/camera.ts`).
+  - `vfa qa` passed a -0.9 dBTP file while saying "must be <= -1.0"; the AAC encode adds ~0.1-0.5 dB. QA now PASS <= -1.0,
+    WARN <= -0.5, FAIL above (on the delivered file); `mix.py` masters to -1.5 dBTP by default.
+- **Shot audit (`lib/three/audit.ts`, Stage3D `audit`)**: raycast + projection check per declared subject: occluded (cards
+  only where opaque), out of frame, at the edge, tiny/overfilled. `render.mjs` collects `<out>/shot_audit.log`. Verified on
+  the short (found the hook's helper pushed out of frame) and with a negative test (a crowd card in front of the hero crowd).
+- **`render.mjs --stills cues`**: one still per named story cue + `stills/index.json` (fast beat review + audit pass).
+- **Stick cast with accessories** (`StickSpec`: `head`, `hat` x6, `hair` x6, `stache`, `beard`, `glasses`, `neckwear` x3,
+  `coat` with tails/buttons, `skirt`, `build`, `cheeks`; pose `hold` props axe/cane/hat/flag/lever/bag, `hatLift`/`hatTilt`),
+  presets `stickGent/Worker/Lady/Kid/Prof`, charsheet page 6.
+- **`CharacterCard` `pad`**: canvas room above/beside the card so props and big gestures are not clipped; feet stay at y = 0.
+- **Framing helpers** `hfov()` / `frameDistance()`: 9:16 horizontal FOV is ~0.56x vertical; size close-ups by numbers.
+- **`motes()`** world-kit drifting dust/pollen (micro-animation gap .007 vs .020 on the reference).
+- **Story engine voice calibration**: `story.py calibrate words.json --voice ID` -> `story/voices.json`; `# voice: ID` and
+  `--wps` make `lint`/`beats` time the script at the real voice (reference rate predicted 48 s; the narrator ran 59.6 s).
+- **Reference fingerprint shipped**: `references/styles/data/toonworld-explainer_fingerprint.json` (27 Shorts, numbers only).
+- **Demo project `elevator`** (story/examples/elevator.txt + fact-check sheet, thumbnails, sound design from the picture's
+  cues, audit subjects per section). Docs: engine.md "Added in 1.3", characters.md stick cast, craft.md 9:16 framing,
+  travels instead of cuts, AAC headroom; quality.md true-peak rule; story-engine.md calibration.
+
 ## 1.2.0 - 2026-11-11
 - **Topic, hook and title research (measured, `analyzer/vfa/topics.py`, `references/hooks-topics.md`):**
   - `vfa topics CHANNEL`: outlier score (views vs the 20 neighbouring uploads), topic/title/hook classifiers, bootstrap CIs, hook

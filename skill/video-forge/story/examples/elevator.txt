@@ -1,0 +1,16 @@
+# title: Why Elevators Don't Fall
+# style: toonworld-explainer
+# voice: clark-v4
+# topic: why elevators don't fall (Otis safety brake, 1854 New York demo)
+In 1854, a man stood high above a crowd and ordered the only rope holding him *cut*.
+Back then, if an elevator rope snapped, the platform fell, and so did everyone on it.
+[place:street] So nobody wanted to ride one, and most buildings stopped at five or six floors of stairs.
+@heckler: He's finished.
+[place:hall] His name was Elisha Otis. He tipped his hat, and the helper swung the *axe*.
+The rope snapped. The platform dropped, and stopped. Just a few inches down.
+Wait, what? Nothing was holding it up.
+[beat:pivot] You see, a steel wagon spring sat on top, bent tight by the rope's pull.
+The moment the rope went slack, the spring snapped flat, and its ends jammed into teeth on the rails.
+So the rope breaking is exactly what makes it stop.
+[place:street] Three years later, a five-floor store in New York got the first passenger elevator.
+And Otis? He died in 1861, decades before the first *skyscraper* his cut rope made possible.

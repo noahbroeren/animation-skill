@@ -145,6 +145,7 @@ export class FxLayer {
     mesh.position.set(...spec.at);
     mesh.visible = false;
     mesh.renderOrder = 5;
+    mesh.userData.auditIgnore = true; // FX (speed lines, bursts) never count as occluders in the shot audit
     this.scene.add(mesh);
     this.items.push({ kind, spec, mesh, g, tex, S, dur: spec.dur ?? DUR[kind] });
     return this;

@@ -1,0 +1,348 @@
+{
+ "voice_lufs": -21.906085404503134,
+ "cues": [
+  {
+   "file": "bed.wav",
+   "t": 0.0,
+   "role": "music",
+   "naive_lu": null,
+   "lu_vs_voice": null
+  },
+  {
+   "file": "sfx/roomtone.wav",
+   "t": 0.0,
+   "role": "ambience",
+   "naive_lu": -30,
+   "lu_vs_voice": -30.0
+  },
+  {
+   "file": "sfx/wind.wav",
+   "t": 0.0,
+   "role": "ambience",
+   "naive_lu": -36,
+   "lu_vs_voice": -36.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 6.498,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 12.232,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 17.298,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 33.332,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 47.865,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 52.365,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/pop.wav",
+   "t": 5.567,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/creak.wav",
+   "t": 7.033,
+   "role": "sfx",
+   "naive_lu": -16,
+   "lu_vs_voice": -25.3
+  },
+  {
+   "file": "sfx/impact.wav",
+   "t": 8.4,
+   "role": "sfx",
+   "naive_lu": -8,
+   "lu_vs_voice": -14.0
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "t": 9.363,
+   "role": "sfx",
+   "naive_lu": -10,
+   "lu_vs_voice": -16.0
+  },
+  {
+   "file": "sfx/thud.wav",
+   "t": 9.767,
+   "role": "sfx",
+   "naive_lu": -4,
+   "lu_vs_voice": -10.0
+  },
+  {
+   "file": "sfx/impact.wav",
+   "t": 9.833,
+   "role": "sfx",
+   "naive_lu": -10,
+   "lu_vs_voice": -16.0
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 11.067,
+   "role": "sfx",
+   "naive_lu": -16,
+   "lu_vs_voice": -22.0
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 12.567,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 13.267,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 13.967,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 14.7,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 15.4,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/tick.wav",
+   "t": 16.1,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/thud.wav",
+   "t": 15.533,
+   "role": "sfx",
+   "naive_lu": -12,
+   "lu_vs_voice": -18.0
+  },
+  {
+   "file": "sfx/pop.wav",
+   "t": 17.567,
+   "role": "sfx",
+   "naive_lu": -16,
+   "lu_vs_voice": -22.0
+  },
+  {
+   "file": "sfx/chime.wav",
+   "t": 19.867,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 21.332,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 22.832,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/whoosh.wav",
+   "t": 24.563,
+   "role": "sfx",
+   "naive_lu": -10,
+   "lu_vs_voice": -16.0
+  },
+  {
+   "file": "sfx/impact.wav",
+   "t": 24.867,
+   "role": "sfx",
+   "naive_lu": -4,
+   "lu_vs_voice": -10.0
+  },
+  {
+   "file": "sfx/creak.wav",
+   "t": 25.067,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/rumble.wav",
+   "t": 26.3,
+   "role": "sfx",
+   "naive_lu": -12,
+   "lu_vs_voice": -18.0
+  },
+  {
+   "file": "sfx/thud.wav",
+   "t": 26.5,
+   "role": "sfx",
+   "naive_lu": -2,
+   "lu_vs_voice": -8.0
+  },
+  {
+   "file": "sfx/click.wav",
+   "t": 26.533,
+   "role": "sfx",
+   "naive_lu": -8,
+   "lu_vs_voice": -14.0
+  },
+  {
+   "file": "sfx/impact.wav",
+   "t": 26.567,
+   "role": "sfx",
+   "naive_lu": -10,
+   "lu_vs_voice": -16.0
+  },
+  {
+   "file": "sfx/pop.wav",
+   "t": 30.433,
+   "role": "sfx",
+   "naive_lu": -12,
+   "lu_vs_voice": -18.0
+  },
+  {
+   "file": "sfx/riser.wav",
+   "t": 31.667,
+   "role": "sfx",
+   "naive_lu": -12,
+   "lu_vs_voice": -18.0
+  },
+  {
+   "file": "sfx/chime.wav",
+   "t": 33.467,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 34.467,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 36.332,
+   "role": "sfx",
+   "naive_lu": -18,
+   "lu_vs_voice": -24.0
+  },
+  {
+   "file": "sfx/swish.wav",
+   "t": 39.498,
+   "role": "sfx",
+   "naive_lu": -16,
+   "lu_vs_voice": -22.0
+  },
+  {
+   "file": "sfx/click.wav",
+   "t": 40.9,
+   "role": "sfx",
+   "naive_lu": -10,
+   "lu_vs_voice": -16.0
+  },
+  {
+   "file": "sfx/thud.wav",
+   "t": 42.567,
+   "role": "sfx",
+   "naive_lu": -8,
+   "lu_vs_voice": -14.0
+  },
+  {
+   "file": "sfx/ding.wav",
+   "t": 44.833,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/creak.wav",
+   "t": 48.8,
+   "role": "sfx",
+   "naive_lu": -20,
+   "lu_vs_voice": -31.0
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 52.1,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/riser.wav",
+   "t": 55.867,
+   "role": "sfx",
+   "naive_lu": -14,
+   "lu_vs_voice": -20.0
+  },
+  {
+   "file": "sfx/sparkle.wav",
+   "t": 57.367,
+   "role": "sfx",
+   "naive_lu": -16,
+   "lu_vs_voice": -22.0
+  },
+  {
+   "file": "sfx/ding.wav",
+   "t": 60.1,
+   "role": "sfx",
+   "naive_lu": -4,
+   "lu_vs_voice": -10.0
+  }
+ ],
+ "speech_margin_p10": 8.91781875752791,
+ "speech_margin_median": 15.561063574957831,
+ "input_lufs": -21.906119504042657,
+ "gain_db": 8.636719921515526,
+ "lufs": -14.007833840957108,
+ "true_peak_dbtp": -1.499824418129586,
+ "ffmpeg_check": "I:         -14.0 LUFS LRA:         2.8 LU Peak:       -1.5 dBFS"
+}

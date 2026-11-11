@@ -147,7 +147,10 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
                     f"p10 voice-minus-bed margin {sm:.1f} LU on spoken windows (>= 2 LU keeps every word clear)")
         L, TP = au.get("integrated_lufs"), au.get("true_peak_dbtp")
         add("loudness", "PASS" if L is not None and abs(L - lufs_target) <= 1.5 else "WARN", f"{L} LUFS (target {lufs_target})")
-        add("true peak", "PASS" if TP is not None and TP <= -0.9 else "FAIL", f"{TP} dBTP (must be <= -1.0)")
+        # measured on the DELIVERED file: the AAC encode adds ~0.1-0.5 dB over the master, so master at -1.5 dBTP
+        # (the elevator proof short passed with -0.9 under the old "<= -0.9" test while the label said "<= -1.0")
+        add("true peak", "FAIL" if TP is None or TP > -0.5 else ("PASS" if TP <= -1.0 else "WARN"),
+            f"{TP} dBTP (must be <= -1.0 after encoding; master to -1.5 dBTP to leave AAC headroom)")
         r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=duration",
                             "-of", "csv=p=0", path], capture_output=True, text=True)
         try:
@@ -164,6 +167,9 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
         comp = compare(rf, fp)
         with open(os.path.join(out_dir, "gap.md"), "w", encoding="utf-8") as f:
             f.write(compare_md(comp, rf.get("source", {}).get("path", ref), os.path.basename(path)))
+        # machine-readable twin of gap.md: `vfa_loop.py learn --before A/gap.json --after B/gap.json` reads it
+        with open(os.path.join(out_dir, "gap.json"), "w", encoding="utf-8") as f:
+            json.dump(comp, f, indent=1, default=float)
         add("style match vs reference", "PASS" if comp["match_score"] >= 70 else "WARN",
             f"{comp['matched']}/{comp['total']} metrics in tolerance (see gap.md)")
 

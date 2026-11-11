@@ -6,7 +6,7 @@ distance acoustics, shared reverb, true-peak mastering, stems, and a margin repo
 
 plan.json:
 {
-  "duration": 23.5, "fps": 30, "target_lufs": -14, "true_peak": -1.0,
+  "duration": 23.5, "fps": 30, "target_lufs": -14, "true_peak": -1.5,
   "words": "words.json", "words_offset": 0.15,          # duck the music from WORD timings (not audio)
   "duck_db": -3,                                        # gentle; section levels do the real levelling
   "music_sections": [[0, 8.2, -10], [8.2, 14, -12]],    # music bed LU relative to the voice per section
@@ -224,7 +224,7 @@ def main():
     a = ap.parse_args()
     plan = json.load(open(a.plan, encoding="utf-8"))
     x, rep = mix(plan, os.path.dirname(os.path.abspath(a.plan)), a.stems)
-    info = write_master(x, a.out, plan.get("target_lufs", -14.0), plan.get("true_peak", -1.0))
+    info = write_master(x, a.out, plan.get("target_lufs", -14.0), plan.get("true_peak", -1.5))
     rep.update(info)
     json.dump(rep, open(os.path.splitext(a.out)[0] + "_mixreport.json", "w"), indent=1, default=float)
     sm = rep.get("speech_margin_p10")

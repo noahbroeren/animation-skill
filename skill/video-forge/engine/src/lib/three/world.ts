@@ -404,3 +404,37 @@ export function blocksShot(p: [number, number, number], r: number, shots: { pos:
   }
   return false;
 }
+
+/**
+ * Ambient motes (1.3): floating dust / pollen / snow specks that drift on a deterministic flow, so held shots are never
+ * dead-still. Measured gap on the elevator proof short: micro-animation activity 0.007 vs 0.020 on the reference
+ * channel even with idle characters and swaying bunting; the reference's interiors and streets always have something
+ * drifting. NOINK (no ink outline), soft round sprite, sizes in metres.
+ *   const m = motes(scene, { center: [0, 3, 0], size: [20, 6, 20], n: 400 }); ... m.update(frame, fps)
+ */
+export function motes(scene: THREE.Scene, o: { center: [number, number, number]; size: [number, number, number]; n?: number; color?: string; px?: number; seed?: string; speed?: number; opacity?: number }) {
+  const n = o.n ?? 300, r = rng(o.seed ?? "motes"), base = new Float32Array(n * 3), ph = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) { base[i * 3 + k] = o.center[k] + (r() - 0.5) * o.size[k]; ph[i * 3 + k] = r() * Math.PI * 2; }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(base.slice(), 3));
+  const dotTex = canvasTexture("motes-dot", 64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
+  const mat = new THREE.PointsMaterial({ color: o.color ?? "#fff3d6", size: o.px ?? 0.05, map: dotTex, transparent: true, opacity: o.opacity ?? 0.75, depthWrite: false, sizeAttenuation: true });
+  const pts = new THREE.Points(geo, mat);
+  pts.layers.set(NOINK); pts.userData.auditIgnore = true; pts.frustumCulled = false;
+  scene.add(pts);
+  const sp = o.speed ?? 0.12;
+  return {
+    points: pts,
+    update(frame: number, fps = 30) {
+      const t = frame / fps, a = geo.getAttribute("position") as THREE.BufferAttribute;
+      for (let i = 0; i < n; i++) {
+        const j = i * 3, w = 0.6 + 0.4 * Math.sin(ph[j + 2]);
+        // slow loop drift + a gentle sink, wrapped inside the box (no popping: wrap happens over the full height)
+        let y = base[j + 1] + Math.sin(t * 0.7 * w + ph[j + 1]) * 0.25 - ((t * sp * 0.6 * w) % o.size[1]);
+        if (y < o.center[1] - o.size[1] / 2) y += o.size[1];
+        a.setXYZ(i, base[j] + Math.sin(t * 0.45 * w + ph[j]) * 0.6 * sp * 4, y, base[j + 2] + Math.cos(t * 0.38 * w + ph[j + 2]) * 0.6 * sp * 4);
+      }
+      a.needsUpdate = true;
+    },
+  };
+}

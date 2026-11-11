@@ -89,6 +89,23 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
       { title: "blobs+objects", cells: [...(["sprout", "imp", "fluff"] as const).flatMap((b) => (["happy", "angry", "sad"] as KExpr[]).map((e) => ({ spec: K[b] as Spec, pose: { expr: e } as KPose, label: `${b} ${e}` }))),
         ...(["ball", "jelly", "phone", "star"] as const).flatMap((o) => (["neutral", "laugh"] as KExpr[]).map((e) => ({ spec: K[o] as Spec, pose: { expr: e, squash: e === "laugh" ? 0.8 : 1 } as KPose, label: `${o} ${e}${e === "laugh" ? " sq.8" : ""}` })))] },
     ] },
+    { title: "PAGE 6 · stick cast with accessories (hat / hair / facial hair / coat / neckwear) · props · hat tip", h: 150, rows: [
+      ...([["stickGent", K.stickGent], ["stickWorker", K.stickWorker], ["stickLady", K.stickLady], ["stickKid", K.stickKid], ["stickProf", K.stickProf]] as [string, Spec][]).map(([n, s]) => matrixRow(n, s, frame, fps)),
+      { title: "props", cells: [
+        { spec: K.stickWorker, pose: { limbs: { handR: [1.0, 3.1], handL: [0.5, 2.9] }, hold: { item: "axe", angle: -10 }, expr: "determined" }, label: "axe up" },
+        { spec: K.stickWorker, pose: { limbs: { handR: [1.6, 1.2], handL: [1.1, 1.3] }, hold: { item: "axe", angle: 30 }, expr: "angry", lean: 10 }, label: "axe swing" },
+        { spec: K.stickWorker, pose: { view: "side", limbs: { handR: [1.5, 1.6] }, hold: { item: "axe", angle: 70 }, expr: "determined" }, label: "axe side" },
+        { spec: K.stickGent, pose: { hatLift: 0.5, hatTilt: -18, limbs: { handR: [0.6, 3.25] }, expr: "smug" }, label: "hat tip" },
+        { spec: K.stickGent, pose: { limbs: { handR: [1.4, 1.0] }, hold: { item: "cane", angle: 80 }, expr: "happy" }, label: "cane" },
+        { spec: { ...K.stickGent, hat: undefined } as Spec, pose: { limbs: { handR: [1.3, 2.6] }, hold: { item: "hat", hat: K.stickGent.hat }, expr: "laugh" }, label: "hat in hand" },
+        { spec: K.stickKid, pose: { limbs: { handR: [1.0, 2.9] }, hold: { item: "flag", angle: -80 }, expr: "laugh" }, label: "flag" },
+        { spec: K.stickProf, pose: { limbs: { handR: [1.2, 1.4] }, hold: { item: "lever", angle: -60 }, expr: "think" }, label: "lever" },
+        { spec: K.stickLady, pose: { limbs: { handL: [0.9, 1.1] }, hold: { item: "bag", hand: "L" }, expr: "happy" }, label: "bag" },
+        { spec: K.stickGent, pose: { ...STICK_POSES.cheer }, label: "gent cheer" },
+        { spec: K.stickLady, pose: { ...STICK_POSES.shrug, view: "side" }, label: "lady side" },
+        { spec: K.stickProf, pose: { ...STICK_POSES.point, view: "side" }, label: "prof point" },
+      ] },
+    ] },
   ];
 }
 
@@ -111,6 +128,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 5 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 6 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);

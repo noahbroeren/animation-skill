@@ -40,6 +40,8 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
    - **Paid voices/APIs: show the estimated credit cost and get an explicit yes BEFORE every generation, including re-takes.**
 4. **Look test.** Scaffold with `node ENGINE/tools/new-project.mjs <id> --format short|long`. Build one key shot and render 3-6 stills (`render.mjs --stills ... --scale 0.5`). Put them next to reference keyframes (`vfa sbs`) and fix the biggest gap before animating everything.
 5. **Build** the scenes: world, characters, camera, overlays, captions. Mark every intended hard cut (`innerCuts`) and every big graphic slam (`events`) so QA can tell intent from glitches.
+   Declare what must read in each shot (`audit` on Stage3D) and run `render.mjs --stills cues --scale 0.25`: the shot audit
+   catches occluders, subjects pushed out of frame by the push-in, and 9:16 framing that is too tight, before the full render.
 6. **Stills review**, then a **full render** at native resolution: `node ENGINE/tools/render.mjs --project <id> --format <fmt> --fps 30|60`. Chunks are resumable.
 7. **Sound.** Derive the SFX cues from the same timing code or `timeline.json`, then `py AUDIO/mix.py plan.json --out master.wav` (masters to -14 LUFS / -1 dBTP). Re-run render.mjs with `--audio master.wav`: cached chunks are only concatenated and muxed.
 8. **QA gate** (or all of 6-8 in one command: `node ENGINE/tools/produce.mjs --project ID --ref REF --ref-dir REF_DIR --style STYLE --change "..."`, then `py SKILL_DIR/analyzer/vfa_loop.py judgepack/collect/learn/lessons`; see `references/director-loop.md`). `vfa qa FINAL.mp4 --plan timeline.json --fps 30 --duration S --ref REF_fingerprint.json`. A FAIL blocks delivery. Then LOOK at the sheets and score the judge rubric in `references/quality.md`, ideally with a fresh-context reviewer agent. Fix the worst three problems, re-render, re-measure. Stop when the gap table is green or the residuals are explained.
@@ -85,6 +87,10 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | which topics / hooks / titles out-perform on a channel (outlier score, CIs) | `vfa topics CHANNEL_URL --out DIR --summary-out references/styles/data/topics_<ch>.json`, `vfa topics-aggregate` |
 | score a draft hook or rank titles on the measured data | `vfa hookcheck "hook" --style S`, `vfa titlecheck "t1" "t2" --style S` |
 | stills / full render / 4K | `node ENGINE/tools/render.mjs --project ID [--stills 0,90] [--format long4k]` |
+| one still per story cue (beat review sheet) + shot audit log | `render.mjs --project ID --stills cues --scale 0.25` -> `stills/index.json`, `shot_audit.log` |
+| catch occluded / out-of-frame / tiny subjects before a full render | Stage3D `audit={(f, w) => subjects}` (`lib/three/audit.ts`); problems land in `<out>/shot_audit.log` |
+| size a 9:16 close-up (hfov is ~0.56x vfov) | `frameDistance({ width, height, vfov, aspect: 9/16 })` in `lib/camera.ts` |
+| a voice's real words/s (duration estimates) | `py SKILL_DIR/story/story.py calibrate words.json --voice ID`, then `# voice: ID` in the script |
 | live preview + scrubbing | `cd ENGINE && npx remotion studio` |
 | SFX pack, score bed, offline TTS, align, mix/master | `AUDIO/sfx.py`, `music.py`, `tts.py`, `mix.py` |
 

@@ -57,6 +57,11 @@ When you have a reference, **its measurements override these defaults.**
   - Keep the subject at least 1/3 of frame height at key moments.
 - **Composition:**
   - Rule of thirds or centre for vertical shorts (the subject in the middle 60 %, clear of caption and UI zones).
+  - 9:16 is narrow: horizontal FOV ~0.56x vertical. Size close-ups with `frameDistance()` (lib/camera.ts) instead of by
+    feel, and keep pillars/posts off the line to the subject.
+  - A place change can often be a camera TRAVEL instead of a cut: a 16 f whip-crane (motion blur) from the axe up to the
+    platform, or a 34 f crane from the crowd up to the rope, kept the reference's long average shot length and its
+    share of fast camera motion (elevator iteration 2: 5 cuts -> 2).
   - Leading lines, foreground framing for depth.
   - Avoid tangents (an object edge touching the frame edge or the subject).
 
@@ -132,7 +137,8 @@ When you have a reference, **its measurements override these defaults.**
   - room tone or ambience on EVERY scene (never digital silence)
   - SFX on exact frames: whooshes under camera travels, pops under graphics, impacts on hits, risers into reveals
 - **Levels:**
-  - Master to -14 LUFS integrated, true peak ≤ -1 dBTP.
+  - Master to -14 LUFS integrated, true peak ≤ -1.5 dBTP on the WAV master: the AAC encode adds ~0.1-0.5 dB, and the
+    rule (≤ -1 dBTP) applies to the delivered file (the elevator short measured -0.9 after encoding a -1.0 master).
   - Shorts are voice-forward: LRA about 3-6.
   - Film and long-form: LRA 6-11.
   - The measured realistic-3D reference mix: music +3 dB relative to default, effects at half; when an effect sounds too loud, measure it and drop it ~10 LU.

@@ -23,7 +23,7 @@ The exit code is 1 on any FAIL. It writes `qa.md`, `qa.json`, `analysis/` (sheet
 | clipping | p90 clipped black or white ≥ 2 % (WARN) |
 | camera snaps | moves ≤ 6 f outside planned transitions (WARN) |
 | native detail | the spectral estimate says upscaled (WARN; report honestly) |
-| loudness / true peak / A-V length | outside ±1.5 LU of target / TP > -0.9 dBTP = FAIL / A-V delta > 0.1 s |
+| loudness / true peak / A-V length | outside ±1.5 LU of target / TP > -1.0 dBTP WARN, > -0.5 FAIL (on the encoded file) / A-V delta > 0.1 s |
 | style match | with `--ref`: < 70 % of metrics within tolerance (WARN) |
 
 **Declare intent** so the gate can tell intent from glitches: `innerCuts` (planned hard cuts inside a scene) and `events` (graphic slams, flashes, lighting snaps) on SceneDefs.

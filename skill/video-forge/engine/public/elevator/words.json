@@ -1,0 +1,812 @@
+[
+ {
+  "word": "In",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "1854,",
+  "start": 0.18,
+  "end": 1.14
+ },
+ {
+  "word": "a",
+  "start": 1.64,
+  "end": 1.82
+ },
+ {
+  "word": "man",
+  "start": 1.82,
+  "end": 1.96
+ },
+ {
+  "word": "stood",
+  "start": 1.96,
+  "end": 2.26
+ },
+ {
+  "word": "high",
+  "start": 2.26,
+  "end": 2.66
+ },
+ {
+  "word": "above",
+  "start": 2.66,
+  "end": 2.86
+ },
+ {
+  "word": "a",
+  "start": 2.86,
+  "end": 3.06
+ },
+ {
+  "word": "crowd",
+  "start": 3.06,
+  "end": 3.44
+ },
+ {
+  "word": "and",
+  "start": 3.44,
+  "end": 3.7
+ },
+ {
+  "word": "ordered",
+  "start": 3.7,
+  "end": 3.98
+ },
+ {
+  "word": "the",
+  "start": 3.98,
+  "end": 4.22
+ },
+ {
+  "word": "only",
+  "start": 4.22,
+  "end": 4.64
+ },
+ {
+  "word": "rope",
+  "start": 4.64,
+  "end": 4.9
+ },
+ {
+  "word": "holding",
+  "start": 4.9,
+  "end": 5.3
+ },
+ {
+  "word": "him",
+  "start": 5.3,
+  "end": 5.58
+ },
+ {
+  "word": "cut.",
+  "start": 5.58,
+  "end": 5.98
+ },
+ {
+  "word": "Back",
+  "start": 6.64,
+  "end": 6.78
+ },
+ {
+  "word": "then,",
+  "start": 6.78,
+  "end": 7.14
+ },
+ {
+  "word": "if",
+  "start": 7.36,
+  "end": 7.5
+ },
+ {
+  "word": "an",
+  "start": 7.5,
+  "end": 7.62
+ },
+ {
+  "word": "elevator",
+  "start": 7.62,
+  "end": 7.92
+ },
+ {
+  "word": "rope",
+  "start": 7.92,
+  "end": 8.3
+ },
+ {
+  "word": "snapped,",
+  "start": 8.3,
+  "end": 8.66
+ },
+ {
+  "word": "the",
+  "start": 9.16,
+  "end": 9.22
+ },
+ {
+  "word": "platform",
+  "start": 9.22,
+  "end": 9.68
+ },
+ {
+  "word": "fell",
+  "start": 9.68,
+  "end": 10.06
+ },
+ {
+  "word": "and",
+  "start": 10.06,
+  "end": 10.54
+ },
+ {
+  "word": "so",
+  "start": 10.54,
+  "end": 10.8
+ },
+ {
+  "word": "did",
+  "start": 10.8,
+  "end": 10.96
+ },
+ {
+  "word": "everyone",
+  "start": 10.96,
+  "end": 11.42
+ },
+ {
+  "word": "on",
+  "start": 11.42,
+  "end": 11.72
+ },
+ {
+  "word": "it.",
+  "start": 11.72,
+  "end": 11.88
+ },
+ {
+  "word": "So",
+  "start": 12.32,
+  "end": 12.5
+ },
+ {
+  "word": "nobody",
+  "start": 12.5,
+  "end": 12.94
+ },
+ {
+  "word": "wanted",
+  "start": 12.94,
+  "end": 13.3
+ },
+ {
+  "word": "to",
+  "start": 13.3,
+  "end": 13.48
+ },
+ {
+  "word": "ride",
+  "start": 13.48,
+  "end": 13.72
+ },
+ {
+  "word": "one,",
+  "start": 13.72,
+  "end": 13.96
+ },
+ {
+  "word": "and",
+  "start": 14.2,
+  "end": 14.38
+ },
+ {
+  "word": "most",
+  "start": 14.38,
+  "end": 14.62
+ },
+ {
+  "word": "buildings",
+  "start": 14.62,
+  "end": 14.98
+ },
+ {
+  "word": "stopped",
+  "start": 14.98,
+  "end": 15.3
+ },
+ {
+  "word": "at",
+  "start": 15.3,
+  "end": 15.5
+ },
+ {
+  "word": "five",
+  "start": 15.5,
+  "end": 15.82
+ },
+ {
+  "word": "or",
+  "start": 15.82,
+  "end": 15.98
+ },
+ {
+  "word": "six",
+  "start": 15.98,
+  "end": 16.22
+ },
+ {
+  "word": "floors",
+  "start": 16.22,
+  "end": 16.52
+ },
+ {
+  "word": "of",
+  "start": 16.52,
+  "end": 16.7
+ },
+ {
+  "word": "stairs.",
+  "start": 16.7,
+  "end": 17.04
+ },
+ {
+  "word": "He's",
+  "start": 17.46,
+  "end": 18.06
+ },
+ {
+  "word": "finished.",
+  "start": 18.06,
+  "end": 18.48
+ },
+ {
+  "word": "His",
+  "start": 18.96,
+  "end": 19.12
+ },
+ {
+  "word": "name",
+  "start": 19.12,
+  "end": 19.46
+ },
+ {
+  "word": "was",
+  "start": 19.46,
+  "end": 19.78
+ },
+ {
+  "word": "Elisha",
+  "start": 19.78,
+  "end": 20.38
+ },
+ {
+  "word": "Otis.",
+  "start": 20.38,
+  "end": 20.78
+ },
+ {
+  "word": "He",
+  "start": 21.3,
+  "end": 21.42
+ },
+ {
+  "word": "tipped",
+  "start": 21.42,
+  "end": 21.68
+ },
+ {
+  "word": "his",
+  "start": 21.68,
+  "end": 21.84
+ },
+ {
+  "word": "hat",
+  "start": 21.84,
+  "end": 22.08
+ },
+ {
+  "word": "and",
+  "start": 22.08,
+  "end": 22.46
+ },
+ {
+  "word": "the",
+  "start": 22.46,
+  "end": 22.6
+ },
+ {
+  "word": "helper",
+  "start": 22.6,
+  "end": 22.86
+ },
+ {
+  "word": "swung",
+  "start": 22.86,
+  "end": 23.36
+ },
+ {
+  "word": "the",
+  "start": 23.36,
+  "end": 23.52
+ },
+ {
+  "word": "axe.",
+  "start": 23.52,
+  "end": 23.82
+ },
+ {
+  "word": "The",
+  "start": 23.82,
+  "end": 24.56
+ },
+ {
+  "word": "rope",
+  "start": 24.56,
+  "end": 24.76
+ },
+ {
+  "word": "snapped.",
+  "start": 24.76,
+  "end": 25.12
+ },
+ {
+  "word": "The",
+  "start": 25.72,
+  "end": 25.86
+ },
+ {
+  "word": "platform",
+  "start": 25.86,
+  "end": 26.3
+ },
+ {
+  "word": "dropped",
+  "start": 26.3,
+  "end": 26.7
+ },
+ {
+  "word": "and",
+  "start": 26.7,
+  "end": 27.68
+ },
+ {
+  "word": "stopped",
+  "start": 27.68,
+  "end": 28.1
+ },
+ {
+  "word": "just",
+  "start": 28.1,
+  "end": 28.84
+ },
+ {
+  "word": "a",
+  "start": 28.84,
+  "end": 29.02
+ },
+ {
+  "word": "few",
+  "start": 29.02,
+  "end": 29.28
+ },
+ {
+  "word": "inches",
+  "start": 29.28,
+  "end": 29.58
+ },
+ {
+  "word": "down.",
+  "start": 29.58,
+  "end": 30.0
+ },
+ {
+  "word": "Wait,",
+  "start": 30.48,
+  "end": 30.8
+ },
+ {
+  "word": "what?",
+  "start": 30.88,
+  "end": 31.14
+ },
+ {
+  "word": "Nothing",
+  "start": 31.64,
+  "end": 31.98
+ },
+ {
+  "word": "was",
+  "start": 31.98,
+  "end": 32.22
+ },
+ {
+  "word": "holding",
+  "start": 32.22,
+  "end": 32.46
+ },
+ {
+  "word": "it",
+  "start": 32.46,
+  "end": 32.64
+ },
+ {
+  "word": "up.",
+  "start": 32.64,
+  "end": 32.84
+ },
+ {
+  "word": "You",
+  "start": 33.4,
+  "end": 33.5
+ },
+ {
+  "word": "see,",
+  "start": 33.5,
+  "end": 33.68
+ },
+ {
+  "word": "a",
+  "start": 34.0,
+  "end": 34.08
+ },
+ {
+  "word": "steel",
+  "start": 34.08,
+  "end": 34.36
+ },
+ {
+  "word": "wagon",
+  "start": 34.36,
+  "end": 34.78
+ },
+ {
+  "word": "spring",
+  "start": 34.78,
+  "end": 35.14
+ },
+ {
+  "word": "sat",
+  "start": 35.14,
+  "end": 35.5
+ },
+ {
+  "word": "on",
+  "start": 35.5,
+  "end": 35.7
+ },
+ {
+  "word": "top,",
+  "start": 35.7,
+  "end": 36.06
+ },
+ {
+  "word": "bent",
+  "start": 36.36,
+  "end": 36.54
+ },
+ {
+  "word": "tight",
+  "start": 36.54,
+  "end": 36.94
+ },
+ {
+  "word": "by",
+  "start": 36.94,
+  "end": 37.18
+ },
+ {
+  "word": "the",
+  "start": 37.18,
+  "end": 37.32
+ },
+ {
+  "word": "rope's",
+  "start": 37.32,
+  "end": 37.66
+ },
+ {
+  "word": "pull.",
+  "start": 37.66,
+  "end": 37.9
+ },
+ {
+  "word": "The",
+  "start": 38.4,
+  "end": 38.64
+ },
+ {
+  "word": "moment",
+  "start": 38.64,
+  "end": 38.96
+ },
+ {
+  "word": "the",
+  "start": 38.96,
+  "end": 39.14
+ },
+ {
+  "word": "rope",
+  "start": 39.14,
+  "end": 39.34
+ },
+ {
+  "word": "went",
+  "start": 39.34,
+  "end": 39.52
+ },
+ {
+  "word": "slack,",
+  "start": 39.52,
+  "end": 39.9
+ },
+ {
+  "word": "the",
+  "start": 40.34,
+  "end": 40.4
+ },
+ {
+  "word": "spring",
+  "start": 40.4,
+  "end": 40.72
+ },
+ {
+  "word": "snapped",
+  "start": 40.72,
+  "end": 41.16
+ },
+ {
+  "word": "flat",
+  "start": 41.16,
+  "end": 41.58
+ },
+ {
+  "word": "and",
+  "start": 41.58,
+  "end": 42.02
+ },
+ {
+  "word": "its",
+  "start": 42.02,
+  "end": 42.16
+ },
+ {
+  "word": "ends",
+  "start": 42.16,
+  "end": 42.5
+ },
+ {
+  "word": "jammed",
+  "start": 42.5,
+  "end": 43.12
+ },
+ {
+  "word": "into",
+  "start": 43.12,
+  "end": 43.26
+ },
+ {
+  "word": "teeth",
+  "start": 43.26,
+  "end": 43.58
+ },
+ {
+  "word": "on",
+  "start": 43.58,
+  "end": 43.78
+ },
+ {
+  "word": "the",
+  "start": 43.78,
+  "end": 43.9
+ },
+ {
+  "word": "rails.",
+  "start": 43.9,
+  "end": 44.22
+ },
+ {
+  "word": "So",
+  "start": 44.72,
+  "end": 44.96
+ },
+ {
+  "word": "the",
+  "start": 44.96,
+  "end": 45.12
+ },
+ {
+  "word": "rope",
+  "start": 45.12,
+  "end": 45.3
+ },
+ {
+  "word": "breaking",
+  "start": 45.3,
+  "end": 45.62
+ },
+ {
+  "word": "is",
+  "start": 45.62,
+  "end": 45.98
+ },
+ {
+  "word": "exactly",
+  "start": 45.98,
+  "end": 46.58
+ },
+ {
+  "word": "what",
+  "start": 46.58,
+  "end": 46.78
+ },
+ {
+  "word": "makes",
+  "start": 46.78,
+  "end": 47.02
+ },
+ {
+  "word": "it",
+  "start": 47.02,
+  "end": 47.14
+ },
+ {
+  "word": "stop.",
+  "start": 47.14,
+  "end": 47.42
+ },
+ {
+  "word": "Three",
+  "start": 47.98,
+  "end": 48.26
+ },
+ {
+  "word": "years",
+  "start": 48.26,
+  "end": 48.48
+ },
+ {
+  "word": "later,",
+  "start": 48.48,
+  "end": 48.8
+ },
+ {
+  "word": "a",
+  "start": 49.14,
+  "end": 49.22
+ },
+ {
+  "word": "five",
+  "start": 49.22,
+  "end": 49.54
+ },
+ {
+  "word": "-floor",
+  "start": 49.54,
+  "end": 49.84
+ },
+ {
+  "word": "store",
+  "start": 49.84,
+  "end": 50.08
+ },
+ {
+  "word": "in",
+  "start": 50.08,
+  "end": 50.3
+ },
+ {
+  "word": "New",
+  "start": 50.3,
+  "end": 50.42
+ },
+ {
+  "word": "York",
+  "start": 50.42,
+  "end": 50.7
+ },
+ {
+  "word": "got",
+  "start": 50.7,
+  "end": 50.96
+ },
+ {
+  "word": "the",
+  "start": 50.96,
+  "end": 51.14
+ },
+ {
+  "word": "first",
+  "start": 51.14,
+  "end": 51.46
+ },
+ {
+  "word": "passenger",
+  "start": 51.46,
+  "end": 52.0
+ },
+ {
+  "word": "elevator.",
+  "start": 52.0,
+  "end": 52.48
+ },
+ {
+  "word": "And",
+  "start": 52.48,
+  "end": 53.1
+ },
+ {
+  "word": "Otis?",
+  "start": 53.1,
+  "end": 53.48
+ },
+ {
+  "word": "He",
+  "start": 54.02,
+  "end": 54.16
+ },
+ {
+  "word": "died",
+  "start": 54.16,
+  "end": 54.44
+ },
+ {
+  "word": "in",
+  "start": 54.44,
+  "end": 54.62
+ },
+ {
+  "word": "1861,",
+  "start": 54.62,
+  "end": 55.52
+ },
+ {
+  "word": "decades",
+  "start": 55.96,
+  "end": 56.42
+ },
+ {
+  "word": "before",
+  "start": 56.42,
+  "end": 56.78
+ },
+ {
+  "word": "the",
+  "start": 56.78,
+  "end": 56.98
+ },
+ {
+  "word": "first",
+  "start": 56.98,
+  "end": 57.26
+ },
+ {
+  "word": "skyscraper",
+  "start": 57.26,
+  "end": 58.0
+ },
+ {
+  "word": "his",
+  "start": 58.0,
+  "end": 58.24
+ },
+ {
+  "word": "cut",
+  "start": 58.24,
+  "end": 58.56
+ },
+ {
+  "word": "rope",
+  "start": 58.56,
+  "end": 58.86
+ },
+ {
+  "word": "made",
+  "start": 58.86,
+  "end": 59.16
+ },
+ {
+  "word": "possible.",
+  "start": 59.16,
+  "end": 59.58
+ }
+]

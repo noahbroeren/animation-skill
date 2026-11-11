@@ -111,7 +111,10 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
         let s = (opts.push!.rate / K) * hold * E.smooth(clamp(hold / (12 * K)));
         for (const pu of opts.push!.punches ?? []) {
           const n = (pu.n ?? 35) * K, x = at - pu.f, r = ((pu.rate ?? 0.006) - opts.push!.rate) / K;
-          if (x > 0) for (let i = 0; i < Math.min(x, n, hold); i++) s += r * Math.max(0, Math.min(1, (i + 0.5) / (8 * K), (n - i - 0.5) / (8 * K)));
+          // only the punch frames that fall INSIDE this hold (i = frames since the punch; the hold began at at - hold).
+          // Bug fixed 1.3: the loop used to start at i = 0, so every earlier punch re-applied on every later hold and
+          // shots drifted in by up to ~40 % after a few punches (found by measuring the elevator proof short).
+          if (x > 0) for (let i = Math.max(0, Math.ceil(x - hold)); i < Math.min(x, n); i++) s += r * Math.max(0, Math.min(1, (i + 0.5) / (8 * K), (n - i - 0.5) / (8 * K)));
         }
         return Math.exp(-s);
       };
@@ -180,4 +183,17 @@ export type CameraRig = ReturnType<typeof cameraRig>;
 export function glideOrCut(screenTravelPx720: number, zoomFrac: number): "cut" | number {
   if (screenTravelPx720 > 360 || Math.abs(zoomFrac) > 0.4) return "cut";
   return Math.max(18, Math.ceil(0.075 * (screenTravelPx720 + Math.abs(zoomFrac) * 734)));
+}
+
+/**
+ * Framing helpers (learned on the elevator proof short: in 9:16 the horizontal FOV is only ~0.56x the vertical one,
+ * so close-ups planned by "feel" came out 2x too tight and cut the subject or hid it behind foreground posts).
+ * hfov(): horizontal field of view in degrees. frameDistance(): camera distance at which a subject of width/height
+ * (metres) fills `fill` of the frame (default 0.8); the larger of the two constraints wins.
+ *   frameDistance({ width: 2, vfov: 34, aspect: 9 / 16 })  -> ~6.8 m for a 3-person group in a vertical short
+ */
+export const hfov = (vfov: number, aspect: number) => (2 * Math.atan(Math.tan((vfov * Math.PI) / 360) * aspect) * 180) / Math.PI;
+export function frameDistance(o: { width?: number; height?: number; vfov: number; aspect: number; fill?: number }) {
+  const fill = o.fill ?? 0.8, tv = Math.tan((o.vfov * Math.PI) / 360), th = tv * o.aspect;
+  return Math.max(o.width ? o.width / (2 * th * fill) : 0, o.height ? o.height / (2 * tv * fill) : 0);
 }

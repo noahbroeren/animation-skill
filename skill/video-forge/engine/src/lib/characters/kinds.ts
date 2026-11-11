@@ -186,6 +186,8 @@ export const OCULUS_TO_CUE: Record<string, Cue> = { sil: "X", PP: "A", FF: "G", 
 export type KPose = Omit<Pose, "expr"> & {
   expr?: KExpr; cue?: Cue; gait?: number; jiggle?: number; tail?: number; headDip?: number;
   limbs?: { handL?: V2; handR?: V2; footL?: V2; footR?: V2 }; prev?: KPose;
+  /** stick extras: held prop, hat lifted off the head (head units) and tilted (deg; hat tip / doff). */
+  hold?: StickHold; hatLift?: number; hatTilt?: number;
 };
 /** Fallback for styles with only the 10 toon.ts drawings (characters.md 5.2). */
 export const EXPR_FALLBACK: Record<KExpr, Expression> = { neutral: "neutral", happy: "happy", laugh: "laugh", shock: "shock", nervous: "nervous", sad: "sad", angry: "angry", whistle: "whistle", smug: "smug", think: "think", disgust: "angry", determined: "angry", embarrassed: "nervous", cry: "sad", deadpan: "neutral", scheming: "smug" };
@@ -508,7 +510,21 @@ export type BlobSpec = KBase & {
   shape?: { n?: number; egg?: number; aspect?: number }; fur?: number;
   attachments?: Attach[]; nubs?: { arms?: boolean; feet?: boolean }; face?: Partial<FaceSpec>; maxSquash?: number;
 };
-export type StickSpec = KBase & { kind: "stick"; color: string; face?: Partial<FaceSpec> | null; hands?: "none" | "dot"; skeleton?: boolean; outline?: boolean };
+export type StickHat = { style: "top" | "bowler" | "cap" | "boater" | "hardhat" | "beanie"; color: string; band?: string };
+/**
+ * Stick figure (characters.md 2.2 / 5.3 D). Accessories give each stick character its own silhouette at feed size
+ * (characters.md 3.2: identity has to survive at 120 px): a hat, hair, facial hair, neckwear, a coat (frock tails),
+ * a skirt, glasses, a head fill that differs from the limbs (classic white-head stickman) and a body build.
+ */
+export type StickSpec = KBase & {
+  kind: "stick"; color: string; face?: Partial<FaceSpec> | null; hands?: "none" | "dot"; skeleton?: boolean; outline?: boolean;
+  head?: string; hat?: StickHat; hair?: { style: "tuft" | "side" | "spikes" | "bun" | "long" | "curly"; color: string };
+  stache?: string; beard?: string; neckwear?: { style: "bow" | "tie" | "scarf"; color: string };
+  coat?: { color: string; tails?: boolean; buttons?: string; collar?: string }; skirt?: string; glasses?: string;
+  build?: "slim" | "regular" | "stout"; cheeks?: boolean;
+};
+/** Held props for stick figures: drawn along the forearm of the holding hand (angle = extra rotation in deg). */
+export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag"; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat };
 export type ChibiSpec = KBase & {
   kind: "chibi"; skin: string;
   hair?: { color: string; style: "short" | "bob" | "spiky" | "long" | "bun" | "curly" | "bald" | "side" };
@@ -1075,13 +1091,171 @@ function drawStick(c: Ctx, s: StickSpec, p: KPose) {
     g.moveTo(mx0, my); g.lineTo(mx1, my); for (let i = 0; i <= 4; i++) { const x = lerp(mx0, mx1, i / 4); g.moveTo(x, my - d * 0.06); g.lineTo(x, my + d * 0.06); } g.stroke();
     return;
   }
-  if (outline) for (const sg of segs) { g.strokeStyle = c.ink; g.lineWidth = w + c.lw * 2; g.stroke(path(sg.pts)); }
+  // layered draw: far limbs + spine + near legs (one silhouette) -> skirt/coat -> head -> near arms + prop -> hands
+  const bw = s.build === "stout" ? 1.35 : s.build === "slim" ? 0.8 : 1;
+  const nArm = R.arms.filter((a) => !a.far).length, body = segs.slice(0, segs.length - nArm), arms = segs.slice(segs.length - nArm);
+  const strokeSet = (set: typeof segs) => {
+    if (outline) for (const sg of set) { g.strokeStyle = c.ink; g.lineWidth = (sg.pts.length === 2 ? w * bw : w) + c.lw * 2; g.stroke(path(sg.pts)); }
+    for (const sg of set) { g.strokeStyle = sg.far ? far : col; g.lineWidth = sg.pts.length === 2 ? w * bw : w; g.stroke(path(sg.pts)); }
+  };
+  strokeSet(body);
+  stickClothes(c, s, R, d, w);
+  const hc = s.head ?? col;
+  if (s.hair && (s.hair.style === "long" || s.hair.style === "bun")) stickHair(c, s.hair, R.head, d, true);
   if (outline) dot(g, R.head[0], R.head[1], d / 2 + c.lw, c.ink);
-  for (const sg of segs) { g.strokeStyle = sg.far ? far : col; g.lineWidth = w; g.stroke(path(sg.pts)); }
+  dot(g, R.head[0], R.head[1], d / 2, hc);
+  g.save(); g.clip(ell(R.head[0], R.head[1], d / 2, d / 2)); g.fillStyle = shade(hc, 0.2); g.fill(ell(R.head[0] - c.light * d * 0.12, R.head[1] + d * 0.05, d / 2, d / 2)); g.fillStyle = hc; g.fill(ell(R.head[0] + c.light * d * 0.02, R.head[1] - d * 0.03, d * 0.47, d * 0.47)); g.restore();
+  if (s.cheeks) for (const x of c.side ? [d * 0.12] : [-d * 0.26, d * 0.26]) { g.save(); g.globalAlpha = 0.35; dot(g, R.head[0] + x, R.head[1] + d * 0.1, d * 0.09, "#ff7a8a"); g.restore(); }
+  if (s.face !== null) drawFace(g, { eyes: "dot", eyeSize: 0.13, eyeSpacing: 0.36, eyeY: 0.45, mouthTier: 2, mouthWidth: 0.36, mouthY: 0.72, brows: "line", catchlight: false, ...s.face }, p, { x: R.head[0], y: R.head[1], w: d, h: d }, { ink: c.ink, lw: c.lw * 0.9, skin: hc, side: c.side });
+  stickFace(c, s, R.head, d);
+  if (s.hair && s.hair.style !== "long" && s.hair.style !== "bun") stickHair(c, s.hair, R.head, d, false);
+  if (s.hat) stickHat(c, s.hat, [R.head[0], R.head[1] - (p.hatLift ?? 0) * d], d, p.hatTilt ?? 0);
+  const held = p.hold ? R.arms[p.hold.hand === "L" ? 0 : 1] : null;
+  if (held && held.far) stickProp(c, p.hold!, held, d, w);
+  strokeSet(arms);
+  if (held && !held.far) stickProp(c, p.hold!, held, d, w);
   if (s.hands !== "none") for (const a of R.arms) dot(g, a.e[0], a.e[1], w * 0.72, a.far ? far : col);
-  dot(g, R.head[0], R.head[1], d / 2, col);
-  g.save(); g.clip(ell(R.head[0], R.head[1], d / 2, d / 2)); g.fillStyle = shade(col, 0.2); g.fill(ell(R.head[0] - c.light * d * 0.12, R.head[1] + d * 0.05, d / 2, d / 2)); g.fillStyle = col; g.fill(ell(R.head[0] + c.light * d * 0.02, R.head[1] - d * 0.03, d * 0.47, d * 0.47)); g.restore();
-  if (s.face !== null) drawFace(g, { eyes: "dot", eyeSize: 0.13, eyeSpacing: 0.36, eyeY: 0.45, mouthTier: 2, mouthWidth: 0.36, mouthY: 0.72, brows: "line", catchlight: false, ...s.face }, p, { x: R.head[0], y: R.head[1], w: d, h: d }, { ink: c.ink, lw: c.lw * 0.9, skin: col, side: c.side });
+}
+
+/** Coat (frock tails, collar, buttons), skirt and neckwear over the spine (stick accessories). */
+function stickClothes(c: Ctx, s: StickSpec, R: StickRig, d: number, w: number) {
+  const g = c.g, side = c.side, top = R.sh[1] - d * 0.1, hip = R.hip[1];
+  if (s.skirt) {
+    const tw = side ? d * 0.3 : d * 0.32, bw = side ? d * 0.62 : d * 0.78, y0 = hip - d * 0.55, y1 = hip + d * 0.75;
+    part(c, poly([[-tw, y0], [tw, y0], [bw, y1], [-bw, y1]]), s.skirt, { off: d * 0.06 });
+  }
+  if (s.coat) {
+    const k = s.build === "stout" ? 1.3 : s.build === "slim" ? 0.85 : 1, sw = (side ? d * 0.34 : d * 0.42) * k, hw = (side ? d * 0.38 : d * 0.5) * k;
+    const y1 = hip + d * 0.28, tail = s.coat.tails ? d * 0.95 : 0;
+    const pts: V2[] = side
+      ? [[-sw, top], [sw * 0.9, top], [hw * 0.75, y1], [-hw * 0.6, y1], ...(tail ? ([[-hw * 0.55, y1 + tail], [-hw * 1.05, y1 + tail * 0.92]] as V2[]) : []), [-hw, y1 - d * 0.05]]
+      : [[-sw, top], [sw, top], [hw, y1], ...(tail ? ([[hw * 1.02, y1 + tail], [hw * 0.55, y1 + tail * 0.9], [hw * 0.3, y1]] as V2[]) : []),
+        ...(tail ? ([[-hw * 0.3, y1], [-hw * 0.55, y1 + tail * 0.9], [-hw * 1.02, y1 + tail]] as V2[]) : []), [-hw, y1]];
+    part(c, poly(pts), s.coat.color, { off: d * 0.07, thick: true });
+    if (!side) { // open front: a V of shirt + lapels
+      const vy = top + d * 0.85;
+      part(c, poly([[-sw * 0.42, top], [sw * 0.42, top], [0, vy]]), s.coat.collar ?? "#f4efe6", { off: 0 });
+      g.strokeStyle = c.ink; g.lineWidth = c.lw; g.beginPath(); g.moveTo(0, vy); g.lineTo(0, y1); g.stroke();
+      if (s.coat.buttons) for (let i = 0; i < 3; i++) dot(g, -d * 0.07, vy + (i + 0.5) * ((y1 - vy) / 3.2), d * 0.035, s.coat.buttons);
+    } else if (s.coat.buttons) for (let i = 0; i < 3; i++) dot(g, sw * 0.62, top + d * (0.45 + i * 0.32), d * 0.035, s.coat.buttons);
+  }
+  if (s.neckwear) {
+    const n = s.neckwear, y = R.neck[1] + d * 0.12, x = side ? d * 0.12 : 0;
+    if (n.style === "bow") {
+      const a = d * 0.2, b = d * 0.11;
+      part(c, poly(side ? [[x, y], [x + a * 0.7, y - b], [x + a * 0.7, y + b]] : [[0, y], [-a, y - b], [-a, y + b]]), n.color, { off: 0 });
+      if (!side) part(c, poly([[0, y], [a, y - b], [a, y + b]]), n.color, { off: 0 });
+      dot(g, x, y, d * 0.05, shade(n.color, 0.3));
+    } else if (n.style === "tie") {
+      part(c, poly([[x - d * 0.06, y - d * 0.04], [x + d * 0.06, y - d * 0.04], [x + d * 0.1, y + d * 0.75], [x, y + d * 0.88], [x - d * 0.1, y + d * 0.75]]), n.color, { off: 0 });
+    } else {
+      part(c, rrect(-d * 0.36, y - d * 0.12, d * 0.72, d * 0.22, d * 0.1), n.color, { off: d * 0.04 });
+      part(c, poly([[d * 0.12, y], [d * 0.3, y], [d * 0.36, y + d * 0.7], [d * 0.16, y + d * 0.66]]), n.color, { off: 0 });
+    }
+  }
+  void w;
+}
+
+/** Facial hair + glasses on a stick head (centre `h`, diameter d). Side view faces +x. */
+function stickFace(c: Ctx, s: StickSpec, h: V2, d: number) {
+  const g = c.g, side = c.side;
+  if (s.beard) {
+    const bx = h[0] + (side ? d * 0.12 : 0), by = h[1] + d * 0.24;
+    part(c, side ? poly([[bx - d * 0.25, by - d * 0.1], [bx + d * 0.36, by - d * 0.06], [bx + d * 0.18, by + d * 0.32], [bx - d * 0.1, by + d * 0.22]])
+      : sePath(bx, by + d * 0.04, d * 0.36, d * 0.24, 2.2, 0.3), s.beard, { off: d * 0.04 });
+  }
+  if (s.stache) {
+    const y = h[1] + d * 0.13, x = h[0] + (side ? d * 0.3 : 0), r = d * 0.17;
+    const wing = (sg: number) => { const q = new Path2D(); q.moveTo(x, y - r * 0.15); q.quadraticCurveTo(x + sg * r * 0.9, y - r * 0.7, x + sg * r * 1.45, y - r * 0.05);
+      q.quadraticCurveTo(x + sg * r * 0.9, y + r * 0.25, x, y + r * 0.2); q.closePath(); return q; };
+    for (const sg of side ? [1, -0.55] : [-1, 1]) part(c, wing(sg), s.stache, { off: 0, lw: c.lw * 0.8 });
+  }
+  if (s.glasses) {
+    const y = h[1] - d * 0.05, xs = side ? [d * 0.2] : [-d * 0.18, d * 0.18];
+    g.strokeStyle = s.glasses; g.lineWidth = c.lw * 1.1;
+    for (const x of xs) { g.beginPath(); g.arc(h[0] + x, y, d * 0.12, 0, TAU); g.stroke(); }
+    g.beginPath(); if (side) { g.moveTo(h[0] + d * 0.08, y); g.lineTo(h[0] - d * 0.22, y - d * 0.02); } else { g.moveTo(h[0] - d * 0.06, y); g.lineTo(h[0] + d * 0.06, y); } g.stroke();
+  }
+}
+
+/** Hair on a stick head. back=true draws the parts that sit behind the head (long, bun). */
+function stickHair(c: Ctx, hr: NonNullable<StickSpec["hair"]>, h: V2, d: number, back: boolean) {
+  const g = c.g, r = d / 2, side = c.side;
+  if (back) {
+    if (hr.style === "long") part(c, poly([[h[0] - r * 1.05, h[1] - r * 0.2], [h[0] + r * 1.05, h[1] - r * 0.2], [h[0] + r * (side ? 0.5 : 1.15), h[1] + r * 1.7], [h[0] - r * 1.2, h[1] + r * 1.75]]), hr.color, { off: d * 0.05 });
+    else part(c, ell(h[0] - (side ? r * 0.75 : 0), h[1] - r * (side ? 0.55 : 0.95), r * 0.42, r * 0.38), hr.color, { off: d * 0.03 });
+    // a fringe cap on the front too
+    return;
+  }
+  if (hr.style === "side" || hr.style === "curly") {
+    const q = new Path2D(); q.ellipse(h[0], h[1], r * 1.03, r * 1.03, 0, Math.PI * 1.02, Math.PI * 1.98);
+    q.quadraticCurveTo(h[0] + r * 0.4, h[1] - r * 0.25, h[0] - r * (side ? 0.2 : 0.5), h[1] - r * 0.45); q.closePath();
+    part(c, q, hr.color, { off: d * 0.03 });
+    if (hr.style === "curly") for (let i = 0; i < 5; i++) { const a = Math.PI * (1.1 + i * 0.2); part(c, ell(h[0] + Math.cos(a) * r, h[1] + Math.sin(a) * r, r * 0.26, r * 0.26), hr.color, { off: 0 }); }
+  } else if (hr.style === "spikes") {
+    const pts: V2[] = []; for (let i = 0; i <= 6; i++) { const a = Math.PI * (1.05 + i * 0.15); const rr = i % 2 ? r * 1.45 : r * 0.98; pts.push([h[0] + Math.cos(a) * rr, h[1] + Math.sin(a) * rr]); }
+    part(c, poly([...pts, [h[0] + r * 0.9, h[1] - r * 0.25], [h[0] - r * 0.9, h[1] - r * 0.25]]), hr.color, { off: d * 0.03 });
+  } else { // tuft: three ink curls
+    g.strokeStyle = hr.color; g.lineWidth = c.lw * 1.6;
+    for (const k of [-1, 0, 1]) { g.beginPath(); g.moveTo(h[0] + k * r * 0.18, h[1] - r * 0.95); g.quadraticCurveTo(h[0] + k * r * 0.45, h[1] - r * 1.45, h[0] + k * r * 0.1 + r * 0.25, h[1] - r * 1.35); g.stroke(); }
+  }
+}
+
+/** Hat on a stick head; `h` is where the head centre would be (lifted for a hat tip), tilt in deg. */
+function stickHat(c: Ctx, hat: StickHat, h: V2, d: number, tilt = 0) {
+  const g = c.g, r = d / 2, side = c.side;
+  g.save(); g.translate(h[0], h[1] - r * 0.62); g.rotate(rad(tilt + (side ? -4 : -6)));
+  const band = hat.band ?? shade(hat.color, 0.45);
+  if (hat.style === "top") {
+    part(c, poly([[-r * 0.62, 0], [r * 0.62, 0], [r * 0.7, -d * 0.95], [-r * 0.7, -d * 0.95]]), hat.color, { off: d * 0.06, thick: true });
+    part(c, rrect(-r * 0.62, -d * 0.24, r * 1.24, d * 0.16, 0), band, { off: 0 });
+    part(c, ell(0, 0, r * 1.15, d * 0.08), hat.color, { off: d * 0.02 });
+  } else if (hat.style === "bowler") {
+    const q = new Path2D(); q.ellipse(0, 0, r * 0.82, d * 0.5, 0, Math.PI, 0); q.closePath();
+    part(c, q, hat.color, { off: d * 0.06, thick: true });
+    part(c, rrect(-r * 0.8, -d * 0.14, r * 1.6, d * 0.12, 0), band, { off: 0 });
+    part(c, ell(side ? r * 0.08 : 0, 0, r * 1.12, d * 0.08), hat.color, { off: d * 0.02 });
+  } else if (hat.style === "boater") {
+    part(c, ell(0, 0, r * 1.35, d * 0.1), hat.color, { off: d * 0.02 });
+    part(c, rrect(-r * 0.72, -d * 0.36, r * 1.44, d * 0.36, d * 0.04), hat.color, { off: d * 0.05 });
+    part(c, rrect(-r * 0.72, -d * 0.18, r * 1.44, d * 0.11, 0), hat.band ?? "#c0392b", { off: 0 });
+  } else if (hat.style === "cap" || hat.style === "hardhat") {
+    const q = new Path2D(); q.ellipse(0, d * 0.04, r * 1.0, d * 0.48, 0, Math.PI, 0); q.closePath();
+    part(c, q, hat.color, { off: d * 0.05, thick: true });
+    part(c, side ? ell(r * 0.95, d * 0.03, r * 0.6, d * 0.07) : ell(0, d * 0.05, r * (hat.style === "hardhat" ? 1.25 : 0.95), d * 0.08), hat.style === "hardhat" ? hat.color : band, { off: 0 });
+  } else { // beanie
+    const q = new Path2D(); q.ellipse(0, d * 0.1, r * 1.02, d * 0.52, 0, Math.PI, 0); q.closePath();
+    part(c, q, hat.color, { off: d * 0.05 });
+    part(c, rrect(-r * 1.02, -d * 0.02, r * 2.04, d * 0.16, d * 0.05), band, { off: 0 });
+    part(c, ell(0, -d * 0.45, d * 0.12, d * 0.12), band, { off: 0 });
+  }
+  g.restore();
+}
+
+/** A held prop along the forearm (elbow -> hand) of arm `a`. */
+function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: number) {
+  const g = c.g, ang = Math.atan2(a.e[1] - a.j[1], a.e[0] - a.j[0]) + rad(h.angle ?? 0), L = (h.len ?? (h.item === "axe" ? 2.2 : 1.7)) * d;
+  g.save(); g.translate(a.e[0], a.e[1]); g.rotate(ang);
+  const wood = h.color ?? "#9a6a3c";
+  if (h.item === "axe") {
+    part(c, rrect(-L * 0.22, -w * 0.38, L, w * 0.76, w * 0.3), wood, { off: 0 });
+    // head reads at feed size: ~0.9 head-heights tall, bright steel with a highlight on the edge
+    part(c, poly([[L * 0.68, -w * 0.45], [L * 0.94, -w * 0.45], [L * 1.04, -d * 0.95], [L * 0.6, -d * 0.82]]), "#b7c0ce", { off: d * 0.05, thick: true });
+    g.strokeStyle = "#f3f6fa"; g.lineWidth = c.lw * 1.8; g.beginPath(); g.moveTo(L * 0.63, -d * 0.8); g.lineTo(L * 1.02, -d * 0.93); g.stroke();
+  } else if (h.item === "cane") {
+    part(c, rrect(-L * 0.08, -w * 0.3, L, w * 0.6, w * 0.3), wood, { off: 0 });
+    g.strokeStyle = c.ink; g.lineWidth = w * 0.6 + c.lw * 2; g.beginPath(); g.arc(-L * 0.08, -d * 0.18, d * 0.18, Math.PI * 0.5, Math.PI * 1.6); g.stroke();
+    g.strokeStyle = wood; g.lineWidth = w * 0.6; g.stroke();
+  } else if (h.item === "flag" || h.item === "lever") {
+    part(c, rrect(-L * 0.15, -w * 0.3, L, w * 0.6, w * 0.3), h.item === "lever" ? "#5d6470" : wood, { off: 0 });
+    if (h.item === "flag") part(c, poly([[L * 0.85, 0], [L * 0.85, -d * 0.9], [L * 0.2, -d * 0.6]]), h.color ?? "#e04a3a", { off: d * 0.04 });
+    else part(c, ell(L * 0.85, 0, d * 0.16, d * 0.16), "#e04a3a", { off: d * 0.03 });
+  } else if (h.item === "bag") {
+    part(c, rrect(-d * 0.35, d * 0.05, d * 0.7, d * 0.55, d * 0.1), h.color ?? "#7a4a2a", { off: d * 0.05 });
+  } else if (h.item === "hat" && h.hat) {
+    g.rotate(-ang); stickHat(c, h.hat, [0, d * 0.35], d, -8); // brim at the hand: hat held to the chest
+  }
+  g.restore();
 }
 
 // ================================================================ 5. CHIBI (characters.md 2.3 / 2.24 / 5.3 E)
@@ -1486,6 +1660,12 @@ export const KIND_PRESETS = {
   // stick
   stick: { id: "stick", kind: "stick", color: "#f58a1f" }, stickBlue: { id: "stickBlue", kind: "stick", color: "#2f8ee5" },
   xray: { id: "xray", kind: "stick", color: "#2f8ee5", skeleton: true },
+  // stick cast with accessories (identity at feed size: hat/hair/facial hair/coat silhouette)
+  stickGent: { id: "stickGent", kind: "stick", color: "#2b2f3a", head: "#fbf6ee", hat: { style: "top", color: "#22252e", band: "#8a2f3a" }, stache: "#4a3020", coat: { color: "#3a4a6a", tails: true, buttons: "#d8b04a" }, neckwear: { style: "bow", color: "#c0392b" } },
+  stickWorker: { id: "stickWorker", kind: "stick", color: "#3a3a44", head: "#fbf6ee", hat: { style: "cap", color: "#e8a23a" }, hair: { style: "tuft", color: "#5b3a24" }, neckwear: { style: "scarf", color: "#d9534f" }, build: "stout" },
+  stickLady: { id: "stickLady", kind: "stick", color: "#3a2f3f", head: "#fbf6ee", hair: { style: "bun", color: "#7a4a2a" }, skirt: "#8e5bb5", hat: { style: "boater", color: "#f0d58a", band: "#5b7fd6" }, cheeks: true, build: "slim" },
+  stickKid: { id: "stickKid", kind: "stick", color: "#3d8fd6", head: "#fbf6ee", hair: { style: "spikes", color: "#2a2228" }, hat: { style: "beanie", color: "#e0563b" }, heightHeads: 4.2, cheeks: true },
+  stickProf: { id: "stickProf", kind: "stick", color: "#3b3340", head: "#fbf6ee", hair: { style: "side", color: "#d9d4cc" }, beard: "#e6e1d8", glasses: "#2b2230", coat: { color: "#7a5a3a", buttons: "#2b2230" }, neckwear: { style: "tie", color: "#2f6fb0" }, build: "slim" },
   // chibi
   storyteller: { id: "storyteller", kind: "chibi", skin: "#f6d3b8", hair: { color: "#3b2a2f", style: "short" }, top: { color: "#5f86e8", style: "hoodie" }, bottom: "#30364d" },
   kid: { id: "kid", kind: "chibi", skin: "#c98e66", hair: { color: "#1e1517", style: "bob" }, top: { color: "#f2b72f", style: "dress" }, bottom: "#5a3c2e", shoes: "#c8323a" },

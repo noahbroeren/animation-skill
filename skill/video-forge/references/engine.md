@@ -288,3 +288,49 @@ words, and cartoon-face subject size is underestimated.
 
 YouTube specs, checked 2026-11-10: recommended 3840x2160 for videos and 2160x3840 for Shorts; minimum 640 px; 2 MB on
 mobile and 50 MB on desktop. Custom Shorts thumbnails can only be set in YouTube Studio on desktop.
+
+## Added in 1.3 (learned from the elevator proof short)
+
+**Camera push fix.** `cameraRig` punches used to re-apply on every LATER hold (the loop counted from the punch even when
+it lay before the hold), so shots crept in by up to ~40 % once a few punches had happened. Fixed in `lib/camera.ts`:
+only punch frames inside the current hold count. Re-check older projects' framing after upgrading (visual baselines
+for manhole changed for this reason).
+
+**Framing in 9:16.** The horizontal FOV of a vertical short is only ~0.56x the vertical FOV (`hfov(vfov, aspect)`).
+Plan close-ups with `frameDistance({ width, height, vfov, aspect: 9 / 16, fill: 0.8 })`: a 3-person group (~2 m wide)
+at vfov 34 needs ~6.8 m, not the ~3 m that "feels" right; guessed distances came out 2x too tight and hid subjects
+behind foreground posts. Keep posts and pillars off the camera-to-subject line (or use `blocksShot` on set dressing).
+
+**CharacterCard `pad`.** `new CharacterCard(spec, heightM, texPx, sun, pass, { top, x })` adds canvas room above the
+head and on both sides (fractions of the base card). Feet stay at y = 0; the drawing scale does not change. Use it for
+props (axe, flag), hat tips and pointing so nothing is clipped at the card edge.
+
+**Stick accessories.** See characters.md "Stick cast with accessories" (`hat`, `hair`, `stache`, `beard`, `coat`,
+`neckwear`, `skirt`, `glasses`, `build`, pose `hold`, `hatLift`/`hatTilt`).
+
+**Ghost silhouettes.** Things that should read as flat shapes (a future skyline, a memory) use `MeshBasicMaterial`,
+`fog: false` and the NOINK layer so `toonifyScene` and the ink pass skip them; lit + fogged they vanish into the sky.
+
+**Reference fingerprint for the toonworld style.** `references/styles/data/toonworld-explainer_fingerprint.json`
+(27 explainer Shorts, numbers only): `vfa qa FINAL --ref` it directly; the profile no longer needs the original
+analysis folder.
+
+**Shot audit (`lib/three/audit.ts`).** `Stage3D audit={(frame, world) => ShotSubject[] | null}`: on the frames where the
+callback returns subjects (`{ name, at, r, minFrac?, maxFrac?, edge? }`), the camera checks each one: out of frame,
+at the frame edge (< 6 % from it), too small / too big, and OCCLUDED (rays to the centre and top; character cards and
+FX sprites only block where their texture is opaque, so a card's empty corners never count). Problems are logged as
+`[video-forge][shot-audit] f=N ...`; `render.mjs` prints them and writes `<out>/shot_audit.log` (one line per problem).
+Typical callback: subjects per story section, checked on every key arrival, every mid-hold and every 10th frame.
+On the elevator short it found the hook's helper pushed out of frame by the hold push + punches, and (with the old
+crowd placement restored as a negative test) a background card in front of the hero crowd.
+
+**`render.mjs --stills cues`.** One still per named cue in the plan (the story beats from `timing()`), plus
+`stills/index.json` (cue -> frame). At `--scale 0.25` a 60 s short takes ~1 min: the review sheet + shot audit pass
+to run after every camera change.
+
+**Holds push from their LAST key.** A 6 s hold with the default push (0.0028/frame) plus two punches ends ~38 % closer.
+Either aim the first key wider, or put a slow mid-hold key in (holds restart their push at each key).
+
+**`motes()` (world kit).** Deterministic drifting dust / pollen / snow (`THREE.Points`, NOINK, audit-ignored):
+`const m = motes(scene, { center, size, n, px, color, seed }); ... m.update(frame, fps)`. Held shots are never
+dead-still (measured micro-animation gap on the elevator short).

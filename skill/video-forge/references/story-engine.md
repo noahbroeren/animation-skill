@@ -83,6 +83,9 @@ For on-screen speakers, also run `py AUDIO/lipsync.py vo.wav --script script.txt
 ## 7. Build, produce, improve
 - Build the world and cast (`references/engine.md`, `references/characters.md`).
 - Then run the director loop (`references/director-loop.md`): `produce.mjs` -> reviewers -> fixes -> `learn`.
+- Time the script at the voice you will use: after the first VO, `STORY calibrate words.json --voice ID` stores its
+  measured words/s in `story/voices.json`; put `# voice: ID` in the script and `lint`/`beats` estimate with it (or
+  `--wps`). The reference rate (3.63 w/s) predicted 48 s for the elevator script; the ElevenLabs narrator ran 59.6 s.
 - Make thumbnails from the finished world with `tools/thumbs.mjs`.
 - Titles: `STORY titles script.txt --subject "manhole covers" --fact "are round" --contrast square` fills the measured
   forms (Why/How first, a negation such as "Don't Work", the reference channel's "The [X] That [Y]") and ranks them with

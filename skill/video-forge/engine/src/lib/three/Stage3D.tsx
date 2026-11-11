@@ -11,6 +11,7 @@
 import React, { createContext, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { continueRender, delayRender, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
+import { auditView, ShotSubject } from "./audit";
 import { CamState } from "../camera";
 import { Look } from "../look";
 import { PostPipeline, SHADOW_ONLY } from "./post";
@@ -38,6 +39,9 @@ export type Stage3DProps<W> = {
   dissolveAt?: (frame: number, fps: number) => { a: CamState; b: CamState; t: number } | null;
   /** hard-cut frames (rig.cuts): no camera motion blur across a cut (the incoming frame must be clean) */
   cuts?: number[];
+  /** shot audit (lib/three/audit.ts): return the subjects that must read on this frame (or null to skip); occlusion,
+   *  out-of-frame, edge and size problems are logged as `[video-forge][shot-audit]` and collected by render.mjs */
+  audit?: (frame: number, world: W) => ShotSubject[] | null;
 };
 
 type Inst<W> = { ctx: StageCtx; world: W; post: PostPipeline };
@@ -57,7 +61,7 @@ function applyCam(c: THREE.PerspectiveCamera, cam: CamState, aspect: number) {
   c.updateMatrixWorld(true);
 }
 
-export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096, camAt, dissolveAt, cuts }: Stage3DProps<W>) {
+export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize = 4096, camAt, dissolveAt, cuts, audit }: Stage3DProps<W>) {
   const frame = useCurrentFrame() + frameOffset;
   const { width, height, fps } = useVideoConfig();
   const camOverride = useContext(CamOverride);
@@ -125,6 +129,12 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
     c.aspect = width / height;
     c.updateProjectionMatrix();
     it.ctx.scene.updateMatrixWorld(true);
+    // audit holds only: during a travel subjects leave the frame by design (full-render log of the proof short:
+    // every 'out of frame' outside a hold was a camera move). Travel = camera moved > 1.2 % of its focus distance.
+    const pc = audit && camAt && frame > 0 ? camAt(frame - 1, fps) : null;
+    const travelling = !!pc && Math.hypot(pc.pos[0] - cam.pos[0], pc.pos[1] - cam.pos[1], pc.pos[2] - cam.pos[2]) > 0.012 * Math.max(1, cam.focus);
+    const subjects = audit && !camOverride && !travelling ? audit(frame, it.world) : null;
+    if (subjects?.length) for (const msg of auditView(it.ctx.scene, c, subjects)) console.warn(`[video-forge][shot-audit] f=${frame} ${msg}`);
     const lk = typeof look === "function" ? look(frame) : look;
     let prevViewProj: THREE.Matrix4 | undefined;
     const prev = camAt && frame > 0 && !camOverride ? camAt(frame - 1, fps) : null;

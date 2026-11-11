@@ -30,6 +30,10 @@ CASES = [  # (name, project, format, frame)
     ("manhole_560", "manhole", "short", 560),
     ("manhole_880", "manhole", "short", 880),
     ("modelsheet_0", "modelsheet", "long", 0),
+    ("charsheet_stick_160", "charsheet", "long", 160),  # 1.3 stick cast: hats/hair/coats/props/hat tip
+    ("elevator_640", "elevator", "short", 640),  # hat tip on a padded card
+    ("elevator_925", "elevator", "short", 925),  # crowd CU framed with frameDistance, no occluders
+    ("elevator_1100", "elevator", "short", 1100),  # night diagram over the 3D platform
 ]
 SSIM_MIN, SHIFT_MAX = 0.93, 6.0
 

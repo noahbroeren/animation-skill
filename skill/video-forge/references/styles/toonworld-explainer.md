@@ -153,7 +153,7 @@ cast    = CharacterCard(spec{style:"toonworld"}, h, px, sun)  -> cardShade + blo
 camera  = cameraRig(keys per sentence, { push: { rate: .0028, punches: keyWords }, kicks, follow })
 captions= <WordCaptions words={words} />
 plan    = SceneDef{ innerCuts, events (FX slams + travels), cues (all story beats) } -> timeline.json -> make_audio.py
-QA      = vfa qa FINAL --plan timeline.json --ref <channel aggregate> --mixreport master_mixreport.json
+QA      = vfa qa FINAL --plan timeline.json --ref references/styles/data/toonworld-explainer_fingerprint.json --mixreport master_mixreport.json
 ```
 
 Worked example: `engine/src/projects/manhole` ("Why manhole covers are round"), improved with the director loop: reference match

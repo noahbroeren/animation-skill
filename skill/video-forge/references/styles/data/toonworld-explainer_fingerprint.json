@@ -1,0 +1,276 @@
+{
+ "schema": "vfa.fingerprint/1",
+ "style": "toonworld-explainer",
+ "note": "Reference channel of the toonworld-explainer profile (2D characters in an inked 3D world): 27 explainer-format Shorts, measured 2026-11-10 with vfa analyze, medians; spread = p25/p75. Numbers only (no footage, frames or transcripts). Use as `vfa qa FINAL --ref references/styles/data/toonworld-explainer_fingerprint.json` or `vfa compare`.",
+ "aggregate_of": 27,
+ "color": {
+  "luma_mean": {
+   "median": 0.46486346423625946
+  },
+  "luma_std": {
+   "median": 0.20457380264997482
+  },
+  "luma_p1": {
+   "median": 0.09803921568627451
+  },
+  "luma_p99": {
+   "median": 0.9490196078431372
+  },
+  "clip_black": {
+   "median": 0.0019595638736263736
+  },
+  "clip_white": {
+   "median": 0.0030370020604395605
+  },
+  "sat_mean": {
+   "median": 0.48001131415367126
+  },
+  "colorfulness": {
+   "median": 0.2947719466551656
+  },
+  "warmth": {
+   "median": 0.04604286700487137
+  },
+  "shadow_a": {
+   "median": 10.56808090209961
+  },
+  "shadow_b": {
+   "median": -5.367428779602051
+  },
+  "high_a": {
+   "median": 1.936219334602356
+  },
+  "high_b": {
+   "median": 5.8063578605651855
+  }
+ },
+ "texture": {
+  "ink_on_edges": {
+   "median": 0.35101842557508733
+  },
+  "edge_density": {
+   "median": 0.060645604395604395
+  },
+  "grain_sigma": {
+   "median": 1.0730042457580566
+  },
+  "dof_ratio": {
+   "median": 1.9517237917353885
+  }
+ },
+ "motion": {
+  "activity": {
+   "median": 0.020277401030412884
+  }
+ },
+ "camera": {
+  "frac_creep": 0.9873284054910243,
+  "frac_fast": 0.5539007092198581,
+  "glide_frames_median": 44.0,
+  "attack_frames_median": 9.0,
+  "release_frames_median": 11.5,
+  "jerk_rms_median": 29.484029725217365,
+  "push_in_shot_frac": 1.0
+ },
+ "editing": {
+  "asl_seconds": 16.20724959882321,
+  "cuts_per_minute": 2.666844444444444
+ },
+ "audio": {
+  "integrated_lufs": -14.1,
+  "lra_lu": 2.2,
+  "true_peak_dbtp": -2.0,
+  "silence_frac": 0.0,
+  "onset_rate": 3.6175090803745533,
+  "speech": {
+   "wps_speaking": 3.6307916060669023,
+   "speech_start_s": 0.0
+  }
+ },
+ "spread": {
+  "color.luma_mean.median": {
+   "p25": 0.39729252457618713,
+   "p75": 0.5258190035820007,
+   "n": 27
+  },
+  "color.luma_std.median": {
+   "p25": 0.19431068003177643,
+   "p75": 0.2239617258310318,
+   "n": 27
+  },
+  "color.luma_p1.median": {
+   "p25": 0.06666666666666667,
+   "p75": 0.12352941176470589,
+   "n": 27
+  },
+  "color.luma_p99.median": {
+   "p25": 0.9254901960784314,
+   "p75": 0.9647058823529412,
+   "n": 27
+  },
+  "color.clip_black.median": {
+   "p25": 0.0018812242445054945,
+   "p75": 0.002168290693681319,
+   "n": 27
+  },
+  "color.clip_white.median": {
+   "p25": 0.0027762276785714282,
+   "p75": 0.00421638907967033,
+   "n": 27
+  },
+  "color.sat_mean.median": {
+   "p25": 0.4142332375049591,
+   "p75": 0.5038494765758514,
+   "n": 27
+  },
+  "color.colorfulness.median": {
+   "p25": 0.2511525019319766,
+   "p75": 0.31165096933176584,
+   "n": 27
+  },
+  "color.warmth.median": {
+   "p25": -0.029094417579472065,
+   "p75": 0.11720253899693489,
+   "n": 27
+  },
+  "color.shadow_a.median": {
+   "p25": 7.860242128372192,
+   "p75": 12.462737083435059,
+   "n": 27
+  },
+  "color.shadow_b.median": {
+   "p25": -12.160682201385498,
+   "p75": 1.3364583253860474,
+   "n": 27
+  },
+  "color.high_a.median": {
+   "p25": 0.7997660785913467,
+   "p75": 7.703899383544922,
+   "n": 27
+  },
+  "color.high_b.median": {
+   "p25": 2.5647472739219666,
+   "p75": 12.321045160293579,
+   "n": 27
+  },
+  "texture.ink_on_edges.median": {
+   "p25": 0.30789102609472063,
+   "p75": 0.39567645910358273,
+   "n": 27
+  },
+  "texture.edge_density.median": {
+   "p25": 0.05206258585164836,
+   "p75": 0.07939775068681318,
+   "n": 27
+  },
+  "texture.grain_sigma.median": {
+   "p25": 0.8566913902759552,
+   "p75": 1.3133925199508667,
+   "n": 27
+  },
+  "texture.dof_ratio.median": {
+   "p25": 1.687314039721822,
+   "p75": 2.1593984490194815,
+   "n": 27
+  },
+  "motion.activity.median": {
+   "p25": 0.016847850311373737,
+   "p75": 0.026499938712224443,
+   "n": 27
+  },
+  "camera.frac_creep": {
+   "p25": 0.9703290797553505,
+   "p75": 0.9945748229037523,
+   "n": 27
+  },
+  "camera.frac_fast": {
+   "p25": 0.43148681357028695,
+   "p75": 0.6202646571036003,
+   "n": 27
+  },
+  "camera.glide_frames_median": {
+   "p25": 34.0,
+   "p75": 52.0,
+   "n": 27
+  },
+  "camera.attack_frames_median": {
+   "p25": 7.25,
+   "p75": 12.5,
+   "n": 27
+  },
+  "camera.release_frames_median": {
+   "p25": 9.25,
+   "p75": 15.0,
+   "n": 27
+  },
+  "camera.jerk_rms_median": {
+   "p25": 18.953766134915234,
+   "p75": 37.22695403946455,
+   "n": 27
+  },
+  "camera.push_in_shot_frac": {
+   "p25": 0.6666666666666666,
+   "p75": 1.0,
+   "n": 27
+  },
+  "editing.asl_seconds": {
+   "p25": 8.945999890177683,
+   "p75": 30.341166347134866,
+   "n": 27
+  },
+  "editing.cuts_per_minute": {
+   "p25": 0.9791727417778182,
+   "p75": 5.294928057266822,
+   "n": 27
+  },
+  "audio.integrated_lufs": {
+   "p25": -15.0,
+   "p75": -14.0,
+   "n": 27
+  },
+  "audio.lra_lu": {
+   "p25": 1.8,
+   "p75": 2.4,
+   "n": 27
+  },
+  "audio.true_peak_dbtp": {
+   "p25": -2.75,
+   "p75": -1.9,
+   "n": 27
+  },
+  "audio.silence_frac": {
+   "p25": 0.0,
+   "p75": 0.0,
+   "n": 27
+  },
+  "audio.onset_rate": {
+   "p25": 3.443297855623018,
+   "p75": 3.768795660840675,
+   "n": 27
+  },
+  "audio.speech.wps_speaking": {
+   "p25": 3.5064748505452457,
+   "p75": 3.7821747407115662,
+   "n": 27
+  },
+  "audio.speech.speech_start_s": {
+   "p25": 0.0,
+   "p75": 0.0,
+   "n": 27
+  }
+ },
+ "patterns": {
+  "duration_median_s": 59.49799872187279,
+  "duration_p10_p90": [
+   39.62479966259961,
+   65.33712490142922
+  ],
+  "videos_with_le1_cut": 10,
+  "common_sentence_openers": {
+   "you see": 4,
+   "he just": 2,
+   "so, he": 2,
+   "he sold": 2
+  }
+ }
+}

@@ -994,6 +994,30 @@ stick: {
 - Poses come from a target-based library (`hand targets + foot targets + hip`): `idle`, `point`, `shrug`, `facepalm`, `run`, `jump`, `fall`, `punch`, `think`. Walk 2.2 steps/s; run 3.5 steps/s with a 15° lean.
 - Smear: on angular velocity above a threshold, draw the limb with 2-3 ghost strokes at 35 % alpha.
 
+**Stick cast with accessories (1.3, built for the elevator proof short).** Bare stick figures all read the same at feed
+size, so identity comes from the silhouette ABOVE the shoulders and one torso shape. `StickSpec` adds:
+
+| field | values | reads as |
+|---|---|---|
+| `head` | colour | a head fill that differs from the limbs (classic white-head stickman) |
+| `hat` | `top` `bowler` `cap` `boater` `hardhat` `beanie` (+ `color`, `band`) | era and job at a glance; the strongest identity cue |
+| `hair` | `tuft` `side` `spikes` `bun` `long` `curly` | age / gender without a body |
+| `stache`, `beard`, `glasses` | colour | the face cue that survives 120 px |
+| `neckwear` | `bow` `tie` `scarf` | one accent colour per character |
+| `coat` | `color`, `tails`, `buttons`, `collar` | frock coat with tails = 19th-century gentleman |
+| `skirt`, `build` (`slim`/`regular`/`stout`), `cheeks` | | body shape and warmth |
+
+Pose extras (`KPose`): `hold: { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag", hand, angle, len }` draws a prop
+along the forearm (behind the arm when that arm is the far one); `hatLift` (head units) + `hatTilt` (deg) do a hat tip.
+Presets: `stickGent`, `stickWorker`, `stickLady`, `stickKid`, `stickProf` (charsheet page 6:
+`render.mjs --project charsheet --format long --stills 160`). Rules learned on the proof short:
+- Give every speaking or acting character a different hat or hair silhouette; colour alone is not enough at 120 px.
+- Props and big gestures leave the 1.08 x height card: build the card with `pad` (`new CharacterCard(spec, h, px, sun,
+  undefined, { top: 0.55, x: 0.45 })` for a raised axe) or the prop is clipped at the card edge.
+- Never cover the mouth of a speaking character with a gesture (a hand at the chin hid the heckler's lip-sync):
+  point AWAY from the face on the line.
+- A held hat goes to the chest (`limbs.handR ~ [0.55, 0.95]`); held at shoulder height it covers the face.
+
 #### E) `chibi`: big-head storytime and caricature
 
 ```ts

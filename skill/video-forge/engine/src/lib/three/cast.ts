@@ -38,21 +38,29 @@ export class CharacterCard {
   /** horizontal direction TOWARD the sun (set from the scene's key light) */
   sunYaw = 0;
 
+  /** extra canvas room (fractions of the base canvas): `top` above the head, `x` on each side. Props and big gestures
+   *  (a raised axe, a hat tip, a flag) otherwise get clipped by the 1.08 x height card. Feet stay at y = 0. */
+  private padPx = { x: 0, top: 0 };
+  private base = { w: 0, h: 0 };
+
   /** heightM: character height in metres; texPx: drawing resolution (>= 1400 for 2K, 2048 for 4K close-ups). */
-  constructor(spec: AnySpec, heightM = 1.7, texPx = 1400, sun?: THREE.DirectionalLight, pass?: PassSpec) {
+  constructor(spec: AnySpec, heightM = 1.7, texPx = 1400, sun?: THREE.DirectionalLight, pass?: PassSpec, pad?: { x?: number; top?: number }) {
     this.pass = pass;
     this.spec = spec;
     this.heightM = heightM;
     const { w, h } = charCanvasSize(texPx);
+    this.base = { w, h };
+    this.padPx = { x: Math.round(w * (pad?.x ?? 0)), top: Math.round(h * (pad?.top ?? 0)) };
+    const CW = w + 2 * this.padPx.x, CH = h + this.padPx.top;
     this.canvas = document.createElement("canvas");
-    this.canvas.width = w; this.canvas.height = h;
+    this.canvas.width = CW; this.canvas.height = CH;
     this.g = this.canvas.getContext("2d")!;
     this.tex = new THREE.CanvasTexture(this.canvas);
     this.tex.colorSpace = THREE.SRGBColorSpace;
     this.tex.anisotropy = 8;
-    const hm = heightM * 1.08, wm = hm * (w / h);
+    const hm = heightM * 1.08 * (CH / h), wm = heightM * 1.08 * (CW / h);
     const geo = new THREE.PlaneGeometry(wm, hm);
-    geo.translate(0, hm / 2 - heightM * (0.08 / ((spec as { heightHeads?: number }).heightHeads ?? 3.5)), 0); // feet exactly at y = 0
+    geo.translate(0, hm / 2 - heightM * (0.08 / ((spec as { heightHeads?: number }).heightHeads ?? 3.5)), 0); // feet exactly at y = 0 (padding only grows up and sideways)
     const mat = cardShade(new THREE.MeshLambertMaterial({ map: this.tex, alphaTest: 0.5, side: THREE.DoubleSide }));
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = false;
@@ -98,7 +106,10 @@ export class CharacterCard {
     const key = JSON.stringify(Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Array.isArray(v) ? v.map(q) : typeof v === "number" ? q(v) : v]))) + (animated ? `@${this.frame}` : "");
     if (key === this.lastKey) return;
     this.lastKey = key;
-    drawAnyStyled(this.g, this.spec, p, this.canvas.width, this.canvas.height, this.frame, this.pass, this.fps);
+    const g = this.g, { x: px, top: pt } = this.padPx;
+    if (px || pt) { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, this.canvas.width, this.canvas.height); g.save(); g.translate(px, pt); }
+    drawAnyStyled(g, this.spec, p, this.base.w, this.base.h, this.frame, this.pass, this.fps);
+    if (px || pt) g.restore();
     this.tex.needsUpdate = true;
   }
 

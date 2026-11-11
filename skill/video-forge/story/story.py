@@ -10,6 +10,7 @@
   py story.py hooks    "hook A" "hook B" ...  [--style S]            # rank hook variants (formula + measured data)
   py story.py titles   [script.txt] ["title" ...] [--subject S --fact F --contrast C]   # generate + rank titles
   py story.py export   script.txt --out vo.txt [--per-speaker DIR]   # clean spoken text for TTS (tags stripped)
+  py story.py calibrate words.json --voice ID [--note "..."]           # store a voice's measured words/s (voices.json)
 
 Script format (plain text, one or more sentences per line):
   # title: Why manhole covers are round          (header lines: title / style / topic)
@@ -49,6 +50,31 @@ STAKES = re.compile(r"\b(illegal|impossible|banned|deadly|died|kill(ed|s)?|milli
 def load_style(name: str | None) -> tuple[str, dict]:
     n = name if name in TARGETS else "default"
     return n, TARGETS[n]
+
+
+VOICES_PATH = os.path.join(HERE, "voices.json")
+
+
+def load_voices() -> dict:
+    return json.load(open(VOICES_PATH, encoding="utf-8")) if os.path.exists(VOICES_PATH) else {}
+
+
+def with_voice(T: dict, head: dict, wps: float | None = None) -> dict:
+    """Time the script at the VOICE's measured rate when known (`# voice: ID` header or --wps), not the style's.
+    Learned on the elevator proof short: lint estimated 48 s at the reference 3.63 w/s; the ElevenLabs narrator
+    spoke 2.72 w/s including pauses and the cut ran 59.6 s."""
+    v = load_voices().get(head.get("voice", ""), {})
+    w = wps or v.get("wps")
+    return {**T, "wps": w, "wps_source": f"--wps {w}" if wps else f"voice {head['voice']} (measured)"} if w else {**T, "wps_source": "style reference rate"}
+
+
+def calibrate(words_path: str, voice: str, note: str | None) -> dict:
+    W = json.load(open(words_path, encoding="utf-8"))
+    secs = W[-1]["end"] - W[0]["start"]
+    V = load_voices()
+    V[voice] = {"wps": round(len(W) / secs, 3), "words": len(W), "seconds": round(secs, 2), "note": note or V.get(voice, {}).get("note", "")}
+    json.dump(V, open(VOICES_PATH, "w", encoding="utf-8"), indent=1)
+    return V[voice]
 
 
 # ------------------------------------------------------------------------------------------------ parsing
@@ -182,13 +208,18 @@ def measured_titlecheck(title: str, style: str, hook: str | None = None):
         return None
 
 
-def lint(path: str, style: str | None) -> dict:
+def lint(path: str, style: str | None, wps: float | None = None) -> dict:
     sc = parse(path)
     name, T = load_style(style or sc["head"].get("style"))
+    T = with_voice(T, sc["head"], wps)
     S = sc["sentences"]
     infer_beats(S, T)
     dur = time_sentences(S, T, None)
     issues = []
+    lo_w, hi_w = T.get("wps_range", [T["wps"], T["wps"]])
+    if T.get("wps_source", "").startswith(("voice", "--wps")) and not (lo_w * 0.9 <= T["wps"] <= hi_w * 1.1):
+        issues.append({"severity": "INFO", "issue": f"voice rate {T['wps']} w/s vs the style's {lo_w}-{hi_w} w/s",
+                       "fix": "fine if deliberate (slower narration measured better on 3/7 channels); check the duration range"})
 
     def add(sev, msg, fix):
         issues.append({"severity": sev, "issue": msg, "fix": fix})
@@ -254,7 +285,7 @@ def lint(path: str, style: str | None) -> dict:
         add("WARN", f"title scores {mt['score']}/100 on the measured title data", "; ".join(mt["suggestions"][:2]) or "run `story.py titles`")
     pen = {"FAIL": 25, "WARN": 8, "INFO": 2}
     score = max(0, 100 - sum(pen[i["severity"]] for i in issues))
-    return {"style": name, "duration_s": round(dur, 1), "sentences": len(S), "score": score, "hook": hook["text"],
+    return {"style": name, "duration_s": round(dur, 1), "timed_at": f"{T['wps']} w/s, {T.get('wps_source', 'style')}", "sentences": len(S), "score": score, "hook": hook["text"],
             "hook_signals": hs, "measured_hook": mh, "measured_title": mt, "beats": [s["beat"] for s in S], "issues": issues}
 
 
@@ -306,9 +337,10 @@ FX = {"hook": "sparkle on the hook object", "mock": "'?' over the doubter", "inc
       "mystery": "'!' over the reactor", "payoff": "stars / sign prop on the payoff word"}
 
 
-def beats(path: str, style: str | None, words: str | None) -> dict:
+def beats(path: str, style: str | None, words: str | None, wps: float | None = None) -> dict:
     sc = parse(path)
     name, T = load_style(style or sc["head"].get("style"))
+    T = with_voice(T, sc["head"], wps)
     S = sc["sentences"]
     infer_beats(S, T)
     dur = time_sentences(S, T, words)
@@ -483,9 +515,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("lint"); p.add_argument("script"); p.add_argument("--style"); p.add_argument("--json", action="store_true")
+    p.add_argument("--wps", type=float, help="time at this words/s instead of the voice (voices.json) or style rate")
+    p = sub.add_parser("calibrate"); p.add_argument("words"); p.add_argument("--voice", required=True); p.add_argument("--note")
     p = sub.add_parser("claims"); p.add_argument("script"); p.add_argument("--out", required=True)
     p = sub.add_parser("verify"); p.add_argument("claims")
-    p = sub.add_parser("beats"); p.add_argument("script"); p.add_argument("--style"); p.add_argument("--words"); p.add_argument("--out", required=True)
+    p = sub.add_parser("beats"); p.add_argument("script"); p.add_argument("--style"); p.add_argument("--words"); p.add_argument("--out", required=True); p.add_argument("--wps", type=float)
     p = sub.add_parser("scaffold"); p.add_argument("beats"); p.add_argument("--out", required=True)
     p = sub.add_parser("hooks"); p.add_argument("hooks", nargs="+"); p.add_argument("--style")
     p = sub.add_parser("export"); p.add_argument("script"); p.add_argument("--out", required=True); p.add_argument("--per-speaker")
@@ -494,12 +528,15 @@ def main():
     p.add_argument("--fact", help="its odd behaviour, e.g. 'are round'"); p.add_argument("--contrast", help="the wrong alternative, e.g. 'square'")
     p.add_argument("--style"); p.add_argument("--json", action="store_true")
     a = ap.parse_args()
+    if a.cmd == "calibrate":
+        print(json.dumps(calibrate(a.words, a.voice, a.note)))
+        return
     if a.cmd == "lint":
-        r = lint(a.script, a.style)
+        r = lint(a.script, a.style, a.wps)
         if a.json:
             print(json.dumps(r, indent=1))
         else:
-            print(f"style {r['style']}: score {r['score']}/100, {r.get('sentences', 0)} sentences, ~{r.get('duration_s', 0)} s")
+            print(f"style {r['style']}: score {r['score']}/100, {r.get('sentences', 0)} sentences, ~{r.get('duration_s', 0)} s ({r.get('timed_at', '')})")
             print(f"beats: {' > '.join(r.get('beats', []))}")
             for i in r["issues"]:
                 print(f"  {i['severity']:4} {i['issue']}  ->  {i['fix']}")
@@ -515,7 +552,7 @@ def main():
         print("fact-check gate: " + ("PASS" if not bad else f"FAIL ({len(bad)} open)"))
         sys.exit(1 if bad else 0)
     elif a.cmd == "beats":
-        B = beats(a.script, a.style, a.words)
+        B = beats(a.script, a.style, a.words, a.wps)
         os.makedirs(a.out, exist_ok=True)
         json.dump(B, open(os.path.join(a.out, "beats.json"), "w", encoding="utf-8"), indent=1)
         open(os.path.join(a.out, "beats.md"), "w", encoding="utf-8").write(beats_md(B))

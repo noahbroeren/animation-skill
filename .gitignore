@@ -25,3 +25,7 @@ skill/video-forge/engine/public/assets/polyhaven/*
 !skill/video-forge/engine/public/assets/polyhaven/models/
 skill/video-forge/engine/public/assets/polyhaven/models/*
 !skill/video-forge/engine/public/assets/polyhaven/models/wine_barrel_01/
+
+# elevator demo: raw ElevenLabs takes + their alignments (vo.wav is the spliced, committed source)
+skill/video-forge/engine/public/elevator/narr*
+skill/video-forge/engine/public/elevator/heck*

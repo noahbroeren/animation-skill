@@ -6,6 +6,9 @@
  *        [--chunk 20] [--concurrency 4] [--codec h264|h265|prores] [--crf 14] [--x264-preset medium]
  *        [--image-format jpeg|png] [--frames 0-299] [--audio master.wav] [--scale 1] [--clean]
  *   node tools/render.mjs --project X --stills 0,45,120 [--scale 0.5]
+ *   node tools/render.mjs --project X --stills cues [--scale 0.5]   # one still per named cue (story beats) + index.json
+ * - Shot audit: `[video-forge][shot-audit]` browser warnings (Stage3D `audit`) are printed and collected in
+ *   <out>/shot_audit.log (one line per problem, deduplicated).
  *
  * - Native resolution: frames are rendered at the format's size (no upscaling). --scale < 1
  *   is for PREVIEWS only and the report says so.
@@ -59,17 +62,30 @@ const planFile = path.join(out, "timeline.json");
 fs.writeFileSync(planFile, JSON.stringify({ project: A.project, width: comp.width, height: comp.height, fps: comp.fps, durationInFrames: comp.durationInFrames, ...comp.props.plan }, null, 1));
 console.log(`[render] ${comp.id}: ${comp.width}x${comp.height} @ ${comp.fps} fps, ${comp.durationInFrames} frames (${(comp.durationInFrames / comp.fps).toFixed(2)} s), scale ${scale}${scale < 1 ? " (PREVIEW, not native)" : " (native)"}`);
 
-const onBrowserLog = (l) => { if (l.text.includes("[video-forge]") || l.type === "error") console.log("  [browser]", l.text.slice(0, 300)); };
+const auditLog = path.join(out, "shot_audit.log"), auditSeen = new Set();
+if (fs.existsSync(auditLog)) fs.unlinkSync(auditLog);
+const onBrowserLog = (l) => {
+  if (l.text.includes("[shot-audit]")) { // dedupe per problem (frame stripped): the first frame it appears on is logged
+    const key = l.text.replace(/f=\d+ /, "").replace(/\(.*?\)|-?[\d.]+( m| %)?/g, "#"); // one line per subject + problem type
+    if (!auditSeen.has(key)) { auditSeen.add(key); fs.appendFileSync(auditLog, l.text.replace("[video-forge][shot-audit] ", "") + "\n"); }
+    return;
+  }
+  if (l.text.includes("[video-forge]") || l.type === "error") console.log("  [browser]", l.text.slice(0, 300));
+};
 
 if (A.stills) {
-  const frames = String(A.stills).split(",").map(Number);
+  const cueMap = comp.props.plan?.cues ?? {};
+  const named = String(A.stills) === "cues" ? Object.entries(cueMap).filter(([, v]) => typeof v === "number" && v < comp.durationInFrames).sort((a, b) => a[1] - b[1]) : null;
+  const frames = named ? [...new Set(named.map(([, v]) => v))] : String(A.stills).split(",").map(Number);
   const dir = path.join(out, "stills");
   fs.mkdirSync(dir, { recursive: true });
+  if (named) fs.writeFileSync(path.join(dir, "index.json"), JSON.stringify(Object.fromEntries(named), null, 1));
   for (const f of frames) {
     const p = path.join(dir, `f${String(f).padStart(6, "0")}.png`);
     await renderStill({ composition: comp, serveUrl, output: p, frame: f, inputProps, scale, chromiumOptions, onBrowserLog, imageFormat: "png" });
     console.log(`[still] ${p}`);
   }
+  if (auditSeen.size) console.log(`[audit] ${auditSeen.size} shot problem(s) -> ${auditLog}`);
   cleanup();
   process.exit(0);
 }
