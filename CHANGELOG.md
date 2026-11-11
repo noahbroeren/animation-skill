@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.6.0 - 2026-11-11
+- **Character audit (bobble pack).** Two audit sheets (charsheet stills 250, 280) and a full review; fixed: front-view
+  walk stagger, fist-only gestures (`hands`: point / open), no head turn (`turn`) or tilt (`headTilt`, automatic per
+  expression), empty "phone" pose (props phone / cup / paper), floating tipped hat (the hat follows the hand), ring eyes
+  inside glasses, hair poking through hats, one-legged profile, the sit pose, body size changing with the hat
+  (`bobbleScale`). Table in `references/characters.md`.
+- **Research: shaders, lighting, rendering, colour.** Four sourced reports (4,300 lines) in `references/research/`, the
+  working rules and a status table in `references/shading-lighting.md`.
+- **Applied from the research:**
+  - `addPatch()`: shader patches compose; wind sway had been silently dropped by the toon patch since 1.1.
+  - Toon model v5: split form x cast ramp, form-following sky / bounce fill, terminator band, lamps light the world,
+    cloud-shadow cookie; 6 new `TOON_SETUPS`.
+  - Cards: scene-tinted shade, key-colour rim, lamps light characters, alpha-to-coverage silhouettes.
+  - Post: stylised tinted SSAO (`look.ao`), coloured ink (`look.ink.hue`), zone tints fixed (they were ignored without
+    knots), hue-preserving clip on the `none` tone map, triangular dither, OKLab look cross-fades, 5 new toonworld looks.
+  - World: 13 new `lights()` presets with fog distances, shadow bias fixed (9 cm contact gap), `lightShafts()`, sky sun glow.
+  - `lib/color.ts`: OKLab toolkit, WCAG contrast.
+- **Elevator proof short v7** with all of the above (hall light shafts, sun glow, cloud shadows on the street, lamp-lit
+  night explanation, pointing hands and head turns). Measured: QA verdict WARN (style match 21/32 against the channel
+  fingerprint; v3 before the light effects: 22/32). Every technical check passes (3 planned cuts, no pops or flicker,
+  -14.0 LUFS, -1.4 dBTP, shot audit clean). Edge density 6.8 % -> 6.4 %, micro-animation 0.0091 -> 0.0098.
+  Open: highlights measure warmer than the reference at full resolution (Lab b 11.1 vs 5.8) although the 1/8-size
+  proxy reads 4.8 after the `tintH` correction; the cause is not found yet. Render time doubled (about 7-9 fps at
+  1440x2560 with 4 tabs, was 15): AO, alpha-to-coverage and the extra light terms.
+- Lessons recorded while tuning: lamp pools were too hot at gain 1.6 (now 1.0, cap 0.32); a violet-blue AO tint pulled
+  the shadows too blue (`#7c6a92` now); ink hue 0.4 made lines measure too light (0.22 now); the low-resolution audit
+  pass is good for cuts, pops and camera collisions but NOT a reliable proxy for colour metrics.
+
 ## 1.5.0 - 2026-11-11
 - **Set-dressing kit** (`lib/three/world.ts`): `textTexture`, `signBoard`, `banner`, `lattice` (iron-and-glass walls and
   railings), `brickTexture`, `crate`, `barrel`, `spokedWheel`, `cart`, `awning`, `steamEngine`, `scaffold`, `rowFacade`,

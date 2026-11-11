@@ -95,8 +95,53 @@ void main(){
   gl_FragColor = vec4(max(eD, eN) * strength * fade, 0.0, 0.0, 1.0);
 }`;
 
+/**
+ * Stylised ambient occlusion (1.6) on the WORLD buffer (cards are excluded: they are flat drawings). 16 cosine-weighted
+ * hemisphere samples on a golden-angle spiral, rotated per pixel (interleaved gradient noise), range-checked; the
+ * composite box-blurs 4x4 and remaps to a clear contact band, then multiplies by a TINT (violet, not grey: measured
+ * references never shade toward black).
+ */
+const AO = /* glsl */ `
+#include <packing>
+uniform sampler2D tNormal; uniform sampler2D tDepth; uniform sampler2D tMainDepth;
+uniform mat4 uProj; uniform mat4 uInvProj; uniform float cNear; uniform float cFar; uniform float radius;
+varying vec2 vUv;
+vec3 viewPos(vec2 uv){ float d = textureLod(tDepth, uv, 0.0).x; vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0); return p.xyz / p.w; }
+float ign(vec2 p){ return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+void main(){
+  vec4 nc = textureLod(tNormal, vUv, 0.0);
+  if (nc.a < 0.5) { gl_FragColor = vec4(0.0); return; }
+  vec3 P = viewPos(vUv), N = normalize(nc.xyz);
+  float zm = -perspectiveDepthToViewZ(textureLod(tMainDepth, vUv, 0.0).x, cNear, cFar);
+  if (zm < -P.z * 0.985 - 0.03) { gl_FragColor = vec4(0.0); return; }      // a character card is in front
+  float rot = ign(gl_FragCoord.xy) * 6.2831853;
+  vec3 T = normalize(cross(N, abs(N.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), B = cross(N, T);
+  float rad = radius * clamp(-P.z / 6.0, 0.35, 2.5);                         // grows with distance: stays visible in wide shots
+  float occ = 0.0;
+  for (int i = 0; i < 16; i++) {
+    float fi = (float(i) + 0.5) / 16.0;
+    float r = sqrt(fi), th = float(i) * 2.39996323 + rot, h = sqrt(max(0.0, 1.0 - fi));
+    vec3 S = P + (T * (cos(th) * r) + B * (sin(th) * r) + N * h) * rad * mix(0.3, 1.0, fi);
+    vec4 q = uProj * vec4(S, 1.0); vec2 uv = q.xy / q.w * 0.5 + 0.5;
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) continue;
+    float zs = viewPos(uv).z;
+    occ += step(S.z + 0.04 * rad, zs) * smoothstep(0.0, 1.0, rad / max(abs(P.z - zs), 1e-4));
+  }
+  gl_FragColor = vec4(occ / 16.0, 0.0, 0.0, 1.0);
+}`;
+const AO_COMP = /* glsl */ `
+uniform sampler2D tColor; uniform sampler2D tAO; uniform vec2 texel; uniform float strength; uniform vec3 tint;
+varying vec2 vUv;
+void main(){
+  float a = 0.0;
+  for (int y = -2; y <= 1; y++) for (int x = -2; x <= 1; x++) a += texture2D(tAO, vUv + (vec2(float(x), float(y)) + 0.5) * texel).r;
+  a = smoothstep(0.1, 0.7, a / 16.0);
+  vec4 c = texture2D(tColor, vUv);
+  gl_FragColor = vec4(c.rgb * mix(vec3(1.0), tint, a * strength), c.a);
+}`;
+
 const INK_COMP = /* glsl */ `
-uniform sampler2D tColor; uniform sampler2D tMask; uniform vec2 texel; uniform vec3 inkColor;
+uniform sampler2D tColor; uniform sampler2D tMask; uniform vec2 texel; uniform vec3 inkColor; uniform float inkHue;
 varying vec2 vUv;
 float m(float x, float y){ return texture2D(tMask, vUv + vec2(x, y) * texel).r; }
 void main(){
@@ -104,7 +149,10 @@ void main(){
   vec4 c = texture2D(tColor, vUv);
   // blend in display gamma like a drawn line (linear-light blending reads ~30% thinner)
   vec3 g = pow(max(c.rgb, 0.0), vec3(1.0/2.2));
-  gl_FragColor = vec4(pow(mix(g, pow(inkColor, vec3(1.0/2.2)), a), vec3(2.2)), c.a);
+  // inkHue: the line takes a dark, slightly violet version of the colour it sits on (coloured line art) instead of one flat ink
+  vec3 gi = pow(inkColor, vec3(1.0/2.2));
+  vec3 own = min(g * 0.28 * vec3(0.94, 0.84, 1.0), gi + 0.16);
+  gl_FragColor = vec4(pow(mix(g, mix(gi, own, inkHue), a), vec3(2.2)), c.a);
 }`;
 
 const DOF = /* glsl */ `
@@ -211,7 +259,7 @@ uniform float chroma; uniform float softness;
 uniform float blackPoint; uniform float whitePoint; uniform float contrast; uniform float pivot; uniform float gammaV;
 uniform float saturation; uniform float vibrance; uniform vec3 shadowTint; uniform vec3 highlightTint;
 uniform float vigAmount; uniform float vigSoft; uniform float grain; uniform float grainSize; uniform float frame;
-uniform int uUseKnots; uniform float uKy[7]; uniform float uKm[7]; uniform vec3 uZSat; uniform vec3 uTS; uniform vec3 uTM; uniform vec3 uTH;
+uniform int uUseKnots; uniform int uUseZones; uniform float uKy[7]; uniform float uKm[7]; uniform vec3 uZSat; uniform vec3 uTS; uniform vec3 uTM; uniform vec3 uTH;
 float herm(float v, float x0, float x1, float y0, float y1, float m0, float m1){ float h = x1 - x0, t = (v - x0) / h, t2 = t*t, t3 = t2*t;
   return (2.*t3 - 3.*t2 + 1.)*y0 + (t3 - 2.*t2 + t)*h*m0 + (-2.*t3 + 3.*t2)*y1 + (t3 - t2)*h*m1; }
 float kcurve(float v){ v = clamp(v, 0., 1.);
@@ -255,6 +303,7 @@ void main(){
   c *= exposure;
   if (tonemap == 1) c = aces(c); else if (tonemap == 2) c = neutral(c);
   else if (tonemap == 3) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); c = c / (1.0 + l); c = mix(vec3(dot(c, vec3(0.2126,0.7152,0.0722))), c, 0.92) * 1.15; }
+  if (tonemap == 0) { float pk = max(c.r, max(c.g, c.b)); if (pk > 1.0) { c /= pk; c = mix(c, vec3(1.0), smoothstep(1.0, 4.0, pk) * 0.7); } } // hue-preserving clip
   vec3 v = toSRGB(c);
   if (uUseKnots == 1) v = vec3(kcurve(v.r), kcurve(v.g), kcurve(v.b));   // fitted 7-knot monotone tone curve
   else v = vec3(scurve(v.r), scurve(v.g), scurve(v.b));
@@ -263,7 +312,7 @@ void main(){
   float s = max(v.r, max(v.g, v.b)) - min(v.r, min(v.g, v.b));
   v = mix(vec3(l), v, saturation * (1.0 + vibrance * (1.0 - s)));
   v += shadowTint * pow(1.0 - l, 2.0) + highlightTint * pow(l, 2.0);
-  if (uUseKnots == 1) { // 3-zone saturation + luma-neutral zone tints (Cb/Cr offsets)
+  if (uUseZones == 1) { // 3-zone saturation + luma-neutral zone tints (Cb/Cr offsets); 1.6: no longer tied to the knot curve
     float y = dot(v, vec3(0.2126, 0.7152, 0.0722));
     float wS = 1. - smoothstep(0., .55, y), wH = smoothstep(.45, 1., y), wM = max(0., 1. - wS - wH);
     float zs = uZSat.y + (uZSat.x - uZSat.y) * wS + (uZSat.z - uZSat.y) * wH;
@@ -280,7 +329,12 @@ void main(){
     float mid = 1.0 - abs(l - 0.5) * 1.2;
     v += n * grain * 2.2 * clamp(mid, 0.25, 1.0);
   }
-  v += (h12(gl_FragCoord.xy + frame) - 0.5) / 255.0;          // dither: no banding in gradients/skies
+  // dither (1.6): triangular, +-1 LSB, re-drawn every frame, uniform near 0 and 1 so the mean is kept. Measured: band
+  // steps on a dark gradient drop to about a third and stay there after YouTube's VP9/AV1 re-encode
+  vec2 dp = gl_FragCoord.xy + vec2(mod(frame * 37.0, 256.0), mod(frame * 91.0, 256.0));
+  float n1 = h12(dp), n2 = h12(dp + 19.19);
+  float lumD = dot(v, vec3(0.2126, 0.7152, 0.0722));
+  v += mix(n1 - 0.5, n1 + n2 - 1.0, clamp(min(lumD, 1.0 - lumD) * 255.0, 0.0, 1.0)) / 255.0;
   gl_FragColor = vec4(clamp(v, 0.0, 1.0), 1.0);
 }`;
 
@@ -309,6 +363,7 @@ export class PostPipeline {
   private sceneRT: THREE.WebGLRenderTarget;
   private worldRT: THREE.WebGLRenderTarget;
   private maskRT: THREE.WebGLRenderTarget;
+  private aoRT!: THREE.WebGLRenderTarget;
   private A: THREE.WebGLRenderTarget;
   private B: THREE.WebGLRenderTarget;
   private bloomDown: THREE.WebGLRenderTarget[] = [];
@@ -343,7 +398,11 @@ export class PostPipeline {
       texel: { value: tex }, cNear: { value: 0.1 }, cFar: { value: 1000 }, wNear: { value: 3 }, wFar: { value: 1.5 },
       dNear: { value: 6 }, dFar: { value: 90 }, creases: { value: 0.8 }, strength: { value: 1 },
     });
-    this.mats.inkComp = fs(INK_COMP, { tColor: { value: null }, tMask: { value: this.maskRT.texture }, texel: { value: tex }, inkColor: { value: new THREE.Color() } });
+    this.mats.inkComp = fs(INK_COMP, { tColor: { value: null }, tMask: { value: this.maskRT.texture }, texel: { value: tex }, inkColor: { value: new THREE.Color() }, inkHue: { value: 0 } });
+    this.aoRT = new THREE.WebGLRenderTarget(w, h, { type: THREE.UnsignedByteType, depthBuffer: false });
+    this.mats.ao = fs(AO, { tNormal: { value: this.worldRT.texture }, tDepth: { value: this.worldRT.depthTexture }, tMainDepth: { value: this.sceneRT.depthTexture },
+      uProj: { value: new THREE.Matrix4() }, uInvProj: { value: new THREE.Matrix4() }, cNear: { value: 0.1 }, cFar: { value: 1000 }, radius: { value: 0.6 } });
+    this.mats.aoComp = fs(AO_COMP, { tColor: { value: null }, tAO: { value: this.aoRT.texture }, texel: { value: tex }, strength: { value: 0.5 }, tint: { value: new THREE.Color() } });
     this.mats.dof = fs(DOF, { tColor: { value: null }, tDepth: { value: this.sceneRT.depthTexture }, texel: { value: tex },
       cNear: { value: 0.1 }, cFar: { value: 1000 }, focus: { value: 10 }, cInf: { value: 10 }, maxCoC: { value: 24 }, nearScale: { value: 1.2 } });
     this.mats.mblur = fs(MBLUR, { tColor: { value: null }, tDepth: { value: this.sceneRT.depthTexture }, uInvProj: { value: new THREE.Matrix4() },
@@ -357,7 +416,7 @@ export class PostPipeline {
       blackPoint: { value: 0 }, whitePoint: { value: 1 }, contrast: { value: 1 }, pivot: { value: 0.45 }, gammaV: { value: 1 },
       saturation: { value: 1 }, vibrance: { value: 0 }, shadowTint: { value: new THREE.Vector3() }, highlightTint: { value: new THREE.Vector3() },
       vigAmount: { value: 0 }, vigSoft: { value: 0.6 }, grain: { value: 0 }, grainSize: { value: 1 }, frame: { value: 0 },
-      uUseKnots: { value: 0 }, uKy: { value: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1] }, uKm: { value: [1, 1, 1, 1, 1, 1, 1] },
+      uUseKnots: { value: 0 }, uUseZones: { value: 0 }, uKy: { value: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1] }, uKm: { value: [1, 1, 1, 1, 1, 1, 1] },
       uZSat: { value: new THREE.Vector3(1, 1, 1) }, uTS: { value: new THREE.Vector3() }, uTM: { value: new THREE.Vector3() }, uTH: { value: new THREE.Vector3() },
     });
     this.normalMat = new THREE.ShaderMaterial({ vertexShader: NORMAL_VERT, fragmentShader: NORMAL_FRAG, side: THREE.DoubleSide });
@@ -399,7 +458,8 @@ export class PostPipeline {
     r.render(scene, cam);
     let src: THREE.Texture = this.sceneRT.texture;
 
-    if (look.ink.enabled && look.ink.strength > 0) {
+    const inkOn = look.ink.enabled && look.ink.strength > 0, aoOn = !!look.ao?.enabled && look.ao.strength > 0;
+    if (inkOn || aoOn) {
       const mask = cam.layers.mask, ov = scene.overrideMaterial, bg = scene.background, sa = r.shadowMap.autoUpdate;
       cam.layers.disable(NOINK);
       scene.overrideMaterial = this.normalMat; scene.background = null; r.shadowMap.autoUpdate = false;
@@ -408,13 +468,25 @@ export class PostPipeline {
       r.setRenderTarget(this.worldRT); r.clear(true, true, false); r.render(scene, cam);
       r.setClearColor(cc, ca);
       cam.layers.mask = mask; scene.overrideMaterial = ov; scene.background = bg; r.shadowMap.autoUpdate = sa;
+    }
+    if (aoOn) { // AO first: the ink is drawn over the contact shading
+      const a = this.mats.ao.uniforms, o = look.ao!;
+      (a.uProj.value as THREE.Matrix4).copy(cam.projectionMatrix); (a.uInvProj.value as THREE.Matrix4).copy(cam.projectionMatrixInverse);
+      a.cNear.value = cam.near; a.cFar.value = cam.far; a.radius.value = o.radius;
+      this.pass(this.mats.ao, this.aoRT);
+      const c = this.mats.aoComp.uniforms;
+      c.tColor.value = src; c.strength.value = o.strength; (c.tint.value as THREE.Color).set(o.tint);
+      this.pass(this.mats.aoComp, this.B);
+      src = this.B.texture;
+    }
+    if (inkOn) {
       const m = this.mats.inkMask.uniforms;
       m.cNear.value = cam.near; m.cFar.value = cam.far;
       m.wNear.value = look.ink.widthNear * u; m.wFar.value = look.ink.widthFar * u;
       m.dNear.value = look.ink.distNear; m.dFar.value = look.ink.distFar; m.creases.value = look.ink.creases; m.strength.value = look.ink.strength;
       this.pass(this.mats.inkMask, this.maskRT);
       const c = this.mats.inkComp.uniforms;
-      c.tColor.value = src; (c.inkColor.value as THREE.Color).set(look.ink.color);
+      c.tColor.value = src; (c.inkColor.value as THREE.Color).set(look.ink.color); c.inkHue.value = look.ink.hue ?? 0;
       this.pass(this.mats.inkComp, this.A);
       src = this.A.texture;
     }
@@ -479,16 +551,17 @@ export class PostPipeline {
     (f.shadowTint.value as THREE.Vector3).set(...g.shadowTint); (f.highlightTint.value as THREE.Vector3).set(...g.highlightTint);
     f.vigAmount.value = look.vignette.amount; f.vigSoft.value = look.vignette.softness;
     f.grain.value = look.grain.amount; f.grainSize.value = look.grain.size; f.frame.value = opts.frame % 997;
-    if (g.knots && g.knots.length === 7) {
-      f.uUseKnots.value = 1; f.uKy.value = g.knots; f.uKm.value = monoTangents(KX, g.knots);
-      (f.uZSat.value as THREE.Vector3).set(...(g.zoneSat ?? [1, 1, 1]));
-      (f.uTS.value as THREE.Vector3).copy(cbcr(g.tintS)); (f.uTM.value as THREE.Vector3).copy(cbcr(g.tintM)); (f.uTH.value as THREE.Vector3).copy(cbcr(g.tintH));
-    } else f.uUseKnots.value = 0;
+    const hasKnots = !!(g.knots && g.knots.length === 7);
+    f.uUseKnots.value = hasKnots ? 1 : 0;
+    if (hasKnots) { f.uKy.value = g.knots; f.uKm.value = monoTangents(KX, g.knots!); }
+    f.uUseZones.value = g.zoneSat || g.tintS || g.tintM || g.tintH ? 1 : 0;
+    (f.uZSat.value as THREE.Vector3).set(...(g.zoneSat ?? [1, 1, 1]));
+    (f.uTS.value as THREE.Vector3).copy(cbcr(g.tintS)); (f.uTM.value as THREE.Vector3).copy(cbcr(g.tintM)); (f.uTH.value as THREE.Vector3).copy(cbcr(g.tintH));
     this.pass(this.mats.final, opts.target ?? null);
   }
 
   dispose() {
-    [this.sceneRT, this.worldRT, this.maskRT, this.A, this.B, ...this.bloomDown, ...this.bloomUp].forEach((t) => t.dispose());
+    [this.sceneRT, this.worldRT, this.maskRT, this.aoRT, this.A, this.B, ...this.bloomDown, ...this.bloomUp].forEach((t) => t.dispose());
     Object.values(this.mats).forEach((m) => m.dispose());
     this.normalMat.dispose();
   }

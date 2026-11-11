@@ -1228,6 +1228,7 @@ profile acting). Run them after ANY change to the kind.
 | "sit" slid forward with straight legs | thigh forward, shin down; place the card on the seat |
 | a man with a top hat had a smaller body than the same man bare-headed | `bobbleScale(spec)`: multiply the card height by it |
 | a year stamp covered the hero on the wide shot | overlays are placed per shot; check them on the cue stills like props |
+| heads never moved on the neck | `headTilt` (degrees) and a small automatic tilt per expression (sad and cry droop, think and laugh tip away) |
 
 Still weak (known): the profile hat tip crosses the face with the forearm; there is no 3/4 body view (only the head
 turns); fingers are symbolic; no smear frames on fast pops.

@@ -28,6 +28,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | channel URL, "series", episodes, 8-20 min video | **D. Long-form / series** | `references/longform.md` |
 | "improve / fix / why does mine look cheap" | **E. Improve** | analyze both, `vfa compare`, `references/quality.md` |
 | a known style ("2D characters in a 3D world", "like Ricks Clips", toon explainer, "like Zack D Films", "like Kurzgesagt", documentary) | **Style profile** | `references/styles/` (`toonworld-explainer.md`, `realistic3d-explainer.md`, `flat-vector-explainer.md`, `documentary-essay.md`): measured system + engine recipe |
+| "make it look better / richer / more professional", shaders, lighting, light setups, time of day, weather, colour, grading, palettes, banding | **Look development** | `references/shading-lighting.md` (working rules + status), then the matching report in `references/research/` |
 | "what kind of character", new cast, mascot, talking object, animal | **Character design** | `references/characters.md` (25 character types ranked by evidence, lip-sync tables, build specs) |
 | "keep improving it", "make it as good as the reference", overnight polish | **Director loop** | `references/director-loop.md` (`tools/produce.mjs` + per-area reviewer agents + learning log) |
 
@@ -73,6 +74,9 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | cast look-dev sheet | `node ENGINE/tools/render.mjs --project modelsheet --format long --stills 0,40` (40 = visemes + side view) |
 | new character kinds (objects, animals, blobs, stick, chibi, flat vector, microbes) + style passes | `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 0,40,70,100,130` |
 | **bobble character pack** (default cast for toonworld shorts: 20 presets `KIND_PRESETS.bb*`, big head, long jacket, IK limbs, props) | `kind: "bobble"` in `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 190,220` |
+| lighting setup for a beat (19 presets: day, golden, dusk, night, rain, fog, interiors, neon, spotlight ...) | `lights(scene, preset)` + `TOON_SETUPS[...]` + `LOOKS["toonworld-..."]`; recipes in `references/research/lighting.md` section B |
+| contact shading, coloured ink, lamps that light the world and the cast, cloud shadows, light shafts, sun glow | `look.ao`, `look.ink.hue`, point lights (automatic), `toon.uCookie`, `lightShafts()`, sky `sunGlow` (engine.md "Added in 1.6") |
+| mix / shade / compare colours perceptually, caption contrast | `lib/color.ts`: `mixOklab`, `gradientOklab`, `shadeOf`, `lightOf`, `deltaEOK`, `contrastRatio` |
 | **set-dressing kit**: signs, banners, iron-and-glass walls, crates, barrels, carts, awnings, steam engine, scaffold, far facades, lanterns | `signBoard` `banner` `lattice` `crate` `barrel` `cart` `awning` `steamEngine` `scaffold` `rowFacade` `lantern` `brickTexture` `textTexture` in `lib/three/world.ts` (engine.md "Added in 1.5") |
 | pose-to-pose acting (one held pose per clause, popped 3 f before its word) | `poseTrack([{ f, pose }], frame, fps)` + `BOBBLE_POSES` in `lib/characters/kinds.ts` |
 | thumbnails from the 3D world (variants, feed-size preview sheet, ranked by `thumbcheck`) | `node ENGINE/tools/thumbs.mjs --project ID [--kind long,short,hires] --out DIR`; variants in the project's `thumbnails` (see `projects/manhole/thumbs.ts`) |
@@ -112,6 +116,8 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 - `references/hooks-topics.md`: measured topic, hook and title effects on 7 channels (1,184 Shorts, CIs, what replicates) plus the research rules they confirm or overrule
 - `references/director-loop.md`: the automated improvement loop (produce -> per-area judges -> fixers by file ownership -> learning log)
 - `references/external.md`: optional paid/external integrations (premium voices, AI video plates, Blender photoreal, upscalers) and how to label them
+- `references/shading-lighting.md`: the working rules for toon shading, lighting, rendering and colour, with a status table of what the engine does
+- `references/research/{toon-shading,lighting,rendering,colour}.md`: the four sourced research reports (4,300 lines: techniques, 20 lighting recipes, 12 palettes, 16 grade recipes, YouTube delivery measurements, ranked upgrade backlog)
 - `references/styles/*.md`: measured style profiles with engine recipes (start: `toonworld-explainer.md`, a 149-short channel study)
 - `references/styles/toonworld-explainer.casestudy.md`: ONE hero short measured frame by frame (story beats, 20 scene changes, a gag prop per sentence, colour script, acting, captions, mix) - read it for "make a video like that one"
 - `references/reference-study.md`: the reference methodology this skill was built from, plus measured results

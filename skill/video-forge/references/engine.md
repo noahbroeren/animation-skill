@@ -396,3 +396,51 @@ a few frames (the elevator v3 crane did exactly that and `vfa qa` failed it as a
 Run the **audit pass** before every native render: `node tools/render.mjs --project ID --scale 0.125 --crf 34 --out DIR_audit`
 (about 2 minutes for a 50 s short; 0.125 and 0.25 keep integer frame sizes, 0.12 does not), read `DIR_audit/shot_audit.log`,
 and run `vfa qa DIR_audit/video.mp4 --plan DIR_audit/timeline.json --min-class none` for cuts, pops and flicker.
+
+## Added in 1.6 (shading, lighting and colour, from the four research reports)
+
+Rules and sources: `references/shading-lighting.md` and `references/research/`. What changed in code:
+
+**Shader patches compose (`addPatch`).** `addPatch(material, key, fn)` in `lib/three/shaders.ts` stacks patches and
+builds the program cache key from all of them. `windSway()` + `toonifyScene()` used to lose the wind (the later
+`onBeforeCompile` replaced the earlier one); foliage moves again. Always patch through `addPatch`.
+
+**Toon model (`toon-v5`).**
+- Split ramp: `band(N.L) x band(sunVis)`. The cast-shadow edge no longer moves with the surface angle.
+- Form-following fill: up-facing shade x `uSkyFill`, down-facing x `uBounce` (colours are x2 multipliers around mid-grey).
+- Terminator band: `uTerm` x `uTermColor` on the light / shade boundary (off in overcast, rain and fog setups).
+- Secondary lights: every non-sun light (`PointLight`, `SpotLight`, extra directionals) now lights toon materials as one
+  soft, capped band. A lamp's `distance` sets the size of its pool; intensity mostly sets how fast the band saturates.
+- Cloud-shadow cookie: `toon.uCookie` (0 off, 0.25-0.45 exterior) with `toon.uCookieOff` in world metres for drift.
+- `ToonSetup` gained optional `skyFill`, `bounce`, `term`, `termColor`; `TOON_SETUPS` gained `overcast`, `rain`, `dusk`,
+  `fog`, `interiorWindow`, `sunsetBack`.
+
+**Cards (`vfcard-v5`).** In cast shadow a card takes the scene's shade TINT (`CARD_U.uShadeC`, set by
+`applyToonSetup`), not a grey 0.86; a thin rim of key-light colour on the lit upper edge (`uRimC`, `uRimA`; it never
+lightens the ink line); lamps light cards too; `alphaToCoverage` smooths the silhouette on the MSAA target.
+
+**Post (`lib/three/post.ts`, `lib/look.ts`).**
+- `look.ao = { enabled, strength, radius, tint }`: stylised SSAO on the world buffer (cards excluded), 16 samples,
+  radius grows with distance, composited as a multiply toward `tint` BEFORE the ink. toonBase: 0.5 / 0.55 m / `#6a5c9c`.
+- `look.ink.hue` (0..1): lines take a dark version of the colour they outline. toonBase: 0.4.
+- Zone tints / zone saturation (`tintS/M/H`, `zoneSat`) now work without `knots` (they were silently ignored).
+- `tonemap: "none"` keeps the hue of over-range colours (peak-channel scale instead of a per-channel clamp).
+- Dither: triangular, +-1 LSB, re-drawn every frame, uniform at the rails.
+- `lerpLook` cross-fades hex colours in OKLab.
+- New looks: `toonworld-dusk`, `-rain`, `-overcast`, `-fog`, `-office`.
+
+**World (`lib/three/world.ts`).**
+- `lights()` presets: + `dusk`, `rain`, `storm`, `fog`, `morning`, `sunsetBack`, `dawn`, `nightMoon`, `nightPractical`,
+  `neon`, `interiorWindow`, `interiorWarm`, `spotlight`; presets may carry `fogNF` (linear fog near / far).
+- Shadow bias -0.00015 (was -0.0004 = a 9 cm gap under feet and props).
+- `lightShafts({ from, dir, len, width, color, strength })`: additive crossed cards from roof lights / windows along the
+  light's direction; `shafts.setStrength(k)` to fade with the key.
+- `sky()` uniforms `sunDir`, `sunCol`, `sunGlow`: a disc, a halo and a horizon-side glow toward the key light.
+- `banner()` and `lattice()` use alpha-to-coverage.
+
+**Colour (`lib/color.ts`).** OKLab / OKLCH conversion, `mixOklab`, `gradientOklab`, `rampStep`, `shadeOf`, `lightOf`,
+`deltaEOK` (JND about 0.02), WCAG `contrastRatio`.
+
+**Dark shots:** render intermediates as PNG (`render.mjs --image-format png`): JPEG frames erase the dither.
+
+Measured on the elevator short (cue stills and QA) in the CHANGELOG entry for 1.6.0.

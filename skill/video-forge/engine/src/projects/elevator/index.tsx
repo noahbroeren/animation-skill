@@ -28,7 +28,7 @@ import { Stage3D } from "../../lib/three/Stage3D";
 import type { ShotSubject } from "../../lib/three/audit";
 import { canvasTexture, flat, paint } from "../../lib/three/textures";
 import { applyToonSetup, makeToonUniforms, TOON_SETUPS, toonifyScene, windSway, windUniforms } from "../../lib/three/shaders";
-import { awning, banner, barrel as barrelProp, bird, blocksShot, brickTexture, cart, cloudCard, crate, fence, house, lampPost, lantern, lattice, lights, motes, rowFacade, scaffold, signBoard, sky, steamEngine, tree } from "../../lib/three/world";
+import { awning, banner, barrel as barrelProp, bird, blocksShot, brickTexture, cart, cloudCard, crate, fence, house, lampPost, lantern, lattice, lights, lightShafts, motes, rowFacade, scaffold, signBoard, sky, steamEngine, tree } from "../../lib/three/world";
 import { FONTS, LowerThird, useU, WordCaptions } from "../../lib/two/text";
 import { clamp, ease, lerp, springAt } from "../../lib/time";
 import WORDS from "./words.json";
@@ -119,7 +119,10 @@ const World: React.FC = () => {
   const T = timing(fps);
   // measured against the channel aggregate (vfa qa gap.md, iteration 1): highlights were green (a -9.4 vs +1.9),
   // shadows too magenta (a 14.7 vs 10.6), saturation .54 vs .48, background too sharp (DOF ratio 1.13 vs 1.95)
-  const fix = { grade: { highlightTint: [0.03, -0.004, -0.03], shadowTint: [0.022, 0.01, 0.0], saturation: 1.14 }, dof: { enabled: true, maxBlur: 9, aperture: 0.9 } }; // iter 3: warmer highs, more DOF
+  // v4 QA after the 1.6 light effects (shafts, sun glow, lamp pools): highlights b 13.0 vs 5.8 (too yellow), a 6.3 vs 1.9,
+  // white p99 .886 vs .949, shadows b -8.5 vs -5.4 -> cooler / greener highs, +7 % exposure, warmer / greener shadows
+  const fix = { exposure: 1.07, grade: { highlightTint: [0.0, 0.004, 0.018], shadowTint: [0.024, 0.02, -0.012], saturation: 1.14, tintH: [0.075, -0.034] as [number, number] }, // tintH: luma-neutral zone tint (works since 1.6): cools the highs without dimming them
+    dof: { enabled: true, maxBlur: 9, aperture: 0.9 } };
   const day = deepMerge(LOOKS["toonworld-day"], fix), golden = deepMerge(LOOKS["toonworld-golden"], { ...fix, grade: { saturation: 1.14, highlightTint: [0.02, -0.01, 0.01] } });
   const night = LOOKS["toonworld-night"];
   const cu = (l: typeof day, focusBlur = 12) => deepMerge(l, { dof: { enabled: true, maxBlur: focusBlur, aperture: 1.2 } });
@@ -266,6 +269,9 @@ const World: React.FC = () => {
         const title = signBoard("EXHIBITION OF THE INDUSTRY OF ALL NATIONS", { w: 15, h: 1.15, bg: "#22305a", fg: "#f1c94a" }); title.position.set(0, 7.6, -18.8); scene.add(title);
         const BAN: [number, number, string, string][] = [[-7, -13, "NEW|YORK", "#c0392b"], [7, -13, "1854", "#2f5fa8"], [-8.5, -4, "WORLD'S|FAIR", "#2f8f6a"], [8.5, -4, "STEAM|POWER", "#c0392b"], [-8.5, 6, "1854", "#2f5fa8"], [8.5, 6, "NEW|YORK", "#d08a2a"]];
         for (const [x, z, t, c] of BAN) if (keep(x, z, 1.0, 8)) { const b = banner(t, { w: 1.7, h: 3.6, color: c }); b.position.set(x, 10.2, z); scene.add(b); }
+        // sun through the glass roof: shafts along the day sun's direction, landing between the stands (1.6)
+        const shafts = lightShafts({ from: [[-9, 11.5, 6], [-4, 12.4, -2], [3, 12.4, 3], [8, 11.6, -6], [-7, 11.8, -11], [5, 12.2, -13]], dir: [0.43, -0.8, -0.43], len: 15.5, width: 2.2, strength: 0.3, color: "#fff6e6" });
+        scene.add(shafts);
         const engine = steamEngine(); engine.position.set(9.3, 0, -4.4); engine.rotation.y = -0.5; if (keep(9.3, -4.4, 1.8)) scene.add(engine);
         const CARGO: [number, number, string][] = [[-5.6, -4.6, "cb"], [4.7, -6.6, "bc"], [-10.4, 8.6, "ccb"], [10.2, 7.6, "bbc"], [4.1, -1.4, "c"], [-3.6, -8.8, "bb"], [11.2, -10.5, "ccc"], [-11.0, -11.2, "bcb"]];
         for (const [x, z, kinds] of CARGO) if (keep(x, z, 1.0)) [...kinds].forEach((kd, i) => { const it = kd === "b" ? barrelProp() : crate(0.62 - i * 0.07, { seed: `cg${x}${i}`, label: i ? undefined : "N.Y." });
@@ -416,7 +422,7 @@ const World: React.FC = () => {
         fx.add("sparkle", { at: [STORE[0] - 1.5, 13.5, STORE[2] + 6.0], f0: T.elevator2, size: 1.8 });
         const dust = [motes(scene, { center: [0, 4, 3], size: [16, 8, 14], n: 520, seed: "hall", px: 0.045 }), motes(scene, { center: [SX, 4, 0], size: [40, 8, 18], n: 420, seed: "street", px: 0.06, color: "#ffe7c4" })];
         const toon = toonifyScene(scene, makeToonUniforms(TOON_SETUPS.day, 2.4));
-        return { engine, clouds2, dust, flags, skyM, L, nightKey, wind, plat, springSegs, shoe, ropes, hoistPlat, hoistRope, car, towers, clouds, birds, cast, crowd, fx, toon, lamps };
+        return { shafts, engine, clouds2, dust, flags, skyM, L, nightKey, wind, plat, springSegs, shoe, ropes, hoistPlat, hoistRope, car, towers, clouds, birds, cast, crowd, fx, toon, lamps };
       }}
       update={(w, f, { fps: FPS }) => {
         const cam = rig.at(f, FPS);
@@ -439,6 +445,10 @@ const World: React.FC = () => {
         if (n > 0) applyToonSetup(w.toon, TOON_SETUPS.day, TOON_SETUPS.night, n, w.L.sun.intensity);
         else applyToonSetup(w.toon, TOON_SETUPS.day, TOON_SETUPS.golden, g, w.L.sun.intensity);
         w.wind.uWindTime.value = f / FPS;
+        // 1.6: sun glow in the sky toward the key light, drifting cloud shadows on the street's big planes
+        const sd = w.L.sun.position.clone().sub(w.L.sun.target.position).normalize();
+        (u.sunDir.value as THREE.Vector3).copy(sd); (u.sunCol.value as THREE.Color).copy(w.L.sun.color); u.sunGlow.value = lerp(0.3, 0.8, g) * (1 - n);
+        w.toon.uCookie.value = 0.34 * (1 - n) * (sx > 0 ? 1 : 0); w.toon.uCookieOff.value.set((f / FPS) * 0.7, (f / FPS) * 0.3);
         // ---- platform + wagon spring (bowed under tension, flat once the rope is cut)
         const py = platformY(f, T), sf = springFlat(f, T);
         w.plat.position.set(0, py, 0);
@@ -560,6 +570,7 @@ const World: React.FC = () => {
         w.flags.forEach((fl, i) => { fl.rotation.z = 0.22 * Math.sin(f / FPS * 2.3 + i * 0.7) + 0.08 * Math.sin(f / FPS * 5.1 + i); }); // micro-animation (measured gap: .0065 vs .020)
         w.fx.update(f, cam.pos, FPS);
         w.dust.forEach((d) => d.update(f, FPS));
+        w.shafts.setStrength(0.3 * (1 - n) * (1 - g)); // only under the day sun
         w.engine.wheel.rotation.z = (f / FPS) * 2.4; // the exhibit engine turns: background life
         for (const cl of w.clouds2) cl.lookAt(cam.pos[0], cl.position.y, cam.pos[2]);
         return cam;

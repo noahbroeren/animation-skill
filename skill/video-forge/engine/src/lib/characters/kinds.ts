@@ -191,6 +191,8 @@ export type KPose = Omit<Pose, "expr"> & {
   hold?: StickHold; hatLift?: number; hatTilt?: number;
   /** bobble extras: head turn -1 (toward -x) .. 1 (toward +x) in the front view; hand shapes (default fist). */
   turn?: number; hands?: { L?: HandShape; R?: HandShape };
+  /** head tilt in degrees around the neck (+ = toward +x / the facing side). Unset: a small tilt that fits the expression. */
+  headTilt?: number;
 };
 /** Fallback for styles with only the 10 toon.ts drawings (characters.md 5.2). */
 export const EXPR_FALLBACK: Record<KExpr, Expression> = { neutral: "neutral", happy: "happy", laugh: "laugh", shock: "shock", nervous: "nervous", sad: "sad", angry: "angry", whistle: "whistle", smug: "smug", think: "think", disgust: "angry", determined: "angry", embarrassed: "nervous", cry: "sad", deadpan: "neutral", scheming: "smug" };
@@ -1568,8 +1570,12 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
     part(c, ell(A.e[0], A.e[1], d * 0.085, d * 0.085), hcol2, { off: d * 0.015, sh: skinSh });
   };
   const holdArm = p.hold ? (p.hold.hand === "L" ? 0 : 1) : -1;
+  // head tilt around the neck: the cheapest big acting cue (curious, sad, smug); expressions bring a small default
+  const TILT: Partial<Record<KExpr, number>> = { sad: 5, cry: 6, think: -7, smug: -4, laugh: -5, embarrassed: 5, scheming: 4, whistle: -4, disgust: -3, nervous: 2 };
+  const tiltDeg = p.headTilt ?? TILT[p.expr ?? "neutral"] ?? 0, neckY = cy + r * 0.86;
+  const headXf = () => { g.translate(cx, neckY); g.rotate(rad(tiltDeg)); g.translate(-cx, -neckY); };
   // ---- back hair, far limbs
-  if (hair.back.length) inkUnion(c, hair.back, shade(hcol, 0.12));
+  if (hair.back.length) { g.save(); headXf(); inkUnion(c, hair.back, shade(hcol, 0.12)); g.restore(); }
   if (side) { drawLeg(R.legs[0]); drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); }
   // ---- legs under the torso
   if (side) drawLeg(R.legs[1]); else { drawLeg(R.legs[0]); drawLeg(R.legs[1]); }
@@ -1607,7 +1613,8 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
     if (n.style === "tie") part(c, poly([[x - d * 0.05, y - d * 0.06], [x + d * 0.05, y - d * 0.06], [x + d * 0.08, y + d * 0.36], [x, y + d * 0.46], [x - d * 0.08, y + d * 0.36]]), n.color, { off: d * 0.02 });
     else if (n.style === "bow") { for (const sg of side ? [1] : [-1, 1]) part(c, poly([[x, y], [x + sg * d * 0.17, y - d * 0.1], [x + sg * d * 0.17, y + d * 0.1]]), n.color, { off: 0 }); dot(g, x, y, d * 0.05, shade(n.color, 0.3)); }
     else { part(c, rrect(-hw * 0.98, y - d * 0.12, tw * 0.98, d * 0.2, d * 0.09), n.color, { off: d * 0.03 }); part(c, poly([[hw * 0.2, y + d * 0.02], [hw * 0.62, y + d * 0.02], [hw * 0.7, y + d * 0.5], [hw * 0.3, y + d * 0.46]]), n.color, { off: d * 0.02 }); } }
-  // ---- head
+  // ---- head (everything up to the hat rotates with the tilt)
+  g.save(); headXf();
   const head = ell(cx, cy, r, r);
   if (!side) for (const sg of [-1, 1]) if (sg * (p.turn ?? 0) < 0.3) part(c, ell(cx + sg * r * 0.98, cy + r * 0.14, r * 0.13, r * 0.17), s.skin, { off: 0, sh: skinSh }); // the ear on the turned-to side hides
   part(c, head, s.skin, { thick: true, off: d * 0.075, sh: skinSh });
@@ -1634,7 +1641,9 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if (s.glasses || s.shades) { const gr = d * 0.14, xs = side ? [fb.x + fb.w * 0.2] : [fb.x - fb.w * 0.18, fb.x + fb.w * 0.18];
     for (const x of xs) { const L = ell(x, ey, gr, gr * 0.92); if (s.shades) { g.fillStyle = s.shades; g.fill(L); g.save(); g.clip(L); g.fillStyle = "rgba(255,255,255,0.35)"; g.fillRect(x - gr, ey - gr, gr * 0.9, gr * 0.7); g.restore(); } g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.stroke(L); }
     g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.beginPath(); if (side) { g.moveTo(xs[0] - gr, ey); g.lineTo(cx - r * 0.3, ey - gr * 0.1); } else { g.moveTo(xs[0] + gr, ey); g.lineTo(xs[1] - gr, ey); } g.stroke(); }
-  if (s.hat) bobbleHat(c, s.hat, R.hatAt ? R.hatAt[0] : cx, R.hatAt ? R.hatAt[1] : cy, r, side, p.hatTilt ?? 0);
+  if (s.hat && !R.hatAt) bobbleHat(c, s.hat, cx, cy, r, side, p.hatTilt ?? 0);
+  g.restore();
+  if (s.hat && R.hatAt) bobbleHat(c, s.hat, R.hatAt[0], R.hatAt[1], r, side, p.hatTilt ?? 0); // a lifted hat follows the hand, not the head
   // ---- near arms last: they may cross the torso and the head
   if (side) drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined);
   else { drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined); }
@@ -1647,7 +1656,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
  * Numbers and limb targets blend with a small overshoot; expr / cue / view / hold / facing switch when the pop starts.
  */
 export type PoseKey = { f: number; pose: KPose; blend?: number };
-const POSE_NUM = ["armL", "armR", "elbowL", "elbowR", "legL", "legR", "lean", "bob", "squash", "hatLift", "hatTilt", "turn", "mouth", "blink"] as const;
+const POSE_NUM = ["armL", "armR", "elbowL", "elbowR", "legL", "legR", "lean", "bob", "squash", "hatLift", "hatTilt", "turn", "headTilt", "mouth", "blink"] as const;
 const POSE_NUM0: Record<string, number> = { squash: 1 };
 export function poseTrack(keys: PoseKey[], f: number, fps = 30): KPose {
   let i = 0;

@@ -9,9 +9,10 @@ import { rng } from "../time";
 import { NOINK } from "./post";
 import { canvasTexture, paint, vary } from "./textures";
 
-export type LightPreset = "day" | "golden" | "night" | "overcast" | "studio" | "space";
+export type LightPreset = "day" | "golden" | "night" | "overcast" | "studio" | "space"
+  | "dusk" | "rain" | "storm" | "fog" | "morning" | "sunsetBack" | "dawn" | "nightMoon" | "nightPractical" | "neon" | "interiorWindow" | "interiorWarm" | "spotlight";
 
-const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: string; ground: string; hemiI: number; amb: number; dir: [number, number, number]; fog: string; skyTop: string; skyHorizon: string }> = {
+const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: string; ground: string; hemiI: number; amb: number; dir: [number, number, number]; fog: string; skyTop: string; skyHorizon: string; fogNF?: [number, number] }> = {
   // warm key + cool sky fill => warm highlights, cool/violet shadows (the measured cartoon look)
   day: { sun: "#fff1d6", sunI: 2.6, sky: "#9cc8ff", ground: "#7a6a4a", hemiI: 1.1, amb: 0.15, dir: [-0.55, 0.8, 0.35], fog: "#bfe0ff", skyTop: "#3f8ff0", skyHorizon: "#bfe6ff" },
   golden: { sun: "#ffbd7a", sunI: 2.8, sky: "#8f86d6", ground: "#7a5236", hemiI: 0.9, amb: 0.12, dir: [-0.8, 0.32, 0.4], fog: "#ffc89a", skyTop: "#5a63c9", skyHorizon: "#ffb98a" },
@@ -19,6 +20,20 @@ const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: string; grou
   overcast: { sun: "#f4f6fa", sunI: 1.2, sky: "#c9d3df", ground: "#7d7a72", hemiI: 1.5, amb: 0.2, dir: [-0.3, 0.9, 0.2], fog: "#d4dbe3", skyTop: "#a7b3c2", skyHorizon: "#dfe5ec" },
   studio: { sun: "#ffffff", sunI: 2.2, sky: "#f0f0ff", ground: "#c9c0b0", hemiI: 1.0, amb: 0.25, dir: [-0.5, 0.85, 0.6], fog: "#ece6dc", skyTop: "#ece6dc", skyHorizon: "#ece6dc" },
   space: { sun: "#ffffff", sunI: 3.2, sky: "#1a2040", ground: "#000000", hemiI: 0.15, amb: 0.03, dir: [-1, 0.3, 0.5], fog: "#000000", skyTop: "#02030a", skyHorizon: "#050816" },
+  // 1.6 lighting keys (references/research/lighting.md B4: design values, hero-short palette anchors). fogNF = linear fog [near, far] for a street-sized set
+  dusk:           { sun: "#ff9f8a", sunI: 0.9, sky: "#6e54d3", ground: "#2a1f55", hemiI: 1.0, amb: 0.12, dir: [-0.85, 0.21, -0.49], fog: "#5a4ab0", skyTop: "#1f1a5c", skyHorizon: "#b0589c", fogNF: [8, 95] },
+  rain:           { sun: "#dfe9ef", sunI: 0.7, sky: "#9fb9c8", ground: "#4a5a62", hemiI: 1.4, amb: 0.20, dir: [-0.30, 0.90, 0.20], fog: "#87adbe", skyTop: "#5c7482", skyHorizon: "#9fb8c4", fogNF: [5, 55] },
+  storm:          { sun: "#b8c4d0", sunI: 0.5, sky: "#56677a", ground: "#2c343c", hemiI: 1.1, amb: 0.12, dir: [-0.17, 0.97, 0.20], fog: "#4a5a68", skyTop: "#2e3944", skyHorizon: "#6f8290", fogNF: [4, 60] },
+  fog:            { sun: "#fff0dc", sunI: 1.0, sky: "#cfd8dc", ground: "#8a8a84", hemiI: 1.4, amb: 0.25, dir: [0.31, 0.42, -0.85], fog: "#cfd9de", skyTop: "#b8c6cf", skyHorizon: "#d6dfe3", fogNF: [2, 35] },
+  morning:        { sun: "#ffe4ce", sunI: 2.3, sky: "#a9c9f5", ground: "#7d6f58", hemiI: 1.0, amb: 0.15, dir: [-0.78, 0.42, 0.45], fog: "#dbe7f2", skyTop: "#4d9be8", skyHorizon: "#ffe9d2", fogNF: [8, 90] },
+  sunsetBack:     { sun: "#ff9d5a", sunI: 3.0, sky: "#7a78c8", ground: "#6a4a3a", hemiI: 1.1, amb: 0.15, dir: [-0.48, 0.26, -0.84], fog: "#ffb07a", skyTop: "#4a4fb0", skyHorizon: "#ff9a5c", fogNF: [8, 90] },
+  dawn:           { sun: "#ffc9a0", sunI: 2.6, sky: "#b7b0ea", ground: "#806050", hemiI: 1.0, amb: 0.15, dir: [-0.88, 0.26, 0.41], fog: "#ffd9c4", skyTop: "#6f8fe0", skyHorizon: "#ffc9b0", fogNF: [10, 110] },
+  nightMoon:      { sun: "#a9bcff", sunI: 1.0, sky: "#2a3570", ground: "#151a30", hemiI: 0.8, amb: 0.10, dir: [0.71, 0.57, -0.41], fog: "#1b2448", skyTop: "#060b2e", skyHorizon: "#1d2f7a", fogNF: [6, 80] },
+  nightPractical: { sun: "#a9bcff", sunI: 0.5, sky: "#1f2858", ground: "#10142a", hemiI: 0.55, amb: 0.08, dir: [0.71, 0.57, -0.41], fog: "#141a3c", skyTop: "#040824", skyHorizon: "#15235e", fogNF: [5, 60] },
+  neon:           { sun: "#8fa0ff", sunI: 0.3, sky: "#1a1440", ground: "#0d0a24", hemiI: 0.5, amb: 0.06, dir: [0.71, 0.57, -0.41], fog: "#24124a", skyTop: "#05041c", skyHorizon: "#2a1456", fogNF: [4, 50] },
+  interiorWindow: { sun: "#eef4ff", sunI: 2.2, sky: "#b8ccd8", ground: "#8a6a52", hemiI: 0.9, amb: 0.20, dir: [-0.85, 0.50, 0.15], fog: "#7297aa", skyTop: "#7297aa", skyHorizon: "#a9c2cf", fogNF: [15, 60] },
+  interiorWarm:   { sun: "#7f8fd0", sunI: 0.5, sky: "#4a4470", ground: "#5a3a2a", hemiI: 0.6, amb: 0.10, dir: [0.85, 0.40, 0.30], fog: "#2b2a4a", skyTop: "#2b2a7a", skyHorizon: "#6a5aa8", fogNF: [20, 80] },
+  spotlight:      { sun: "#fff6e6", sunI: 3.2, sky: "#20243a", ground: "#101220", hemiI: 0.25, amb: 0.03, dir: [0.00, 0.98, 0.17], fog: "#0c0e1c", skyTop: "#05060f", skyHorizon: "#0c1024", fogNF: [6, 60] },
 };
 
 export function lights(scene: THREE.Scene, preset: LightPreset = "day", opts: { shadowSize?: number; target?: [number, number, number]; fog?: [number, number] | false } = {}) {
@@ -31,7 +46,7 @@ export function lights(scene: THREE.Scene, preset: LightPreset = "day", opts: { 
   sun.castShadow = true;
   const S = opts.shadowSize ?? 40;
   Object.assign(sun.shadow.camera, { left: -S, right: S, top: S, bottom: -S, near: 1, far: 220 });
-  sun.shadow.bias = -0.0004;
+  sun.shadow.bias = -0.00015; // 1.6: -0.0004 over near 1 / far 220 was an ~9 cm depth offset: contact shadows detached from feet and props
   sun.shadow.normalBias = 0.03;
   sun.shadow.radius = 3;
   scene.add(sun, sun.target);
@@ -39,7 +54,7 @@ export function lights(scene: THREE.Scene, preset: LightPreset = "day", opts: { 
   scene.add(hemi);
   scene.add(new THREE.AmbientLight("#ffffff", L.amb));
   if (opts.fog !== false && preset !== "space") {
-    const [n, f] = opts.fog ?? [60, 320];
+    const [n, f] = opts.fog ?? L.fogNF ?? [60, 320];
     scene.fog = new THREE.Fog(L.fog, n, f);
   }
   return { sun, hemi, preset: L };
@@ -48,10 +63,15 @@ export function lights(scene: THREE.Scene, preset: LightPreset = "day", opts: { 
 export function sky(scene: THREE.Scene, top: string, horizon: string, bottom?: string, radius = 900) {
   const mat = new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false, fog: false,
-    uniforms: { top: { value: new THREE.Color(top) }, horizon: { value: new THREE.Color(horizon) }, bottom: { value: new THREE.Color(bottom ?? horizon) } },
+    uniforms: { top: { value: new THREE.Color(top) }, horizon: { value: new THREE.Color(horizon) }, bottom: { value: new THREE.Color(bottom ?? horizon) },
+      // 1.6 sun / moon glow: set sunDir (toward the light, normalised), sunCol and sunGlow (0 = off, ~0.6 day, ~1 sunset)
+      sunDir: { value: new THREE.Vector3(0, 1, 0) }, sunCol: { value: new THREE.Color("#fff2d0") }, sunGlow: { value: 0 } },
     vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-    fragmentShader: `uniform vec3 top; uniform vec3 horizon; uniform vec3 bottom; varying vec3 vP;
-      void main(){ float h = vP.y; vec3 c = h > 0.0 ? mix(horizon, top, pow(smoothstep(0.0, 0.85, h), 0.7)) : mix(horizon, bottom, smoothstep(0.0, -0.2, h)); gl_FragColor = vec4(c, 1.0); }`,
+    fragmentShader: `uniform vec3 top; uniform vec3 horizon; uniform vec3 bottom; uniform vec3 sunDir; uniform vec3 sunCol; uniform float sunGlow; varying vec3 vP;
+      void main(){ float h = vP.y; vec3 c = h > 0.0 ? mix(horizon, top, pow(smoothstep(0.0, 0.85, h), 0.7)) : mix(horizon, bottom, smoothstep(0.0, -0.2, h));
+        float sd = max(dot(normalize(vP), sunDir), 0.0);
+        c += sunCol * sunGlow * (0.55 * pow(sd, 220.0) + 0.3 * pow(sd, 24.0) + 0.12 * pow(sd, 4.0) * smoothstep(-0.1, 0.25, 1.0 - abs(h)));   // disc, halo, horizon-side glow
+        gl_FragColor = vec4(c, 1.0); }`,
   });
   const m = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 16), mat);
   m.layers.set(NOINK);
@@ -483,7 +503,7 @@ export function banner(text: string, o: { w?: number; h?: number; color?: string
     g.font = `900 ${size}px ${FONT_SIGN}`;
     words.forEach((wd, i) => g.fillText(wd, W / 2, H * 0.36 + (i - (words.length - 1) / 2) * size * 1.15));
   });
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide }));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: tex, alphaTest: 0.5, alphaToCoverage: true, side: THREE.DoubleSide }));
   m.position.y = -h / 2;
   const g = new THREE.Group(); g.add(m);
   const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, w * 1.12, 8), lambert({ color: "#5a4326" })); rod.rotation.z = Math.PI / 2; g.add(rod);
@@ -499,7 +519,7 @@ export function lattice(w: number, h: number, o: { cell?: number; color?: string
     g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 3; g.beginPath(); g.moveTo(15, 15); g.lineTo(15, 241); g.stroke(); // highlight on the bars
   }, [w / cell, h / cell]);
   const g = new THREE.Group();
-  g.add(new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide })));
+  g.add(new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: tex, alphaTest: 0.5, alphaToCoverage: true, side: THREE.DoubleSide })));
   if (o.glass !== false) { const gl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshLambertMaterial({ color: o.glass ?? "#cfe8ff", transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false })); gl.userData.auditIgnore = true; g.add(gl); }
   return g;
 }
@@ -603,4 +623,32 @@ export function lantern(o: { color?: string; glow?: string } = {}) {
   const cap = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.16, 4), iron); cap.position.y = 0.23; cap.rotation.y = Math.PI / 4; g.add(cap);
   const base = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.05, 0.26), iron); base.position.y = -0.17; g.add(base);
   return g;
+}
+
+/**
+ * Light shafts ("god rays") as additive crossed cards (1.6): from each `from` point (a roof light, a window, a gap in
+ * the trees) along `dir` (the direction the light TRAVELS) for `len` metres. Soft across, brightest at the source.
+ * Cheap, deterministic, independent of the camera (screen-space shafts only work when the sun is in view).
+ * Fade them with the key light: `shafts.setStrength(0.22 * dayAmount)`.
+ */
+export function lightShafts(o: { from: [number, number, number][]; dir: [number, number, number]; len: number; width?: number; color?: string; strength?: number }) {
+  const g = new THREE.Group(), d = new THREE.Vector3(...o.dir).normalize(), w = o.width ?? 1.6;
+  const mat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+    uniforms: { c: { value: new THREE.Color(o.color ?? "#fff1c8") }, k: { value: o.strength ?? 0.22 } },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 c; uniform float k; varying vec2 vUv;
+      void main(){ float x = 1.0 - abs(vUv.x * 2.0 - 1.0); float a = smoothstep(0.0, 0.85, x) * mix(0.18, 1.0, vUv.y * vUv.y) * smoothstep(0.0, 0.06, vUv.y) * k; gl_FragColor = vec4(c * a, a); }`,
+  });
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, -1, 0), d);
+  o.from.forEach((p, i) => {
+    for (const turn of [0, Math.PI / 2]) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w * (1 + (i % 3) * 0.25), o.len), mat);
+      m.quaternion.copy(q).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), turn));
+      m.position.set(p[0], p[1], p[2]).addScaledVector(d, o.len / 2);
+      m.layers.set(NOINK); m.userData.auditIgnore = true; m.renderOrder = 4;
+      g.add(m);
+    }
+  });
+  return Object.assign(g, { setStrength: (k: number) => { mat.uniforms.k.value = k; } });
 }

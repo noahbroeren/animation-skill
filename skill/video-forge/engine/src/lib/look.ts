@@ -5,6 +5,8 @@
  * Analyzer bridge: `vfa analyze` writes look_suggestion.json. lookFromSuggestion()
  * turns it into a Look so a production starts from the MEASURED reference grade.
  */
+import { hexOf, mixOklab, rgbOf } from "./color";
+const HEX = /^#[0-9a-fA-F]{6}$/;
 export type Tonemap = "aces" | "neutral" | "agxish" | "none";
 
 export type Look = {
@@ -26,7 +28,11 @@ export type Look = {
     zoneSat?: [number, number, number]; // shadow / mid / highlight saturation (used with knots)
     tintS?: [number, number]; tintM?: [number, number]; tintH?: [number, number]; // luma-neutral [Cb, Cr] offsets
   };
-  ink: { enabled: boolean; strength: number; widthNear: number; widthFar: number; distNear: number; distFar: number; color: string; creases: number };
+  /** hue 0..1: 0 = one flat ink colour; 1 = lines take a dark version of the colour they outline (coloured line art) */
+  ink: { enabled: boolean; strength: number; widthNear: number; widthFar: number; distNear: number; distFar: number; color: string; creases: number; hue?: number };
+  /** stylised ambient occlusion on the world (never on character cards): contact shading in corners and under props.
+   *  radius in metres at 6 m distance, tint = the colour AO multiplies toward (violet / blue, never grey-black) */
+  ao?: { enabled: boolean; strength: number; radius: number; tint: string };
   /** maxBlur = blur-disc radius (u) for objects at infinity (cInf); maxCoC caps it (default 2x); nearScale boosts foreground */
   dof: { enabled: boolean; maxBlur: number; aperture: number; maxCoC?: number; nearScale?: number };
   bloom: { enabled: boolean; threshold: number; strength: number; radius: number };
@@ -122,7 +128,8 @@ export const LOOKS: Record<string, Look> = {
  */
 const toonBase = deepMerge(base, {
   tonemap: "none", exposure: 1.0,
-  ink: { enabled: true, strength: 1, widthNear: 3.0, widthFar: 2.6, distNear: 6, distFar: 90, color: "#140c10", creases: 0.75 },
+  ink: { enabled: true, strength: 1, widthNear: 3.0, widthFar: 2.6, distNear: 6, distFar: 90, color: "#140c10", creases: 0.75, hue: 0.22 }, // 0.4 measured too light: ink-on-edges 0.21 vs 0.35 on the reference
+  ao: { enabled: true, strength: 0.5, radius: 0.55, tint: "#7c6a92" }, // (#6a5c9c pushed shadow b from -5.3 to -8.5; reference -5.4)
   dof: { enabled: false, maxBlur: 12, aperture: 1 },
   bloom: { enabled: true, threshold: 1.0, strength: 0.5, radius: 1.2 },
   grain: { amount: 0, size: 1 },
@@ -131,7 +138,7 @@ const toonBase = deepMerge(base, {
 LOOKS["toonworld-day"] = deepMerge(toonBase, {
   name: "toonworld-day",
   grade: { blackPoint: 0.045, whitePoint: 0.97, contrast: 1.22, pivot: 0.5, saturation: 1.26, vibrance: 0.15, // manhole loop iter 3: p1 .126 -> ~.10
-    shadowTint: [0.05, -0.008, 0.0], highlightTint: [-0.03, -0.004, 0.05], tintM: [0.012, -0.01] }, // lifted magenta-violet blacks; whites ~0.95-0.97, cool-neutral highs
+    shadowTint: [0.05, -0.008, 0.0], highlightTint: [-0.03, -0.004, 0.05] }, // (tintM removed in 1.6: it was never applied without knots, and the look was measured without it) // lifted magenta-violet blacks; whites ~0.95-0.97, cool-neutral highs
   vignette: { amount: 0.12, softness: 0.5 },
 });
 LOOKS["toonworld-golden"] = deepMerge(toonBase, {
@@ -153,6 +160,13 @@ LOOKS["toonworld-interior"] = deepMerge(toonBase, {
     shadowTint: [0.04, -0.005, 0.02], highlightTint: [0.02, 0.01, -0.03] },
   vignette: { amount: 0.3, softness: 0.45 },
 });
+
+// ---- 1.6 lighting keys (references/research/lighting.md section B: design values anchored on the measured hero short) ----
+LOOKS["toonworld-dusk"] = deepMerge(toonBase, { name: "toonworld-dusk", ...{ grade: { blackPoint: 0.04, whitePoint: 0.97, contrast: 1.18, pivot: 0.47, saturation: 1.30, vibrance: 0.22, shadowTint: [0.0, -0.010, 0.10], highlightTint: [0.02, 0.0, 0.0] }, vignette: { amount: 0.30, softness: 0.45 }, bloom: { threshold: 0.95, strength: 0.6, radius: 1.4 } } });
+LOOKS["toonworld-rain"] = deepMerge(toonBase, { name: "toonworld-rain", ...{ grade: { blackPoint: 0.015, whitePoint: 0.94, contrast: 1.12, pivot: 0.45, saturation: 0.85, vibrance: 0.10, shadowTint: [-0.02, 0.008, 0.03], highlightTint: [-0.012, 0.0, 0.014] }, vignette: { amount: 0.25, softness: 0.5 }, bloom: { threshold: 0.90, strength: 0.55, radius: 1.5 } } });
+LOOKS["toonworld-overcast"] = deepMerge(toonBase, { name: "toonworld-overcast", ...{ grade: { blackPoint: 0.04, whitePoint: 0.95, contrast: 1.10, pivot: 0.5, saturation: 1.10, vibrance: 0.10, shadowTint: [0.0, 0.0, 0.02], highlightTint: [0.0, 0.0, 0.0] }, vignette: { amount: 0.15, softness: 0.5 } } });
+LOOKS["toonworld-fog"] = deepMerge(toonBase, { name: "toonworld-fog", ...{ grade: { blackPoint: 0.08, whitePoint: 0.95, contrast: 1.00, pivot: 0.5, saturation: 0.90, vibrance: 0.05, shadowTint: [0.0, 0.004, 0.012], highlightTint: [0.012, 0.006, -0.006] }, vignette: { amount: 0.10, softness: 0.6 }, bloom: { threshold: 0.85, strength: 0.5, radius: 1.8 }, softness: 0.08 } });
+LOOKS["toonworld-office"] = deepMerge(toonBase, { name: "toonworld-office", ...{ grade: { blackPoint: 0.05, whitePoint: 0.98, contrast: 1.10, pivot: 0.5, saturation: 1.15, vibrance: 0.12, shadowTint: [0.03, -0.004, 0.02], highlightTint: [-0.01, 0.0, 0.02] }, vignette: { amount: 0.25, softness: 0.45 } } });
 
 // ---- measured style presets (references/styles/*.md, fingerprints in references/styles/data/) ----
 /** Realistic 3D explainer (Zack D. Films, 22 CG shorts): bright, lifted floor, warm shadows, no ink, DOF on macro. */
@@ -193,6 +207,7 @@ export function lerpLook(a: Look, b: Look, t: number): Look {
   const mix = (x: any, y: any): any => {
     if (typeof x === "number" && typeof y === "number") return x + (y - x) * t;
     if (Array.isArray(x) && Array.isArray(y)) return x.map((v, i) => mix(v, y[i]));
+    if (typeof x === "string" && typeof y === "string" && HEX.test(x) && HEX.test(y)) return hexOf(mixOklab(rgbOf(x), rgbOf(y), t)); // colours cross-fade in OKLab
     if (x && y && typeof x === "object") { const o: any = {}; for (const k of Object.keys(x)) o[k] = mix(x[k], y[k]); return o; }
     return t < 0.5 ? x : y;
   };
