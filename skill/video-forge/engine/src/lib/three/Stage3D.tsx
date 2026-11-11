@@ -139,7 +139,9 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
     const lk = typeof look === "function" ? look(frame) : look;
     let prevViewProj: THREE.Matrix4 | undefined;
     const prev = camAt && frame > 0 && !camOverride ? camAt(frame - 1, fps) : null;
-    const jump = prev ? Math.hypot(prev.pos[0] - cam.pos[0], prev.pos[1] - cam.pos[1], prev.pos[2] - cam.pos[2]) > 0.35 * cam.focus : false; // undeclared cut
+    // undeclared cut: only guessed when the project gives no cut list. With one, a fast travel is a travel: the guess used
+    // to switch the blur off on the two fastest frames of a board travel, which measured as flicker.
+    const jump = prev && !cuts ? Math.hypot(prev.pos[0] - cam.pos[0], prev.pos[1] - cam.pos[1], prev.pos[2] - cam.pos[2]) > 0.35 * cam.focus : false;
     if (prev && lk.motionBlur > 0 && !cuts?.includes(frame) && !jump) {
       const pc = (it as any).prevCam ?? ((it as any).prevCam = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
       applyCam(pc, prev, width / height);

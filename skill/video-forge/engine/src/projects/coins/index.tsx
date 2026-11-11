@@ -157,10 +157,10 @@ const beats: Beat[] = [
     gag: [{ stamp: "FRIDAY", side: "right", until: "baker" }, { prop: "bar", id: "bar", at: [-1.85, 1.4, -1.55], scale: 1.3, until: "baker" }, { fx: "sparkle", on: "bar", size: 0.8, dy: 0 }], sfx: ["ding"] },
   // 4. ESCALATION: everybody clips
   { at: "then#2", id: "baker", place: "street", key: "day", shot: { size: "medium", on: "baker", angle: 18, move: "push" },
-    act: { baker: { at: [-2.4, 0, 0.4], pose: hand(0.7, 1.15, { expr: "scheming", turn: 0.4 }) }, barber: { at: [2.5, 0, 0.6], pose: hand(0.7, 1.15, { expr: "scheming", turn: -0.4 }) }, clipper: { at: [0.1, 0, 1.6], pose: "hips", expr: "smug" } },
+    act: { baker: { at: [-2.4, 0, 0.4], pose: hand(0.7, 1.15, { expr: "scheming", turn: 0.4 }) }, barber: { at: [2.5, 0, 0.6], pose: hand(0.7, 1.15, { expr: "scheming", turn: -0.4 }) }, clipper: { hide: true } },   // (he stood between the baker and the barber: the whip swung through his face)
     gag: { fx: "sparkle", on: "baker", size: 0.5 }, sfx: [{ name: "snip", lu: -9, df: 12 }], music: "full" },
   { at: "barber", id: "barber", via: "whip", shot: { size: "medium", on: "barber", angle: -18, move: "push" }, gag: { fx: "sparkle", on: "barber", size: 0.5 }, sfx: [{ name: "snip", lu: -9, df: 8 }] },
-  { at: "everybody", id: "everybody", shot: { size: "wide", move: "crane", amount: 3.4 }, crowd: "cheer", act: { clipper: { pose: "cheer", expr: "laugh" }, baker: { pose: "cheer" }, barber: { pose: "cheer" } },
+  { at: "everybody", id: "everybody", shot: { size: "wide", move: "crane", amount: 3.4 }, crowd: "cheer", act: { clipper: { hide: false, at: [0.1, 0, 1.6], pose: "cheer", expr: "laugh" }, baker: { pose: "cheer" }, barber: { pose: "cheer" } },
     gag: { label: "clip · clip · clip", y: 0.17 }, sfx: [{ name: "snip", lu: -10, df: 4 }, { name: "snip", lu: -11, df: 10 }, { name: "snip", lu: -10, df: 17 }] },
   // 5. HOW BAD: the weighing
   { at: "1695", id: "y1695", place: "exchequer", key: OFFICE, music: "thin", shot: { size: "medium", on: "officer", angle: -16, side: -0.3, move: "push" },

@@ -32,6 +32,8 @@ export type SceneDef = {
   music?: { f: number; mode: string }[];
   rain?: { f: number; amount: number }[];
   places?: { f: number; set: string; interior: boolean }[];
+  /** planned camera travels [start, end] in local frames: QA does not call a luminance swing inside one flicker (a cut inside one is still a defect) */
+  travels?: [number, number][];
 };
 
 const DEF_FRAMES: Record<TransitionType, number> = { cut: 0, crossfade: 14, dip: 18, whip: 10, zoom: 14, wipe: 16, flash: 8, "slide-up": 12 };
@@ -44,7 +46,7 @@ export function plan(scenes: SceneDef[]) {
   const soft: number[] = [];
   const events: number[] = [];
   const cues: Record<string, number> = {};
-  const sounds: NonNullable<SceneDef["sounds"]> = [], music: NonNullable<SceneDef["music"]> = [], rain: NonNullable<SceneDef["rain"]> = [], places: NonNullable<SceneDef["places"]> = [];
+  const sounds: NonNullable<SceneDef["sounds"]> = [], music: NonNullable<SceneDef["music"]> = [], rain: NonNullable<SceneDef["rain"]> = [], places: NonNullable<SceneDef["places"]> = [], travels: [number, number][] = [];
   scenes.forEach((s, i) => {
     const ov = i === 0 ? 0 : tf(s.transition);
     const start = i === 0 ? 0 : at - ov;
@@ -58,9 +60,10 @@ export function plan(scenes: SceneDef[]) {
     for (const x of s.music ?? []) music.push({ ...x, f: start + x.f });
     for (const x of s.rain ?? []) rain.push({ ...x, f: start + x.f });
     for (const x of s.places ?? []) places.push({ ...x, f: start + x.f });
+    for (const [a, b] of s.travels ?? []) travels.push([start + a, start + b]);
     at = start + s.frames;
   });
-  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues, ...(sounds.length ? { sounds, music, rain, places } : {}) };
+  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues, ...(sounds.length ? { sounds, music, rain, places } : {}), ...(travels.length ? { travels } : {}) };
 }
 
 const Wrap: React.FC<{ children: React.ReactNode; enter?: Transition; exit?: Transition; frames: number }> = ({ children, enter, exit, frames }) => {

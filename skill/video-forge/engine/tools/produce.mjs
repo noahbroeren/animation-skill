@@ -108,6 +108,10 @@ if (A.ref) {
 let keygap = "";
 if (A.ref) { const k = run(PY, [path.join(SKILL, "analyzer", "vfa.py"), "keygap", path.join(qaDir, "analysis"), "--plan", path.join(out, "timeline.json"), "--ref", path.resolve(A.ref)], { allowFail: true }); keygap = k.stdout ?? ""; fs.writeFileSync(path.join(qaDir, "keygap.md"), keygap); }
 
+// 5c. transition strips: nine frames around every cut, dissolve and detected cut (look at them before delivery)
+const st = run(PY, [path.join(SKILL, "analyzer", "vfa.py"), "strips", final, "--plan", path.join(out, "timeline.json"), "--analysis", path.join(qaDir, "analysis"), "--out", path.join(qaDir, "strips.jpg")], { allowFail: true });
+log((st.stdout ?? "").trim().split("\n").pop() ?? "strips");
+
 // 6. judge pack
 const pack = path.join(out, "judge");
 run(PY, [path.join(SKILL, "analyzer", "vfa_loop.py"), "judgepack", "--ours", path.join(qaDir, "analysis"), "--out", pack,
@@ -136,7 +140,7 @@ const R = [`# Produce report: ${A.project} (iteration ${its.length})`, "",
   ...(worst.length ? ["## Biggest gaps vs reference", ...worst.map((r) => `- ${r.label}: ref ${r.ref.toFixed(3)} / ours ${r.ours.toFixed(3)} (gap ${r.gap}) -> ${r.advice}`), ""] : []),
   ...(keygap ? ["## Colour per lighting key", keygap.split("\n").filter((l) => l.startsWith("|")).join("\n"), ""] : []),
   "## Next (director loop, references/director-loop.md)",
-  `1. Look at \`${path.join(out, "stills_sheet.jpg")}\` and the QA contact sheets.`,
+  `1. Look at \`${path.join(qaDir, "strips.jpg")}\` (every transition, frame by frame), \`${path.join(out, "stills_sheet.jpg")}\` and the QA contact sheets.`,
   `2. Spawn one reviewer agent per folder in \`${pack}\` (prompt.md); save answers as <area>/answer.json; run \`py analyzer/vfa_loop.py collect ${pack}\`.`,
   "3. Route fixes by owner (fixes.md) to fixer agents with file ownership; merge; re-run produce with --change \"...\" --style <style>.",
   "4. Stop when QA has no FAIL, judge min score >= 8 (or target), or after 4 iterations with residuals listed."];

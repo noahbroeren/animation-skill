@@ -111,6 +111,7 @@ def main(argv=None):
     p.add_argument("--out", required=True)
 
     p = sub.add_parser("keygap"); p.add_argument("analysis"); p.add_argument("--plan", required=True); p.add_argument("--ref"); p.add_argument("--prev"); p.add_argument("--cuts", action="store_true")
+    p = sub.add_parser("strips"); p.add_argument("video"); p.add_argument("--plan", required=True); p.add_argument("--analysis"); p.add_argument("--around", type=int, default=4); p.add_argument("--out", required=True)
     p = sub.add_parser("probe")
     p.add_argument("video")
 
@@ -180,6 +181,10 @@ def main(argv=None):
                 whisper_model=a.whisper_model, keyframes=not a.no_keyframes, start=a.start, duration=a.duration,
                 deep=a.deep, deep_skip=[x.strip() for x in a.deep_skip.split(",") if x.strip()])
         print(os.path.join(out, "report.md"))
+    elif a.cmd == "strips":
+        from .strips import strips
+        r = strips(a.video, a.plan, a.out, a.analysis, a.around)
+        print(f"{len(r['rows'])} transitions -> {r['out']}; unplanned {r.get('unplanned', [])}, explained only by an event {r.get('event_explained', [])}")
     elif a.cmd == "keygap":
         from .keygap import keygap
         from .compare import load as _load

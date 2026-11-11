@@ -1,6 +1,6 @@
 {
   "name": "video-forge-engine",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "description": "video-forge production engine: Remotion + three.js, native 2K/4K, deterministic per-frame rendering",
   "type": "module",

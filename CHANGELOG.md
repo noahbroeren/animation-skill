@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.7.1 - 2026-11-11
+- **The cuts were too hard (user feedback on the coin short), and most of them were a bug.** The board's camera
+  "travels" jumped: a shot ended two frames before the next cue while the travel to the next shot had already
+  started, the rig handed over mid-travel and the picture jumped half the distance in one frame. 12 of 23 detected
+  cuts were these jumps. QA passed them because the board had listed frames around every travel as intended events.
+  Fixed: a shot now ends where the next travel starts (travel length follows the previous shot, 12-28 frames), and
+  travels are no longer listed as events.
+- **Softer cuts**: `via: "cut"` is a 4-frame cross-dissolve by default (`softCut` on the board, 0 = hard), the
+  settle after a hard cut is 12 % over 16 frames (was 26 % over 11), and the subject keeps its side of the frame
+  across a cut (`side` carries over).
+- **`vfa strips`**: nine consecutive frames around every planned and detected transition, one row each, with a
+  harshness number; `produce.mjs` writes `qa/strips.jpg`. `vfa qa` has a new line, "cuts explained only by an
+  event" (WARN with the frames). Lesson: I judged transitions from numbers and stills; nine frames in a row showed
+  the defect at a glance.
+- Also fixed on the way: a follow shot's key path now ends where its subject ends (the camera jumped back to the car's
+  starting point when the follow was over), whips and travels are declared in the plan (`soft`, `travels`), and the
+  "undeclared cut" guess no longer switches the motion blur off on the fastest frames of a travel.
+- Measured on the coin short (same script, voice and sound): detected cuts 23 -> 13 (11 planned soft cuts + the whip
+  + one fast travel), cuts explained only by an event 12 -> 0, unplanned 0, average shot length 2.4 -> 4.1 s, style
+  match 16/32 -> 18/32, QA WARN with 0 FAIL (the one WARN is the style match).
+
 ## 1.7.0 - 2026-11-11
 - **Storyboard as data** (`engine/src/lib/board.tsx`, guide `references/board.md`). A short is ONE `Board`: the cast,
   the places and a list of beats anchored on spoken words. Each beat names the place, the lighting key, the shot and how

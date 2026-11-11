@@ -267,3 +267,16 @@ Reading the table:
 
 The 1/8-size audit pass is NOT a colour proxy: its numbers differed from the full-resolution QA by several Lab units.
 
+
+## `vfa strips`: look at every transition (1.7.1)
+
+```
+vfa strips VIDEO --plan timeline.json [--analysis QA_DIR/analysis] [--around 4] --out strips.jpg
+```
+
+One row per transition, nine consecutive frames each: planned cuts (CUT), planned dissolves (SOFT), detected cuts that
+only an `events` frame explains (EVENT) and detected cuts nothing explains (UNPLANNED). Each row has a harshness number:
+the luma change across the hardest frame step divided by the median step around it. Also writes `strips.json`.
+`produce.mjs` writes `qa/strips.jpg` on every run and the report links it. `vfa qa` has a matching line, "cuts explained
+only by an event": WARN with the frame list. An event is meant for a graphic entrance; a camera jump can hide behind one.
+Read the strip before you deliver: a number told me the cut count was high, nine frames told me why.

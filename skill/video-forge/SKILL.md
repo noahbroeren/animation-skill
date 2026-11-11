@@ -104,6 +104,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | visual regression of the engine | `py tests/test_visual.py` in the repo (`--update` after an intended look change) |
 | reference vs ours, ranked fixes | `vfa compare REF OURS` |
 | colour per lighting key (section) instead of one video-wide median; ALWAYS before changing a grade | `vfa keygap ANALYSIS_DIR --plan timeline.json --ref FP [--prev OLD_ANALYSIS_DIR]` |
+| **look at every transition** (nine frames around each cut, dissolve and detected cut; flags jumps hiding behind events) - ALWAYS before delivery | `vfa strips VIDEO --plan timeline.json --analysis QA_DIR/analysis --out strips.jpg` |
 | side-by-side judge sheet | `vfa sbs --ref a.jpg,b.jpg --ours c.jpg,d.jpg --out sbs.jpg` |
 | final gate | `vfa qa VIDEO --plan timeline.json --ref REF` |
 | new production | `node ENGINE/tools/new-project.mjs ID` |

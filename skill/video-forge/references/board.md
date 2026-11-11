@@ -34,7 +34,7 @@ A **beat** is one clause of the narration:
 |---|---|
 | `at` | the spoken word it starts on: `"coin"`, `"coin#2"` (second occurrence), `"the>79"` (first after word 79), or seconds. An exact word wins over a prefix. `off` shifts it (default -0.06 s: the picture leads the word). |
 | `place`, `key` | where we are and the lighting key (`LIGHT_KEYS` name or a `LightKey`). Both persist until changed. |
-| `via` | how the shot arrives: `cut` (default), `dissolve` (default on a place change), `glide`, `whip`. |
+| `via` | how the shot arrives: `glide` (default inside a place: the camera travels, starting before the cue and landing just after it), `dissolve` (default on a place change), `cut` (a soft cut: 4 frames of cross-dissolve, `softCut: 0` on the board for hard cuts), `whip`. |
 | `shot` | `{ size, on, angle, side, move, amount, from, follow, h }` (section 3). |
 | `act` | per actor: `at` / `walk` a mark, `pose` (a `BOBBLE_POSES` name or a pose), `expr`, `turn`, `view`, `hold`, `look`, `talk`, `hide`, `seat`. A pose holds until the next one; it pops 3 frames before the word. |
 | `gag` | one or several of: `{ prop, at, id, origin, scale, in, until }`, `{ fx, on }`, `{ stamp }`, `{ label }`, `{ counter }`, `{ big }`. |
@@ -93,7 +93,18 @@ Rules the tools enforce or that the first board taught:
    switched off indoors automatically.
 8. **Dress the crowd for the era.** Background extras default to period presets for `era: "old"` sets (a hard hat in
    1695 was the first thing the stills showed). Override with `extras`.
-9. **Look at one still per beat before any render:** `--stills cues+10` (10 frames after each cue, past the cut and
+9. **Transitions are judged on consecutive frames, never on numbers.** `vfa strips VIDEO --plan timeline.json --analysis
+   QA_DIR/analysis --out strips.jpg` puts the nine frames around every cut, dissolve and DETECTED cut in one row each.
+   The first board's travels were not travels: the shot before a travel ended two frames before the cue while the
+   travel had started ten frames earlier, the camera rig handed over mid-way and the picture jumped half the distance
+   in one frame. Twelve of 23 detected cuts were such jumps, and QA passed them because the board had listed frames
+   around each travel as intended events. Now a shot ends where the next travel starts, travels are not listed as
+   events, and QA warns about every detected cut that only an event explains.
+10. **Cuts should not be felt.** Inside a place travel; cut only where the cut is the point (on a word, shot / reverse
+   shot, a reveal). A cut is softened by 4 frames of cross-dissolve, the settle after it is small (12 % over 16 frames)
+   and the new subject keeps the previous subject's side of the frame (`side` carries over unless you set it), so the
+   eye does not have to jump across the picture.
+11. **Look at one still per beat before any render:** `--stills cues+10` (10 frames after each cue, past the cut and
    the prop pop-in), then the 1/8-size audit pass. The audit found a character hidden by another card, a subject
    pushed out by a `rise`, and nothing else gets past it unseen.
 

@@ -98,9 +98,16 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
         unexpected = [c for c in cuts if not any(abs(c - p) <= tol for p in planned)
                       and not any(0 <= c - e <= 12 for e in events)]  # graphic entrances / flashes are intended
         missing = [p for p in planned if not any(abs(c - p) <= tol for c in cuts)]
+        soft_f = set(int(f) for f in pj.get("soft", []))
+        # detected cuts that no planned cut or dissolve explains, only an `events` frame: a graphic entrance, or a camera
+        # jump hiding behind one (the coin short listed frames around every travel as events and 12 jumps passed)
+        by_event = sorted(c for c in cuts if c not in unexpected and not any(abs(c - p) <= tol for p in planned) and not any(abs(c - s) <= 8 for s in soft_f))
         add("cuts vs plan", "PASS" if not unexpected else "FAIL",
             f"detected {len(cuts)}, planned {len(planned)}; unexpected cuts (glitch/pop) at frames {sorted(unexpected)[:20]}; "
             f"planned-but-not-detected (soft transitions are fine) {sorted(missing)[:20]}")
+        add("cuts explained only by an event", "PASS" if not by_event else "WARN",
+            "none" if not by_event else f"{len(by_event)} detected cut(s) at frames {by_event[:20]} match no planned cut or dissolve, only an `events` "
+            "frame: look at them (`vfa strips VIDEO --plan timeline.json --analysis DIR`); a camera jump can hide behind an event")
     from scipy.ndimage import median_filter
     base = median_filter(luma_d, size=15, mode="nearest")
     speed = np.hypot(A["dx"], A["dy"]) * pr.fps + np.abs(A["dlogs"]) * pr.fps
@@ -108,12 +115,14 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
     intended = lambda i: any(abs(i - c) <= 2 * k for c in cuts | planned) or any(-2 * k <= i - e <= 12 * k for e in events)
     pops = [int(i) for i in np.where((luma_d > 4 * base + 0.03) & (luma_d > 0.06))[0] if not intended(i) and speed[i] < 0.6]
     add("pops (unexplained frame jumps)", "PASS" if not pops else "FAIL", f"frames {pops[:30]}" if pops else "none")
+    travels = [tuple(t) for t in (json.load(open(plan, encoding="utf-8")).get("travels", []) if plan and os.path.exists(plan) else [])]
+    in_travel = lambda i: any(a - 2 <= i <= b + 2 for a, b in travels)  # a planned camera travel: the picture's brightness may swing
     lm = A["luma_mean"]
     whites = [int(i) for i in np.where(lm > 0.93)[0] if not intended(int(i))]
     add("white frames", "PASS" if not whites else "FAIL", f"unplanned near-white frames {whites[:20]}" if whites else "none unplanned")
     if len(lm) > 8:
         hf = np.abs(lm[2:] - 2 * lm[1:-1] + lm[:-2])
-        bad = [int(i + 1) for i in np.where(hf > 0.03)[0] if not intended(i + 1) and speed[min(len(speed) - 1, i + 1)] < 0.15]
+        bad = [int(i + 1) for i in np.where(hf > 0.03)[0] if not intended(i + 1) and not in_travel(i + 1) and speed[min(len(speed) - 1, i + 1)] < 0.15]
         add("flicker", "PASS" if len(bad) <= 2 else "WARN",
             f"{len(bad)} unexplained luminance zig-zag frames {bad[:20]} (cuts, planned events and fast camera moves excluded)")
     cb = fp["color"]["clip_black"]["p90"] or 0

@@ -10,7 +10,8 @@
  * from the ground), high (looking down), top (overhead), pov (through `from`'s eyes at `on`).
  * Moves, run over the whole beat so the camera never stands still (measured: 34 % fast-motion frames against 55 % in
  * the reference when shots only held and pushed): push, pull, orbit, crane, track, tilt, rise.
- * Ways in (`via`): cut (with an 11-frame settle, `settle: 0` to switch it off), dissolve, glide, whip (a 6-frame swing with motion blur).
+ * Ways in (`via`): cut (with a small 16-frame settle, `settle: 0` to switch it off), soft (a cut softened by a 4-frame
+ * cross-dissolve), dissolve, glide (a travel that starts before the cue and lands just after it), whip (a 6-frame swing).
  *
  * Rules that are built in:
  *  - the subject's height region for the size decides the distance, the frame's NARROW side wins (9:16: the width);
@@ -110,22 +111,22 @@ export function moveEnd(spec: ShotSpec, a: Framed, aspect: number, box?: { min: 
   return { ...a };
 }
 
-export type Via = "cut" | "dissolve" | "glide" | "whip";
+export type Via = "cut" | "soft" | "dissolve" | "glide" | "whip";
 /** Camera keys for one beat: arrive at f0 by `via`, then run the move until just before f1. */
-export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number }): CamKey[] {
+export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number; soft?: number }): CamKey[] {
   const a = frameShot(spec, o.aspect, o.box), via = o.via ?? "cut";
   const k0: CamKey = { f: o.f0, pos: a.pos, look: a.look, fov: a.fov, focus: a.focus };
   // SETTLE: a shot that arrives by a cut starts a little wide and off to one side and lands on its framing in 11 frames
   // (fast out, soft landing). Fast-cut shorts get their camera energy here: measured fast-motion frames 20 % with plain
   // holds-and-pushes against 55 % in the reference.
-  const st = o.settle ?? 0.26, settle = via === "cut" && st > 0 && o.f1 - o.f0 > 24 && spec.size !== "pov";
+  const st = o.settle ?? 0.12, settle = via === "cut" && st > 0 && o.f1 - o.f0 > 30 && spec.size !== "pov"; // 0.26 landed like a punch: 0.12 over 16 frames
   let pre: CamKey | null = null;
   if (settle) { const v: V3 = [a.pos[0] - a.look[0], a.pos[1] - a.look[1], a.pos[2] - a.look[2]], L = Math.hypot(v[0], v[2]) || 1, sg = o.f0 % 2 ? 1 : -1, r: V3 = [(v[2] / L) * sg, 0, (-v[0] / L) * sg], d = Math.hypot(...v) * st * 0.55;
     const p = clampBox([a.look[0] + v[0] * (1 + st) + r[0] * d, a.look[1] + v[1] * (1 + st * 0.6), a.look[2] + v[2] * (1 + st) + r[2] * d], o.box);
     pre = { f: o.f0, pos: p, look: a.look, fov: a.fov, focus: a.focus, cut: !o.first }; }
-  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 10; else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); } } // a travel starts before the word and lands just after it
-  if (pre) { k0.cut = undefined; k0.f = o.f0 + 11; k0.glide = 11; k0.ease = "outCubic"; }
-  const keys = pre ? [pre, k0] : [k0], end = o.f1 - (via === "glide" ? 0 : 2), len = end - k0.f;
+  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 10; else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); } } // a travel starts before the word and lands just after it
+  if (pre) { k0.cut = undefined; k0.f = o.f0 + 16; k0.glide = 16; k0.ease = "outCubic"; }
+  const keys = pre ? [pre, k0] : [k0], end = o.f1 - 2, len = end - k0.f;
   if ((spec.move ?? "hold") !== "hold" && len > 12) { const b = moveEnd(spec, a, o.aspect, o.box); keys.push({ f: end, pos: b.pos, look: b.look, fov: b.fov, focus: b.focus, glide: len, via: b.via, ease: "smooth" }); }
   else if (len > 4) keys.push({ f: end, pos: a.pos, look: a.look, fov: a.fov, focus: a.focus, glide: 1e6 });
   return keys;

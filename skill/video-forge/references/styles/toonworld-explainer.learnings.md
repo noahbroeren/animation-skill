@@ -136,3 +136,37 @@ Appended automatically by `vfa_loop.py learn` after each measured iteration. A c
 - regressed: cuts per minute gap 4.04 -> 7.21 (ours 14.79 -> 24.3, ref 2.667)
 - regressed: DOF centre/border sharpness gap 2.0 -> 2.34 (ours 1.351 -> 1.249, ref 1.952)
 
+## 2026-11-11 - coins
+
+- change: travels handed over cleanly (no mid-travel jump), soft cuts (4 f), gentle settle, eye-trace side kept across cuts
+- match score: 50.0 -> 50.0
+- improved: move ease-in frames gap 1.25 -> 0.75 (ours 4 -> 6, ref 9)
+- improved: frames with camera motion gap 0.89 -> 0.59 (ours 0.8988 -> 0.9284, ref 0.9873)
+- improved: frames with fast camera motion gap 4.78 -> 3.91 (ours 0.3149 -> 0.3582, ref 0.5539)
+- improved: glide length (frames) gap 4.8 -> 3.4 (ours 20 -> 27, ref 44)
+- improved: camera jerk gap 2.16 -> 1.01 (ours 10.42 -> 38.4, ref 29.48)
+- regressed: move ease-out frames gap 1.12 -> 1.62 (ours 7 -> 5, ref 11.5)
+- improved: highlight tint a gap 3.1 -> 2.81 (ours 8.128 -> 7.555, ref 1.936)
+- regressed: shadow tint a (green-/magenta+) gap 1.05 -> 1.34 (ours 12.67 -> 13.26, ref 10.57)
+- improved: average shot length gap 23.07 -> 20.7 (ours 2.367 -> 3.787, ref 16.21)
+- improved: cuts per minute gap 7.21 -> 4.04 (ours 24.3 -> 14.79, ref 2.667)
+- improved: micro-animation activity gap 2.16 -> 1.72 (ours 0.01164 -> 0.01339, ref 0.02028)
+
+## 2026-11-11 - coins
+
+- change: follow shots end where the subject ends, whips are planned soft transitions, no blur drop-out on fast travels
+- match score: 50.0 -> 56.2
+- improved: move ease-in frames gap 0.75 -> 0.0 (ours 6 -> 9, ref 9)
+- regressed: frames with fast camera motion gap 3.91 -> 4.42 (ours 0.3582 -> 0.3331, ref 0.5539)
+- improved: camera jerk gap 1.01 -> 0.44 (ours 38.4 -> 25.55, ref 29.48)
+- improved: shadow tint a (green-/magenta+) gap 1.34 -> 0.98 (ours 13.26 -> 12.53, ref 10.57)
+- improved: average shot length gap 20.7 -> 20.25 (ours 3.787 -> 4.057, ref 16.21)
+- improved: cuts per minute gap 4.04 -> 3.69 (ours 14.79 -> 13.73, ref 2.667)
+
+## 2026-11-11 - coins
+
+- change: plan: whips and travels declared (no picture change)
+- match score: 56.2 -> 56.2
+- regressed: move ease-in frames gap 0.0 -> 0.5 (ours 9 -> 7, ref 9)
+- regressed: glide length (frames) gap 3.4 -> 5.1 (ours 27 -> 18.5, ref 44)
+

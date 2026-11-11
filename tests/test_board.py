@@ -92,6 +92,22 @@ def test_score_builds_a_master_from_the_cue_sheet_without_real_samples():
     assert snip["file"].endswith("click.wav") and snip["naive_lu"] == -9          # stand-in + default level by name
 
 
+def test_strips_rows_for_planned_and_event_only_cuts():
+    sys.path.insert(0, os.path.join(SKILL, "analyzer"))
+    from vfa.strips import strips, transitions
+    d = tempfile.mkdtemp()
+    vid = os.path.join(d, "v.mp4")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=red:s=160x284:r=30:d=1", "-f", "lavfi", "-i", "color=c=blue:s=160x284:r=30:d=1",
+                    "-filter_complex", "[0][1]concat=n=2:v=1", "-pix_fmt", "yuv420p", vid], check=True)
+    plan = {"fps": 30, "durationInFrames": 60, "cuts": [30], "soft": [], "events": [44]}
+    json.dump(plan, open(os.path.join(d, "t.json"), "w"))
+    # a detected cut at f 47 that only the event at 44 explains, and one at 12 that nothing explains
+    rows = transitions(plan, {"editing": {"cut_times": [1.0, 47 / 30, 12 / 30]}}, 30)
+    assert [(r["f"], r["kind"]) for r in rows] == [(12, "UNPLANNED"), (30, "CUT"), (47, "EVENT")], rows
+    r = strips(vid, os.path.join(d, "t.json"), os.path.join(d, "strips.jpg"))
+    assert os.path.exists(r["out"]) and len(r["rows"]) == 1 and r["rows"][0]["jump_at"] == 30 and r["rows"][0]["harsh"] > 6, r
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

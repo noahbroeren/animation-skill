@@ -1045,5 +1045,228 @@
     "result": "regressed"
    }
   ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "coins",
+  "change": "travels handed over cleanly (no mid-travel jump), soft cuts (4 f), gentle settle, eye-trace side kept across cuts",
+  "note": "",
+  "match_score_before": 50.0,
+  "match_score_after": 50.0,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 1.25,
+    "gap_after": 0.75,
+    "ours_before": 4.0,
+    "ours_after": 6.0,
+    "ref": 9.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_creep",
+    "label": "frames with camera motion",
+    "gap_before": 0.89,
+    "gap_after": 0.59,
+    "ours_before": 0.8988095238095238,
+    "ours_after": 0.9283599763173476,
+    "ref": 0.9873284054910243,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 4.78,
+    "gap_after": 3.91,
+    "ours_before": 0.3148809523809524,
+    "ours_after": 0.35820011841326227,
+    "ref": 0.5539007092198581,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 4.8,
+    "gap_after": 3.4,
+    "ours_before": 20.0,
+    "ours_after": 27.0,
+    "ref": 44.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 2.16,
+    "gap_after": 1.01,
+    "ours_before": 10.419339321392716,
+    "ours_after": 38.39621759329326,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 1.12,
+    "gap_after": 1.62,
+    "ours_before": 7.0,
+    "ours_after": 5.0,
+    "ref": 11.5,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 3.1,
+    "gap_after": 2.81,
+    "ours_before": 8.127871990203857,
+    "ours_after": 7.55457067489624,
+    "ref": 1.936219334602356,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 1.05,
+    "gap_after": 1.34,
+    "ours_before": 12.670108795166016,
+    "ours_after": 13.255629062652588,
+    "ref": 10.56808090209961,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 23.07,
+    "gap_after": 20.7,
+    "ours_before": 2.3666666666666667,
+    "ours_after": 3.7866666666666666,
+    "ref": 16.20724959882321,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 7.21,
+    "gap_after": 4.04,
+    "ours_before": 24.295774647887324,
+    "ours_after": 14.788732394366198,
+    "ref": 2.666844444444444,
+    "result": "improved"
+   },
+   {
+    "metric": "motion.activity.median",
+    "label": "micro-animation activity",
+    "gap_before": 2.16,
+    "gap_after": 1.72,
+    "ours_before": 0.011639295882168988,
+    "ours_after": 0.01339348821364441,
+    "ref": 0.020277401030412884,
+    "result": "improved"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "coins",
+  "change": "follow shots end where the subject ends, whips are planned soft transitions, no blur drop-out on fast travels",
+  "note": "",
+  "match_score_before": 50.0,
+  "match_score_after": 56.2,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.75,
+    "gap_after": 0.0,
+    "ours_before": 6.0,
+    "ours_after": 9.0,
+    "ref": 9.0,
+    "result": "improved"
+   },
+   {
+    "metric": "camera.frac_fast",
+    "label": "frames with fast camera motion",
+    "gap_before": 3.91,
+    "gap_after": 4.42,
+    "ours_before": 0.35820011841326227,
+    "ours_after": 0.33313609467455624,
+    "ref": 0.5539007092198581,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.jerk_rms_median",
+    "label": "camera jerk",
+    "gap_before": 1.01,
+    "gap_after": 0.44,
+    "ours_before": 38.39621759329326,
+    "ours_after": 25.554865336785998,
+    "ref": 29.484029725217365,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 1.34,
+    "gap_after": 0.98,
+    "ours_before": 13.255629062652588,
+    "ours_after": 12.525826454162598,
+    "ref": 10.56808090209961,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 20.7,
+    "gap_after": 20.25,
+    "ours_before": 3.7866666666666666,
+    "ours_after": 4.057142857142857,
+    "ref": 16.20724959882321,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 4.04,
+    "gap_after": 3.69,
+    "ours_before": 14.788732394366198,
+    "ours_after": 13.732394366197184,
+    "ref": 2.666844444444444,
+    "result": "improved"
+   }
+  ]
+ },
+ {
+  "date": "2026-11-11",
+  "project": "coins",
+  "change": "plan: whips and travels declared (no picture change)",
+  "note": "",
+  "match_score_before": 56.2,
+  "match_score_after": 56.2,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.0,
+    "gap_after": 0.5,
+    "ours_before": 9.0,
+    "ours_after": 7.0,
+    "ref": 9.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.glide_frames_median",
+    "label": "glide length (frames)",
+    "gap_before": 3.4,
+    "gap_after": 5.1,
+    "ours_before": 27.0,
+    "ours_after": 18.5,
+    "ref": 44.0,
+    "result": "regressed"
+   }
+  ]
  }
 ]
