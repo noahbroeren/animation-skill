@@ -189,6 +189,8 @@ export type KPose = Omit<Pose, "expr"> & {
   limbs?: { handL?: V2; handR?: V2; footL?: V2; footR?: V2 }; prev?: KPose;
   /** stick extras: held prop, hat lifted off the head (head units) and tilted (deg; hat tip / doff). */
   hold?: StickHold; hatLift?: number; hatTilt?: number;
+  /** bobble extras: head turn -1 (toward -x) .. 1 (toward +x) in the front view; hand shapes (default fist). */
+  turn?: number; hands?: { L?: HandShape; R?: HandShape };
 };
 /** Fallback for styles with only the 10 toon.ts drawings (characters.md 5.2). */
 export const EXPR_FALLBACK: Record<KExpr, Expression> = { neutral: "neutral", happy: "happy", laugh: "laugh", shock: "shock", nervous: "nervous", sad: "sad", angry: "angry", whistle: "whistle", smug: "smug", think: "think", disgust: "angry", determined: "angry", embarrassed: "nervous", cry: "sad", deadpan: "neutral", scheming: "smug" };
@@ -525,7 +527,8 @@ export type StickSpec = KBase & {
   build?: "slim" | "regular" | "stout"; cheeks?: boolean;
 };
 /** Held props for stick figures: drawn along the forearm of the holding hand (angle = extra rotation in deg). */
-export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag"; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
+export type HandShape = "fist" | "point" | "open";
+export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper"; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
 export type ChibiSpec = KBase & {
   kind: "chibi"; skin: string;
   hair?: { color: string; style: "short" | "bob" | "spiky" | "long" | "bun" | "curly" | "bald" | "side" };
@@ -567,7 +570,8 @@ export function drawKind(g: CanvasRenderingContext2D, s: KindSpec, p: KPose, W: 
   g.translate(W / 2, groundOf(H, s.heightHeads));
   if (facing < 0) g.scale(-1, 1);
   g.scale(sc / Math.sqrt(sq), sc * sq); // volume-preserving (characters.md 4.7)
-  g.rotate(rad(p.lean ?? 0));
+  // a front-view bobble walk keeps the body upright (the lean of the shared walk cycle is tuned for profiles)
+  g.rotate(rad((p.lean ?? 0) * (s.kind === "bobble" && p.view !== "side" && (p.legL !== undefined || p.legR !== undefined) ? 0.3 : 1)));
   g.lineJoin = "round"; g.lineCap = "round";
   const bobUnit = s.kind === "bobble" ? u / (s.heightHeads ?? 3.4) : s.kind === "stick" ? u / (s.heightHeads ?? 5.5) : s.kind === "chibi" ? u / (s.heightHeads ?? 2.3) : s.kind === "critter" ? u / 2.7 : s.kind === "flatvec" ? u / 3.2 : u * 0.66;
   g.translate(0, (p.bob ?? 0) * bobUnit);
@@ -1252,6 +1256,11 @@ function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: numb
     part(c, rrect(-L * 0.15, -w * 0.3, L, w * 0.6, w * 0.3), h.item === "lever" ? "#5d6470" : wood, { off: 0 });
     if (h.item === "flag") part(c, poly([[L * 0.85, 0], [L * 0.85, -d * 0.9], [L * 0.2, -d * 0.6]]), h.color ?? "#e04a3a", { off: d * 0.04 });
     else part(c, ell(L * 0.85, 0, d * 0.16, d * 0.16), "#e04a3a", { off: d * 0.03 });
+  } else if (h.item === "phone" || h.item === "cup" || h.item === "paper") {
+    g.rotate(-ang); // small hand props stay upright whatever the forearm does
+    if (h.item === "phone") { part(c, rrect(-d * 0.085, -d * 0.3, d * 0.17, d * 0.32, d * 0.035), h.color ?? "#23262e", { off: 0 }); g.fillStyle = "#9fd8ff"; g.fill(rrect(-d * 0.06, -d * 0.27, d * 0.12, d * 0.22, d * 0.015)); }
+    else if (h.item === "cup") { part(c, poly([[-d * 0.1, -d * 0.24], [d * 0.1, -d * 0.24], [d * 0.075, 0], [-d * 0.075, 0]]), h.color ?? "#f4efe6", { off: d * 0.02 }); part(c, rrect(-d * 0.115, -d * 0.28, d * 0.23, d * 0.06, d * 0.02), "#7a4a2a", { off: 0 }); }
+    else { part(c, rrect(-d * 0.16, -d * 0.42, d * 0.32, d * 0.42, d * 0.02), h.color ?? "#fbfaf6", { off: d * 0.02 }); g.strokeStyle = "rgba(40,30,50,0.55)"; g.lineWidth = c.lw * 0.6; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(-d * 0.11, -d * (0.34 - i * 0.075)); g.lineTo(d * (i === 3 ? 0.02 : 0.11), -d * (0.34 - i * 0.075)); g.stroke(); } }
   } else if (h.item === "bag") {
     part(c, rrect(-d * 0.35, d * 0.05, d * 0.7, d * 0.55, d * 0.1), h.color ?? "#7a4a2a", { off: d * 0.05 });
   } else if (h.item === "hat" && h.hat) {
@@ -1401,24 +1410,30 @@ export type BobbleSpec = KBase & {
  *  Landmarks: shoulder ~0.7 up, chin ~0.95, head centre ~1.45, head top ~1.95; resting hand ~[0.5, 0.0]. */
 export const BOBBLE_POSES: Record<string, KPose> = {
   idle: {},
-  wave: { limbs: { handR: [0.95, 1.55] }, expr: "happy" },
-  point: { limbs: { handR: [1.2, 0.85] }, expr: "happy" },
-  shrug: { limbs: { handL: [0.8, 0.85], handR: [0.8, 0.85] }, expr: "smug" },
-  cheer: { limbs: { handL: [0.7, 1.9], handR: [0.7, 1.9] }, expr: "laugh", bob: -0.06 },
+  wave: { limbs: { handR: [0.95, 1.55] }, hands: { R: "open" }, expr: "happy" },
+  point: { limbs: { handR: [1.2, 0.85] }, hands: { R: "point" }, turn: 0.6, expr: "happy" },
+  shrug: { limbs: { handL: [0.8, 0.85], handR: [0.8, 0.85] }, hands: { L: "open", R: "open" }, expr: "smug" },
+  cheer: { limbs: { handL: [0.7, 1.9], handR: [0.7, 1.9] }, hands: { L: "open", R: "open" }, expr: "laugh", bob: -0.06 },
   think: { limbs: { handR: [0.18, 0.98], handL: [0.3, 0.3] }, expr: "think" },
   facepalm: { limbs: { handR: [0.05, 1.5] }, expr: "sad", lean: 3 },
   neck: { limbs: { handR: [0.3, 0.86] }, expr: "cry", lean: -5 },
   hips: { limbs: { handL: [0.36, 0.22], handR: [0.36, 0.22] }, expr: "determined" },
-  phone: { limbs: { handR: [0.5, 1.3] }, cue: "D", expr: "neutral" },
-  shock: { limbs: { handL: [0.75, 1.25], handR: [0.75, 1.25] }, expr: "shock", squash: 1.06 },
+  phone: { limbs: { handR: [0.46, 1.28] }, hold: { item: "phone" }, turn: -0.35, cue: "D", expr: "neutral" },
+  shock: { limbs: { handL: [0.75, 1.25], handR: [0.75, 1.25] }, hands: { L: "open", R: "open" }, expr: "shock", squash: 1.06 },
   carry: { limbs: { handL: [0.3, 0.42], handR: [0.3, 0.42] }, expr: "determined" },
-  sit: { view: "side", limbs: { footL: [0.78, -0.36], footR: [0.86, -0.42], handR: [0.72, 0.5], handL: [0.68, 0.46] } },
+  sit: { view: "side", limbs: { footL: [0.44, -0.47], footR: [0.52, -0.45], handR: [0.62, 0.42], handL: [0.58, 0.38] } }, // thigh forward, shin down: put the card on a seat
   run: { view: "side", limbs: { handR: [0.6, 0.55], handL: [-0.5, 0.35], footL: [0.62, -0.5], footR: [-0.6, -0.55] }, lean: 12, expr: "determined" },
   limp: { view: "side", limbs: { handR: [0.25, 0.86], footL: [0.32, -0.6], footR: [-0.2, -0.8] }, lean: -8, expr: "cry" },
 };
 type BobbleLimb = { r: V2; j: V2; e: V2; far: boolean; sg: number };
-type BobbleRig = { d: number; r: number; cx: number; cy: number; tw: number; yT: number; yB: number; hem: number; hip: V2; sh: V2; arms: BobbleLimb[]; legs: BobbleLimb[] };
+type BobbleRig = { d: number; r: number; cx: number; cy: number; tw: number; yT: number; yB: number; hem: number; hip: V2; sh: V2; arms: BobbleLimb[]; legs: BobbleLimb[]; hatAt: V2 | null };
 const BOBBLE_HATX: Record<BobbleHat["style"], number> = { top: 0.5, chef: 0.52, crown: 0.24, ranger: 0.2, bowler: 0.22, boater: 0.14, hardhat: 0.12, cap: 0.08, beanie: 0.16, beret: 0.1 };
+/** Hats and tall hair shrink a bobble to fit its card. Multiply the card height by this so every body has the same
+ *  real size (a man with a top hat is taller than the same man bare-headed): `new CharacterCard(spec, 1.7 * bobbleScale(spec), ...)`. */
+export function bobbleScale(s: BobbleSpec) {
+  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04, heads = s.heightHeads ?? 3.4;
+  return (heads + hx) / (heads + 0.04);
+}
 function bobbleRig(c: Ctx, s: BobbleSpec, p: KPose): BobbleRig {
   const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04;
   // default = the tall, slim figure (3.4 heads: long jacket, straight legs); heightHeads 2.6 gives the short chibi-like build
@@ -1432,25 +1447,31 @@ function bobbleRig(c: Ctx, s: BobbleSpec, p: KPose): BobbleRig {
   const legLen = -hip[1] - d * 0.06, l1 = legLen * 0.52, l2 = legLen * 0.5, a1 = d * (0.44 + 0.13 * tk);
   const ks = (0.29 + TL) / 1.21; // pose targets are authored on the 2.6-head build and scale with the torso
   const T = (t: V2 | undefined, sg: number): V2 | null => (t ? [hip[0] + (side ? 1 : sg) * t[0] * d * ks, hip[1] - t[1] * d * ks] : null);
+  const lift = s.hat ? p.hatLift ?? 0 : 0;
   const arms = ([-1, 1] as const).map((sg): BobbleLimb => {
     const root: V2 = side ? [sg * d * 0.03, sh[1]] : [sg * tw * 0.42, sh[1]];
     const ang = sg < 0 ? p.armL ?? 12 : p.armR ?? 12, el = sg < 0 ? p.elbowL ?? 6 : p.elbowR ?? 6;
     const a = rad(side ? ang - 6 + (sg < 0 ? -8 : 10) : ang), dir: V2 = side ? [Math.sin(a), Math.cos(a)] : [sg * Math.sin(a), Math.cos(a)];
     const reach = 2 * a1 * (0.97 - 0.3 * clamp(el / 90));
-    const tgt = T(sg < 0 ? p.limbs?.handL : p.limbs?.handR, sg) ?? ([root[0] + dir[0] * reach, root[1] + dir[1] * reach] as V2);
+    // hat tip: with no explicit target the right hand goes for the brim (the hat then follows the hand, see hatAt)
+    const tip: V2 | null = lift > 0.02 && sg > 0 && !p.limbs?.handR ? [cx + r * (side ? 1.35 : 0.92), cy - r * (side ? 0.2 : 0.62) - lift * d] : null;
+    const tgt = T(sg < 0 ? p.limbs?.handL : p.limbs?.handR, sg) ?? tip ?? ([root[0] + dir[0] * reach, root[1] + dir[1] * reach] as V2);
     const { joint, end } = ik2(root, tgt, a1, a1, side ? [-1, 0.5] : [sg, 0.7]);
     return { r: root, j: joint, e: end, far: side && sg < 0, sg };
   });
   const legs = ([-1, 1] as const).map((sg): BobbleLimb => {
     const root: V2 = side ? [sg * d * 0.04, hip[1]] : [sg * tw * 0.21, hip[1]];
-    const a = rad(sg < 0 ? p.legL ?? 0 : p.legR ?? 0);
+    const still = p.legL === undefined && p.legR === undefined; // profile at rest: a small scissor so two legs read
+    const a = rad((sg < 0 ? p.legL ?? 0 : p.legR ?? 0) + (side && still ? sg * 5 : 0));
     const tgt = T(sg < 0 ? p.limbs?.footL : p.limbs?.footR, sg) ?? ((side
       ? [root[0] + Math.sin(a) * legLen, root[1] + Math.cos(a) * legLen * (1 - 0.1 * Math.max(0, Math.sin(a)))]
-      : [root[0] + sg * d * 0.03 + Math.sin(a) * legLen * 0.22, root[1] + legLen * (1 - 0.16 * Math.max(0, sg * Math.sin(a) * 2))]) as V2);
+      : [root[0] + sg * d * 0.03 + Math.sin(a) * legLen * 0.05, root[1] + legLen * (1 - 0.2 * Math.max(0, sg * Math.sin(a) * 2))]) as V2); // front view: feet lift, they do not swing sideways
     const { joint, end } = ik2(root, tgt, l1, l2, side ? [1, -0.1] : [sg, -0.2]);
     return { r: root, j: joint, e: end, far: side && sg < 0, sg };
   });
-  return { d, r, cx, cy, tw, yT, yB, hem, hip, sh, arms, legs };
+  // the lifted hat sits IN the right hand: brim edge on the fist, wherever the arm could actually reach
+  const hatAt: V2 | null = lift > 0.02 ? [arms[1].e[0] - r * (side ? 0.95 : 0.86), arms[1].e[1] + r * 0.62] : null;
+  return { d, r, cx, cy, tw, yT, yB, hem, hip, sh, arms, legs, hatAt };
 }
 /** Union of shapes with ONE outer ink outline (stroke everything thick, then fill everything). */
 function inkUnion(c: Ctx, paths: Path2D[], fill: string, lw = c.lw) {
@@ -1525,7 +1546,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   const st = s.top.style ?? "tee", topC = s.top.color, acc = s.top.accent, legC = s.legs ?? "#33415f", shoeC = s.shoes ?? "#2b2230";
   const short = s.top.sleeves === "short" || (!s.top.sleeves && (st === "tee" || st === "dress" || st === "overall" || st === "apron"));
   const armW = d * 0.105, legW = d * 0.125, skinSh = skinShade(s.skin), hs = s.hair?.style ?? "bald", hcol = s.hair?.color ?? "#3a2a24";
-  const hair = bobbleHair(hs, cx, cy, r, side);
+  const hair = bobbleHair(s.hat && (hs === "bun" || hs === "spiky" || hs === "curly") ? "cap" : hs, cx, cy, r, side); // tall hair would poke through a hat
   const drawLeg = (L: BobbleLimb) => {
     const col = L.far ? shade(legC, 0.2) : legC, sc = L.far ? shade(shoeC, 0.2) : shoeC;
     limb(c, [L.r, L.j, L.e], legW, st === "dress" && legC === s.skin ? (L.far ? skinSh : s.skin) : col, { curve: true });
@@ -1540,7 +1561,11 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
     if (short) limb(c, [A.r, [lerp(A.r[0], A.j[0], 0.55), lerp(A.r[1], A.j[1], 0.55)]], armW * 1.5, A.far ? shade(topC, 0.18) : topC);
     else { const k = 0.8, q: V2 = [lerp(A.j[0], A.e[0], k), lerp(A.j[1], A.e[1], k)]; limb(c, [q, A.e], armW * 1.12, st === "suit" || st === "coat" ? "#f4efe6" : shade(topC, 0.16)); } // cuff
     if (hold && !A.far) stickProp(c, { ...hold, as: "bobble" }, A, d, armW);
-    part(c, ell(A.e[0], A.e[1], d * 0.085, d * 0.085), A.far ? skinSh : s.skin, { off: d * 0.015, sh: skinSh });
+    const hsh = (A.sg < 0 ? p.hands?.L : p.hands?.R) ?? "fist", hcol2 = A.far ? skinSh : s.skin;
+    const fa = Math.atan2(A.e[1] - A.j[1], A.e[0] - A.j[0]), fx2 = Math.cos(fa), fy2 = Math.sin(fa);
+    if (hsh === "point") limb(c, [[A.e[0] + fx2 * d * 0.04, A.e[1] + fy2 * d * 0.04], [A.e[0] + fx2 * d * 0.27, A.e[1] + fy2 * d * 0.27]], d * 0.07, hcol2);
+    if (hsh === "open") for (const k of [-0.75, -0.25, 0.25, 0.75]) { const a2 = fa + k * 0.62; limb(c, [[A.e[0] + Math.cos(a2) * d * 0.05, A.e[1] + Math.sin(a2) * d * 0.05], [A.e[0] + Math.cos(a2) * d * (0.185 - Math.abs(k) * 0.04), A.e[1] + Math.sin(a2) * d * (0.185 - Math.abs(k) * 0.04)]], d * 0.05, hcol2); }
+    part(c, ell(A.e[0], A.e[1], d * 0.085, d * 0.085), hcol2, { off: d * 0.015, sh: skinSh });
   };
   const holdArm = p.hold ? (p.hold.hand === "L" ? 0 : 1) : -1;
   // ---- back hair, far limbs
@@ -1584,7 +1609,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
     else { part(c, rrect(-hw * 0.98, y - d * 0.12, tw * 0.98, d * 0.2, d * 0.09), n.color, { off: d * 0.03 }); part(c, poly([[hw * 0.2, y + d * 0.02], [hw * 0.62, y + d * 0.02], [hw * 0.7, y + d * 0.5], [hw * 0.3, y + d * 0.46]]), n.color, { off: d * 0.02 }); } }
   // ---- head
   const head = ell(cx, cy, r, r);
-  if (!side) for (const sg of [-1, 1]) part(c, ell(cx + sg * r * 0.98, cy + r * 0.14, r * 0.13, r * 0.17), s.skin, { off: 0, sh: skinSh });
+  if (!side) for (const sg of [-1, 1]) if (sg * (p.turn ?? 0) < 0.3) part(c, ell(cx + sg * r * 0.98, cy + r * 0.14, r * 0.13, r * 0.17), s.skin, { off: 0, sh: skinSh }); // the ear on the turned-to side hides
   part(c, head, s.skin, { thick: true, off: d * 0.075, sh: skinSh });
   g.save(); g.clip(head);
   if (hair.front.length) { g.fillStyle = "rgba(60,24,40,0.2)"; for (const q of hair.front) g.fill(moved(q, 0, d * 0.05)); } // fringe drop shadow
@@ -1593,12 +1618,15 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   g.restore();
   g.strokeStyle = c.ink; g.lineWidth = c.lw; g.stroke(head);
   if (side) { const ex = cx - r * 0.3, ey = cy + r * 0.16; part(c, ell(ex, ey, r * 0.14, r * 0.18), s.skin, { off: 0, sh: skinSh }); g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.7; g.beginPath(); g.arc(ex + r * 0.03, ey, r * 0.07, Math.PI * 0.6, Math.PI * 1.4); g.stroke(); }
-  if (s.cheeks) for (const x of side ? [r * 0.42] : [-r * 0.52, r * 0.52]) { g.save(); g.globalAlpha = 0.32; dot(g, cx + x, cy + r * 0.34, r * 0.17, "#ff6f86"); g.restore(); }
-  const wide = p.expr === "shock" || p.expr === "nervous";
+  if (s.cheeks) for (const x of side ? [r * 0.42] : [-r * 0.52 + (p.turn ?? 0) * r * 0.26, r * 0.52 + (p.turn ?? 0) * r * 0.26]) { g.save(); g.globalAlpha = 0.32; dot(g, cx + x, cy + r * 0.34, r * 0.17, "#ff6f86"); g.restore(); }
+  const wide = (p.expr === "shock" || p.expr === "nervous") && !s.glasses && !s.shades; // ring eyes inside lenses read as double circles
   const face: Partial<FaceSpec> = { eyes: wide ? "whites" : "dot", eyeSize: wide ? 0.21 : 0.12, eyeSpacing: 0.37, eyeY: 0.5, brows: "line", browScale: wide ? 0.9 : 1.25, mouthTier: 9, mouthWidth: 0.25, mouthY: s.beard ? 0.7 : 0.72, mouthScale: 1, catchlight: true, blush: false };
-  const fb: FaceBox = { x: cx + (side ? r * 0.06 : 0), y: cy + r * 0.08, w: d * 0.94, h: d * 0.94 };
+  const turn = side ? 0 : clamp(p.turn ?? 0, -1, 1);
+  const fb: FaceBox = { x: cx + (side ? r * 0.06 : turn * r * 0.26), y: cy + r * 0.08, w: d * 0.94, h: d * 0.94 };
+  face.eyeSpacing = 0.37 * (1 - 0.22 * Math.abs(turn));
+  if (Math.abs(turn) > 0.3) { const sgn = Math.sign(turn); g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.75; g.beginPath(); g.arc(fb.x + sgn * r * 0.02, cy + r * 0.27, r * 0.09, sgn > 0 ? -Math.PI * 0.4 : Math.PI * 0.6, sgn > 0 ? Math.PI * 0.5 : Math.PI * 1.4, false); g.stroke(); }
   drawFace(g, { ...face, ...s.face }, p, fb, { ink: c.ink, lw: c.lw * 0.92, skin: s.skin, side });
-  if (s.stache) { const y = cy + r * 0.3, x = cx + (side ? r * 0.62 : 0), q = r * 0.34; const wing = (sg: number) => { const w = new Path2D(); w.moveTo(x, y - q * 0.15); w.quadraticCurveTo(x + sg * q * 0.9, y - q * 0.7, x + sg * q * 1.45, y - q * 0.02); w.quadraticCurveTo(x + sg * q * 0.9, y + q * 0.28, x, y + q * 0.2); w.closePath(); return w; }; for (const sg of side ? [1, -0.5] : [-1, 1]) part(c, wing(sg), s.stache, { off: 0, lw: c.lw * 0.8 }); }
+  if (s.stache) { const y = cy + r * 0.3, x = side ? cx + r * 0.62 : fb.x, q = r * 0.34; const wing = (sg: number) => { const w = new Path2D(); w.moveTo(x, y - q * 0.15); w.quadraticCurveTo(x + sg * q * 0.9, y - q * 0.7, x + sg * q * 1.45, y - q * 0.02); w.quadraticCurveTo(x + sg * q * 0.9, y + q * 0.28, x, y + q * 0.2); w.closePath(); return w; }; for (const sg of side ? [1, -0.5] : [-1, 1]) part(c, wing(sg), s.stache, { off: 0, lw: c.lw * 0.8 }); }
   if (side && !s.beard) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.8; g.beginPath(); g.arc(cx + r * 0.9, cy + r * 0.22, r * 0.12, -Math.PI * 0.45, Math.PI * 0.5); g.stroke(); } // nose tick
   if (hair.front.length) { inkUnion(c, hair.front, hcol);
     g.save(); for (const q of hair.front) g.clip(q); g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); }
@@ -1606,7 +1634,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if (s.glasses || s.shades) { const gr = d * 0.14, xs = side ? [fb.x + fb.w * 0.2] : [fb.x - fb.w * 0.18, fb.x + fb.w * 0.18];
     for (const x of xs) { const L = ell(x, ey, gr, gr * 0.92); if (s.shades) { g.fillStyle = s.shades; g.fill(L); g.save(); g.clip(L); g.fillStyle = "rgba(255,255,255,0.35)"; g.fillRect(x - gr, ey - gr, gr * 0.9, gr * 0.7); g.restore(); } g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.stroke(L); }
     g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.beginPath(); if (side) { g.moveTo(xs[0] - gr, ey); g.lineTo(cx - r * 0.3, ey - gr * 0.1); } else { g.moveTo(xs[0] + gr, ey); g.lineTo(xs[1] - gr, ey); } g.stroke(); }
-  if (s.hat) bobbleHat(c, s.hat, cx, cy - (p.hatLift ?? 0) * d, r, side, p.hatTilt ?? 0);
+  if (s.hat) bobbleHat(c, s.hat, R.hatAt ? R.hatAt[0] : cx, R.hatAt ? R.hatAt[1] : cy, r, side, p.hatTilt ?? 0);
   // ---- near arms last: they may cross the torso and the head
   if (side) drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined);
   else { drawArm(R.arms[0], holdArm === 0 ? p.hold : undefined); drawArm(R.arms[1], holdArm === 1 ? p.hold : undefined); }
@@ -1619,7 +1647,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
  * Numbers and limb targets blend with a small overshoot; expr / cue / view / hold / facing switch when the pop starts.
  */
 export type PoseKey = { f: number; pose: KPose; blend?: number };
-const POSE_NUM = ["armL", "armR", "elbowL", "elbowR", "legL", "legR", "lean", "bob", "squash", "hatLift", "hatTilt", "mouth", "blink"] as const;
+const POSE_NUM = ["armL", "armR", "elbowL", "elbowR", "legL", "legR", "lean", "bob", "squash", "hatLift", "hatTilt", "turn", "mouth", "blink"] as const;
 const POSE_NUM0: Record<string, number> = { squash: 1 };
 export function poseTrack(keys: PoseKey[], f: number, fps = 30): KPose {
   let i = 0;

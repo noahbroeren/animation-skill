@@ -32,7 +32,9 @@ CASES = [  # (name, project, format, frame)
     ("modelsheet_0", "modelsheet", "long", 0),
     ("charsheet_stick_160", "charsheet", "long", 160),
     ("charsheet_bobble_pack_190", "charsheet", "long", 190),  # 1.4 bobble pack: 20 characters front / profile / acting
-    ("charsheet_bobble_rig_220", "charsheet", "long", 220),  # expressions, cues, walk, pose library, props  # 1.3 stick cast: hats/hair/coats/props/hat tip
+    ("charsheet_bobble_rig_220", "charsheet", "long", 220),  # expressions, cues, walk, pose library, props
+    ("charsheet_bobble_audit_250", "charsheet", "long", 250),  # 1.6 audit: walk, head turn, hands, props, outfits, hair
+    ("charsheet_bobble_audit_280", "charsheet", "long", 280),  # hats, hat + hair, builds, facial hair + glasses, profile acting  # 1.3 stick cast: hats/hair/coats/props/hat tip
     ("elevator_640", "elevator", "short", 640),  # hat tip on a padded card
     ("elevator_925", "elevator", "short", 925),  # crowd CU framed with frameDistance, no occluders
     ("elevator_1100", "elevator", "short", 1100),  # night diagram over the 3D platform

@@ -7,7 +7,7 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { CharacterSpec, Pose, walkPose } from "../../lib/characters/toon";
-import { BOBBLE_POSES, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, BobbleSpec, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
 import { ProjectDef } from "../../lib/project";
 import { FONTS } from "../../lib/two/text";
 
@@ -16,6 +16,11 @@ type CellDef = { spec: Spec; pose: KPose; label: string; pass?: PassSpec; w?: nu
 type RowDef = { title: string; cells: CellDef[] };
 const K = KIND_PRESETS;
 const BB = (Object.keys(K) as (keyof typeof K)[]).filter((k) => k.startsWith("bb"));
+const BASE: BobbleSpec = { id: "base", kind: "bobble", skin: "#f6cfae", hair: { style: "cap", color: "#6a3d22" }, top: { color: "#e2483a", style: "jacket", accent: "#ffd23f" }, legs: "#2f4a7a", shoes: "#2b2230" };
+const OUTFITS = ["jacket", "hoodie", "shirt", "suit", "tee", "dress", "overall", "uniform", "coat", "vest", "apron"] as const;
+const HAIRS = ["cap", "side", "spiky", "curly", "long", "bob", "bun", "pony", "buzz", "bald"] as const;
+const HATS = ["cap", "top", "bowler", "beanie", "hardhat", "chef", "ranger", "crown", "boater", "beret"] as const;
+const HATCOL: Record<string, string> = { hardhat: "#f5c21b", chef: "#fbfaf6", ranger: "#b08a4e", crown: "#f5c21b", boater: "#f0d58a", top: "#22252e", beret: "#2b2230", bowler: "#3b2f2a" };
 const PACK_POSES: KPose[] = ["wave", "cheer", "shock", "think", "hips", "point", "shrug", "phone", "neck", "carry"].map((n) => BOBBLE_POSES[n]);
 const TOON: CharacterSpec = { id: "worker", style: "toonworld", skin: "#fef4ee", hair: { color: "#5b3a24", style: "short" }, top: { color: "#f08a24" }, bottom: { color: "#3a4a78" }, hat: { style: "cap", color: "#e8b923" } };
 
@@ -119,13 +124,55 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
         { spec: K.bbWorker, pose: { limbs: { handR: [0.6, 1.9], handL: [0.3, 1.7] }, hold: { item: "axe", angle: -10, len: 1.5 }, expr: "determined" }, label: "axe up", w: 150 },
         { spec: K.bbGent, pose: { hatLift: 0.5, hatTilt: -18, limbs: { handR: [0.5, 2.25] }, expr: "smug" }, label: "hat tip", w: 150 },
         { spec: K.bbGrandpa, pose: { limbs: { handR: [0.75, 0.1] }, hold: { item: "cane", angle: 70, len: 1.0 }, expr: "happy" }, label: "cane", w: 150 },
-        { spec: K.bbKid, pose: { limbs: { handR: [0.7, 1.6] }, hold: { item: "flag", angle: -80, len: 1.2 }, expr: "laugh" }, label: "flag", w: 150 },
+        { spec: K.bbKid, pose: { limbs: { handR: [1.0, 1.2] }, hold: { item: "flag", angle: -60, len: 1.3 }, expr: "laugh" }, label: "flag", w: 190 },
         { spec: K.bbLady, pose: { limbs: { handL: [0.6, 0.05] }, hold: { item: "bag", hand: "L" }, expr: "happy" }, label: "bag", w: 150 },
         { spec: K.bbHero, pose: { ...BOBBLE_POSES.run }, label: "run", w: 170 },
         { spec: K.bbBoss, pose: { ...BOBBLE_POSES.sit, expr: "smug" }, label: "sit", w: 170 },
         { spec: K.bbCop, pose: { ...BOBBLE_POSES.point, view: "side", expr: "angry" }, label: "side point", w: 170 },
         { spec: K.bbGirl, pose: { ...BOBBLE_POSES.cheer }, label: "cheer", w: 150 },
         { spec: K.bbChef, pose: { ...BOBBLE_POSES.hips, expr: "angry" }, label: "hips", w: 150 },
+      ] },
+    ] },
+    { title: "PAGE 9 · BOBBLE AUDIT · walk cycle · head turn · hands · small props · hat tip · every outfit · every hair", h: 300, rows: [
+      { title: "walk", cells: [...Array.from({ length: 8 }, (_, i) => ({ spec: K.bbHero as Spec, pose: walkAt(K.bbHero, 60 + Math.round((i * 23) / 8), fps, true), label: `side ${i + 1}/8`, w: 170 })),
+        ...Array.from({ length: 6 }, (_, i) => ({ spec: K.bbGirl as Spec, pose: walkAt(K.bbGirl, 60 + Math.round((i * 23) / 6), fps, false), label: `front ${i + 1}/6`, w: 160 }))] },
+      { title: "turn + hands", cells: [
+        ...[-1, -0.5, 0, 0.5, 1].map((t) => ({ spec: K.bbGrandpa as Spec, pose: { turn: t, expr: "happy" } as KPose, label: `turn ${t}`, w: 150 })),
+        { spec: K.bbHero, pose: { limbs: { handR: [1.15, 0.9] }, hands: { R: "point" }, turn: 0.7, expr: "determined" }, label: "point", w: 190 },
+        { spec: K.bbGirl, pose: { limbs: { handR: [0.9, 1.5] }, hands: { R: "open" }, expr: "happy" }, label: "open hand", w: 170 },
+        { spec: K.bbBoss, pose: { ...BOBBLE_POSES.phone }, label: "phone", w: 150 },
+        { spec: K.bbNerd, pose: { limbs: { handR: [0.55, 0.75] }, hold: { item: "cup" }, expr: "happy" }, label: "cup", w: 150 },
+        { spec: K.bbCop, pose: { limbs: { handR: [0.6, 0.8] }, hold: { item: "paper" }, expr: "angry", turn: 0.4 }, label: "paper", w: 150 },
+        { spec: K.bbGent, pose: { hatLift: 0.45, hatTilt: -16, expr: "smug" }, label: "hat tip (auto hand)", w: 190 },
+        { spec: K.bbGent, pose: { hatLift: 0.45, hatTilt: -16, expr: "smug", view: "side" }, label: "hat tip side", w: 190 },
+        { spec: K.bbFarmer, pose: { hatLift: 0.3, hatTilt: -10, expr: "happy" }, label: "boater tip", w: 190 },
+        { spec: K.bbKing, pose: { ...BOBBLE_POSES.point, view: "side", hands: { R: "point" }, expr: "angry" }, label: "side point", w: 190 },
+      ] },
+      { title: "outfits", cells: OUTFITS.flatMap((st) => [{ spec: { ...BASE, top: { ...BASE.top, style: st } } as Spec, pose: {} as KPose, label: st, w: 128 }, { spec: { ...BASE, top: { ...BASE.top, style: st } } as Spec, pose: { view: "side" } as KPose, label: "side", w: 92 }]) },
+      { title: "hair", cells: HAIRS.flatMap((st) => [{ spec: { ...BASE, hair: { style: st, color: "#6a3d22" } } as Spec, pose: {} as KPose, label: st, w: 130 }, { spec: { ...BASE, hair: { style: st, color: "#6a3d22" } } as Spec, pose: { view: "side" } as KPose, label: "side", w: 104 }]) },
+    ] },
+    { title: "PAGE 10 · BOBBLE AUDIT · every hat (front, side, with hair) · builds · facial hair + glasses · action poses in profile", h: 300, rows: [
+      { title: "hats", cells: HATS.flatMap((st) => [{ spec: { ...BASE, hat: { style: st, color: HATCOL[st] ?? "#3a3f5c" } } as Spec, pose: {} as KPose, label: st, w: 130 }, { spec: { ...BASE, hat: { style: st, color: HATCOL[st] ?? "#3a3f5c" } } as Spec, pose: { view: "side" } as KPose, label: "side", w: 104 }]) },
+      { title: "hat + hair", cells: HATS.flatMap((st, i) => [{ spec: { ...BASE, hair: { style: HAIRS[(i * 3 + 4) % 9], color: "#2a2228" }, hat: { style: st, color: HATCOL[st] ?? "#3a3f5c" } } as Spec, pose: { turn: i % 2 ? 0.5 : -0.5 } as KPose, label: `${st}+${HAIRS[(i * 3 + 4) % 9]}`, w: 130 },
+        { spec: { ...BASE, hair: { style: HAIRS[(i * 3 + 4) % 9], color: "#2a2228" }, hat: { style: st, color: HATCOL[st] ?? "#3a3f5c" } } as Spec, pose: { view: "side" } as KPose, label: "side", w: 104 }]) },
+      { title: "builds + face", cells: [
+        ...(["slim", "regular", "stout"] as const).flatMap((bd) => [{ spec: { ...BASE, build: bd } as Spec, pose: {} as KPose, label: bd, w: 140 }, { spec: { ...BASE, build: bd, heightHeads: 2.6 } as Spec, pose: {} as KPose, label: bd + " 2.6", w: 150 }]),
+        { spec: { ...BASE, beard: "#6a3d22" } as Spec, pose: { expr: "laugh" }, label: "beard laugh", w: 140 }, { spec: { ...BASE, beard: "#6a3d22" } as Spec, pose: { view: "side", cue: "D" }, label: "beard side talk", w: 130 },
+        { spec: { ...BASE, stache: "#2a2228", glasses: "#2b2230" } as Spec, pose: { expr: "shock" }, label: "stache+glasses shock", w: 140 }, { spec: { ...BASE, shades: "#1c1c26" } as Spec, pose: { expr: "smug" }, label: "shades", w: 140 },
+        { spec: { ...BASE, shades: "#1c1c26", stache: "#2a2228" } as Spec, pose: { view: "side" }, label: "shades side", w: 130 }, { spec: { ...BASE, glasses: "#2b2230", cheeks: true } as Spec, pose: { expr: "cry" }, label: "glasses cry", w: 140 },
+        { spec: { ...BASE, neck: { style: "scarf", color: "#d8344e" } } as Spec, pose: {}, label: "scarf", w: 140 }, { spec: { ...BASE, neck: { style: "scarf", color: "#d8344e" } } as Spec, pose: { view: "side" }, label: "scarf side", w: 120 },
+      ] },
+      { title: "profile acting", cells: [
+        ...(["sit", "run", "limp"] as const).map((n, i) => ({ spec: K[BB[i * 5]] as Spec, pose: BOBBLE_POSES[n], label: n, w: 200 })),
+        { spec: K.bbWorker, pose: { view: "side", limbs: { handR: [-0.35, 1.95], handL: [-0.15, 1.75] }, hold: { item: "axe", angle: -25, len: 1.45 }, lean: -10, expr: "determined" }, label: "axe wind-up", w: 240 },
+        { spec: K.bbWorker, pose: { view: "side", limbs: { handR: [1.15, 0.8], handL: [0.95, 0.72] }, hold: { item: "axe", angle: 25, len: 1.45 }, lean: 14, expr: "angry" }, label: "axe strike", w: 240 },
+        { spec: K.bbDoctor, pose: { view: "side", limbs: { handR: [0.7, 0.8] }, hold: { item: "paper" }, expr: "think" }, label: "paper side", w: 190 },
+        { spec: K.bbTeen, pose: { view: "side", limbs: { handR: [0.35, 1.25] }, hold: { item: "phone" }, cue: "C" }, label: "phone side", w: 180 },
+        { spec: K.bbGrandma, pose: { view: "side", limbs: { handR: [0.8, 0.15] }, hold: { item: "cane", angle: 75, len: 1.0 }, lean: 6 }, label: "cane side", w: 190 },
+        { spec: K.bbAthlete, pose: { ...BOBBLE_POSES.run, facing: -1 }, label: "run left", w: 200 },
+        { spec: K.bbKid, pose: { ...BOBBLE_POSES.cheer, squash: 1.1, bob: -0.25 }, label: "jump", w: 170 },
+        { spec: K.bbChef, pose: { ...BOBBLE_POSES.facepalm }, label: "facepalm", w: 160 },
+        { spec: K.bbLady, pose: { ...BOBBLE_POSES.think }, label: "think", w: 160 },
       ] },
     ] },
   ];
@@ -150,6 +197,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 8 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 10 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);

@@ -18,7 +18,7 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
 import { cameraRig, CamKey, V3 } from "../../lib/camera";
 import { blinkAt, idlePose } from "../../lib/characters/toon";
-import { BOBBLE_POSES, BobbleSpec, cueAt, KIND_PRESETS, KPose, PoseKey, poseTrack } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, bobbleScale, BobbleSpec, cueAt, KIND_PRESETS, KPose, PoseKey, poseTrack } from "../../lib/characters/kinds";
 import { deepMerge, LOOKS, lookTimeline } from "../../lib/look";
 import { ProjectDef } from "../../lib/project";
 import { CharacterCard, CrowdPool } from "../../lib/three/cast";
@@ -387,11 +387,12 @@ const World: React.FC = () => {
         // ============ CAST (bobble pack) + crowd. pad = canvas room for props/gestures (raised axe, hat tip, cheering)
         const pad = { top: 0.3, x: 0.4 };
         const cast = {
-          otis: new CharacterCard(otis, 1.85, 1600, L.sun, undefined, { top: 0.35, x: 0.4 }), helper: new CharacterCard(helper, 1.72, 1600, L.sun, undefined, { top: 0.5, x: 0.7 }),
-          heckler: new CharacterCard(heckler, 1.72, 1600, L.sun, undefined, pad),
-          lady: new CharacterCard(lady, 1.66, 1400, L.sun, undefined, pad), kid: new CharacterCard(kid, 1.2, 1100, L.sun, undefined, pad), prof: new CharacterCard(prof, 1.74, 1400, L.sun, undefined, pad),
-          hoistMan: new CharacterCard(hoistMan, 1.72, 1400, L.sun, undefined, pad), rider1: new CharacterCard(lady, 1.6, 900, L.sun, undefined, pad), rider2: new CharacterCard(kid, 1.2, 800, L.sun, undefined, pad),
-          otisOld: new CharacterCard(otisOld, 1.74, 1600, L.sun, undefined, pad),
+          // body heights are the same real size whatever the hat (bobbleScale adds the hat's share of the card)
+          otis: new CharacterCard(otis, 1.76 * bobbleScale(otis), 1600, L.sun, undefined, { top: 0.35, x: 0.4 }), helper: new CharacterCard(helper, 1.7 * bobbleScale(helper), 1600, L.sun, undefined, { top: 0.5, x: 0.7 }),
+          heckler: new CharacterCard(heckler, 1.66 * bobbleScale(heckler), 1600, L.sun, undefined, pad),
+          lady: new CharacterCard(lady, 1.6 * bobbleScale(lady), 1400, L.sun, undefined, pad), kid: new CharacterCard(kid, 1.18 * bobbleScale(kid), 1100, L.sun, undefined, pad), prof: new CharacterCard(prof, 1.74 * bobbleScale(prof), 1400, L.sun, undefined, pad),
+          hoistMan: new CharacterCard(hoistMan, 1.7 * bobbleScale(hoistMan), 1400, L.sun, undefined, pad), rider1: new CharacterCard(lady, 1.6 * bobbleScale(lady), 900, L.sun, undefined, pad), rider2: new CharacterCard(kid, 1.18 * bobbleScale(kid), 800, L.sun, undefined, pad),
+          otisOld: new CharacterCard(otisOld, 1.76 * bobbleScale(otisOld), 1600, L.sun, undefined, pad),
         };
         Object.values(cast).forEach((c) => scene.add(c.group));
         const crowd = new CrowdPool(scene, L.sun);
@@ -481,7 +482,7 @@ const World: React.FC = () => {
         const P = BOBBLE_POSES;
         w.cast.otis.setPose(act(7, [
           { f: 0, pose: { ...P.hips, expr: "smug" } },
-          { f: T.ordered - lead, pose: { limbs: { handR: [1.15, 1.0] }, expr: "determined" } }, // "cut it": a chop toward the rope
+          { f: T.ordered - lead, pose: { limbs: { handR: [1.15, 1.0] }, hands: { R: "point" }, turn: 0.7, expr: "determined" } }, // "cut it": points down at the rope
           { f: T.cut1 + 14, pose: { ...P.hips, expr: "smug" } },
           { f: T.elisha - lead, pose: { ...P.wave, expr: "happy" } },
           { f: T.tipped - lead, pose: { hatLift: 0.5, hatTilt: -18, limbs: { handR: [0.5, 2.25] }, expr: "smug" } },
@@ -490,7 +491,7 @@ const World: React.FC = () => {
           { f: T.stopped - lead, pose: { ...P.shock, expr: "nervous" } },
           { f: T.few, pose: { ...P.shrug, expr: "smug" } },
           { f: T.yousee, pose: { ...P.hips, expr: "happy" } },
-          { f: T.spring - lead, pose: { limbs: { handR: [0.45, 2.1] }, expr: "happy", look: [0.2, -0.8] } }, // points up at the spring
+          { f: T.spring - lead, pose: { limbs: { handR: [0.45, 2.1] }, hands: { R: "point" }, expr: "happy", look: [0.2, -0.8] } }, // points up at the spring
           { f: T.so2 - lead, pose: { ...P.shrug, expr: "happy" } },
         ], { blink: blinkAt(f, FPS, "otis", [T.tipped - lead, T.dropped]) }));
         w.cast.otis.place(-0.25, py + 0.16, 0.25, cam.pos);
@@ -507,7 +508,7 @@ const World: React.FC = () => {
         // heckler: smug, says "He's finished." (Rhubarb cues), jaw drops on the stop
         w.cast.heckler.setPose(act(3, [
           { f: 0, pose: { ...P.hips, expr: "smug" } },
-          { f: T.heck - lead, pose: { limbs: { handR: [1.05, 1.55] }, expr: "smug" } }, // points up at the platform, hand away from his mouth
+          { f: T.heck - lead, pose: { limbs: { handR: [1.05, 1.55] }, hands: { R: "point" }, turn: 0.5, expr: "smug" } }, // points up at the platform, hand away from his mouth
           { f: T.his + 8, pose: { ...P.hips, expr: "smug" } },
           { f: T.dropped - lead, pose: { ...P.shock }, blend: 3 },
         ], { cue: cueAt(f, FPS, HECK_CUES, 2), blink: blinkAt(f, FPS, "heckler", [T.heck, T.dropped]) }));
@@ -520,7 +521,7 @@ const World: React.FC = () => {
         ]));
         w.cast.lady.place(-0.15, 0, 4.4, cam.pos);
         w.cast.kid.setPose(act(5, [
-          { f: 0, pose: { ...P.point, limbs: { handR: [0.9, 1.5] }, expr: "happy" } },
+          { f: 0, pose: { ...P.point, limbs: { handR: [0.9, 1.5] }, turn: 0.4, expr: "happy" } },
           { f: T.dropped - lead, pose: { ...P.shock }, blend: 3 },
           { f: T.wait - lead, pose: { ...P.cheer } },
         ]));
@@ -549,7 +550,7 @@ const World: React.FC = () => {
         w.cast.otisOld.setPose(act(9, [
           { f: 0, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "neutral" } },
           { f: T.died - lead, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "sad", look: [0, 0.5] } },
-          { f: T.sky - lead, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "happy", look: [0.2, -0.9] } },
+          { f: T.sky - lead, pose: { limbs: { handR: [0.32, 0.7] }, hold: hat, expr: "happy", look: [0.2, -0.9], turn: -0.5 } }, // turns toward the skyline
         ], { blink: blinkAt(f, FPS, "otisOld", [T.died - lead, T.sky - lead]) }));
         w.cast.otisOld.place(SX + 2.2, 0, 4.4, cam.pos);
         w.cast.otisOld.group.visible = f >= T.andOtis - 12;
@@ -671,13 +672,13 @@ const Years: React.FC = () => {
   const { fps } = useVideoConfig();
   const { u, width, height } = useU();
   const T = timing(fps);
-  const stamp = (y: string, f0: number, f1: number) => {
+  const stamp = (y: string, f0: number, f1: number, left = 0.08) => {
     if (f < f0 || f >= f1) return null;
     const k = springAt((f - f0) / fps, 3, 0.5), o = 1 - clamp((f - f1 + 8) / 8);
-    return <div key={y} style={{ position: "absolute", left: width * 0.08, top: height * 0.14, opacity: o, transform: `rotate(-6deg) scale(${k})`, padding: `${8 * u}px ${26 * u}px`,
+    return <div key={y} style={{ position: "absolute", left: width * left, top: height * 0.14, opacity: o, transform: `rotate(-6deg) scale(${k})`, padding: `${8 * u}px ${26 * u}px`,
       background: "#f4efe6", border: `${6 * u}px solid #140c10`, borderRadius: 16 * u, fontFamily: FONTS.heavy, fontSize: 72 * u, color: "#140c10" }}>{y}</div>;
   };
-  return <AbsoluteFill style={{ pointerEvents: "none" }}>{stamp("1854", T.stood + 3, T.back)}{stamp("1857", T.three + 6, T.andOtis)}{stamp("1861", T.y1861, T.decades + 6)}</AbsoluteFill>;
+  return <AbsoluteFill style={{ pointerEvents: "none" }}>{stamp("1854", T.stood + 3, T.back, 0.62) /* right side: the left covered the man on the platform */}{stamp("1857", T.three + 6, T.andOtis)}{stamp("1861", T.y1861, T.decades + 6)}</AbsoluteFill>;
 };
 
 export const elevatorShort: ProjectDef = {

@@ -1210,3 +1210,24 @@ bobble: {
   before the word. Add `idlePose()` underneath for breathing. Give cards `pad` for props and raised arms.
 - Sheet: `render.mjs --project charsheet --format long --stills 190,220` (pack front / profile / acting; expressions,
   cues, walk, pose library, props).
+
+**Bobble audit (1.6): what a full review of the pack found and fixed.** Sheets: charsheet stills 250 and 280 (walk cycle,
+head turn, hands, small props, hat tips, every outfit / hair / hat front and side, builds, facial hair + glasses,
+profile acting). Run them after ANY change to the kind.
+
+| defect found on the sheets | fix |
+|---|---|
+| front-view walk staggered (the shared walk cycle leans 15 degrees and swings feet sideways) | front view keeps 30 % of the lean; feet lift instead of swinging |
+| every gesture ended in the same fist | `hands: { L, R }` = `"fist" | "point" | "open"`; point, wave, shrug, cheer and shock poses use them |
+| characters could only look straight at the camera | `turn` (-1..1): features slide, the far ear hides, a nose tick appears; poseTrack blends it |
+| the "phone" pose held nothing | small props `phone`, `cup`, `paper` that stay upright in the hand |
+| a tipped hat floated where the arm could not reach | the hat sits IN the hand (`hatAt`); with no hand target the right hand goes to the brim by itself |
+| ring eyes inside glasses read as double circles | glasses / shades keep dot eyes on shock and nervous |
+| bun, spikes and curls poked through hats | tall hair is drawn as a cap under any hat |
+| profile at rest looked one-legged | 5 degree scissor between the legs when no leg pose is given |
+| "sit" slid forward with straight legs | thigh forward, shin down; place the card on the seat |
+| a man with a top hat had a smaller body than the same man bare-headed | `bobbleScale(spec)`: multiply the card height by it |
+| a year stamp covered the hero on the wide shot | overlays are placed per shot; check them on the cue stills like props |
+
+Still weak (known): the profile hat tip crosses the face with the forearm; there is no 3/4 body view (only the head
+turns); fingers are symbolic; no smear frames on fast pops.
