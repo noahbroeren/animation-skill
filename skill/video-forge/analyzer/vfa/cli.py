@@ -13,6 +13,7 @@
   deep extras (optional deps; each writes <name>.json + <name>.md into the analysis dir):
   vfa ocr         VIDEO|ANALYSIS_DIR [--every 0.5]           captions: words/page, size (u), colours, font class, sync
   vfa transitions VIDEO|ANALYSIS_DIR                         cut / dissolve / dip / flash / wipe / whip / zoom / match
+  vfa keygap      ANALYSIS_DIR --plan timeline.json [--ref FP] [--prev DIR] [--cuts]   colour per lighting key (section), not one median
   vfa stems       VIDEO|ANALYSIS_DIR                         demucs stems: music presence, voice-over-music margin, SFX
   vfa embed       VIDEO|ANALYSIS_DIR [--every 1]             CLIP style / lighting / shot-type tags (cached embeddings)
   vfa similar     REF_DIR OURS_DIR [--out PATH]              per-shot CLIP nearest neighbours + style similarity 0-100
@@ -109,6 +110,7 @@ def main(argv=None):
     p.add_argument("--ours", required=True)
     p.add_argument("--out", required=True)
 
+    p = sub.add_parser("keygap"); p.add_argument("analysis"); p.add_argument("--plan", required=True); p.add_argument("--ref"); p.add_argument("--prev"); p.add_argument("--cuts", action="store_true")
     p = sub.add_parser("probe")
     p.add_argument("video")
 
@@ -178,6 +180,10 @@ def main(argv=None):
                 whisper_model=a.whisper_model, keyframes=not a.no_keyframes, start=a.start, duration=a.duration,
                 deep=a.deep, deep_skip=[x.strip() for x in a.deep_skip.split(",") if x.strip()])
         print(os.path.join(out, "report.md"))
+    elif a.cmd == "keygap":
+        from .keygap import keygap
+        from .compare import load as _load
+        print(keygap(a.analysis, a.plan, _load(a.ref) if a.ref else None, a.prev, a.cuts)["md"])
     elif a.cmd in ("ocr", "transitions", "stems", "embed", "pose"):
         import importlib
         mod = importlib.import_module(f".{a.cmd}", __package__)

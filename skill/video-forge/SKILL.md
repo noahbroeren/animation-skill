@@ -88,6 +88,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | ElevenLabs voice (after a cost yes) | `py AUDIO/tts.py estimate --text-file vo.txt`, then `tts.py eleven --text-file vo.txt --voice-id ID --out vo.wav --words-out words.json --yes` |
 | visual regression of the engine | `py tests/test_visual.py` in the repo (`--update` after an intended look change) |
 | reference vs ours, ranked fixes | `vfa compare REF OURS` |
+| colour per lighting key (section) instead of one video-wide median; ALWAYS before changing a grade | `vfa keygap ANALYSIS_DIR --plan timeline.json --ref FP [--prev OLD_ANALYSIS_DIR]` |
 | side-by-side judge sheet | `vfa sbs --ref a.jpg,b.jpg --ours c.jpg,d.jpg --out sbs.jpg` |
 | final gate | `vfa qa VIDEO --plan timeline.json --ref REF` |
 | new production | `node ENGINE/tools/new-project.mjs ID` |

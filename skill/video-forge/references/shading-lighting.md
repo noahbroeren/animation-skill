@@ -105,5 +105,8 @@ interior|dusk|rain|overcast|fog|office`. The new ones are design values anchored
 | image | MSAA 4x, alpha-to-coverage cut-outs, DOF, camera motion blur, bloom, triangular dither | in-frame accumulation (AA + soft shadows + true motion blur), post height fog, planar reflections, environment light for PBR props |
 | colour | zone tints fixed, hue-preserving clip, OKLab toolkit, OKLab look cross-fades, 5 new toonworld looks | palettes as data with checks, `vfa gradefit`, LUT in/out, delivery-proxy QA, caption contrast with colour-blind simulation |
 
+**Measure per lighting key.** `vfa keygap` prints luma, saturation, warmth and highlight / shadow tint per section. The
+video-wide medians in `gap.md` are decided by whichever section sits in the middle (analyzer.md, `vfa keygap`).
+
 Rule of use: before inventing a look or a light setup, find the nearest recipe in the reports, apply it, render the cue
 stills, and measure against the reference fingerprint. New numbers go back into the presets, not into one project.

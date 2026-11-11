@@ -121,7 +121,10 @@ const World: React.FC = () => {
   // shadows too magenta (a 14.7 vs 10.6), saturation .54 vs .48, background too sharp (DOF ratio 1.13 vs 1.95)
   // v4 QA after the 1.6 light effects (shafts, sun glow, lamp pools): highlights b 13.0 vs 5.8 (too yellow), a 6.3 vs 1.9,
   // white p99 .886 vs .949, shadows b -8.5 vs -5.4 -> cooler / greener highs, +7 % exposure, warmer / greener shadows
-  const fix = { exposure: 1.07, grade: { highlightTint: [0.0, 0.004, 0.018], shadowTint: [0.024, 0.02, -0.012], saturation: 1.14, tintH: [0.075, -0.034] as [number, number] }, // tintH: luma-neutral zone tint (works since 1.6): cools the highs without dimming them
+  // The video-wide median of a colour metric hides what each lighting key does: the 'too warm highlights' (Lab b 11 vs 5.8)
+  // came from the NIGHT section flipping from -0.8 to +14 (lamp pools), not from the day shots. So: day keeps its warm
+  // highs, and the night lamp is tamed (see nightKey). Tune per lighting key (`vfa keygap`), never on the global median.
+  const fix = { exposure: 1.07, grade: { highlightTint: [0.03, -0.004, -0.03], shadowTint: [0.024, 0.02, -0.012], saturation: 1.14 },
     dof: { enabled: true, maxBlur: 9, aperture: 0.9 } };
   const day = deepMerge(LOOKS["toonworld-day"], fix), golden = deepMerge(LOOKS["toonworld-golden"], { ...fix, grade: { saturation: 1.14, highlightTint: [0.02, -0.01, 0.01] } });
   const night = LOOKS["toonworld-night"];
@@ -220,7 +223,7 @@ const World: React.FC = () => {
         const { scene } = ctx;
         const skyM = sky(scene, "#3f8ff0", "#bfe6ff");
         const L = lights(scene, "day", { shadowSize: 40, target: [0, 0, 0], fog: [12, 140] });
-        const nightKey = new THREE.PointLight("#ffcf8a", 0, 9, 1.2); scene.add(nightKey);
+        const nightKey = new THREE.PointLight("#ffe9cf", 0, 7, 1.2); scene.add(nightKey); // pale warm: a saturated orange lamp turned every night highlight orange
         const wind = windUniforms();
         // ============ HALL (1854 exhibition: iron columns, glass barrel roof, bunting, plank floor)
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(64, 44), lam({ map: paint.planks("#b08458", [10, 7], false) }));
@@ -440,7 +443,7 @@ const World: React.FC = () => {
         w.L.sun.target.position.set(sx, 0, 0); w.L.sun.target.updateMatrixWorld();
         w.L.hemi.color.set("#b9d7ff").lerp(new THREE.Color("#d8b4d8"), g).lerp(new THREE.Color("#3b44a8"), n);
         w.L.hemi.intensity = lerp(lerp(1.15, 1.0, g), 0.5, n);
-        w.nightKey.intensity = 7 * n; w.nightKey.position.set(1.3, PY_HIGH - DROP + FRAME_H + 1.2, 1.6);
+        w.nightKey.intensity = 2.6 * n; w.nightKey.position.set(1.3, PY_HIGH - DROP + FRAME_H + 1.2, 1.6);
         (w.L.sun.parent as THREE.Scene).fog!.color.copy(u.horizon.value);
         if (n > 0) applyToonSetup(w.toon, TOON_SETUPS.day, TOON_SETUPS.night, n, w.L.sun.intensity);
         else applyToonSetup(w.toon, TOON_SETUPS.day, TOON_SETUPS.golden, g, w.L.sun.intensity);

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0 - in progress
+- **Highlight warmth found and fixed (elevator v8).** The video-wide "highlight tint b 11.1 vs 5.8" was not a day-grade
+  problem: the night section's highlights had flipped from -0.8 to +14 once lamps lit the set, and that section sat at
+  the middle of the sorted frames. Fix: pale night key, day tints back to the v3 values, no global highlight zone tint.
+  Measured v8: highlight b 7.2 (reference 5.8, in tolerance), style match 22/32, QA WARN only on style match.
+- **`vfa keygap`**: colour medians per section (lighting key) with the reference row, a before / after column
+  (`--prev`) and which section decides each video-wide median. Tune a grade per key, never on the overall number.
+
 ## 1.6.0 - 2026-11-11
 - **Character audit (bobble pack).** Two audit sheets (charsheet stills 250, 280) and a full review; fixed: front-view
   walk stagger, fist-only gestures (`hands`: point / open), no head turn (`turn`) or tilt (`headTilt`, automatic per

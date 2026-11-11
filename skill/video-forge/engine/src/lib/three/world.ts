@@ -12,7 +12,7 @@ import { canvasTexture, paint, vary } from "./textures";
 export type LightPreset = "day" | "golden" | "night" | "overcast" | "studio" | "space"
   | "dusk" | "rain" | "storm" | "fog" | "morning" | "sunsetBack" | "dawn" | "nightMoon" | "nightPractical" | "neon" | "interiorWindow" | "interiorWarm" | "spotlight";
 
-const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: string; ground: string; hemiI: number; amb: number; dir: [number, number, number]; fog: string; skyTop: string; skyHorizon: string; fogNF?: [number, number] }> = {
+export const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: string; ground: string; hemiI: number; amb: number; dir: [number, number, number]; fog: string; skyTop: string; skyHorizon: string; fogNF?: [number, number] }> = {
   // warm key + cool sky fill => warm highlights, cool/violet shadows (the measured cartoon look)
   day: { sun: "#fff1d6", sunI: 2.6, sky: "#9cc8ff", ground: "#7a6a4a", hemiI: 1.1, amb: 0.15, dir: [-0.55, 0.8, 0.35], fog: "#bfe0ff", skyTop: "#3f8ff0", skyHorizon: "#bfe6ff" },
   golden: { sun: "#ffbd7a", sunI: 2.8, sky: "#8f86d6", ground: "#7a5236", hemiI: 0.9, amb: 0.12, dir: [-0.8, 0.32, 0.4], fog: "#ffc89a", skyTop: "#5a63c9", skyHorizon: "#ffb98a" },
@@ -52,12 +52,13 @@ export function lights(scene: THREE.Scene, preset: LightPreset = "day", opts: { 
   scene.add(sun, sun.target);
   const hemi = new THREE.HemisphereLight(L.sky, L.ground, L.hemiI);
   scene.add(hemi);
-  scene.add(new THREE.AmbientLight("#ffffff", L.amb));
+  const amb = new THREE.AmbientLight("#ffffff", L.amb);
+  scene.add(amb);
   if (opts.fog !== false && preset !== "space") {
     const [n, f] = opts.fog ?? L.fogNF ?? [60, 320];
     scene.fog = new THREE.Fog(L.fog, n, f);
   }
-  return { sun, hemi, preset: L };
+  return { sun, hemi, amb, preset: L };
 }
 
 export function sky(scene: THREE.Scene, top: string, horizon: string, bottom?: string, radius = 900) {

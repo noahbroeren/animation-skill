@@ -246,3 +246,24 @@ Rows appear only when both fingerprints carry them (`analyze --deep`):
 | transitions | dissolves/min, soft transitions/min |
 | sound | music presence, voice-over-music margin, non-vocal hit rate |
 | look | art-style similarity: CLIP centroid cosine, OK at ≥ 0.83 |
+
+## `vfa keygap`: colour per lighting key
+
+`vfa keygap ANALYSIS_DIR --plan timeline.json [--ref FINGERPRINT] [--prev OTHER_ANALYSIS_DIR] [--cuts]`
+
+`gap.md` compares video-wide MEDIANS over all frames. In a video with several lighting keys the median belongs to
+whichever section happens to sit in the middle of the sorted frames, so a number can move a lot while most of the
+video did not change, and "fixing" it globally breaks the sections that were right.
+
+Measured case (elevator proof short): QA said "highlights too warm, Lab b 11.1 vs 5.8". Grading the day shots cooler
+three times did nothing to the number and pushed the day sections from +5.8 to -8.7. The per-section table showed the
+real cause in one look: the night section's highlights had flipped from -0.8 to +14.3 when lamps began to light the set.
+
+Reading the table:
+- one row per section between the plan's soft transitions (place / lighting changes; `--cuts` also splits at hard cuts);
+- `--prev` shows `old -> new` for every value that moved, which is how you find the section a change came from;
+- the "decided by" line names the section whose own median sits at the video-wide median for each metric;
+- tune each row against the reference, then re-read the overall row. Never tune on the overall row alone.
+
+The 1/8-size audit pass is NOT a colour proxy: its numbers differed from the full-resolution QA by several Lab units.
+
