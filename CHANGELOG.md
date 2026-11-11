@@ -3,7 +3,9 @@
 ## 1.3.0 - 2026-11-11
 Built a complete proof short with the skill ("Why Elevators Don't Fall", 9:16 2K, 60.6 s, ElevenLabs VO, new stick cast),
 then measured it frame by frame against the reference channel and fixed what the measurement and the review found.
-Match vs the reference fingerprint: iteration 1 17/32 (53.1) -> iteration 2 24/32 (75.0); every QA check PASS.
+Match vs the reference fingerprint: iteration 1 17/32 (53.1) -> 2: 24/32 (75.0) -> 3/final: 25/32 (78.1). Final QA verdict
+PASS on every check (-14.0 LUFS, -1.4 dBTP, 2 planned cuts, no pops/flicker), shot audit clean. Remaining measured gaps:
+fewer fast camera moves and shorter glides than the reference, lower micro-animation (thin stick cast, see learnings), less DOF.
 
 - **Engine bugs found by measuring the proof short:**
   - `cameraRig` push punches re-applied on every later hold (shots crept in by up to ~40 %). Fixed (`lib/camera.ts`).
