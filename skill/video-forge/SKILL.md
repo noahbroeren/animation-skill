@@ -40,6 +40,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
    - **Paid voices/APIs: show the estimated credit cost and get an explicit yes BEFORE every generation, including re-takes.**
 4. **Look test.** Scaffold with `node ENGINE/tools/new-project.mjs <id> --format short|long`. Build one key shot and render 3-6 stills (`render.mjs --stills ... --scale 0.5`). Put them next to reference keyframes (`vfa sbs`) and fix the biggest gap before animating everything.
 5. **Build** the scenes: world, characters, camera, overlays, captions. Mark every intended hard cut (`innerCuts`) and every big graphic slam (`events`) so QA can tell intent from glitches.
+   Dress every background a shot can see (set-dressing kit; target edge density >= 6.5 % on the cue stills, the reference has 8.7 %).
    Declare what must read in each shot (`audit` on Stage3D) and run `render.mjs --stills cues --scale 0.25`: the shot audit
    catches occluders, subjects pushed out of frame by the push-in, and 9:16 framing that is too tight, before the full render.
 6. **Stills review**, then a **full render** at native resolution: `node ENGINE/tools/render.mjs --project <id> --format <fmt> --fps 30|60`. Chunks are resumable.
@@ -72,6 +73,7 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | cast look-dev sheet | `node ENGINE/tools/render.mjs --project modelsheet --format long --stills 0,40` (40 = visemes + side view) |
 | new character kinds (objects, animals, blobs, stick, chibi, flat vector, microbes) + style passes | `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 0,40,70,100,130` |
 | **bobble character pack** (default cast for toonworld shorts: 20 presets `KIND_PRESETS.bb*`, big head, long jacket, IK limbs, props) | `kind: "bobble"` in `lib/characters/kinds.ts`; sheet: `render.mjs --project charsheet --format long --stills 190,220` |
+| **set-dressing kit**: signs, banners, iron-and-glass walls, crates, barrels, carts, awnings, steam engine, scaffold, far facades, lanterns | `signBoard` `banner` `lattice` `crate` `barrel` `cart` `awning` `steamEngine` `scaffold` `rowFacade` `lantern` `brickTexture` `textTexture` in `lib/three/world.ts` (engine.md "Added in 1.5") |
 | pose-to-pose acting (one held pose per clause, popped 3 f before its word) | `poseTrack([{ f, pose }], frame, fps)` + `BOBBLE_POSES` in `lib/characters/kinds.ts` |
 | thumbnails from the 3D world (variants, feed-size preview sheet, ranked by `thumbcheck`) | `node ENGINE/tools/thumbs.mjs --project ID [--kind long,short,hires] --out DIR`; variants in the project's `thumbnails` (see `projects/manhole/thumbs.ts`) |
 | render-speed benchmark before changing defaults | `node ENGINE/tools/bench.mjs --project ID --frames 180-299 --variants default,c4,veryfast,default` |
@@ -90,7 +92,8 @@ First run on a machine: `node SKILL_DIR/scripts/doctor.mjs`. It checks ffmpeg, y
 | score a draft hook or rank titles on the measured data | `vfa hookcheck "hook" --style S`, `vfa titlecheck "t1" "t2" --style S` |
 | stills / full render / 4K | `node ENGINE/tools/render.mjs --project ID [--stills 0,90] [--format long4k]` |
 | one still per story cue (beat review sheet) + shot audit log | `render.mjs --project ID --stills cues --scale 0.25` -> `stills/index.json`, `shot_audit.log` |
-| catch occluded / out-of-frame / tiny subjects before a full render | Stage3D `audit={(f, w) => subjects}` (`lib/three/audit.ts`); problems land in `<out>/shot_audit.log` |
+| catch occluded / out-of-frame / tiny subjects and a camera inside a building before a full render | Stage3D `audit={(f, w) => subjects}` (`lib/three/audit.ts`); problems land in `<out>/shot_audit.log` |
+| **audit pass** of the whole video in ~2 min (every frame, 1/8 size) | `render.mjs --project ID --scale 0.125 --crf 34 --out DIR_audit`, then `vfa qa DIR_audit/video.mp4 --plan DIR_audit/timeline.json --min-class none` |
 | size a 9:16 close-up (hfov is ~0.56x vfov) | `frameDistance({ width, height, vfov, aspect: 9/16 })` in `lib/camera.ts` |
 | a voice's real words/s (duration estimates) | `py SKILL_DIR/story/story.py calibrate words.json --voice ID`, then `# voice: ID` in the script |
 | live preview + scrubbing | `cd ENGINE && npx remotion studio` |

@@ -80,3 +80,26 @@ export function auditView(scene: THREE.Scene, camera: THREE.PerspectiveCamera, s
   }
   return out;
 }
+
+const _inv = new THREE.Matrix4(), _p = new THREE.Vector3();
+/**
+ * Camera collision check (1.5): is the camera INSIDE a solid box (a house, a wall, a slab)? Learned on the elevator
+ * short: a crane move drifted 1.6 m backwards into the house across the street; back faces are culled, so nothing
+ * looked wrong on the key frames, but its roof and floors swept through 4 frames as flat slabs and `vfa qa` flagged an
+ * unexpected cut. Runs on EVERY frame (also during travels). Boxes smaller than 0.6 m and `auditIgnore` meshes are skipped.
+ */
+export function cameraInside(scene: THREE.Scene, camera: THREE.PerspectiveCamera, margin = 0.05): string[] {
+  const out: string[] = [];
+  scene.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh || !m.visible || m.userData.auditIgnore || m.geometry?.type !== "BoxGeometry") return;
+    const g = m.geometry as THREE.BoxGeometry, P = g.parameters;
+    if (Math.max(P.width, P.height, P.depth) < 0.6 || Math.min(P.width, P.height, P.depth) < 0.25) return;
+    _p.copy(camera.position).applyMatrix4(_inv.copy(m.matrixWorld).invert());
+    if (!g.boundingBox) g.computeBoundingBox();
+    const b = g.boundingBox!;
+    if (_p.x > b.min.x - margin && _p.x < b.max.x + margin && _p.y > b.min.y - margin && _p.y < b.max.y + margin && _p.z > b.min.z - margin && _p.z < b.max.z + margin)
+      out.push(`camera is INSIDE ${describe(m)} (a ${P.width.toFixed(1)} x ${P.height.toFixed(1)} x ${P.depth.toFixed(1)} m box)`);
+  });
+  return out;
+}

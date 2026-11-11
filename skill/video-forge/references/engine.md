@@ -350,3 +350,49 @@ dead-still (measured micro-animation gap on the elevator short).
   caps pauses at 0.2 s and speeds the read ~12 % without re-generating the voice; re-run `tts.py align` and
   `lipsync.py` afterwards (word indices stay the same, so `timing()` keeps working).
 - **Music level:** `music_sections` at -18..-21 (the measured reference keeps music ~20 dB under the voice).
+
+## Added in 1.5 (world detail: the set-dressing kit)
+
+Measured gap that started this: edge density 4.9 % on our frames vs 8.7 % on the reference hero short. Its worlds
+have textured surfaces, signage, props and a FILLED horizon in every shot; ours had sky and grass behind the action.
+After dressing the elevator short with the kit below, the median over the 48 cue stills went 4.95 % -> 6.6 %.
+
+`lib/three/world.ts` (all procedural, deterministic, base on y = 0 unless noted):
+
+| piece | call | use |
+|---|---|---|
+| text on a board | `textTexture(text, { w, h, bg, fg, border })` | any sign, poster, label (auto-fits the text) |
+| shop / station sign | `signBoard("BAKERY", { w, h, bg, fg })` | one per shopfront; tells the viewer where we are |
+| hanging banner | `banner("NEW|YORK", { w, h, color })` | hangs down from y = 0; `|` = line break; swallow-tail, cloth folds |
+| iron-and-glass wall | `lattice(w, h, { cell, color, arch, glass })` | exhibition halls, stations, greenhouses, railings (`glass: false`, small `cell`) |
+| brick | `brickTexture(color, mortar, rep)` | plinths, piles, factory walls |
+| cargo | `crate(size, { label })`, `barrel()` | stack in twos and threes next to doors, stalls, machines |
+| cart | `cart({ load: "crates" | "barrels" | "none" })`, `spokedWheel(r)` | streets and yards |
+| awning | `awning(w, { a, b, depth })` | striped, slopes toward +z; put it under the sign |
+| exhibit machine | `const e = steamEngine(); e.wheel.rotation.z = t * 2.4` | background life that moves |
+| building site | `scaffold(w, h, { levels })` | empty lots, "the city is growing" |
+| far facade | `rowFacade(w, h, { color, floors, seed })` | a flat block with windows and chimneys: fills horizons cheaply |
+| lantern | `lantern()` | emissive glass (blooms at night) |
+
+Rules learned while dressing:
+- **Close the room.** An interior needs walls on all four sides (the hall had columns and a roof but an open grass
+  horizon). Put `rowFacade`s OUTSIDE glass walls so the glass has something to show.
+- **Fill both horizons of a street** with a far row behind the near row, but leave a gap wherever a later shot needs a
+  long sight line (the far row hid the future skyline until two segments were removed).
+- **Sight-line cull every prop**: `const keep = (x, z, r, y) => !blocksShot([x, y, z], r, rig.keys)`, then run
+  `render.mjs --stills cues` and read `shot_audit.log`.
+- **Signage is story.** A sign names the place in one glance ("WAREHOUSE", the store's name, "LOT FOR SALE").
+- **Check that a counted thing is really there**: the "floors 1-6" crane was climbing a 4-floor building; it now climbs
+  a 6-floor front. A review sheet per cue catches this, a metric does not.
+- **Geometry gives ink lines, textures give texture.** Pilasters and floor cornices as thin boxes put real ink outlines
+  on a facade; window grids in a texture do not. Use both.
+- Measure detail on the cue stills (Canny 60/160 on a 512-px-wide grey frame, the analyzer's `edge_density`):
+  aim for a median of 6.5 % or more; shots under 3 % are usually sky or a blurred, empty background.
+
+**Camera collision check + the audit pass.** `cameraInside()` (lib/three/audit.ts) runs on every frame when Stage3D has
+an `audit` callback and logs `camera is INSIDE Box @ ...` when the camera sits in a solid box (house, wall, slab). Back
+faces are culled, so a camera that drifts into a building looks fine on key frames, then a roof or floor sweeps through
+a few frames (the elevator v3 crane did exactly that and `vfa qa` failed it as an unexpected cut).
+Run the **audit pass** before every native render: `node tools/render.mjs --project ID --scale 0.125 --crf 34 --out DIR_audit`
+(about 2 minutes for a 50 s short; 0.125 and 0.25 keep integer frame sizes, 0.12 does not), read `DIR_audit/shot_audit.log`,
+and run `vfa qa DIR_audit/video.mp4 --plan DIR_audit/timeline.json --min-class none` for cuts, pops and flicker.

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.0 - 2026-11-11
+- **Set-dressing kit** (`lib/three/world.ts`): `textTexture`, `signBoard`, `banner`, `lattice` (iron-and-glass walls and
+  railings), `brickTexture`, `crate`, `barrel`, `spokedWheel`, `cart`, `awning`, `steamEngine`, `scaffold`, `rowFacade`,
+  `lantern`. Procedural and deterministic.
+- **Elevator proof short v3**: closed exhibition hall (glass lattice walls, galleries, lanterns, banners, title board,
+  a turning steam engine, cargo, city facades outside the glass), dressed street (pavements, shop signs and awnings,
+  far rows on both horizons, carts, the store's cast-iron front and name board, a building site on the empty lot).
+  The "floors 1-6" crane now climbs a real 6-floor front (it was climbing the 4-floor warehouse).
+  Median edge density over the 48 cue stills: 4.95 % -> 6.6 % (reference hero short: 8.7 %).
+- **Camera collision check** (`cameraInside()` in `lib/three/audit.ts`, every frame): the v3 crane drifted into the house
+  across the street; QA failed the first render (unexpected cut at f 423). Now logged in `shot_audit.log`.
+  New habit: a 2-minute **audit pass** at `--scale 0.125` before every native render.
+- Docs: engine.md "Added in 1.5" (kit table + dressing rules + audit pass), SKILL.md tooling rows and build step, case study updated.
+
 ## 1.4.0 - 2026-11-11
 - **Bobble character pack** (`kind: "bobble"`, `lib/characters/kinds.ts`): big-head figures with a long jacket and
   straight legs (3.4 heads; 2.6 for the short build), two-bone IK on all limbs, fists and shoes, 11 outfits, 10 hair

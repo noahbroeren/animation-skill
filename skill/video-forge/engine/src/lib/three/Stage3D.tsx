@@ -11,7 +11,7 @@
 import React, { createContext, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { continueRender, delayRender, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
-import { auditView, ShotSubject } from "./audit";
+import { auditView, cameraInside, ShotSubject } from "./audit";
 import { CamState } from "../camera";
 import { Look } from "../look";
 import { PostPipeline, SHADOW_ONLY } from "./post";
@@ -133,6 +133,7 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
     // every 'out of frame' outside a hold was a camera move). Travel = camera moved > 1.2 % of its focus distance.
     const pc = audit && camAt && frame > 0 ? camAt(frame - 1, fps) : null;
     const travelling = !!pc && Math.hypot(pc.pos[0] - cam.pos[0], pc.pos[1] - cam.pos[1], pc.pos[2] - cam.pos[2]) > 0.012 * Math.max(1, cam.focus);
+    if (audit && !camOverride) for (const msg of cameraInside(it.ctx.scene, c)) console.warn(`[video-forge][shot-audit] f=${frame} ${msg}`);
     const subjects = audit && !camOverride && !travelling ? audit(frame, it.world) : null;
     if (subjects?.length) for (const msg of auditView(it.ctx.scene, c, subjects)) console.warn(`[video-forge][shot-audit] f=${frame} ${msg}`);
     const lk = typeof look === "function" ? look(frame) : look;

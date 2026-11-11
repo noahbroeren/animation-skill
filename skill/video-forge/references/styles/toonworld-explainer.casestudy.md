@@ -117,6 +117,8 @@ asphalt, grass blades, reflective car paint, wet-road reflections, rain streaks,
 - Checklist for "a video like that" (story-engine.md): act-hook, 3 setups in sentence one, a gag prop per sentence,
   14+ setups per minute, colour script per phase with a weather turn, POV shot for the reveal, origin tag.
 
-Not built yet (largest remaining gaps, in order): world detail (edge density 4.9 % vs 8.7 %: needs real CC0 vehicle /
-building assets and detail textures), diegetic screen overlays (dash-cam UI), particle crowds (money rain),
+World detail: addressed in 1.5 with the set-dressing kit (engine.md "Added in 1.5"): the elevator short's cue stills went
+from 4.95 % to 6.6 % median edge density; the reference has 8.7 % (reflective vehicles, grass blades, wet roads remain).
+
+Not built yet (largest remaining gaps, in order): diegetic screen overlays (dash-cam UI), particle crowds (money rain),
 characters seated inside vehicles behind reflective glass.

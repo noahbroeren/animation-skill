@@ -438,3 +438,169 @@ export function motes(scene: THREE.Scene, o: { center: [number, number, number];
     },
   };
 }
+
+// ------------------------------------------------------------------ set-dressing kit (1.5)
+/**
+ * Detail is what separated our worlds from the measured reference (edge density 4.9 % vs 8.7 %): every shot of the
+ * reference has textured surfaces, signage, props and a filled horizon. These pieces are procedural, deterministic and
+ * cheap; all return a Group with its base on y = 0 unless noted. Dress EVERY background a shot can see, then run the
+ * shot audit (`render.mjs --stills cues`) so nothing new stands between the camera and a subject.
+ */
+const FONT_SIGN = "Georgia, 'Times New Roman', serif";
+/** Text on a coloured board (signs, banners, posters). Auto-fits the text to 86 % of the width. */
+export function textTexture(text: string, o: { w?: number; h?: number; bg?: string; fg?: string; border?: string; font?: string; transparent?: boolean } = {}) {
+  const W = o.w ?? 512, H = o.h ?? 128;
+  return canvasTexture(`txt|${text}|${W}|${H}|${o.bg}|${o.fg}|${o.border}|${o.transparent}`, W, H, (g) => {
+    if (!o.transparent) { g.fillStyle = o.bg ?? "#f4efe6"; g.fillRect(0, 0, W, H); }
+    if (o.border) { g.strokeStyle = o.border; g.lineWidth = H * 0.07; g.strokeRect(H * 0.07, H * 0.07, W - H * 0.14, H - H * 0.14); }
+    g.fillStyle = o.fg ?? "#1c1216"; g.textAlign = "center"; g.textBaseline = "middle";
+    let size = H * 0.54; g.font = `900 ${size}px ${o.font ?? FONT_SIGN}`;
+    const m = g.measureText(text).width; if (m > W * 0.84) { size *= (W * 0.84) / m; g.font = `900 ${size}px ${o.font ?? FONT_SIGN}`; }
+    g.fillText(text, W / 2, H / 2 + size * 0.05);
+  });
+}
+/** A shop / station sign: a thin box, text on the +z face. */
+export function signBoard(text: string, o: { w?: number; h?: number; bg?: string; fg?: string; border?: string } = {}) {
+  const w = o.w ?? 2.6, h = o.h ?? 0.62, bg = o.bg ?? "#2b2230";
+  const tex = textTexture(text, { w: 512, h: Math.max(64, Math.round((512 * h) / w)), bg, fg: o.fg ?? "#f1c94a", border: o.border ?? o.fg ?? "#f1c94a" });
+  const side = lambert({ color: bg });
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.09), [side, side, side, side, lambert({ map: tex }), side]));
+  return shadowed(g);
+}
+/** A hanging cloth banner with a swallow-tail (text optional). Hangs DOWN from y = 0, faces +z and -z. */
+export function banner(text: string, o: { w?: number; h?: number; color?: string; fg?: string; trim?: string } = {}) {
+  const w = o.w ?? 1.4, h = o.h ?? 3, col = o.color ?? "#c0392b", W = 256, H = Math.round((256 * h) / w);
+  const tex = canvasTexture(`banner|${text}|${w}|${h}|${col}|${o.fg}|${o.trim}`, W, H, (g) => {
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(W, 0); g.lineTo(W, H); g.lineTo(W / 2, H - W * 0.38); g.lineTo(0, H); g.closePath();
+    g.fillStyle = col; g.fill();
+    g.save(); g.clip(); g.fillStyle = "rgba(0,0,0,0.12)"; for (let x = 0; x < W; x += W / 4) g.fillRect(x, 0, W / 12, H); // cloth folds
+    g.strokeStyle = o.trim ?? "#f1c94a"; g.lineWidth = W * 0.07; g.stroke(); g.restore();
+    g.fillStyle = o.fg ?? "#fff6d8"; g.textAlign = "center"; g.textBaseline = "middle";
+    const words = text.split("|"); let size = Math.min(W * 0.34, (H * 0.5) / words.length);
+    g.font = `900 ${size}px ${FONT_SIGN}`;
+    for (const wd of words) { const m = g.measureText(wd).width; if (m > W * 0.8) size *= (W * 0.8) / m; }
+    g.font = `900 ${size}px ${FONT_SIGN}`;
+    words.forEach((wd, i) => g.fillText(wd, W / 2, H * 0.36 + (i - (words.length - 1) / 2) * size * 1.15));
+  });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide }));
+  m.position.y = -h / 2;
+  const g = new THREE.Group(); g.add(m);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, w * 1.12, 8), lambert({ color: "#5a4326" })); rod.rotation.z = Math.PI / 2; g.add(rod);
+  return shadowed(g, false, false);
+}
+/** Iron-and-glass lattice wall (exhibition halls, stations, greenhouses): alpha-tested bars + a faint glass sheet. Centre at origin, faces +-z. */
+export function lattice(w: number, h: number, o: { cell?: number; color?: string; glass?: string | false; arch?: boolean } = {}) {
+  const cell = o.cell ?? 1.5, col = o.color ?? "#2f4a6a";
+  const tex = canvasTexture(`lattice|${col}|${o.arch}`, 256, 256, (g) => {
+    g.strokeStyle = col; g.lineWidth = 26; g.strokeRect(0, 0, 256, 256); // shared frame bars (13 px each side of a seam)
+    g.lineWidth = 9; g.beginPath(); g.moveTo(128, 0); g.lineTo(128, 256); g.moveTo(0, 128); g.lineTo(256, 128); g.stroke(); // glazing bars
+    if (o.arch) { g.lineWidth = 8; g.beginPath(); g.arc(128, 256, 118, Math.PI, 0); g.stroke(); }
+    g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 3; g.beginPath(); g.moveTo(15, 15); g.lineTo(15, 241); g.stroke(); // highlight on the bars
+  }, [w / cell, h / cell]);
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: tex, alphaTest: 0.5, side: THREE.DoubleSide })));
+  if (o.glass !== false) { const gl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshLambertMaterial({ color: o.glass ?? "#cfe8ff", transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false })); gl.userData.auditIgnore = true; g.add(gl); }
+  return g;
+}
+/** Brick texture (running bond). */
+export const brickTexture = (color = "#a8553c", mortar = "#d9c7b0", rep: [number, number] = [2, 2]) =>
+  canvasTexture(`brick|${color}|${mortar}`, 512, 512, (g, r) => {
+    g.fillStyle = mortar; g.fillRect(0, 0, 512, 512);
+    const bh = 512 / 8, bw = 512 / 4;
+    for (let y = 0; y < 8; y++) for (let x = -1; x < 4; x++) { g.fillStyle = vary(color, r, 0.03, 0.1, 0.12); g.fillRect(x * bw + (y % 2 ? bw / 2 : 0) + 4, y * bh + 4, bw - 8, bh - 8); }
+  }, rep);
+/** Wooden crate with a frame and a diagonal brace on every face. */
+export function crate(s = 0.6, o: { color?: string; seed?: string; label?: string } = {}) {
+  const col = o.color ?? "#b98a52";
+  const tex = canvasTexture(`crate|${col}|${o.label}`, 256, 256, (g, r) => {
+    for (let i = 0; i < 5; i++) { g.fillStyle = vary(col, r, 0.02, 0.06, 0.1); g.fillRect(0, i * 51.2, 256, 51.2); g.fillStyle = "rgba(60,30,10,0.35)"; g.fillRect(0, i * 51.2, 256, 3); }
+    g.strokeStyle = shadeHex(col, -0.22); g.lineWidth = 34; g.strokeRect(17, 17, 222, 222);
+    g.lineWidth = 26; g.beginPath(); g.moveTo(30, 226); g.lineTo(226, 30); g.stroke();
+    g.fillStyle = "rgba(40,20,10,0.8)"; for (const [x, y] of [[17, 17], [239, 17], [17, 239], [239, 239]]) { g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); }
+    if (o.label) { g.fillStyle = "rgba(30,18,22,0.85)"; g.font = "900 44px Arial Black, sans-serif"; g.textAlign = "center"; g.fillText(o.label, 128, 144); }
+  });
+  const m = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), lambert({ map: tex })); m.position.y = s / 2;
+  const g = new THREE.Group(); g.add(m); if (o.seed) g.rotation.y = (rng(o.seed)() - 0.5) * 0.8;
+  return shadowed(g);
+}
+const shadeHex = (hex: string, d: number) => { const c = new THREE.Color(hex); const hsl = { h: 0, s: 0, l: 0 }; c.getHSL(hsl); c.setHSL(hsl.h, hsl.s, Math.max(0, Math.min(1, hsl.l + d))); return `#${c.getHexString()}`; };
+/** Stave barrel with iron hoops. */
+export function barrel(o: { h?: number; r?: number; color?: string } = {}) {
+  const h = o.h ?? 0.95, r = o.r ?? 0.34, col = o.color ?? "#8a5a34";
+  const prof = [[r * 0.8, 0], [r * 0.96, h * 0.22], [r, h * 0.5], [r * 0.96, h * 0.78], [r * 0.8, h]].map(([x, y]) => new THREE.Vector2(x, y));
+  const tex = canvasTexture(`staves|${col}`, 256, 64, (g, r2) => { for (let i = 0; i < 12; i++) { g.fillStyle = vary(col, r2, 0.02, 0.08, 0.12); g.fillRect(i * 21.4, 0, 21.4, 64); g.fillStyle = "rgba(40,20,10,0.5)"; g.fillRect(i * 21.4, 0, 2.5, 64); } });
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.LatheGeometry(prof, 20), lambert({ map: tex })));
+  const lid = new THREE.Mesh(new THREE.CircleGeometry(r * 0.8, 20), lambert({ color: shadeHex(col, -0.08) })); lid.rotation.x = -Math.PI / 2; lid.position.y = h; g.add(lid);
+  for (const y of [0.16, 0.5, 0.84]) { const hoop = new THREE.Mesh(new THREE.TorusGeometry(r * (y === 0.5 ? 1.0 : 0.93), 0.022, 6, 24), lambert({ color: "#3d4450" })); hoop.rotation.x = Math.PI / 2; hoop.position.y = h * y; g.add(hoop); }
+  return shadowed(g);
+}
+/** Spoked wheel in the XY plane (carts, flywheels). */
+export function spokedWheel(r = 0.5, o: { color?: string; spokes?: number; tube?: number } = {}) {
+  const col = lambert({ color: o.color ?? "#4b3f46" }), g = new THREE.Group(), n = o.spokes ?? 8, t = o.tube ?? r * 0.09;
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(r, t, 8, 28), col));
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.16, r * 0.16, t * 3, 12), col); hub.rotation.x = Math.PI / 2; g.add(hub);
+  for (let i = 0; i < n / 2; i++) { const s = new THREE.Mesh(new THREE.BoxGeometry(r * 2, t * 0.8, t * 0.8), col); s.rotation.z = (i * Math.PI * 2) / n; g.add(s); }
+  return shadowed(g);
+}
+/** Two-wheeled hand cart with an optional load (crates / barrels). */
+export function cart(o: { color?: string; load?: "crates" | "barrels" | "none"; seed?: string } = {}) {
+  const wood = lambert({ map: paint.planks(o.color ?? "#9a6b45", [2, 1], false) }), g = new THREE.Group();
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.12, 1.1), wood); bed.position.y = 0.7; g.add(bed);
+  for (const z of [-0.55, 0.55]) { const rail = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 0.06), wood); rail.position.set(0, 0.9, z); g.add(rail); const wh = spokedWheel(0.55, { color: "#5a3c2e" }); wh.position.set(0.1, 0.55, z * 1.22); g.add(wh); }
+  for (const z of [-0.45, 0.45]) { const hd = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.07, 0.07), wood); hd.position.set(-1.6, 0.72, z); hd.rotation.z = -0.12; g.add(hd); }
+  const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.66, 0.08), wood); leg.position.set(-0.85, 0.33, 0); g.add(leg);
+  if (o.load !== "none") for (let i = 0; i < 3; i++) { const it = o.load === "barrels" ? barrel({ h: 0.7, r: 0.26 }) : crate(0.5 - i * 0.06, { seed: (o.seed ?? "c") + i }); it.position.set(-0.6 + i * 0.6, 0.76, (i % 2 ? 0.18 : -0.15)); g.add(it); }
+  return shadowed(g);
+}
+/** Striped shop awning: slopes down toward +z, back edge at y = 0. */
+export function awning(w = 3, o: { depth?: number; a?: string; b?: string } = {}) {
+  const d = o.depth ?? 1.2, a = o.a ?? "#c0392b", b = o.b ?? "#f4efe6";
+  const tex = canvasTexture(`awning|${a}|${b}`, 256, 64, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? a : b; g.fillRect(i * 32, 0, 32, 64); } }, [Math.max(1, Math.round(w / 1.6)), 1]);
+  const g = new THREE.Group(), m = lambert({ map: tex, side: THREE.DoubleSide });
+  const top = new THREE.Mesh(new THREE.BoxGeometry(w, 0.05, d * 1.08), m); top.position.set(0, -d * 0.2, d / 2); top.rotation.x = 0.38; g.add(top);
+  const val = new THREE.Mesh(new THREE.BoxGeometry(w, 0.24, 0.04), m); val.position.set(0, -d * 0.4 - 0.1, d); g.add(val);
+  return shadowed(g);
+}
+/** Exhibit / factory steam engine on a plinth; rotate `.wheel.rotation.z` for life. */
+export function steamEngine(o: { color?: string } = {}) {
+  const g = new THREE.Group(), body = lambert({ color: o.color ?? "#2f6b55" }), brass = lambert({ color: "#d8b04a" }), iron = lambert({ color: "#3d4450" });
+  const pl = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.4, 1.6), lambert({ map: brickTexture("#8a5a44", "#cbb9a0", [3, 0.5]) })); pl.position.y = 0.2; g.add(pl);
+  const boiler = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 2.2, 20), body); boiler.rotation.z = Math.PI / 2; boiler.position.set(-0.3, 1.15, 0); g.add(boiler);
+  for (const x of [-1.2, -0.3, 0.6]) { const band = new THREE.Mesh(new THREE.TorusGeometry(0.61, 0.035, 6, 24), brass); band.rotation.y = Math.PI / 2; band.position.set(x, 1.15, 0); g.add(band); }
+  const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 1.5, 12), iron); stack.position.set(-1.1, 2.3, 0); g.add(stack);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 10), brass); dome.position.set(0.2, 1.8, 0); g.add(dome);
+  const cyl = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.5), iron); cyl.position.set(1.0, 0.7, 0.45); g.add(cyl);
+  const wheel = spokedWheel(0.95, { color: "#8a2f2f", spokes: 12, tube: 0.07 }); wheel.position.set(1.25, 1.45, 0.5); g.add(wheel);
+  const rod = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.06, 0.06), brass); rod.position.set(0.7, 1.0, 0.56); rod.rotation.z = 0.5; g.add(rod);
+  shadowed(g);
+  return Object.assign(g, { wheel });
+}
+/** Builder's scaffold: poles, plank decks, braces and a ladder. */
+export function scaffold(w = 4, h = 6, o: { levels?: number; depth?: number; color?: string } = {}) {
+  const g = new THREE.Group(), d = o.depth ?? 1.4, n = o.levels ?? 3, wood = lambert({ color: o.color ?? "#b98a52" }), plank = lambert({ map: paint.planks("#c49a62", [3, 1], false) });
+  for (const x of [-w / 2, 0, w / 2]) for (const z of [-d / 2, d / 2]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.1, h, 0.1), wood); p.position.set(x, h / 2, z); g.add(p); }
+  for (let i = 1; i <= n; i++) { const y = (h * i) / (n + 0.3); const dk = new THREE.Mesh(new THREE.BoxGeometry(w + 0.3, 0.07, d), plank); dk.position.set(0, y, 0); g.add(dk);
+    const br = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(w / 2, h / (n + 0.3)), 0.06, 0.06), wood); br.position.set((i % 2 ? -1 : 1) * w / 4, y - h / (n + 0.3) / 2, d / 2 + 0.06); br.rotation.z = (i % 2 ? 1 : -1) * Math.atan2(h / (n + 0.3), w / 2); g.add(br); }
+  const lad = new THREE.Group(); for (const x of [-0.22, 0.22]) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.05, h * 0.8, 0.05), wood); s.position.set(x, h * 0.4, 0); lad.add(s); }
+  for (let y = 0.3; y < h * 0.8; y += 0.38) { const r2 = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.04, 0.04), wood); r2.position.y = y; lad.add(r2); }
+  lad.position.set(w / 2 + 0.5, 0, d / 2 + 0.4); lad.rotation.x = -0.18; g.add(lad);
+  return shadowed(g);
+}
+/** A flat far facade (fills horizons cheaply): plaster texture with windows + a dark roof line. Base on y = 0, faces +z. */
+export function rowFacade(w = 8, h = 12, o: { color?: string; floors?: number; seed?: string; roof?: string } = {}) {
+  const g = new THREE.Group(), floors = o.floors ?? Math.max(2, Math.round(h / 3.1));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lambert({ map: paint.plaster(o.color ?? "#c9a48a", Math.max(2, Math.round(w / 2.4)), floors, o.seed ?? `rf${w}${h}`) })); m.position.y = h / 2; g.add(m);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.3, 0.5, 0.4), lambert({ color: o.roof ?? "#4b3f46" })); roof.position.y = h + 0.2; g.add(roof);
+  for (let i = 0; i < 2; i++) { const ch = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.4, 0.5), lambert({ color: "#7a4a3a" })); ch.position.set(-w * 0.28 + i * w * 0.5, h + 0.9, -0.3); g.add(ch); }
+  return shadowed(g, false, true);
+}
+/** Gas / oil lantern: hang it or stand it; the glass is emissive (blooms at night). */
+export function lantern(o: { color?: string; glow?: string } = {}) {
+  const g = new THREE.Group(), iron = lambert({ color: o.color ?? "#2b2f3a" });
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.3, 0.22), new THREE.MeshLambertMaterial({ color: "#ffe9b0", emissive: new THREE.Color(o.glow ?? "#ffc860"), emissiveIntensity: 1.4 })); g.add(glass);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.16, 4), iron); cap.position.y = 0.23; cap.rotation.y = Math.PI / 4; g.add(cap);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.05, 0.26), iron); base.position.y = -0.17; g.add(base);
+  return g;
+}

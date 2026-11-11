@@ -28,7 +28,7 @@ import { Stage3D } from "../../lib/three/Stage3D";
 import type { ShotSubject } from "../../lib/three/audit";
 import { canvasTexture, flat, paint } from "../../lib/three/textures";
 import { applyToonSetup, makeToonUniforms, TOON_SETUPS, toonifyScene, windSway, windUniforms } from "../../lib/three/shaders";
-import { bird, blocksShot, cloudCard, fence, house, lampPost, lights, motes, sky, tree } from "../../lib/three/world";
+import { awning, banner, barrel as barrelProp, bird, blocksShot, brickTexture, cart, cloudCard, crate, fence, house, lampPost, lantern, lattice, lights, motes, rowFacade, scaffold, signBoard, sky, steamEngine, tree } from "../../lib/three/world";
 import { FONTS, LowerThird, useU, WordCaptions } from "../../lib/two/text";
 import { clamp, ease, lerp, springAt } from "../../lib/time";
 import WORDS from "./words.json";
@@ -145,8 +145,8 @@ const World: React.FC = () => {
     { f: T.fell + 2, pos: [WH[0] + 4.6, 2.6, 2.6], look: [WH[0], 1.2, -5.6], glide: 34 }, // tilt down WITH the fall (audit: a 16 f tilt let him fall out of frame first)
     { f: T.nobody - PRE, pos: [WH[0] + 4.0, 2.3, 2.0], look: [WH[0], 1.0, -5.6], glide: HOLD },
     // the street of 5-6 floor buildings: crane up the facade while the floors count
-    { f: T.nobody, pos: [SX - 5.6, 1.6, 4.4], look: [SX - 6.4, 2.6, -6], fov: 42, dissolve: DZ }, // the 6-floor house at i = 3
-    { f: T.stairs + 4, pos: [SX - 5.6, 17.0, 7.4], look: [SX - 6.4, 16.2, -6], glide: T.stairs + 4 - T.nobody - 6 },
+    { f: T.nobody, pos: [SX - 20.2, 1.6, 4.6], look: [SX - 20.8, 2.6, -6], fov: 42, dissolve: DZ }, // the 6-floor house at i = 1 (review: the old target was the 4-floor warehouse)
+    { f: T.stairs + 4, pos: [SX - 20.2, 16.4, 5.0], look: [SX - 20.8, 15.8, -6], fov: 46, glide: T.stairs + 4 - T.nobody - 6 }, // audit: z 7.6 put the camera inside the house across the street
     // "He's finished." - the mocker in the crowd, tower soft behind him
     { f: T.heck, pos: [-2.9, 1.7, 7.3], look: [-1.6, 1.75, 4.3], fov: 34, focus: 3.2, dissolve: DZ },
     { f: T.his - 2, pos: [-2.8, 1.7, 7.0], look: [-1.6, 1.75, 4.3], glide: HOLD },
@@ -196,7 +196,7 @@ const World: React.FC = () => {
     if (f < T.stood) return [C("otis", -0.25, py + 0.16, 0.25, 1.85)];
     if (f < T.back) return [C("otis", -0.25, py + 0.16, 0.25, 1.85), C("helper", WINCH[0] - 0.75, 0, 0.55)];
     if (f < T.nobody) { const hy = f < T.snap0 ? 6.6 : f < T.fell ? 6.6 * (1 - ((f - T.snap0) / (T.fell - T.snap0)) ** 2) : 0; return [C("hoist man", WH[0] - 0.25, hy + 0.14, WH[2] + 5.25, 1.72)]; }
-    if (f < T.heck) return [{ name: "6-floor facade", at: [SX - 6.4, Math.min(16, 3 + (f - T.nobody) * 0.1), -6], r: 2.5, maxFrac: 2 }];
+    if (f < T.heck) return [{ name: "6-floor facade", at: [SX - 20.8, Math.min(15.5, 3 + (f - T.nobody) * 0.1), -5.9], r: 2.5, maxFrac: 2 }];
     if (f < T.his) return [C("heckler", -1.9, 0, 4.3, 1.72)];
     if (f < T.his + 22) return [];
     if (f < T.helper) return [C("otis", -0.25, py + 0.16, 0.25, 1.78)];
@@ -247,6 +247,30 @@ const World: React.FC = () => {
           for (const sx of [-1.45, 1.45]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), lam({ color: "#7a5a3a" })); p.position.set(sx, 1.2, 0.6); b.add(p); }
           b.position.set(x, 0, z); b.rotation.y = x > 0 ? -0.5 : 0.5; b.traverse((o) => { (o as THREE.Mesh).castShadow = true; }); scene.add(b);
         }
+        // ============ HALL DRESSING (1.5): iron-and-glass walls, galleries, banners, exhibits, cargo. Everything a shot can
+        // see gets detail (reference edge density 8.7 % vs our 4.9 %); `keep` = sight-line culling against every camera key
+        const keep = (x: number, z: number, r = 0.8, y = 1) => !blocksShot([x, y, z], r, rig.keys);
+        for (const sx of [-1, 1]) {
+          const wl = lattice(38, 11, { cell: 1.9 }); wl.rotation.y = Math.PI / 2; wl.position.set(sx * 13.5, 5.5, 0); scene.add(wl);
+          const plinth = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.1, 38), lam({ map: brickTexture("#a8553c", "#d9c7b0", [14, 0.5]) })); plinth.position.set(sx * 13.3, 0.55, 0); scene.add(plinth);
+          const gal = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.22, 38), lam({ map: paint.planks("#a5703f", [1, 12], true) })); gal.position.set(sx * 12.2, 4.4, 0); gal.castShadow = gal.receiveShadow = true; scene.add(gal);
+          const rail = lattice(38, 1.0, { cell: 0.5, color: "#d8b04a", glass: false }); rail.rotation.y = Math.PI / 2; rail.position.set(sx * 11.05, 5.0, 0); scene.add(rail);
+          for (let k = 0; k < 6; k++) { const ln = lantern(); ln.position.set(sx * 12.75, 3.4, -15 + k * 6); scene.add(ln); }
+          for (let k = 0; k < 5; k++) { const rf = rowFacade(9, 13 + (k % 3) * 3, { color: ["#c9a48a", "#b8866e", "#d9c09a"][k % 3], seed: "hallout" + sx + k }); rf.position.set(sx * 25, 0, -20 + k * 10); rf.rotation.y = -sx * Math.PI / 2; scene.add(rf); }
+        }
+        for (const sz of [-1, 1]) {
+          const wl = lattice(27, 11, { cell: 1.9, arch: true }); wl.position.set(0, 5.5, sz * 19); scene.add(wl);
+          const fan = new THREE.Mesh(new THREE.CircleGeometry(13, 40, 0, Math.PI), (wl.children[0] as THREE.Mesh).material); fan.position.set(0, 11, sz * 19); scene.add(fan);
+          for (let k = 0; k < 4; k++) { const rf = rowFacade(9, 14 + (k % 2) * 4, { color: ["#b8866e", "#d9c09a"][k % 2], seed: "hallend" + sz + k }); rf.position.set(-14 + k * 9.5, 0, sz * 32); rf.rotation.y = sz > 0 ? Math.PI : 0; scene.add(rf); }
+        }
+        const title = signBoard("EXHIBITION OF THE INDUSTRY OF ALL NATIONS", { w: 15, h: 1.15, bg: "#22305a", fg: "#f1c94a" }); title.position.set(0, 7.6, -18.8); scene.add(title);
+        const BAN: [number, number, string, string][] = [[-7, -13, "NEW|YORK", "#c0392b"], [7, -13, "1854", "#2f5fa8"], [-8.5, -4, "WORLD'S|FAIR", "#2f8f6a"], [8.5, -4, "STEAM|POWER", "#c0392b"], [-8.5, 6, "1854", "#2f5fa8"], [8.5, 6, "NEW|YORK", "#d08a2a"]];
+        for (const [x, z, t, c] of BAN) if (keep(x, z, 1.0, 8)) { const b = banner(t, { w: 1.7, h: 3.6, color: c }); b.position.set(x, 10.2, z); scene.add(b); }
+        const engine = steamEngine(); engine.position.set(9.3, 0, -4.4); engine.rotation.y = -0.5; if (keep(9.3, -4.4, 1.8)) scene.add(engine);
+        const CARGO: [number, number, string][] = [[-5.6, -4.6, "cb"], [4.7, -6.6, "bc"], [-10.4, 8.6, "ccb"], [10.2, 7.6, "bbc"], [4.1, -1.4, "c"], [-3.6, -8.8, "bb"], [11.2, -10.5, "ccc"], [-11.0, -11.2, "bcb"]];
+        for (const [x, z, kinds] of CARGO) if (keep(x, z, 1.0)) [...kinds].forEach((kd, i) => { const it = kd === "b" ? barrelProp() : crate(0.62 - i * 0.07, { seed: `cg${x}${i}`, label: i ? undefined : "N.Y." });
+          it.position.set(x + (i % 2) * 0.7 - (i > 1 ? 0.35 : 0), i > 1 ? 0.62 : 0, z + (i === 1 ? 0.35 : 0) + (i > 1 ? 0.15 : 0)); scene.add(it); });
+        if (keep(-9.6, -2.4, 1.4)) { const ct = cart({ load: "barrels" }); ct.position.set(-9.6, 0, -2.4); ct.rotation.y = 0.7; scene.add(ct); }
         // ============ THE TOWER: two guide posts with ratchet teeth, top beam + pulley, winch, the rope
         const wood = lam({ map: paint.planks("#a5703f", [1, 4], true) }), dark = lam({ color: "#4b3a2e" }), steel = lam({ color: "#8d96a6" });
         for (const sx of [-1, 1]) {
@@ -318,6 +342,35 @@ const World: React.FC = () => {
         car.position.set(STORE[0] - 1.5, 0.1, STORE[2] + 5.1); scene.add(car);
         const lamps = [SX - 20, SX - 6, SX + 4, SX + 18].map((x) => { const lp = lampPost(); lp.position.set(x, 0, -4.2); scene.add(lp); return lp; });
         for (let i = 0; i < 6; i++) { if (blocksShot([SX - 25 + i * 10, 2, 6.2], 2.2, rig.keys)) continue; const t = tree({ seed: "nt" + i, h: 4.2 }); t.position.set(SX - 25 + i * 10, 0, 6.2); windSway(t, wind, 2); scene.add(t); }
+        // ============ STREET DRESSING (1.5): pavements, shop signs + awnings, far rows on every horizon, carts, a building site
+        const curbMat = lam({ map: flat.tiles("#b7ab9c", "#7d7265", 8, [30, 1]) });
+        for (const z of [-5.3, 5.3]) { const cb = new THREE.Mesh(new THREE.BoxGeometry(90, 0.16, 1.5), curbMat); cb.position.set(SX, 0.08, z); cb.receiveShadow = true; scene.add(cb); }
+        const SHOPS = ["BAKERY", "HATS & CAPS", "TEA & COFFEE", "", "", "", "DRY GOODS", "BOOKS"], AW = [["#c0392b", "#f4efe6"], ["#2f6fb0", "#f4efe6"], ["#2f8f6a", "#f6e7b0"]];
+        SHOPS.forEach((t, i) => { if (!t) return; const x = SX - 28 + i * 7.2;
+          const sg = signBoard(t, { w: 3.6, h: 0.66 }); sg.position.set(x, 3.45, -5.9); scene.add(sg);
+          const aw = awning(4.2, { a: AW[i % 3][0], b: AW[i % 3][1] }); aw.position.set(x, 3.0, -5.95); scene.add(aw);
+          if (keep(x + 2.4, -5.0, 0.6)) { const b = barrelProp(); b.position.set(x + 2.4, 0.16, -5.0); scene.add(b); }
+          if (keep(x - 2.3, -5.1, 0.6)) { const c = crate(0.6, { seed: "shop" + i }); c.position.set(x - 2.3, 0.16, -5.1); scene.add(c); } });
+        const whSign = signBoard("WAREHOUSE", { w: 4.4, h: 0.8, bg: "#3a2a1e", fg: "#f4efe6" }); whSign.position.set(WH[0], 3.6, WH[2] + 3.56); scene.add(whSign);
+        for (const [dx, dz, kd] of [[2.6, 4.3, "c"], [3.2, 4.9, "b"], [-2.7, 4.4, "b"], [-3.2, 5.1, "c"]] as [number, number, string][]) if (keep(WH[0] + dx, WH[2] + dz, 0.6)) { const it = kd === "b" ? barrelProp() : crate(0.7, { seed: "wh" + dx }); it.position.set(WH[0] + dx, 0.16, WH[2] + dz); scene.add(it); }
+        // the 1857 store: name board, awnings and a cast-iron front (pilasters + floor cornices = real ink lines)
+        const stSign = signBoard("E. V. HAUGHWOUT & CO.", { w: 7.6, h: 0.85, bg: "#1f2b4d", fg: "#f1c94a" }); stSign.position.set(STORE[0] + 1.1, 3.75, STORE[2] + 4.08); scene.add(stSign);
+        const ironF = lam({ color: "#d6ccb8" });
+        for (let k = 0; k <= 8; k++) { const pl = new THREE.Mesh(new THREE.BoxGeometry(0.2, 17.5, 0.14), ironF); pl.position.set(STORE[0] - 5 + k * 1.25, 8.75, STORE[2] + 4.07); pl.castShadow = true; scene.add(pl); }
+        for (let fl = 1; fl <= 5; fl++) { const cn = new THREE.Mesh(new THREE.BoxGeometry(10.3, 0.2, 0.3), ironF); cn.position.set(STORE[0], fl * 3.5, STORE[2] + 4.12); cn.castShadow = true; scene.add(cn); }
+        for (const dx of [1.3, 4.0]) { const aw = awning(2.4, { a: "#1f2b4d", b: "#f4efe6", depth: 1.0 }); aw.position.set(STORE[0] + dx, 3.2, STORE[2] + 4.1); scene.add(aw); }
+        // far rows fill both horizons (and the empty lot's back) without hiding the future skyline
+        for (let k = 0; k < 10; k++) for (const sz of [-1, 1]) { if (sz < 0 && k >= 4 && k <= 5) continue; // keep the lot's sight line to the skyline open
+          const rf = rowFacade(8.6, 11 + ((k * 7 + (sz > 0 ? 3 : 0)) % 4) * 2.2, { color: ["#c9a48a", "#b8866e", "#d9c09a", "#a8705a"][(k + (sz > 0 ? 1 : 0)) % 4], seed: "far" + k + sz });
+          rf.position.set(SX - 40 + k * 8.8, 0, sz * 21.5); rf.rotation.y = sz > 0 ? Math.PI : 0; scene.add(rf); }
+        // the empty lot = a building site: the city is about to grow
+        const sc = scaffold(3.6, 5.2, { levels: 2 }); sc.position.set(SX - 2.6, 0, -11.0); scene.add(sc); // low and to the side: the towers rise behind it
+        const bricks = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.8, 0.9), lam({ map: brickTexture("#a8553c", "#d9c7b0", [2, 1]) })); bricks.position.set(SX + 3.1, 0.4, -8.4); bricks.rotation.y = 0.3; bricks.castShadow = true; scene.add(bricks);
+        const sale = signBoard("LOT FOR SALE", { w: 2.4, h: 0.7, bg: "#f4efe6", fg: "#c0392b", border: "#c0392b" }); sale.position.set(SX + 1.6, 1.75, -6.9); sale.rotation.y = -0.15; scene.add(sale);
+        for (const dx of [-1.0, 1.0]) { const po = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1.5, 0.09), wood); po.position.set(SX + 1.6 + dx, 0.75, -6.95); scene.add(po); }
+        if (keep(SX - 14, -3.4, 1.4)) { const c1 = cart({ load: "barrels" }); c1.position.set(SX - 14, 0, -3.4); c1.rotation.y = 0.25; scene.add(c1); }
+        if (keep(SX + 14.5, 3.6, 1.4)) { const c2 = cart({ load: "crates", seed: "c2" }); c2.position.set(SX + 14.5, 0, 3.6); c2.rotation.y = 2.8; scene.add(c2); }
+        const clouds2 = [0, 1, 2, 3, 4, 5].map((i) => { const c = cloudCard({ seed: "sc" + i, w: 26 + (i % 3) * 8 }); c.position.set(SX - 70 + i * 28, 28 + (i % 3) * 9, -120 + (i % 2) * 30); scene.add(c); return c; });
         // the future skyline (ghost silhouettes that rise on "skyscraper")
         // flat dark silhouettes with lit windows (NOINK: skipped by toonify). Thumbnail review: a plain dark-blue silhouette
         // vanished into the dusk sky even at full size, so the windows carry the read ("a future city")
@@ -362,7 +415,7 @@ const World: React.FC = () => {
         fx.add("sparkle", { at: [STORE[0] - 1.5, 13.5, STORE[2] + 6.0], f0: T.elevator2, size: 1.8 });
         const dust = [motes(scene, { center: [0, 4, 3], size: [16, 8, 14], n: 520, seed: "hall", px: 0.045 }), motes(scene, { center: [SX, 4, 0], size: [40, 8, 18], n: 420, seed: "street", px: 0.06, color: "#ffe7c4" })];
         const toon = toonifyScene(scene, makeToonUniforms(TOON_SETUPS.day, 2.4));
-        return { dust, flags, skyM, L, nightKey, wind, plat, springSegs, shoe, ropes, hoistPlat, hoistRope, car, towers, clouds, birds, cast, crowd, fx, toon, lamps };
+        return { engine, clouds2, dust, flags, skyM, L, nightKey, wind, plat, springSegs, shoe, ropes, hoistPlat, hoistRope, car, towers, clouds, birds, cast, crowd, fx, toon, lamps };
       }}
       update={(w, f, { fps: FPS }) => {
         const cam = rig.at(f, FPS);
@@ -506,6 +559,8 @@ const World: React.FC = () => {
         w.flags.forEach((fl, i) => { fl.rotation.z = 0.22 * Math.sin(f / FPS * 2.3 + i * 0.7) + 0.08 * Math.sin(f / FPS * 5.1 + i); }); // micro-animation (measured gap: .0065 vs .020)
         w.fx.update(f, cam.pos, FPS);
         w.dust.forEach((d) => d.update(f, FPS));
+        w.engine.wheel.rotation.z = (f / FPS) * 2.4; // the exhibit engine turns: background life
+        for (const cl of w.clouds2) cl.lookAt(cam.pos[0], cl.position.y, cam.pos[2]);
         return cam;
       }}
     />
