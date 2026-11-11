@@ -144,7 +144,7 @@ LOOKS["toonworld-day"] = deepMerge(toonBase, {
 LOOKS["toonworld-golden"] = deepMerge(toonBase, {
   name: "toonworld-golden",
   grade: { blackPoint: 0.06, whitePoint: 0.97, contrast: 1.2, pivot: 0.5, saturation: 1.25, vibrance: 0.2,
-    shadowTint: [0.0, -0.008, 0.045], highlightTint: [0.012, 0.004, 0.004] }, // violet shade, but not mud (1.8: b 0.08 -> 0.045), pink (not yellow) highs
+    shadowTint: [0.0, -0.004, 0.02], highlightTint: [0.012, 0.004, 0.004] }, // 1.8: b 0.08 -> 0.02 (sampled den floor #4a4264 at 0.045: still violet), pink (not yellow) highs
   vignette: { amount: 0.2, softness: 0.45 },
 });
 LOOKS["toonworld-night"] = deepMerge(toonBase, {

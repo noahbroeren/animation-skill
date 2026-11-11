@@ -49,18 +49,20 @@ const faceTex = (key: string, txt?: string) => canvasTexture(`coinface2|${key}|$
   for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2; g.beginPath(); g.arc(128 + Math.cos(a) * 98, 128 + Math.sin(a) * 98, 3.2, 0, 7); g.fill(); }
 });
 /** A coin facing +z. `teeth` = a marked (reeded) edge, `rough` = a hand-hammered outline, `cut` = a shaved flat at that angle. */
-function coin(r: number, o: { teeth?: number; rough?: string; cut?: number; text?: string; color?: string; t?: number } = {}) {
+/** `lit` = self-light 0..1: a coin that TURNS in the shot needs about 0.6, or its face steps from lit to shade in one frame (QA read that as a cut). */
+function coin(r: number, o: { teeth?: number; rough?: string; cut?: number; text?: string; color?: string; t?: number; lit?: number; tooth?: number } = {}) {
   const N = o.teeth ? o.teeth * 2 : 72, rr = o.rough ? rng(o.rough) : null, ph = rr ? [rr() * 7, rr() * 7, rr() * 7] : [0, 0, 0], sh = new THREE.Shape(), t = o.t ?? r * 0.16;
   for (let i = 0; i <= N; i++) { const a = (i / N) * Math.PI * 2; let k = 1;
-    if (o.teeth) k = i % 2 ? 1 : 0.945;
+    if (o.teeth) k = i % 2 ? 1 : o.tooth ?? 0.945;
     if (rr) k = 0.93 + 0.05 * Math.sin(a * 3 + ph[0]) + 0.04 * Math.sin(a * 5 + ph[1]) + 0.025 * Math.sin(a * 9 + ph[2]);
     let x = Math.cos(a) * r * k, y = Math.sin(a) * r * k;
     if (o.cut !== undefined) { const nx = Math.cos(o.cut), ny = Math.sin(o.cut), d = x * nx + y * ny - r * 0.78; if (d > 0) { x -= nx * d; y -= ny * d; } }
     if (i === 0) sh.moveTo(x, y); else sh.lineTo(x, y); }
   const geo = new THREE.ExtrudeGeometry(sh, { depth: t, bevelEnabled: false }); geo.translate(0, 0, -t / 2);
-  const glow = (c: string, k: number) => ({ color: c, emissive: new THREE.Color(c), emissiveIntensity: k }); // silver must read in shade: a little self-light
-  const g = new THREE.Group(), body = new THREE.Mesh(geo, [lam(glow(o.color ?? SILVER, 0.3)), lam(glow(EDGE, 0.22))]); body.castShadow = true; g.add(body);
-  for (const s of [1, -1]) { const f = new THREE.Mesh(new THREE.CircleGeometry(r * (rr ? 0.74 : 0.84), 40), new THREE.MeshLambertMaterial({ map: faceTex(o.text ? "t" : "h", o.text), transparent: true, emissive: new THREE.Color("#8d96aa"), emissiveIntensity: 0.25 })); f.position.z = s * (t / 2 + 0.002); if (s < 0) f.rotation.y = Math.PI; g.add(f); }
+  const dim = (o.lit ?? 0.3) > 0.3 ? 0.7 : 1; // more self-light, less reflected light: the same white when lit, a smaller step into shade
+  const glow = (c: string, k: number) => ({ color: new THREE.Color(c).multiplyScalar(dim), emissive: new THREE.Color(c), emissiveIntensity: k }); // silver must read in shade: a little self-light
+  const g = new THREE.Group(), body = new THREE.Mesh(geo, [lam(glow(o.color ?? SILVER, o.lit ?? 0.3)), lam(glow(EDGE, (o.lit ?? 0.3) * 0.75))]); body.castShadow = true; g.add(body);
+  for (const s of [1, -1]) { const f = new THREE.Mesh(new THREE.CircleGeometry(r * (rr ? 0.74 : 0.84), 40), new THREE.MeshLambertMaterial({ map: faceTex(o.text ? "t" : "h", o.text), transparent: true, emissive: new THREE.Color("#8d96aa"), emissiveIntensity: (o.lit ?? 0.3) * 0.85 })); f.position.z = s * (t / 2 + 0.002); if (s < 0) f.rotation.y = Math.PI; g.add(f); }
   return g;
 }
 const anvilCoin = () => { const c = coin(0.2, { rough: "ham" }); c.rotation.x = -Math.PI / 2; c.position.y = 0.03; const g = new THREE.Group(); g.add(c); return g; };
@@ -82,9 +84,9 @@ const weigh = (api: BoardApi) => { const g = new THREE.Group(), br = lam({ color
     const k = f >= T.half ? springAt((f - T.half) / fps, 2.2, 0.35) : 0, a = land * (1 - k) + 0.3 * k + 0.012 * Math.sin((f / fps) * 2.4); // ... and on "half" the sack side flies up
     beam.rotation.z = -a; for (const { p, sx } of pans) p.position.set(sx * 0.6 * Math.cos(a), 0.8 - sx * 0.6 * Math.sin(a) - 0.44, 0); } }; };
 /** A rope with a loop that drops into frame on "death" (the picture says what the narration says; no word on screen). */
-const noose = (api: BoardApi) => { const g = new THREE.Group(), r = new THREE.Group(), rope = lam({ color: "#c9a46a" }); g.add(r);
-  const line = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 4, 6), rope); line.position.y = 2.0; r.add(line);
-  const loop = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.024, 8, 20), rope); loop.position.y = -0.16; loop.scale.y = 1.3; r.add(loop); const knot = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.2, 8), rope); knot.position.y = 0.1; r.add(knot);
+const noose = (api: BoardApi) => { const g = new THREE.Group(), r = new THREE.Group(), rope = lam({ color: "#e0c080", emissive: new THREE.Color("#e0c080"), emissiveIntensity: 0.25 }); g.add(r);
+  const line = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 4, 6), rope); line.position.y = 2.16; r.add(line);
+  const loop = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.024, 8, 20), rope); loop.scale.y = 1.3; r.add(loop); const knot = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.2, 8), rope); knot.position.y = 0.26; r.add(knot);
   return { group: g, update(f: number, fps: number) { const t = (f - api.T.death) / fps, d = t < 0 ? 3.2 : 3.2 * Math.max(0, 1 - t / 0.2) ** 2; r.visible = t > -0.02;
     r.position.y = d + (t > 0.2 ? 0.07 * Math.exp(-(t - 0.2) * 6) * Math.sin((t - 0.2) * 22) : 0); r.rotation.z = t > 0.2 ? 0.14 * Math.exp(-(t - 0.2) * 1.6) * Math.sin((t - 0.2) * 5) : 0; } }; };
 const crucible = () => { const g = new THREE.Group(), iron = lam({ color: "#3b3f4c" });
@@ -112,7 +114,7 @@ const press = () => { const g = new THREE.Group(), iron = lam({ color: "#39404e"
     screw.position.y = 1.55 - 0.42 * down; arm.rotation.y = down * 2.6 + n * 0.4; stack.forEach((c, i) => { c.visible = i < n % 10; });
     const out = clamp((ph - 0.34) / 0.3); fresh.visible = ph > 0.3; fresh.position.set(0.52 * ease.outCubic(out), 0.68 + 0.25 * Math.sin(out * Math.PI) - 0.15 * out + 0.03 * (n % 10), 0.34 * out); } }; };
 /** The proof, in one prop: a perfect milled coin turns to show its edge ("marked"), shears bite it ("shave"), a sliver flies and a red arc marks the flat ("cut"). */
-const proofCoin = (api: BoardApi) => { const g = new THREE.Group(), r = new THREE.Group(), whole = coin(0.26, { teeth: 44, t: 0.07 }), cutC = coin(0.26, { teeth: 44, cut: 0.6, t: 0.07 }); g.add(r); r.add(whole, cutC);
+const proofCoin = (api: BoardApi) => { const g = new THREE.Group(), r = new THREE.Group(), whole = coin(0.26, { teeth: 56, tooth: 0.972, t: 0.07, lit: 0.62 }), cutC = coin(0.26, { teeth: 56, tooth: 0.972, cut: 0.6, t: 0.07, lit: 0.62 }); g.add(r); r.add(whole, cutC);
   const steel = lam({ color: "#c3cbd8", emissive: new THREE.Color("#c3cbd8"), emissiveIntensity: 0.2 }), sh = new THREE.Group(); sh.rotation.z = 0.6 + Math.PI; g.add(sh);
   const blades = [1, -1].map((s) => { const b = new THREE.Group(); const bl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.014), steel); bl.position.x = 0.2; b.add(bl); const ring = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.014, 6, 14), lam({ color: "#3b3f4c" })); ring.position.set(-0.1, s * 0.05, 0); b.add(ring); sh.add(b); return { b, s }; });
   const sliver = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 0.03), lam({ color: "#ffffff", emissive: new THREE.Color("#ffffff"), emissiveIntensity: 0.4 })); g.add(sliver);
@@ -123,10 +125,13 @@ const proofCoin = (api: BoardApi) => { const g = new THREE.Group(), r = new THRE
     sh.visible = tb > -0.25 && tb < 1.0; const inn = ease.outCubic(clamp((tb + 0.25) / 0.3)), open = tb < 0.3 ? 0.5 : 0.5 * (1 - clamp((tb - 0.3) / 0.05)); sh.position.set(0.9 - 0.42 * inn, 0.62 - 0.28 * inn, 0.06);
     for (const { b, s } of blades) b.rotation.z = s * open * 0.5;
     sliver.visible = tb > 0.34 && tb < 1.1; if (sliver.visible) { const u = tb - 0.34; sliver.position.set(0.26 + u * 0.7, 0.2 + u * 0.9 - 2.4 * u * u, 0.06); sliver.rotation.z = u * 9; }
-    arc.visible = f >= T.cut; arc.scale.setScalar(1 + 0.06 * Math.sin(t * 12)); } }; };
-/** The quarter turns edge-on on "guarding": the ridges are the last picture. */
-const quarter = (api: BoardApi) => { const g = new THREE.Group(), c = coin(0.26, { teeth: 60, text: "25", t: 0.06 }); g.add(c);
-  return { group: g, update(f: number, fps: number) { const k = ease.smooth(clamp((f - api.T.guarding + 6) / 16)); c.rotation.y = (1 - k) * 0.5 * Math.sin((f / fps) * 1.4) + k * (1.2 + 0.1 * Math.sin((f / fps) * 1.1)); } }; };
+    arc.visible = f >= T.cut; arc.scale.setScalar(1 + 0.06 * Math.sin(t * 12));; } }; };
+/** The quarter turns edge-on on "119 ridges": the picture shows what is counted (no counter: the caption already says the number). */
+/** A white chip that flies off on a snip (`key` = the beat it leaves on). */
+const chip = (key: string, dir: 1 | -1 = 1) => (api: BoardApi) => { const g = new THREE.Group(), c = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.016, 0.02), new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.7) })); g.add(c);
+  return { group: g, update(f: number, fps: number) { const u = (f - api.T[key]) / fps; c.visible = u >= 0 && u < 0.6; if (c.visible) { c.position.set(dir * (0.03 + u * 0.55), 0.02 + u * 0.55 - 2.2 * u * u, 0.02); c.rotation.z = u * 14; } } }; };
+const quarter = (api: BoardApi) => { const g = new THREE.Group(), c = coin(0.26, { teeth: 72, tooth: 0.972, text: "25", t: 0.06, lit: 0.62 }); g.add(c);
+  return { group: g, update(f: number, fps: number) { const k = ease.smooth(clamp((f - api.T.n119 + 4) / 18)); c.rotation.y = (1 - k) * 0.5 * Math.sin((f / fps) * 1.4) + k * (1.2 + 0.1 * Math.sin((f / fps) * 1.1)); } }; };
 
 // ------------------------------------------------------------------------------------------------ lighting keys (tuned per key with `vfa keygap`)
 /** warm room light with a HIGH sun: a low golden sun throws the forge chimney's shadow across the whole back wall */
@@ -134,17 +139,19 @@ const WARM: LightKey = tweak({ ...LIGHT_KEYS.golden, lights: "day", sunGlow: 0, 
 const OFFICE: LightKey = tweak("office", { exposure: 1.08, grade: { saturation: 1.5, vibrance: 0.25, highlightTint: [0.03, 0.012, -0.035] } });
 const FORGE: LightKey = tweak("interiorWarm", { grade: { highlightTint: [0.0, 0.0, 0.01] } });
 // reviewer (colour): the night read electric blue (ground #131979) -> less saturation, a calmer shadow tint
-const NIGHT: LightKey = tweak("night", { exposure: 1.22, grade: { gamma: 1.14, saturation: 1.12, shadowTint: [0.0, 0.0, 0.05] } });
-const ALLEY: LightKey = tweak("nightPractical", { exposure: 1.5, grade: { gamma: 1.18, saturation: 1.1, shadowTint: [0.0, 0.0, 0.05] } });
+const NIGHT: LightKey = tweak("night", { exposure: 1.28, grade: { gamma: 1.26, saturation: 1.12, shadowTint: [0.0, 0.0, 0.05] } });
+const ALLEY: LightKey = tweak("nightPractical", { exposure: 1.55, grade: { gamma: 1.34, saturation: 0.95, shadowTint: [0.0, 0.0, 0.0] } }); // second review: still a blue filter at 1.1 / 0.05
 
 // ------------------------------------------------------------------------------------------------ acting vocabulary
-const SH = (open: number): StickHold => ({ item: "shears", hand: "R", open, len: 0.62, aim: 180 });
+const SH = (open: number): StickHold => ({ item: "shears", hand: "R", open, len: 0.7, aim: 180 });
 const CN = (more: Partial<StickHold> = {}): StickHold => ({ item: "coin", hand: "L", len: 0.15, ...more });
 /** shears in the right hand, the coin in the left, blades open / shut */
-const clip = (open: number, more: KPose = {}): KPose => ({ limbs: { handR: [0.6, 0.66], handL: [0.14, 0.6] }, hold: SH(open), hold2: CN(), expr: "scheming", ...more });
+const clip = (open: number, more: KPose = {}): KPose => ({ limbs: { handR: [0.6, 0.66], handL: [0.07, 0.56] }, hold: SH(open), hold2: CN(open < 0.5 ? { cut: true } : {}), expr: "scheming", ...more });
+/** the same act, not the same pose: the baker works low and close, the barber high with a flourish */
+const LOW = { limbs: { handR: [0.52, 0.5] as [number, number], handL: [0.05, 0.4] as [number, number] } }, HIGH = { limbs: { handR: [0.64, 0.9] as [number, number], handL: [0.1, 0.8] as [number, number] } };
 const hand = (x: number, y: number, more: KPose = {}): KPose => ({ limbs: { handR: [x, y] }, hands: { R: "open" }, ...more });
-const HAM = (up: boolean): KPose => ({ limbs: { handR: up ? [0.5, 1.75] : [0.95, 0.5] }, hold: { item: "hammer", hand: "R", len: 1.0, angle: up ? 20 : 60 }, lean: up ? -4 : 9, expr: "determined" });
-const FILE = (x: number): KPose => ({ limbs: { handR: [x, 0.7], handL: [0.14, 0.6] }, hold: { item: "file", hand: "R", len: 0.7, aim: 168 }, hold2: CN(), expr: "determined" });
+const HAM = (up: boolean): KPose => ({ limbs: { handR: up ? [0.5, 1.75] : [0.8, 0.78] }, hold: { item: "hammer", hand: "R", len: up ? 1.0 : 0.8, angle: up ? 20 : 78 }, lean: up ? -4 : 9, expr: "determined" }); // the head must land on the anvil IN view
+const FILE = (x: number): KPose => ({ limbs: { handR: [x, 0.7], handL: [0.07, 0.56] }, hold: { item: "file", hand: "R", len: 0.7, aim: 172 }, hold2: CN({ cut: true }), expr: "determined" });
 const DEN: [number, number, number] = [-1.9, 0, -1.9];
 const T3 = (facing: 1 | -1) => ({ view: "three" as const, facing });
 
@@ -152,62 +159,62 @@ const T3 = (facing: 1 | -1) => ({ view: "three" as const, facing });
 const beats: Beat[] = [
   // ---- A (0-118). The hook IS the act: hands, shears, coin. Then a slow pull to the man.
   { at: 0, id: "hook", place: "den", key: WARM, music: "build",
-    shot: { size: "insert", on: [-1.9, 0.7, -1.9], h: 0.42, angle: -6, move: "push", amount: 0.14 },
+    shot: { size: "insert", on: [-1.9, 0.9, -1.9], h: 0.26, angle: -6, move: "push", amount: 0.14 },
     act: { clipper: { at: DEN, pose: clip(0.85) } } },
-  { at: "shaves", id: "shaves", off: -0.1, act: { clipper: { pose: clip(0.02), lead: 1 } }, gag: { fx: "sparkle", on: [-1.9, 1.0, -1.8], size: 0.3, dy: 0 }, sfx: [{ name: "snip", lu: -6, on_word: true }], kick: 0.02 },
-  { at: "sliver", id: "sliver", shot: { size: "medium", on: "clipper", angle: 10, side: -0.15, move: "push", amount: 0.18 }, act: { clipper: { pose: clip(0.85, { limbs: { handR: [0.6, 0.66], handL: [0.62, 1.2] }, hold2: CN({ len: 0.2 }), expr: "smug" }) } } },
-  { at: "coin", id: "grin", act: { clipper: { pose: clip(0.85) } }, punch: true },
+  { at: "shaves", id: "shaves", off: -0.1, act: { clipper: { pose: clip(0.02), lead: 1 } }, gag: [{ prop: "chipA", id: "chipA", at: [-1.84, 1.04, -1.8], in: "none", until: "sliver" }, { fx: "sparkle", on: [-1.86, 1.04, -1.8], size: 0.22, dy: 0 }], sfx: [{ name: "snip", lu: -6, on_word: true }], kick: 0.02 },
+  { at: "sliver", id: "sliver", shot: { size: "medium", on: "clipper", angle: 10, side: 0.15, move: "push", amount: 0.18 }, act: { clipper: { pose: clip(0.85, { limbs: { handR: [0.6, 0.66], handL: [0.38, 1.28] }, hold2: CN({ len: 0.24, cut: true }), expr: "smug" }) } } },
+  { at: "coin", id: "grin", act: { clipper: { pose: clip(0.85, { hold2: CN({ cut: true }) }) } }, punch: true },
   { at: "touches", id: "touches", act: { clipper: { pose: clip(0.02, { expr: "smug" }), lead: 1 } }, gag: { fx: "sparkle", on: "clipper", size: 0.4, dy: -0.75 }, sfx: [{ name: "snip", lu: -7 }] },
   // ---- B (118-163). He spends it: the coin goes over the counter, she bites it and smiles.
   { at: "spends", id: "spends", place: "shop", key: "day", via: "cut", shot: { size: "full", on: [0.75, 0, -1.3], h: 1.9, angle: -10, move: "track", amount: 0.3 },
-    act: { clipper: { at: [0.4, 0, -0.5], pose: { limbs: { handR: [1.0, 0.8] }, hold: CN({ hand: "R", cut: true }), expr: "smug" }, hold2: null, ...T3(1) },
+    act: { clipper: { at: [0.4, 0, -0.5], pose: { limbs: { handR: [0.9, 0.5] }, hold: CN({ hand: "R", cut: true }), expr: "smug" }, hold2: null, ...T3(1) }, // (hand low: at 0.8 his arm crossed her face)
       keeper: { at: "keeper", pose: hand(0.75, 0.9, { expr: "happy" }), ...T3(-1) } }, sfx: ["coin"] },
   { at: "anyway", id: "anyway", focus: "keeper", act: { clipper: { pose: "hips", expr: "smug", hold: null, ...T3(1) }, keeper: { pose: { limbs: { handR: [0.3, 1.3] }, hold: CN({ hand: "R", cut: true, len: 0.18 }), expr: "happy" }, ...T3(-1) } },
     gag: { fx: "sparkle", on: "keeper", size: 0.5 } },
   // ---- C (163-291). The rule: hammered by hand. One travelling shot: the smith, the anvil, the three odd coins.
-  { at: "1600s", id: "y1600", place: "mintOld", key: FORGE, shot: { size: "full", on: "smith", angle: 20, side: -0.2, move: "push", amount: 0.16 },
-    act: { smith: { at: [0.45, 0, -0.75], pose: HAM(true), ...T3(1) } }, gag: [{ stamp: "ENGLAND, 1600s", until: "hammered" }, { prop: "anvilCoin", id: "anvilCoin", at: "anvilTop", in: "none", until: "snip" }] },
+  { at: "1600s", id: "y1600", place: "mintOld", key: FORGE, shot: { size: "full", on: [0.85, 0, -0.7], h: 1.9, angle: 14, move: "push", amount: 0.16 },
+    act: { smith: { at: [0.45, 0, -0.5], pose: HAM(true), ...T3(1) } }, gag: [{ stamp: "HAMMERED COINAGE", until: "hammered" }, { prop: "anvilCoin", id: "anvilCoin", at: "anvilTop", in: "none", until: "snip" }] },
   { at: 6.3, id: "bang1", act: { smith: { pose: HAM(false), ...T3(1), lead: 1 } }, sfx: [{ name: "hammer", lu: -8 }], kick: 0.02 },
   { at: 6.58, id: "up1", act: { smith: { pose: HAM(true), ...T3(1) } } },
   { at: "hammered", id: "hammered", act: { smith: { pose: HAM(false), ...T3(1), lead: 1 } }, sfx: [{ name: "hammer", lu: -5, on_word: true }], kick: 0.035 },
   { at: 7.3, id: "up2", act: { smith: { pose: HAM(true), ...T3(1) } } },
   { at: "hand", id: "bang3", act: { smith: { pose: HAM(false), ...T3(1), lead: 1 } }, sfx: [{ name: "hammer", lu: -8 }], kick: 0.02 },
   { at: "no", id: "no", shot: { size: "insert", on: "odd", h: 1.45, fill: 0.9, angle: -6, move: "orbit", amount: 12 }, act: { smith: { pose: "hips", expr: "smug", hold: null } },
-    gag: [{ prop: "oddCoins", id: "odd", origin: "center", at: [-0.25, 1.75, 0.3] }, { label: "no two match", y: 0.11 }] },
+    caption: 0.86, gag: { prop: "oddCoins", id: "odd", origin: "center", at: [-0.25, 1.75, 0.3] } },
   // ---- D (291-429). The reward: snip, file, the cup fills, a bar on Friday. One shot, then a pull back for the cheer.
-  { at: "snip", id: "snip", place: "den", key: WARM, via: "cut", shot: { size: "medium", on: "clipper", angle: 16, side: 0.3, move: "push", amount: 0.16 },
-    act: { clipper: { at: DEN, pose: clip(0.02), lead: 1 } }, gag: [{ prop: "cup", id: "cup", at: [-2.62, 0.97, -2.5], scale: 0.85, in: "none", until: "baker" }, { fx: "sparkle", on: "clipper", size: 0.4, dy: -0.75 }], sfx: [{ name: "snip", lu: -7, on_word: true }] },
+  { at: "snip", id: "snip", place: "den", key: WARM, via: "cut", caption: 0.7, shot: { size: "medium", on: "clipper", angle: 16, side: 0.3, move: "push", amount: 0.16 },
+    act: { clipper: { at: DEN, pose: clip(0.02), lead: 1 } }, gag: [{ prop: "cup", id: "cup", at: [-2.38, 0.97, -2.4], scale: 0.85, in: "none", until: "baker" }, { fx: "sparkle", on: "clipper", size: 0.4, dy: -0.75 }], sfx: [{ name: "snip", lu: -7, on_word: true }] },
   { at: 9.92, id: "open2", act: { clipper: { pose: clip(0.85) } } },
   { at: "file", id: "file", act: { clipper: { pose: FILE(0.42) } }, sfx: [{ name: "rasp", lu: -8 }] },
   { at: 10.42, id: "file2", act: { clipper: { pose: FILE(0.66) } } },
   { at: "pile", id: "pile", focus: "cup", act: { clipper: { pose: { limbs: { handR: [0.6, 0.4], handL: [0.85, 0.8] }, hands: { L: "point" }, hold: { item: "file", hand: "R", len: 0.7, aim: -70 }, expr: "smug" }, hold2: null, turn: -0.7 } }, sfx: ["coins"] },
   { at: "friday", id: "friday", shot: { size: "full", on: "clipper", angle: 8, move: "crane", amount: 0.5 }, act: { clipper: { pose: { limbs: { handR: [0.55, 1.9], handL: [0.6, 1.5] }, hands: { L: "open" }, hold: { item: "bar", hand: "R", len: 1.7 }, expr: "laugh", bob: -0.05 }, hold2: null, turn: 0 } },
-    gag: [{ stamp: "FRIDAY", side: "right", until: "baker" }, { fx: "sparkle", on: "clipper", size: 0.8, dy: 0.1 }], sfx: ["ding"] },
+    gag: { fx: "sparkle", on: "clipper", size: 0.8, dy: 0.1 }, sfx: ["ding"] },
   { at: "lump", id: "lump", act: { clipper: { pose: { limbs: { handR: [0.55, 0.45], handL: [0.4, 0.3] }, hands: { L: "open" }, hold: { item: "bar", hand: "R", len: 1.7 }, expr: "smug" } } } },
   // ---- E (429-548). Escalation: the baker, the barber, everybody. One travelling shot along the street.
   { at: "then#2", id: "baker", place: "street", key: "day", music: "full", shot: { size: "medium", on: "baker", angle: 12, move: "push", amount: 0.16 },
-    act: { baker: { at: [-0.95, 0, 0.5], pose: clip(0.85), ...T3(1) }, barber: { at: [0.98, 0, 0.7], pose: clip(0.85), ...T3(-1) }, clipper: { hide: true, hold: null, hold2: null } } },
-  { at: "clips", id: "clips1", act: { baker: { pose: clip(0.02, { expr: "smug" }), ...T3(1), lead: 1 } }, gag: { fx: "sparkle", on: "baker", size: 0.4, dy: -0.7 }, sfx: [{ name: "snip", lu: -8 }] },
+    act: { baker: { at: [-0.95, 0, 0.5], pose: clip(0.85, LOW), ...T3(1) }, barber: { at: [0.98, 0, 0.7], pose: clip(0.85, HIGH), ...T3(-1) }, clipper: { hide: true, hold: null, hold2: null } } },
+  { at: "clips", id: "clips1", act: { baker: { pose: clip(0.02, { ...LOW, expr: "smug" }), ...T3(1), lead: 1 } }, gag: { fx: "sparkle", on: "baker", size: 0.4, dy: -0.85 }, sfx: [{ name: "snip", lu: -8 }] },
   { at: "barber", id: "barber", shot: { size: "medium", on: "barber", angle: -10, move: "push", amount: 0.16 } },
-  { at: "clips#2", id: "clips2", act: { barber: { pose: clip(0.02, { expr: "smug" }), ...T3(-1), lead: 1 } }, gag: { fx: "sparkle", on: "barber", size: 0.4, dy: -0.7 }, sfx: [{ name: "snip", lu: -8 }] },
+  { at: "clips#2", id: "clips2", act: { barber: { pose: clip(0.02, { ...HIGH, expr: "smug" }), ...T3(-1), lead: 1 } }, gag: { fx: "sparkle", on: "barber", size: 0.4, dy: -0.55 }, sfx: [{ name: "snip", lu: -8 }] },
   { at: "everybody", id: "everybody", shot: { size: "full", on: [0.03, -0.45, 1.2], h: 2.7, angle: 5, move: "crane", amount: 0.7 }, crowd: "snip",
-    act: { clipper: { hide: false, at: [0.05, 0, 1.6], pose: clip(0.85, { expr: "laugh" }) }, baker: { pose: clip(0.85), ...T3(1) }, barber: { pose: clip(0.85), ...T3(-1) } },
+    act: { clipper: { hide: false, at: [0.05, 0, 1.6], pose: clip(0.85, { expr: "laugh" }) }, baker: { pose: clip(0.85, LOW), ...T3(1) }, barber: { pose: clip(0.85, HIGH), ...T3(-1) } },
     sfx: [{ name: "snip", lu: -9, df: 3 }, { name: "snip", lu: -10, df: 9 }, { name: "crowd_laugh", lu: -15, df: 6 }] },
-  { at: "clips#3", id: "clips3", act: { clipper: { pose: clip(0.02, { expr: "laugh" }), lead: 1 }, baker: { pose: clip(0.02), ...T3(1) }, barber: { pose: clip(0.02), ...T3(-1) } }, sfx: [{ name: "snip", lu: -8 }] },
+  { at: "clips#3", id: "clips3", act: { clipper: { pose: clip(0.02, { expr: "laugh" }), lead: 1 }, baker: { pose: clip(0.02, LOW), ...T3(1) }, barber: { pose: clip(0.02, HIGH), ...T3(-1) } }, sfx: [{ name: "snip", lu: -8 }] },
   // ---- F (548-656). How bad: he puts the sack on the balance; on "half" its pan flies up. The hero watches, in the foreground.
-  { at: "1695", id: "y1695", place: "exchequer", key: OFFICE, music: "thin", shot: { size: "full", on: [0.85, 0, -1.6], h: 2.0, angle: -12, height: 2.0, move: "push", amount: 0.16 },
+  { at: "1695", id: "y1695", place: "exchequer", key: OFFICE, music: "thin", shot: { size: "full", on: [0.95, 0, -1.5], h: 2.0, angle: -12, height: 2.0, move: "push", amount: 0.08 },
     act: { officer: { at: "desk", pose: { limbs: { handR: [0.7, 0.95], handL: [0.4, 0.5] }, hold: { item: "sack", hand: "R" }, expr: "think" }, ...T3(1) }, clipper: { hide: false, at: [-1.3, 0, -0.5], pose: "idle", expr: "nervous", hold: null, hold2: null, ...T3(1) } },
-    gag: [{ stamp: "1695", until: "sack" }, { prop: "weigh", id: "weigh", at: [1.25, 0.85, -1.2], scale: 0.85, in: "none" }] },
+    gag: { prop: "weigh", id: "weigh", at: [1.15, 0.85, -1.2], scale: 0.85, in: "none" } },
   { at: "sack", id: "sack", act: { officer: { pose: { limbs: { handR: [1.0, 0.8] }, hands: { R: "open" }, expr: "think" }, hold: null, ...T3(1) } }, sfx: [{ name: "coins", lu: -10 }] },
   { at: "half", id: "half", focus: "weigh", kick: 0.035, act: { officer: { pose: "shock", ...T3(1) }, clipper: { pose: { limbs: { handR: [0.2, 1.05] }, expr: "nervous" }, ...T3(1) } },
-    gag: [{ counter: { from: 100, to: 52, suffix: " %" }, y: 0.14 }, { fx: "sweat", on: "clipper", size: 0.5 }] },
+    gag: { counter: { from: 100, to: 52, suffix: " %" }, y: 0.07 } },
   // ---- G (656-817). Authority pushes back: the two spoken lines in ONE deep two-shot, then the camera goes to the man the sentence is for.
-  { at: "this#2", id: "tooSmall", off: -0.1, shot: { size: "full", on: [0.15, 0, -1.4], h: 1.85, angle: -8, height: 1.9, move: "push", amount: 0.14 }, focus: "officer",
-    act: { officer: { pose: { limbs: { handR: [0.5, 1.4] }, hold: CN({ hand: "R", len: 0.17, cut: true }), expr: "angry" }, ...T3(-1), talk: true }, clipper: { walk: [-0.5, 0, -0.7], speed: 2.4, pose: "idle", expr: "nervous", ...T3(1) } } },
+  { at: "this#2", id: "tooSmall", off: -0.1, shot: { size: "full", on: [0.12, 0, -1.3], h: 2.15, angle: -8, height: 1.9, move: "push", amount: 0.14 }, focus: "officer",
+    act: { officer: { pose: { limbs: { handR: [0.5, 1.4] }, hold: CN({ hand: "R", len: 0.17, cut: true }), expr: "angry" }, ...T3(-1), talk: true }, clipper: { walk: [-0.3, 0, -0.7], speed: 2.4, pose: "idle", expr: "nervous", ...T3(1) } } },
   { at: "it#2", id: "shrank", off: -0.1, focus: "clipper", act: { clipper: { pose: "shrug", expr: "embarrassed", ...T3(1), talk: true }, officer: { pose: { limbs: { handR: [0.5, 1.4] }, hold: CN({ hand: "R", len: 0.17, cut: true }), expr: "deadpan" }, ...T3(-1) } },
     gag: { fx: "sweat", on: "clipper", size: 0.6 } },
   { at: "the>79", id: "punish", shot: { size: "medium", on: "clipper", angle: -8, side: -0.25, move: "push", amount: 0.14 }, act: { officer: { pose: { limbs: { handR: [1.05, 1.15] }, hands: { R: "point" }, expr: "angry" }, hold: null, ...T3(-1) }, clipper: { pose: "idle", expr: "nervous", ...T3(1) } } },
-  { at: "death", id: "death", kick: 0.045, act: { clipper: { pose: "shock", ...T3(1) } }, gag: { prop: "noose", id: "noose", at: [0.08, 1.66, -0.55], in: "none", until: "people" }, sfx: [{ name: "impact", lu: -7, on_word: true }], music: "stop" },
+  { at: "death", id: "death", kick: 0.045, focus: "noose", act: { clipper: { pose: "shock", ...T3(1) } }, gag: { prop: "noose", id: "noose", origin: "center", at: [0.04, 1.6, -0.6], scale: 1.2, in: "none", until: "people" }, sfx: [{ name: "impact", lu: -7, on_word: true }], music: "stop" },
   // ---- H (817-921). People clip anyway, under the warning. The camera climbs to the question.
   { at: "people", id: "people", place: "street", key: "golden", via: "cut", music: "build", shot: { size: "medium", on: "clipper", angle: -10, side: -0.3, move: "push", amount: 0.16 }, crowd: "snip",
     act: { clipper: { at: [0.05, 0, 1.6], pose: clip(0.85), view: "front" }, baker: { pose: clip(0.85), ...T3(1) }, barber: { pose: clip(0.85), ...T3(-1) } },
@@ -217,41 +224,41 @@ const beats: Beat[] = [
   { at: "stop", id: "stopW", music: "stop" },
   // ---- I (921-1035). The turn: night, rain, a coach. Newton steps out; no cut.
   { at: "1696", id: "y1696", key: NIGHT, via: "dissolve", rain: 1, music: "calm", shot: { size: "full", on: "coach", angle: 26, follow: "coach", fill: 0.42, height: 1.5 },
-    act: { clipper: { hide: true, hold: null, hold2: null }, baker: { hide: true }, barber: { hide: true }, newton: { seat: { vehicle: "coach", seat: "inside" }, expr: "determined" } }, gag: { stamp: "1696", until: "mint" }, sfx: [{ name: "hooves", lu: -9 }, { name: "thunder", lu: -9, df: 6 }] },
+    act: { clipper: { hide: true, hold: null, hold2: null }, baker: { hide: true }, barber: { hide: true }, newton: { seat: { vehicle: "coach", seat: "inside" }, expr: "determined" } }, sfx: [{ name: "hooves", lu: -9 }, { name: "thunder", lu: -9, df: 6 }] },
   { at: "mint", id: "mint" },
   { at: "isaac", id: "isaac", shot: { size: "medium", on: "newton", angle: -14, side: 0.2, move: "push", amount: 0.16 }, act: { newton: { seat: null, at: [-1.5, 0, 3.3], pose: { limbs: { handR: [0.45, 0.3] }, hold: { item: "cane", hand: "R" }, expr: "determined" }, ...T3(1) } }, punch: true },
   // ---- J (1035-1162). The recall: everyone queues with a sack; the camera ends on the crucible.
-  { at: "that", id: "recall", place: "mint", key: FORGE, rain: 0, music: "build", shot: { size: "full", on: [-0.7, -0.5, 0.9], h: 3.0, angle: 16, move: "push", amount: 0.18 }, crowd: "look",
-    act: { baker: { hide: false, at: [-2.1, 0, 1.9], pose: "carry", hold: { item: "sack", hand: "R" }, hold2: null, expr: "sad", view: "front" }, barber: { hide: false, at: [-1.3, 0, 2.4], pose: "carry", hold: { item: "sack", hand: "R" }, hold2: null, expr: "sad", view: "front" },
-      keeper: { at: [-0.4, 0, 2.9], pose: "carry", hold: { item: "sack", hand: "R" }, expr: "sad", view: "front" }, newton: { at: [0.3, 0, 1.5], pose: hand(1.05, 1.0, { hands: { R: "point" }, expr: "determined" }), hold: null, ...T3(-1) },
+  { at: "that", id: "recall", place: "mint", key: FORGE, rain: 0, music: "build", shot: { size: "full", on: [-0.45, -0.5, 0.9], h: 3.0, angle: 16, move: "push", amount: 0.18 }, crowd: "look",
+    act: { baker: { hide: false, at: [-2.3, 0, 1.9], pose: "carry", hold: { item: "sack", hand: "R" }, hold2: null, expr: "sad", view: "front" }, barber: { hide: false, at: [-1.4, 0, 2.5], pose: "carry", hold: { item: "sack", hand: "R" }, hold2: null, expr: "sad", view: "front" },
+      keeper: { at: [-0.5, 0, 3.1], pose: "carry", hold: { item: "sack", hand: "R" }, expr: "sad", view: "front" }, newton: { at: [0.65, 0, 1.5], pose: hand(0.95, 1.0, { hands: { R: "point" }, expr: "determined" }), hold: null, ...T3(-1) },
       officer: { hide: true } },
     gag: [{ prop: "crucible", id: "crucible", at: "stage", in: "none", until: "see" }, { prop: "chest", id: "chest", at: [0.0, 0, -1.6], scale: 1.5, in: "none", until: "see" }] },
-  { at: "every#2", id: "every", act: { baker: { walk: [-0.6, 0, -0.9], speed: 1.9 }, barber: { walk: [-1.3, 0, 0.2], speed: 1.7 }, keeper: { walk: [-0.8, 0, 1.4], speed: 1.5 } } },
+  { at: "every#2", id: "every", act: { baker: { walk: [-0.8, 0, -0.9], speed: 1.9 }, barber: { walk: [-1.6, 0, 0.4], speed: 1.7 }, keeper: { walk: [-0.55, 0, 1.6], speed: 1.5 } } },
   { at: "called", id: "called", shot: { size: "full", on: "crucible", h: 3.0, angle: 12, move: "push", amount: 0.2 }, act: { baker: { pose: "idle", hold: null, expr: "sad" } }, sfx: [{ name: "coins", lu: -9 }] },
   { at: "melted", id: "melted", kick: 0.04, sfx: [{ name: "sizzle", lu: -7 }] },
   // ---- K (1162-1458). The pivot, one long travelling shot: Newton, the press, the coin, the bite, the proof.
   { at: "you#2", id: "see", key: WARM, via: "dissolve", music: "calm", shot: { size: "medium", on: "newton", angle: -22, side: -0.3, move: "push", amount: 0.16 },
     act: { newton: { at: [-1.0, 0.6, -4.3], pose: hand(1.1, 1.0, { hands: { R: "point" }, expr: "happy" }), ...T3(1) }, baker: { hide: true }, barber: { hide: true }, keeper: { hide: true } },
     gag: { prop: "press", id: "press", at: [0.7, 0.6, -5.0], in: "none" } },
-  { at: "machine", id: "machine", shot: { size: "full", on: "press", h: 2.5, angle: 16, move: "orbit", amount: -16 }, sfx: [{ name: "press", lu: -8, df: 6 }, { name: "press", lu: -8, df: 33 }, { name: "press", lu: -9, df: 60 }] },
-  { at: "perfectly", id: "round", shot: { size: "insert", on: "proof", h: 0.66, move: "push", amount: 0.18 }, act: { newton: { hide: true } }, gag: { prop: "proofCoin", id: "proof", origin: "center", at: [-0.2, 2.0, -1.6] } },
-  { at: "marked", id: "marked", gag: { label: "a marked edge", y: 0.17, until: "shave" } },
+  { at: "machine", id: "machine", caption: 0.86, shot: { size: "full", on: "press", h: 2.5, angle: 16, move: "orbit", amount: -16 }, sfx: [{ name: "press", lu: -8, df: 6 }, { name: "press", lu: -8, df: 33 }, { name: "press", lu: -9, df: 60 }] },
+  { at: "perfectly", id: "round", shot: { size: "insert", on: "proof", h: 0.66, move: "push", amount: 0.18 }, gag: { prop: "proofCoin", id: "proof", origin: "center", at: [0.55, 2.0, -1.6] } }, // (in front of the press, clear of Newton: hiding him on the cue was a one-frame jump)
+  { at: "marked", id: "marked" },
   { at: "shave", id: "shave", sfx: [{ name: "snip", lu: -6, df: 10 }], kick: 0.02 },
-  { at: "cut", id: "cut", gag: { label: "the cut shows", y: 0.17 }, punch: true },
+  { at: "cut", id: "cut", punch: true, sfx: ["ding"] },
   // ---- L (1458-1540). Comeuppance in one shot: he tries, the ridges snap, Newton walks in with the proof. CAUGHT holds.
-  { at: "first", id: "first", place: "alley", key: ALLEY, rain: 0.8, shot: { size: "medium", on: "clipper", angle: 10, side: 0.3, move: "push", amount: 0.14 },
-    act: { clipper: { hide: false, at: [0.55, 0, -0.3], pose: clip(0.85), ...T3(-1) }, newton: { hide: true, at: [-1.7, 0, 1.2] } } },
-  { at: "tries", id: "tries", act: { clipper: { pose: clip(0.02, { hold2: CN({ cut: true }) }), ...T3(-1), lead: 1 } }, gag: { fx: "impact", on: "clipper", size: 0.45, dy: -0.75 }, sfx: [{ name: "snip", lu: -6, on_word: true }] },
-  { at: "caught", id: "caught", shot: { size: "full", on: [-0.08, 0, -0.18], h: 1.95, angle: 4, move: "push", amount: 0.14 }, crowd: "gasp", kick: 0.05,
-    act: { newton: { hide: false, walk: [-0.7, 0, -0.05], speed: 3.4, pose: { limbs: { handR: [0.6, 1.45] }, hold: CN({ hand: "R", cut: true, len: 0.2 }), expr: "smug" }, ...T3(1) }, clipper: { pose: "shock", hold: null, hold2: null, ...T3(-1) } },
-    gag: [{ fx: "exclaim", on: "clipper", size: 0.6 }, { big: "CAUGHT", y: 0.12, until: "quarterB" }], sfx: [{ name: "impact", lu: -4, on_word: true }] },
+  { at: "first", id: "first", place: "alley", key: ALLEY, rain: 0.8, caption: 0.7, shot: { size: "medium", on: "clipper", angle: 10, side: 0.3, move: "push", amount: 0.14 },
+    act: { clipper: { hide: false, at: [0.4, 0, -0.3], pose: clip(0.85), ...T3(-1) }, newton: { hide: true, at: [-1.6, 0, 1.2] } } },
+  { at: "tries", id: "tries", act: { clipper: { pose: clip(0.02, { hold2: CN({ cut: true }) }), ...T3(-1), lead: 1 } }, gag: [{ fx: "impact", on: "clipper", size: 0.25, dy: -0.2 }, { prop: "chipB", id: "chipB", at: [0.3, 1.04, -0.2], in: "none", until: "caught" }], sfx: [{ name: "snip", lu: -6, on_word: true }] },
+  { at: "caught", id: "caught", shot: { size: "full", on: [-0.05, 0, -0.18], h: 2.3, angle: 4, move: "push", amount: 0.14 }, kick: 0.05,
+    act: { newton: { hide: false, walk: [-0.5, 0, -0.05], speed: 3.4, pose: { limbs: { handR: [0.6, 1.45] }, hold: CN({ hand: "R", cut: true, len: 0.2 }), expr: "smug" }, ...T3(1) }, clipper: { pose: "shock", hold: null, hold2: null, ...T3(-1) } },
+    gag: { big: "CAUGHT", y: 0.06, until: "quarterB" }, sfx: [{ name: "impact", lu: -4, on_word: true }] },
   // ---- M (1540-end). Today: the quarter, its 119 ridges, and it ends on them.
   { at: "quarter", id: "quarterB", place: "modern", key: "day", rain: 0, music: "full", caption: 0.8, shot: { size: "insert", on: "quarterP", h: 0.62, angle: 6, move: "push", amount: 0.14 },
     act: { girl: { at: [0.95, 0.16, -5.1], pose: hand(0.75, 1.35, { expr: "happy" }), ...T3(1) }, clipper: { hide: true }, newton: { hide: true } },
-    gag: { prop: "quarter", id: "quarterP", origin: "center", at: [1.45, 1.7, -3.4] }, sfx: ["coin"] },
-  { at: "119", id: "n119", gag: { counter: { from: 0, to: 119, suffix: " ridges" }, y: 0.13, until: "guarding" } },
+    gag: { prop: "quarter", id: "quarterP", origin: "center", at: [1.75, 1.75, -3.4] }, sfx: ["coin"] },
+  { at: "119", id: "n119", sfx: ["sparkle"] },
   { at: "guarding", id: "guarding", act: { girl: { pose: "shrug", expr: "laugh", ...T3(1) } } },
-  { at: "1965", id: "y1965", gag: { stamp: "no silver since 1965" }, punch: true, sfx: ["ding"], music: "stop" },
+  { at: "1965", id: "y1965", punch: true, sfx: ["ding"], music: "stop" },
 ];
 
 const board: Board = {
@@ -259,17 +266,17 @@ const board: Board = {
   cast: { clipper: { spec: clipper, height: 1.72, tex: 2400 }, keeper: { spec: keeper, height: 1.6 }, smith: { spec: smith, height: 1.74 }, baker: { spec: baker, height: 1.7 }, barber: { spec: barber, height: 1.72 },
     officer: { spec: officer, height: 1.7 }, newton: { spec: newton, height: 1.76 }, girl: { spec: girl, height: 1.62 } },
   places: {
-    den: { set: "workshop", opts: { era: "old", wall: "#8a5a48" }, look: { exposure: 1.1, grade: { gamma: 1.3 } } }, // dark walls behind light faces, then lift the whole room (mean luma 0.34 against 0.47)
+    den: { set: "workshop", opts: { era: "old", wall: "#8a5a48" }, look: { exposure: 1.14, grade: { gamma: 1.46 } } }, // dark walls behind light faces, then lift the whole room (mean luma 0.34 against 0.47)
     shop: { set: "shop", opts: { era: "old", title: "BAKER & SONS" } },
-    mintOld: { set: "workshop", opts: { era: "old", wall: "#7f6a5c" }, look: { exposure: 1.08, grade: { gamma: 1.28 } } },
+    mintOld: { set: "workshop", opts: { era: "old", wall: "#7f6a5c" }, look: { exposure: 1.1, grade: { gamma: 1.38 } } },
     street: { set: "street", opts: { era: "old", signs: ["BAKER", "GOLDSMITH", "TAVERN", "DRAPER", "BARBER", "INN"] }, crowd: 8, walkers: 2, wet: true,
       vehicles: { coach: { kind: "carriage", opts: { horses: 2, color: "#5a1f26" }, path: [[-15, 0, 1.5], [-6, 0, 1.4], [0.6, 0, 1.2]], from: "y1696", to: "mint", ease: "stop", lights: true } } },
-    exchequer: { set: "office", opts: { era: "old", wall: "#e2d3b0" }, look: { exposure: 1.2, grade: { gamma: 1.3 } } },
+    exchequer: { set: "office", opts: { era: "old", wall: "#e2d3b0" }, look: { exposure: 1.24, grade: { gamma: 1.46 } } },
     mint: { set: "hall", opts: { era: "old", title: "THE ROYAL MINT", wall: "#a8705a", accent: "#2f6fb0" }, crowd: 6 },
-    alley: { set: "alley", opts: { era: "old", title: "THE DOG & DUCK" }, crowd: 2, wet: true },
+    alley: { set: "alley", opts: { era: "old", title: "THE DOG & DUCK" }, wet: true }, // no extras: one stood between the two heads in the climax
     modern: { set: "street", opts: { era: "modern" }, walkers: 2 },
   },
-  props: { anvilCoin, oddCoins, cup, weigh, noose, crucible, press, proofCoin, quarter },
+  props: { anvilCoin, oddCoins, cup, weigh, noose, crucible, press, proofCoin, quarter, chipA: chip("shaves", 1), chipB: chip("tries", -1) },
   beats,
   look: { grade: { saturation: 1.2, vibrance: 0.22 } }, // measured colourfulness 0.19-0.20 against 0.29: rooms of wood and brick need the push
 };

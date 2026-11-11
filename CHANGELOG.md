@@ -21,6 +21,15 @@
   word, number, evidence, hardest hit), `story.py titles --auto --out` writes ranked title variants (script title
   rewrites plus every "why ..." clause the narration says, numbers as digits), and `make.mjs --also long` renders the
   16:9 version. All three run after `produce`.
+- **Second review round on the new version** (one strict reviewer, `renders/coins_final/judge/review2_all.md`): camera
+  4 -> 5, edit 3 -> 5.5, depth 3 -> 4.5, characters 4 -> 5.5, story 4.5 -> 6.5, typography 5.5 -> 6; colour, light, ink
+  and texture moved half a point or not at all. It found nine travels that still read as whips, a one-frame jump of
+  the depth of field, props and heads at the frame edge, blades that closed beside the coin and five stamps that
+  repeated the caption. Fixed in the engine (travels 30-60 frames or a soft cut, depth of field blended over the
+  travel, poses start on the cut frame, the audit checks `focus` targets and speakers, the lint counts framings and
+  flags repeated text, neutral contact shadows) and in the proof short (hook insert on the hands with a flying chip,
+  every stamp and label that repeated a word removed, the noose, the cup, both two-shots and the anvil inside the
+  frame, three different clipping poses).
 - Fixed: the release bump had been rewriting a dependency's version in `package-lock.json` since 1.7.0 (restored; the
   lock's own version now follows the release).
 - Measured on the coin short (same script, voice and sound; 1.7.1 -> 1.8.0): detected cuts 13 -> 4 (11 transitions, all soft), average shot (detector) 4.1 -> 11.3 s against 16.2 s in the reference,

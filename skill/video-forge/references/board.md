@@ -158,8 +158,9 @@ gag and the focus. Write a `shot` only where the picture really has to change; a
 holds 6.2 s). `story.py board` drafts it this way: the first clause of a sentence carries the shot, clauses, short
 sentences and replies are beats inside it, a dialogue exchange is one two-shot. The storyboard lint
 (`lintBoard`, printed as `[board lint]` by `render.mjs --stills` and by `make.mjs` after the stills) names: an average
-shot under 3 s, shots under 1.2 s, whips, two texts on screen at once, a `big` word held under 1 s, and boards where
-fewer than half of the beats change a pose.
+shot under 3 s, shots under 1.2 s, more than two re-framings per take (the viewer counts framings, not takes), a
+re-framing held under 0.9 s, whips, two texts on screen at once, a stamp, label or counter that shows a word the caption
+is showing in the same frames, a `big` word held under 1 s, and boards where fewer than half of the beats change a pose.
 
 | field | what it does |
 |---|---|
@@ -188,6 +189,18 @@ fewer than half of the beats change a pose.
    joints are the default now) behind light faces, a light wall over a dark wainscot behind dark coats (`office`,
    `era: "old"`).
 7. End on the picture of the last line and stop: `tail: 0.45`.
+
+8. A travel takes 30-60 frames (it does most of its way in the middle 40 %, so 20 frames read as a whip). When the
+   framing before it is shorter than 32 frames the default way in is a soft cut instead. Depth of field blends across
+   the travel, and a pose that belongs to a cut starts on the cut frame.
+9. What a beat points at must be in the frame: set `focus` on the prop or person the line is about. The shot audit
+   checks every `focus` target and every speaker (`talk`), also in shots framed on a point (those have no named
+   subjects, which is how a noose, a cup and two heads at the frame edge got through the first round).
+10. Things that must touch, must touch on screen: blade tips on the coin, the hammer head on the anvil. Look at the
+    closed pose on a still at full size; a tool that closes next to its target reads as a miss.
+11. A parameter is not a result. After every render sample what you claimed (the wall's luma behind the head, the
+    shade's hue on the floor) and report only what moved. The second review found a "cream wall" hidden behind drapes
+    and "brighter rooms" that measured darker.
 
 **Life in every set.** Sets carry their own motion (`update`): chimney and forge smoke, sparks, swinging signs, bunting,
 curtains and trees in the wind, flickering lanterns, candles and chandeliers. Characters breathe, shift their weight,

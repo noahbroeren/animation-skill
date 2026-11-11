@@ -492,7 +492,12 @@ Rules and the authoring table: `references/board.md` section 8. The pieces:
   per brick and a few burnt bricks. World ink `widthNear` 4.2, `hue` 0.1, `creases` 0.9 (was 3.0 / 0.22 / 0.75: the
   world line was six times thinner than the character line). Golden shade is less violet (`shadowTint` b 0.045, shade
   replace `#6a5d70` at 0.16); night is less blue (saturation 1.15, `shadowTint` b 0.06).
-- **Crowd** (`lib/three/cast.ts`): reaction `snip`.
+- **Crowd** (`lib/three/cast.ts`): reaction `snip`. The contact blob under a character is neutral (it was violet).
+- **After the second review**: travels take 30-60 frames with an `inOutSine` ease, or become a soft cut when the
+  framing before them is under 32 frames (`planBoard`); depth of field blends over the travel and motion blur is
+  halved during it; a pose on a cut starts on the cut frame; the shot audit also checks `focus` targets and speakers
+  (`mustSee`); `lintBoard` counts framings and flags text that repeats the caption; the modern street has warmer,
+  more saturated facades; the old office has one pair of drapes, so the wall colour shows behind the desk.
 - **Tools**: `make.mjs` runs thumbnails, `titles.md` and (`--also long`) the 16:9 version after `produce`
   (`--no-extras` skips them); `render.mjs` prints `[board lint]` lines; `story.py titles --auto --out FILE`;
   `story.py board` drafts one shot per sentence.

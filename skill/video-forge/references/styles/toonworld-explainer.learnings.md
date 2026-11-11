@@ -170,3 +170,25 @@ Appended automatically by `vfa_loop.py learn` after each measured iteration. A c
 - regressed: move ease-in frames gap 0.0 -> 0.5 (ours 9 -> 7, ref 9)
 - regressed: glide length (frames) gap 3.4 -> 5.1 (ours 27 -> 18.5, ref 44)
 
+## 2026-11-11 - coins
+
+- change: 1.8 board v2: 13 shots, tools in hands, rack focus, dark joints, heavier world ink, calmer shade, brighter rooms
+- match score: 56.2 -> 53.1
+- improved: move ease-in frames gap 0.5 -> 0.0 (ours 7 -> 9, ref 9)
+- improved: frames with camera motion gap 0.66 -> 0.05 (ours 0.9213 -> 0.9923, ref 0.9873)
+- regressed: frames with fast camera motion gap 4.44 -> 4.96 (ours 0.332 -> 0.306, ref 0.5539)
+- improved: glide length (frames) gap 5.1 -> 3.0 (ours 18.5 -> 29, ref 44)
+- regressed: camera jerk gap 0.45 -> 0.91 (ours 25.52 -> 21.41, ref 29.48)
+- regressed: push-in shot fraction gap 1.03 -> 5.33 (ours 0.8462 -> 0.2, ref 1)
+- improved: highlight tint a gap 2.93 -> 2.11 (ours 7.795 -> 6.165, ref 1.936)
+- improved: highlight tint b gap 1.3 -> 0.04 (ours 3.212 -> 5.895, ref 5.806)
+- regressed: mean brightness gap 1.62 -> 2.58 (ours 0.4003 -> 0.3616, ref 0.4649)
+- regressed: black floor (p1) gap 0.39 -> 0.78 (ours 0.1059 -> 0.1137, ref 0.09804)
+- regressed: white ceiling (p99) gap 0.92 -> 1.18 (ours 0.9216 -> 0.9137, ref 0.949)
+- regressed: shadow tint b (blue-/yellow+) gap 0.55 -> 1.59 (ours -4.269 -> -2.187, ref -5.367)
+- regressed: warmth (R-B) gap 0.4 -> 2.43 (ours 0.05593 -> 0.1067, ref 0.04604)
+- improved: average shot length gap 20.25 -> 8.26 (ours 4.057 -> 11.25, ref 16.21)
+- improved: cuts per minute gap 3.69 -> 0.53 (ours 13.73 -> 4.265, ref 2.667)
+- improved: micro-animation activity gap 1.71 -> 0.86 (ours 0.01342 -> 0.01685, ref 0.02028)
+- improved: DOF centre/border sharpness gap 2.41 -> 2.15 (ours 1.228 -> 1.307, ref 1.952)
+

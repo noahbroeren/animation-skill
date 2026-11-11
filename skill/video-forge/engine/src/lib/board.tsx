@@ -153,12 +153,16 @@ export function planBoard(b: Board, fps: number) {
   // Default way into a shot: a new place dissolves; inside a place the camera TRAVELS to the next setup (up to 28 frames, motion
   // blur). Measured on the first board: 23 hard cuts a minute against 8.7 in the hero short and 2.7 on the channel, and
   // 20 % fast-motion frames against 39-55 %. Write `via: "cut"` where a cut is the point (on a word, shot / reverse shot).
-  const viaOf = (x: (typeof beats)[number]): Via => x.via ?? (x.newPlace ? "dissolve" : "glide");
   const shotBeats = beats.filter((x) => x.i === 0 || x.shot || x.newPlace);
+  // 1.8 (second review): a travel shorter than about 24 felt frames reads as a whip. The eased travel does most of its way in
+  // the middle 40 %, so it now takes 30-60 frames with a gentler ease; when the framing before it is shorter than 32 frames
+  // there is no room for one and the default becomes a soft cut.
+  const prevLen = new Map<number, number>(); shotBeats.forEach((x, k) => { if (k > 0) prevLen.set(x.i, x.f - shotBeats[k - 1].f); });
+  const viaOf = (x: (typeof beats)[number]): Via => x.via ?? (x.newPlace ? "dissolve" : (prevLen.get(x.i) ?? 99) < 32 ? "cut" : "glide");
   const cuts = shotBeats.filter((x) => x.i > 0 && viaOf(x) === "cut").map((x) => x.f), soft = shotBeats.filter((x) => x.i > 0 && (viaOf(x) === "dissolve" || viaOf(x) === "whip")).map((x) => (viaOf(x) === "whip" ? x.f - 3 : x.f)); // a whip is a planned soft transition (it starts 3 frames before its cue)
   // travel windows (pure: the same arithmetic the camera uses): length follows the shot before, 12-28 frames, 60 % before the cue
   // 1.8: 20-40 frames. Reviewers called the 12-28 frame re-framings "teleports between keyframes" (reference glide: 44 f)
-  const glideLen = (k: number) => (k > 0 ? Math.max(20, Math.min(40, Math.round((shotBeats[k].f - shotBeats[k - 1].f) * 0.5))) : 0);
+  const glideLen = (k: number) => { if (k <= 0) return 0; const len = shotBeats[k].f - shotBeats[k - 1].f; return Math.max(12, Math.min(len - 2, Math.max(30, Math.min(60, Math.round(len * 0.6))))); };
   const travels = shotBeats.map((x, k) => (k > 0 && viaOf(x) === "glide" ? ([x.f + Math.round(glideLen(k) * 0.4) - glideLen(k), x.f + Math.round(glideLen(k) * 0.4)] as [number, number]) : null)).filter((t): t is [number, number] => !!t);
   return { words, beats, T, total, end, viaOf, shotBeats, cuts, soft, F, travels, glideLen };
 }
@@ -248,7 +252,8 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
       if (a.expr) pose.expr = a.expr; if (a.turn !== undefined) pose.turn = a.turn; if (a.view) (pose as { view?: string }).view = a.view; if (a.facing) pose.facing = a.facing;
       if (a.hold !== undefined) pose.hold = a.hold ?? undefined; else if (a.pose !== undefined && prevPose.hold && !pose.hold) pose.hold = prevPose.hold; // a prop stays in the hand until put down
       if (a.hold2 !== undefined) pose.hold2 = a.hold2 ?? undefined; else if (a.pose !== undefined && prevPose.hold2 && !pose.hold2) pose.hold2 = prevPose.hold2;
-      A.keys.push({ f: Math.max(0, bt.f - (a.lead ?? 3)), pose, blend: bt.i === 0 ? 1 : 5 });
+      const hard = bt.newPlace || (!!bt.shot && P.viaOf(bt) !== "glide"); // on a cut the new pose starts ON the cut frame, not 3 frames before it
+      A.keys.push({ f: Math.max(0, bt.f - (a.lead ?? (hard ? 0 : 3))), pose, blend: bt.i === 0 || hard ? 1 : 5 });
     }
     if (a.talk) A.talk.push([bt.f, P.end(bt.i), bt.wi, P.beats[bt.i + 1]?.wi ?? P.words.length]);
     if (a.look !== undefined) A.looks.push({ f: bt.f, look: a.look || undefined });
@@ -340,7 +345,12 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   LP.toonify(scene);
   const placeAt = (f: number) => { let p = P.beats[0].placeNow; for (const x of P.beats) if (x.f <= f) p = x.placeNow; else break; return p; };
   const focusEv = P.beats.filter((x) => x.focus || x.i === 0 || x.shot || x.newPlace).map((x) => ({ f: x.f, name: x.focus ?? null }));
-  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv };
+  // 1.8: the shot audit also checks what a beat points at (`focus`) and who speaks (`talk`): a shot framed on a point has no
+  // named subjects, and the first review round missed a noose, a cup and two heads at the frame edge that way
+  const mustSee: { f0: number; f1: number; name: string; place: string }[] = [];
+  P.beats.forEach((x) => { const nxt = P.shotBeats.find((y) => y.f > x.f)?.f ?? P.total, f1 = Math.min(nxt - 2, x.f + 26);
+    for (const n of [x.focus, ...Object.entries(x.act ?? {}).filter(([, a]) => a.talk).map(([k]) => k)]) if (n && f1 > x.f + 8) mustSee.push({ f0: x.f + 8, f1, name: n, place: x.placeNow }); });
+  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv, mustSee };
 }
 type BoardWorld = ReturnType<typeof makeWorld>;
 
@@ -433,14 +443,20 @@ export function boardProject(b: Board): ProjectDef {
       <Stage3D<BoardWorld> look={(f) => { const w = ref.current!, pid = w.placeAt(f), pl = b.places[pid]; let l = w.LP.look(f);
         if (b.look) l = deepMergeLook(l, b.look);
         const pk = pl.look ?? (w.sets[pid].interior ? INTERIOR_LIFT : null); if (pk) l = deepMergeLook(l, pk);
-        let sz = "wide"; for (const x of P.shotBeats) if (x.f <= f) sz = x.shot?.size ?? "wide"; else break;
-        const d = DOF_BY_SIZE[sz]; if (d) l = { ...l, dof: { ...l.dof, enabled: true, maxBlur: d[0], aperture: d[1] } };
+        let k = 0; for (let i = 0; i < P.shotBeats.length; i++) if (P.shotBeats[i].f <= f) k = i; else break;
+        const dofOf = (i: number) => DOF_BY_SIZE[P.shotBeats[i].shot?.size ?? "wide"] ?? DOF_BY_SIZE.wide, win = (i: number) => { const g = P.glideLen(i), s = P.shotBeats[i].f + Math.round(g * 0.4) - g; return [s, g] as const; };
+        let d = dofOf(k), travelling = false;
+        const nx = P.shotBeats[k + 1];
+        if (nx && P.viaOf(nx) === "glide") { const [s, g] = win(k + 1); if (f >= s) { const t = ease.smooth(clamp((f - s) / g)), e = dofOf(k + 1); d = [lerp(d[0], e[0], t), lerp(d[1], e[1], t)]; travelling = true; } }
+        if (!travelling && k > 0 && P.viaOf(P.shotBeats[k]) === "glide") { const [s, g] = win(k); if (f < s + g) { const t = ease.smooth(clamp((f - s) / g)), a0 = dofOf(k - 1); d = [lerp(a0[0], d[0], t), lerp(a0[1], d[1], t)]; travelling = true; } }
+        l = { ...l, dof: { ...l.dof, enabled: true, maxBlur: d[0], aperture: d[1] }, ...(travelling ? { motionBlur: l.motionBlur * 0.45 } : {}) }; // (blur stripes on a travel: fewer, shorter streaks)
         // camera motion blur smears a subject the camera is following (it is still on screen): keep only a trace of it
         return w.follows!.some((x) => f >= x.f0 && f <= x.f1) ? { ...l, motionBlur: l.motionBlur * 0.15 } : l; }}
         camAt={(f, fp) => driftCam(ref.current!.rig.at(f, fp), f, fp)} cuts={P.cuts}
         dissolveAt={(f, fp) => { const d = ref.current!.rig.dissolveAt(f, fp); return d ? { a: driftCam(d.a, f, fp), b: driftCam(d.b, f, fp), t: d.t } : null; }}
-        audit={(f, w) => { if (f % 6) return null; const a = w.audit.find((x) => f >= x.f0 && f < x.f1); if (!a) return null;
-          return a.subs.map((n): ShotSubject | null => { const s = w.subjectOf(n, f, a.place); return w.cast[n] && !w.actorState(n, f) ? null : { name: n, at: [s.at[0], s.at[1] + s.h * 0.72, s.at[2]], r: s.h * 0.3 }; }).filter((x): x is ShotSubject => !!x); }}
+        audit={(f, w) => { if (f % 6) return null; const a = w.audit.find((x) => f >= x.f0 && f < x.f1), ms = w.mustSee.filter((x) => f >= x.f0 && f < x.f1); if (!a && !ms.length) return null;
+          const names = [...new Set([...(a?.subs ?? []), ...ms.map((x) => x.name)])], place = a?.place ?? ms[0].place;
+          return names.map((n): ShotSubject | null => { const s = w.subjectOf(n, f, place), isCard = !!w.cast[n]; return isCard && !w.actorState(n, f) ? null : { name: n, at: [s.at[0], s.at[1] + s.h * (isCard ? 0.72 : 0.5), s.at[2]], r: s.h * 0.3 }; }).filter((x): x is ShotSubject => !!x); }}
         build={(ctx) => { const w = makeWorld(b, P, ctx); ref.current = w; return w; }}
         update={(w, f, { fps: fp }) => updateWorld(w, P, f, fp)} />
     );
@@ -474,6 +490,14 @@ export function lintBoard(b: Board, fps: number): string[] {
   for (const { x, len } of shots) if (len < 1.2 * fps && x.i > 0) out.push(`shot "${x.id}" lasts ${sec(len)} s (f ${x.f}): too short to read; make it a beat inside the shot before it, or give it 1.5 s`);
   P.shotBeats.forEach((x, k) => { const len = (P.shotBeats[k + 1]?.f ?? P.total) - x.f; if (x.i > 0 && P.viaOf(x) === "glide" && len < 0.9 * fps) out.push(`the camera re-frames on "${x.id}" for only ${sec(len)} s (f ${x.f}): start the travel a beat earlier or drop it`); });
   for (const x of P.shotBeats) if (x.i > 0 && P.viaOf(x) === "whip") out.push(`shot "${x.id}" comes in on a whip: use a slow travel inside a place, a dissolve to a new one`);
+  // the viewer counts FRAMINGS, not takes: every travel is a new picture
+  const fr = P.shotBeats.map((x, k) => (P.shotBeats[k + 1]?.f ?? P.total) - x.f), shortest = Math.min(...fr);
+  if (P.shotBeats.length > shots.length * 2.2) out.push(`${P.shotBeats.length} framings in ${shots.length} takes (shortest ${sec(shortest)} s): more than two re-framings per take read as restless; let a beat act inside the framing instead`);
+  // a stamp, label or counter that shows the word the caption is showing in the same frames is the same text twice
+  const said = (f0: number, f1: number) => new Set(P.words.filter((w) => w.start * fps < f1 && w.end * fps > f0).map((w) => clean(w.word)));
+  for (const x of P.beats) for (const g of gagsOf(x)) { const txt = "stamp" in g ? g.stamp : "label" in g ? g.label : "counter" in g ? String(g.counter.to) : null; if (!txt) continue;
+    const until = (g as { until?: string }).until, f1 = Math.min(until ? P.T[until] ?? P.total : P.total, x.f + 3 * fps), sp = said(x.f, f1), hit = txt.split(/\s+/).map(clean).filter((t) => (t.length > 3 || /^\d+$/.test(t)) && sp.has(t));
+    if (hit.length) out.push(`the ${"stamp" in g ? "stamp" : "label" in g ? "label" : "counter"} "${txt}" (${x.id}) repeats the caption word${hit.length > 1 ? "s" : ""} "${hit.join(", ")}": show something the narrator does not say, or drop it`); }
   const texts: { id: string; f0: number; f1: number; kind: string }[] = [];
   for (const x of P.beats) for (const g of gagsOf(x)) { const kind = "label" in g ? "label" : "counter" in g ? "counter" : "big" in g ? "big" : null; if (!kind) continue;
     const until = (g as { until?: string }).until, f1 = until ? P.T[until] ?? P.total : Math.min(P.total, P.shotBeats.find((y) => y.f > x.f)?.f ?? P.total); texts.push({ id: x.id, f0: x.f, f1, kind });

@@ -292,7 +292,7 @@ function street(o: SetOpts, c: Ctx): SetCore {
   const curb = lam({ map: flat.tiles(old ? "#b7ab9c" : "#c9c5bd", old ? "#7d7265" : "#8c8a86", 8, [40, 1]) });
   for (const z of [-6.2, 6.2]) c.g.add(box(120, 0.16, 3.0, curb, 0, 0.08, z));
   if (!old) { for (let x = -57; x < 58; x += 4) c.g.add(floorPlane(2, 0.16, new THREE.MeshLambertMaterial({ color: "#f1ede2" }), x, 0.012, 0)); for (const z of [-4.55, 4.55]) c.g.add(floorPlane(120, 0.12, lam({ color: "#e9c63a" }), 0, 0.012, z)); }
-  const walls = old ? ["#c97a5a", "#e9dcc6", "#b8664a", "#d9c09a", "#9a5a44", "#e6d2b0"] : ["#e8d9c4", "#c9d6e4", "#e6c9b0", "#d5e0c8", "#e3cfd6", "#cfcfd8"];
+  const walls = old ? ["#c97a5a", "#e9dcc6", "#b8664a", "#d9c09a", "#9a5a44", "#e6d2b0"] : ["#e8b04a", "#f4efe6", "#5f9a84", "#e6c9b0", "#d98a5a", "#bcd3e6"] /* 1.8: the pastel row measured saturation 0.30 and read washed out */;
   const AW = [["#c0392b", "#f4efe6"], ["#2f6fb0", "#f4efe6"], ["#2f8f6a", "#f6e7b0"], ["#d08a2a", "#f4efe6"]];
   const signs = o.signs ?? (old ? ["BAKER", "GOLDSMITH", "TAVERN", "DRAPER", "CHANDLER", "INN"] : ["BAKERY", "COFFEE", "BOOKS", "PHARMACY", "PIZZA", "BANK"]);
   const marks: Record<string, V3> = { center: [0, 0, 0.6], left: [-3, 0, 0.8], right: [3, 0, 0.8], pavement: [0, 0.16, -5.4], across: [0, 0.16, 5.6], far: [18, 0, 0.4], roadL: [-46, 0, 1.6], roadR: [46, 0, 1.6], roadL2: [-46, 0, -1.8], roadR2: [46, 0, -1.8], corner: [-14.4, 0.16, -5.3] };
@@ -500,7 +500,7 @@ function office(o: SetOpts, c: Ctx): SetCore {
   const marks: Record<string, V3> = { desk: [dx + 0.05, 0, dz - 0.75], deskTop: [dx - 0.1, 0.85, dz + 0.1], deskTop2: [dx + 0.6, 0.85, dz + 0.2], guest: [-0.8, 0, 0.9], guest2: [1.7, 0, 1.1], window: [-1.3, 0, -D / 2 + 1.0], door: [W / 2 - 1.0, 0, 1.6], books: [-W / 2 + 1.1, 0, -0.9], center: [0.3, 0, 0.8] };
   // 1.8 dressing + life
   const cur = old ? "#7a2f3a" : "#3b5a8a";
-  curtains(c, 2.2, 2.3, -1.3, 2.7, -D / 2 + 0.05, cur); curtains(c, 1.2, 2.3, 1.3, 2.7, -D / 2 + 0.05, cur);
+  curtains(c, 2.2, 2.3, -1.3, 2.7, -D / 2 + 0.05, cur); // (the small window has none: two pairs of drapes hid the whole wall behind the desk)
   c.g.add(at(cabinet(1.2, 1.3, 0.5, old ? "#6b3f26" : "#b9905e"), -W / 2 + 0.3, 0, 2.4, Math.PI / 2), at(poster(old ? "MAP OF|LONDON" : "PLAN|2026", 1.1, 0.9, "#e9dcc6"), W / 2 - 0.02, 2.5, 3.0, -Math.PI / 2),
     at(picture(0.8, 1.0, "#7a4a8a"), -W / 2 + 0.02, 4.4, 1.4, Math.PI / 2), at(wallShelf(1.6, seed + "w"), W / 2 - 0.02, 4.25, -1.2, -Math.PI / 2), at(PROPS.chest(), -W / 2 + 0.75, 0, 3.6, Math.PI / 2),
     at(pilaster(H, old ? "#4a3626" : "#f4efe6"), 0.2, 0, -D / 2 + 0.02), at(PROPS.candle(), -W / 2 + 0.3, 1.36, 2.2));

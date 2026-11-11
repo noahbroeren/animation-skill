@@ -72,10 +72,11 @@ export class CharacterCard {
     this.shadowCaster.customDepthMaterial = depth;
     this.shadowCaster.castShadow = true;
     this.shadowCaster.layers.set(SHADOW_ONLY);
+    // (1.8: the blob is neutral; a violet one read as a purple stain on warm floors)
     // contact blob: soft dark ellipse under the feet, offset away from the sun (reads as "standing ON the ground")
     const blobTex = new THREE.CanvasTexture((() => { const c = document.createElement("canvas"); c.width = c.height = 128;
       const g = c.getContext("2d")!; const gr = g.createRadialGradient(64, 64, 8, 64, 64, 62);
-      gr.addColorStop(0, "rgba(40,20,60,0.55)"); gr.addColorStop(1, "rgba(40,20,60,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return c; })());
+      gr.addColorStop(0, "rgba(38,30,40,0.42)"); gr.addColorStop(1, "rgba(38,30,40,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return c; })());
     this.blob = new THREE.Mesh(new THREE.PlaneGeometry(heightM * 0.45, heightM * 0.3), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, toneMapped: false }));
     this.blob.rotation.x = -Math.PI / 2;
     this.blob.position.y = 0.012;

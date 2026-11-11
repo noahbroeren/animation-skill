@@ -128,7 +128,7 @@ export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: nu
   if (settle) { const v: V3 = [a.pos[0] - a.look[0], a.pos[1] - a.look[1], a.pos[2] - a.look[2]], L = Math.hypot(v[0], v[2]) || 1, sg = o.f0 % 2 ? 1 : -1, r: V3 = [(v[2] / L) * sg, 0, (-v[0] / L) * sg], d = Math.hypot(...v) * st * 0.55;
     const p = clampBox([a.look[0] + v[0] * (1 + st) + r[0] * d, a.look[1] + v[1] * (1 + st * 0.6), a.look[2] + v[2] * (1 + st) + r[2] * d], o.box);
     pre = { f: o.f0, pos: p, look: a.look, fov: a.fov, focus: a.focus, cut: !o.first }; }
-  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 10; else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); } } // a travel starts before the word and lands just after it
+  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 10; else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); k0.ease = "inOutSine"; } } // a travel starts before the word and lands just after it
   if (pre) { k0.cut = undefined; k0.f = o.f0 + 16; k0.glide = 16; k0.ease = "outCubic"; }
   const keys = pre ? [pre, k0] : [k0], end = o.f1 - 2, len = end - k0.f;
   if ((spec.move ?? "hold") !== "hold" && len > 12) { const b = moveEnd(spec, a, o.aspect, o.box); keys.push({ f: end, pos: b.pos, look: b.look, fov: b.fov, focus: b.focus, glide: len, via: b.via, ease: "smooth" }); }
