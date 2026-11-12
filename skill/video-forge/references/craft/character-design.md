@@ -54,7 +54,7 @@ Read `characters.md` first for how the reference family is built and measured. U
    | 2 | line law | plum-black, ~2.2x heavier away from the key | even width (taper 0) or another law (double line, halo); a new ink colour alone does not count | `ink`, `line { w, taper }` |
    | 3 | limb law | one ink-colour stroke ~0.054 W, ink-disc hands | limbs not in the ink colour, or hands not ink discs | `limbs`, `hands` |
    | 4 | eye default | lidded dark half-ovals 0.21-0.25 W apart, deadpan at rest | another eye type at rest AND spacing >= 0.30 W | `eyes` (FaceSpec), `baseLid` |
-   | 5 | hair construction | solid cap with strand lines and one sheen arc | another treatment: flat shapes without strands or sheen, a geometric cut, a hat-first cast | not a brand field yet |
+   | 5 | hair construction | solid cap with strand lines and one sheen arc | another treatment: flat shapes without strands or sheen, a geometric cut, a hat-first cast | `hairShine: "flat" \| "rim"` (`"arc"` = the reference's) |
 
    Layer 1 counts once (1a or 1b). Also never: rebuild a specific recurring character of the reference (its hair or
    hat, colour and prop combination) in any brand; fall back into our old traps, the "chibi sticker" (coloured sleeves
@@ -189,16 +189,21 @@ Read `characters.md` first for how the reference family is built and measured. U
 
 | what | where (file / field) | 1.9 value | status |
 |---|---|---|---|
-| house style type | `CastBrand` (`lib/characters/kinds.ts`) | face, ink, head, line, limbs, hands, eyes, shock, torso, ears, nose, shine, faceShade | built |
+| house style type | `CastBrand` (`lib/characters/kinds.ts`) | face, ink, head, line, limbs, hands, eyes, shock, torso, ears, nose, shine, faceShade, hairline, hairShine, heads | built |
+| fringe height | `CastBrand.hairline` (face widths above the eye centres) | unset = the old low fringe (~0.07 W, brows hidden); 0.25-0.32 in the drafts | built: lifts the cap / spiky fringe and the hairline points of every style, short sideburns |
+| hair treatment | `CastBrand.hairShine` | `"arc"` (default), `"flat"`, `"rim"` (a darker band along the hairline) | built |
+| proportions | `CastBrand.heads` | 3.4 default; a spec's own `heightHeads` wins | built |
+| hair and hats follow the head | `bobbleHair(..., lift, n)`, a y-scale by `head.hw` | front and profile crowns trace the brand's superellipse; egg heads get taller hair, hats ride on the crown, the card makes room | built |
+| copy test + readability numbers | `brandReport(brand)`, `brandNote(brand)` (charsheet) | layers changed / kept, face L* and chroma, eye, brow, hairline, fails | built: printed beside every page-13 row |
 | apply to a cast | `Board.brand` (`lib/board.tsx`) | every bobble without its own `brand` | built |
 | measured family | `BRANDS.calibration` | see `characters.md` | built; engine tests only, never publish |
 | example house style | `BRANDS.example` | step 7 | built; not final |
 | role fields | `BobbleSpec` hair, hat, top, legs, shoes, beard, stache, glasses, neck, build | `skin` is ignored when `brand.face` is set | built |
 | per-character face tweak | `BobbleSpec.face` (wins over `brand.eyes`) | - | built; at most a resting lid (`baseLid`), never the eye type or spacing |
-| brand page | `page12()` in `projects/charsheet/index.tsx`, still 340 | rows bobble, calibration, example | built; add a row for ours |
+| brand page | `page12()` in `projects/charsheet/index.tsx`, still 340 | rows bobble, calibration, example | built |
+| our brand directions | `BRAND_DRAFTS` + `page13()`, still 370 | A block, B egg, C wide, D bold (same three roles in every row) | built; drafts until one is chosen and locked |
 | silhouette view | `PassSpec { pass: "silhouette" }` (`drawAnyStyled`) | used on page 2 | partly: no brand silhouette row, no IoU check |
 | face-pop check | - | - | not built (no face lead gate in QA) |
-| hair construction as a brand layer | `bobbleHair`, `bobbleHair3` | cap + one sheen arc for every style | not built |
 | other line laws (halo, double line) | - | - | not built |
 | back, three-quarter back, lying, chin-up views | `KPose.view` | front / three / side | not built |
 | wink, asleep, dizzy, rage faces; 2-frame blink | `KEXPRS`, `EX` | 16 faces, 4-frame blink | partly |
@@ -227,7 +232,10 @@ const board: Board = { id: "ID", title: "...", words: WORDS, brand: OURS, cast: 
   sil64.png`; page-12 figures are ~280 px tall). Fail: two roles you cannot name apart, or a hat that merges with the
   head into one blob.
 - **Phone size:** scale still 340 x2.4 (heads ~200 px) and view it on a phone at full width. Fail: an expression you
-  have to guess.
+  have to guess. A medium close-up on a 6.1-inch phone shows the head at ~110 px: busts at that size on a mid-tone wall
+  (L* ~59) are the realistic check; page 13's heads (75-95 px) are already close to it.
+- **Copy count and minimums in one line:** `brandReport(brand)` (page 13 prints it per row). Fail: fewer than 3
+  changed, or any entry under `fails`.
 - **Face pop:** three beat stills of a real board (`node tools/make.mjs --project ID --from board --to stills`) in day,
   golden and night keys; colour-pick the face and the ring around it. Fail: under +20 L*.
 - **Copy count:** fill in the worksheet in step 5 and count the changed signature layers. Fail: fewer than 3.
@@ -241,6 +249,8 @@ const board: Board = { id: "ID", title: "...", words: WORDS, brand: OURS, cast: 
 | clip-art eyes | coin short | catchlight dots 0.147 W wide, 0.33 W apart, 0.16 W above the widest row | a designed eye default on the widest row |
 | eyes too small for the sheet | first render of `BRANDS.example` | pill eyes 0.08 d wide with thin line brows: on page 12's ~85 px heads they read as specks | eyeSize 0.115 and thick brows (current values) |
 | brows under the fringe | page 12, all three rows | brows ~0.19 d above the eyes, the cap fringe ends 0.10-0.15 W above them | raise the fringe or lower the brows (rule 8) |
+| hair ignores the head shape | page 13 round 1 | an egg head (H/W 1.16) rose above the cap; squircle corners poked out beside a round crown; the lifted fringe left long sideburn tabs | the crown follows the brand superellipse and `hw`; a lifted fringe gets short sideburns |
+| four directions that look alike | page 13 round 1 | only line colour and eye type differed; the shared hair and jacket carried the read | push every brand layer of a direction the same way (geometry, line, limbs, eyes, hair, height) |
 | layer 1 changed by accident only | `BRANDS.example` | the fill is the reference's near-white; only the squircle changes layer 1 | decide the fill and the geometry separately in the worksheet |
 
 ## Sources

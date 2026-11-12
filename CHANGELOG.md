@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.9.1 - 2026-11-12
+- **Our own cast, design round 2.** Charsheet page 13 (still 370) shows four brand directions for the channel's cast
+  (`BRAND_DRAFTS`: A block, B egg, C wide, D bold) on the same three roles, each with its copy test and readability
+  numbers printed beside the row. Each changes 4 or 5 of the 5 signature layers of the measured reference family.
+- **New brand fields.** `hairline` (the fringe height above the eye centres, so the brows show: rule 0.25 W),
+  `hairShine` (`"arc"`, `"flat"`, `"rim"`: hair is now a brand layer, signature layer 5) and `heads` (proportions).
+- **Hair and hats follow the brand head.** Front and profile crowns trace the brand superellipse, egg and wide heads
+  scale the hair, hats ride on the crown and the card makes room for a taller head. A lifted fringe gets short
+  sideburns. `BRANDS.example` hair now sits on its squircle (coin short: ~2 % of a close-up changes).
+- **`brandReport(brand)`** returns the changed and kept signature layers, face L* and chroma, eye, brow and hairline
+  sizes and every failed minimum; `labOf(hex)` gives L* and chroma.
+- Visual baselines refreshed: the coin-short frames were stale since the 1.9.0 camera creep.
+
 ## 1.9.0 - 2026-11-12
 - **Every frame of the 20 newest reference shorts was looked at** (35,987 frames in 610 every-frame contact sheets,
   ten viewers, one log per video) and five studies measured characters, acting and angles, the look, camera and edit,

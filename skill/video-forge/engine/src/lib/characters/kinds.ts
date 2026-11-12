@@ -578,6 +578,7 @@ const groundOf = (H: number, heads?: number) => H - ((H / 1.08) * 0.08) / (heads
  * `frame`/`fps` only feed style-intrinsic idles (membrane wobble, antenna idle) - characters.md 4.7.
  */
 export function drawKind(g: CanvasRenderingContext2D, s: KindSpec, p: KPose, W: number, H: number, frame = 0, fps = 30) {
+  if (s.kind === "bobble" && s.heightHeads === undefined && s.brand?.heads) s = { ...s, heightHeads: s.brand.heads };
   const u = H / 1.08, facing = p.facing ?? 1;
   const c: Ctx = { g, u, lw: Math.max(1.5, u * 0.012 * (s.lineW ?? (s.kind === "bobble" ? 0.82 : 1))), ink: s.ink ?? INK, light: (p.light ?? -1) * facing, side: p.view === "side", t: frame / fps, frame, three: s.kind === "bobble" && p.view === "three" };
   const E = EX[p.expr ?? "neutral"] ?? EX.neutral;
@@ -1469,7 +1470,46 @@ export type CastBrand = {
   ears?: boolean; nose?: boolean; shine?: boolean;
   /** "crescent" (a hard cel edge) or "gradient" (a soft 8 L* ramp away from the key, no edge) */
   faceShade?: "crescent" | "gradient";
+  /** fringe height: the lowest hair point above the eye centres, in face widths (>= 0.25 keeps the brows visible);
+   *  unset = the old low fringe (~0.07 W, brows under the hair) */
+  hairline?: number;
+  /** hair treatment (signature layer 5): "arc" one sheen arc (default), "flat" plain colour, "rim" a darker band along the hairline */
+  hairShine?: "arc" | "flat" | "rim";
+  /** adult height in heads (default 3.4; 3.0 = bigger heads, 3.7 = taller and slimmer); a spec's own heightHeads wins */
+  heads?: number;
 };
+/** CIE L* and chroma (D65) of a hex colour. */
+export function labOf(hex: string): { L: number; C: number } {
+  const n = parseInt(hex.replace("#", "").slice(0, 6), 16), lin = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => { const k = v / 255; return k <= 0.04045 ? k / 12.92 : Math.pow((k + 0.055) / 1.055, 2.4); });
+  const [R, G, Bl] = lin, X = (0.4124 * R + 0.3576 * G + 0.1805 * Bl) / 0.95047, Y = 0.2126 * R + 0.7152 * G + 0.0722 * Bl, Z = (0.0193 * R + 0.1192 * G + 0.9505 * Bl) / 1.08883;
+  const f = (t: number) => (t > 216 / 24389 ? Math.cbrt(t) : ((24389 / 27) * t + 16) / 116);
+  return { L: 116 * f(Y) - 16, C: Math.hypot(500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))) };
+}
+/** The copy test and the readability minimums of character-design.md for one brand: which of the five signature layers
+ *  differ from the measured reference family, which stay, and which readability minimums fail (sizes in face widths). */
+export function brandReport(b: CastBrand): { changed: string[]; kept: string[]; fails: string[]; face: { L: number; C: number }; eye: [number, number]; brow: number; hairline: number } {
+  const face = labOf(b.face ?? "#FCF8F3"), hw = b.head?.hw ?? 1, n = b.head?.n ?? 2, e = b.eyes ?? {}, w = b.line?.w ?? 0.03;
+  const changed: string[] = [], kept: string[] = [], fails: string[] = [];
+  const put = (ok: boolean, yes: string, no: string) => (ok ? changed.push(yes) : kept.push(no));
+  const l1 = face.C >= 6 && face.C <= 12 && face.L >= 88 ? "tinted face" : n >= 2.6 ? "squircle head" : hw >= 1.1 ? "egg head" : hw <= 0.85 ? "wide head" : "";
+  put(!!l1, "1 " + l1, "1 face card");
+  put(!((b.line?.taper ?? 0) > 0), "2 even line", "2 tapered line");
+  put((b.limbs?.mode ?? "sleeve") !== "ink" || (b.hands?.mode ?? "fist") !== "disc", "3 " + (b.limbs?.mode ?? "sleeve") + " limbs + " + (b.hands?.mode ?? "fist"), "3 ink limbs");
+  const et = e.eyes ?? "dot", lidded = et === "solid" && (e.baseLid ?? 0) > 0.1;
+  put(!lidded && (e.eyeSpacing ?? 0.37) >= 0.3, "4 " + et + " eyes " + (e.eyeSpacing ?? 0.37).toFixed(2), "4 eye default");
+  put((b.hairShine ?? "arc") !== "arc", "5 " + b.hairShine + " hair", "5 sheen-arc hair");
+  if (face.L < 85) fails.push("face L* " + face.L.toFixed(0));
+  if (face.C > 12) fails.push("face chroma " + face.C.toFixed(0));
+  const k = et === "whites" ? 1.22 : et === "solid" ? 1.32 : et === "pill" ? 1.9 : 1.05, es = e.eyeSize ?? 0.12, eye: [number, number] = [es * Math.max(1, k), es * Math.min(1, k)];
+  if (eye[0] < 0.15 || eye[1] < 0.08) fails.push("eye " + eye[0].toFixed(2) + "x" + eye[1].toFixed(2));
+  const brow = ((e.brows === "thick" ? 2.5 * (e.browScale ?? 1) : 1.25) * 0.92 * w) / 0.94;
+  if (e.brows !== "none" && brow < 0.045) fails.push("brow " + brow.toFixed(3));
+  if ((e.mouthWidth ?? 0.25) < 0.1) fails.push("mouth");
+  if (b.limbs && b.limbs.mode !== "sleeve" && (b.limbs.w ?? 0.054) / 0.94 < 0.04) fails.push("limbs");
+  const hairline = b.hairline ?? (e.eyeY ?? 0.5) - 0.388;
+  if (hairline < 0.25) fails.push("hairline " + hairline.toFixed(2));
+  return { changed, kept, fails, face, eye, brow, hairline };
+}
 export const BRANDS: Record<"calibration" | "example", CastBrand> = {
   /** The construction family measured on the reference channel. CALIBRATION ONLY (engine tests and side-by-sides):
    *  never publish a cast with all of it; character-design.md lists the layers to change (at least 3 of 5). */
@@ -1521,11 +1561,11 @@ const BOBBLE_HATX: Record<BobbleHat["style"], number> = { top: 0.5, chef: 0.52, 
 /** Hats and tall hair shrink a bobble to fit its card. Multiply the card height by this so every body has the same
  *  real size (a man with a top hat is taller than the same man bare-headed): `new CharacterCard(spec, 1.7 * bobbleScale(spec), ...)`. */
 export function bobbleScale(s: BobbleSpec) {
-  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04, heads = s.heightHeads ?? 3.4;
-  return (heads + hx) / (heads + 0.04);
+  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04, heads = s.heightHeads ?? s.brand?.heads ?? 3.4, egg = Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5; /* an egg head rises above the round one */
+  return (heads + hx + egg) / (heads + 0.04);
 }
 function bobbleRig(c: Ctx, s: BobbleSpec, p: KPose): BobbleRig {
-  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04;
+  const hs = s.hair?.style, hx = (s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04) + Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5;
   // default = the tall, slim figure (3.4 heads: long jacket, straight legs); heightHeads 2.6 gives the short chibi-like build
   const heads = s.heightHeads ?? 3.4, tk = clamp((heads - 2.6) / 0.8, 0, 1.3), TL = 0.92 + 0.36 * tk;
   const d = c.u / (heads + hx), r = d / 2, side = c.side, three = !!c.three;
@@ -1582,40 +1622,45 @@ function inkUnion(c: Ctx, paths: Path2D[], fill: string, lw = c.lw) {
   for (const q of paths) g.fill(q);
 }
 /** Hair for a round head: `front` sits on the head, `back` behind it (long / bob / pony), `extra` on top (bun). */
-function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, side: boolean): { front: Path2D[]; back: Path2D[] } {
+function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, side: boolean, lift = 0, n = 2): { front: Path2D[]; back: Path2D[] } {
   const R = r * 1.045, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
+  /* a point on the crown at angle a and radius rr: a circle for n = 2, the head's own squircle for n > 2 */
+  const se = (a: number, rr: number): V2 => [cx + rr * Math.sign(Math.cos(a)) * Math.abs(Math.cos(a)) ** (2 / n), cy + rr * Math.sign(Math.sin(a)) * Math.abs(Math.sin(a)) ** (2 / n)];
+  const crown = (from: number, to: number) => { for (let i = 0; i <= 48; i++) { const [x, y] = se(lerp(from, to, i / 48), R); q.lineTo(x, y); } };
+  /* hairline points move up by `lift` (head radii); the crown and the curtains below the eyes stay */
+  const H = (k: number) => k - lift * clamp((k + 1) / 0.7, 0, 1) * clamp((0.05 - k) / 0.15, 0, 1);
   if (st === "bald") return { front, back };
   const q = new Path2D();
   if (side) { // profile facing +x: mass over the top and down the back, open face
     const nape = st === "long" || st === "bob" || st === "pony" ? 0.8 : st === "buzz" ? 0.9 : 0.84, fr = st === "buzz" ? -0.36 : st === "side" ? -0.2 : -0.27;
-    if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = P * (fr - (i / 8) * (2 + fr - nape)), rr = i % 2 ? R * 1.3 : R; const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr; if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
-    else q.arc(cx, cy, R, P * fr, P * nape, true);
+    if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = P * (fr - (i / 8) * (2 + fr - nape)), rr = i % 2 ? R * 1.3 : R; const [x, y] = se(a, rr); if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
+    else { q.moveTo(...se(P * fr, R)); crown(P * fr, P * nape - 2 * P); }
     q.quadraticCurveTo(cx - r * 0.42, cy + r * 0.22, cx - r * 0.12, cy - r * (st === "buzz" ? 0.5 : 0.3));
     if (st === "cap") { q.quadraticCurveTo(cx + r * 0.15, cy - r * 0.12, cx + r * 0.35, cy - r * 0.34); q.quadraticCurveTo(cx + r * 0.5, cy - r * 0.2, cx + r * 0.66, cy - r * 0.5); }
     else if (st === "side") q.quadraticCurveTo(cx + r * 0.5, cy - r * 0.2, cx + r * 0.84, cy - r * 0.42);
     else q.quadraticCurveTo(cx + r * 0.35, cy - r * 0.42, cx + R * Math.cos(P * fr), cy + R * Math.sin(P * fr));
     q.closePath(); front.push(q);
-    if (st === "curly") for (let i = 0; i < 7; i++) { const a = P * (fr - (i / 6) * (2 + fr - nape)); front.push(ell(cx + Math.cos(a) * R * 0.98, cy + Math.sin(a) * R * 0.98, r * 0.27, r * 0.25)); }
+    if (st === "curly") for (let i = 0; i < 7; i++) { const a = P * (fr - (i / 6) * (2 + fr - nape)); const [ex, ey] = se(a, R * 0.98); front.push(ell(ex, ey, r * 0.27, r * 0.25)); }
     if (st === "long") back.push(rrect(cx - r * 1.12, cy - r * 0.3, r * 1.1, r * 2.0, r * 0.45));
     if (st === "bob") back.push(rrect(cx - r * 1.1, cy - r * 0.3, r * 1.0, r * 1.45, r * 0.45));
     if (st === "pony") { const t = new Path2D(); t.moveTo(cx - r * 0.85, cy - r * 0.45); t.quadraticCurveTo(cx - r * 1.9, cy - r * 0.35, cx - r * 1.55, cy + r * 0.85); t.quadraticCurveTo(cx - r * 1.25, cy + r * 0.2, cx - r * 0.8, cy + r * 0.05); t.closePath(); back.push(t); }
     if (st === "bun") front.push(ell(cx - r * 0.35, cy - r * 1.12, r * 0.36, r * 0.3));
     return { front, back };
   }
-  const low = st === "long" || st === "bob" ? 0.1 : st === "buzz" ? -0.08 : 0.0, a0 = P * low;
-  const xr = cx + R * Math.cos(a0), yr = cy + R * Math.sin(a0), xl = cx - R * Math.cos(a0);
-  if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = a0 - (i / 8) * (P + 2 * a0), rr = i % 2 ? R * 1.32 : R; const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr; if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
-  else { q.moveTo(xr, yr); q.arc(cx, cy, R, a0, P - a0, true); }
+  const low = st === "long" || st === "bob" ? 0.1 : st === "buzz" ? -0.08 : 0.0, a0 = P * low - (st === "cap" || st === "spiky" ? Math.asin(Math.min(0.9, lift * 0.8)) : 0); /* a lifted fringe gets short sideburns */
+  const [xr, yr] = se(a0, R), xl = 2 * cx - xr;
+  if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = a0 - (i / 8) * (P + 2 * a0), rr = i % 2 ? R * 1.32 : R; const [x, y] = se(a, rr); if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
+  else { q.moveTo(xr, yr); crown(a0, -P - a0); }
   // fringe, left -> right
-  if (st === "cap" || st === "spiky") { const n = st === "spiky" ? 4 : 5, y0 = cy - r * (st === "spiky" ? 0.34 : 0.26), amp = r * (st === "spiky" ? 0.26 : 0.13);
+  if (st === "cap" || st === "spiky") { const n = st === "spiky" ? 4 : 5, y0 = cy + r * H(st === "spiky" ? -0.34 : -0.26), amp = r * (st === "spiky" ? 0.26 : 0.13);
     q.lineTo(xl + r * 0.05, y0); for (let i = 0; i < n; i++) { const xa = lerp(xl + r * 0.05, xr - r * 0.05, i / n), xb = lerp(xl + r * 0.05, xr - r * 0.05, (i + 1) / n); q.quadraticCurveTo(lerp(xa, xb, 0.35), y0 + amp * 0.2, lerp(xa, xb, 0.7), y0 + amp * (i % 2 ? 0.7 : 1)); q.quadraticCurveTo(lerp(xa, xb, 0.9), y0 + amp * 0.2, xb, y0); } }
-  else if (st === "side" || st === "pony") { q.lineTo(xl + r * 0.04, cy - r * 0.02); q.quadraticCurveTo(cx - r * 0.2, cy - r * 0.1, cx + r * 0.3, cy - r * 0.52); q.quadraticCurveTo(cx + r * 0.55, cy - r * 0.72, cx + r * 0.62, cy - r * 0.84); q.quadraticCurveTo(cx + r * 0.9, cy - r * 0.5, xr - r * 0.03, cy - r * 0.12); }
-  else if (st === "long") { q.lineTo(xl + r * 0.1, cy + r * 0.2); q.quadraticCurveTo(cx - r * 0.75, cy - r * 0.55, cx - r * 0.05, cy - r * 0.86); q.quadraticCurveTo(cx + r * 0.75, cy - r * 0.55, xr - r * 0.1, cy + r * 0.2); }
-  else if (st === "bob") { q.lineTo(xl + r * 0.12, cy + r * 0.22); q.lineTo(xl + r * 0.2, cy - r * 0.3); q.quadraticCurveTo(cx, cy - r * 0.2, xr - r * 0.2, cy - r * 0.3); q.lineTo(xr - r * 0.12, cy + r * 0.22); }
-  else if (st === "buzz") q.quadraticCurveTo(cx, cy - r * 0.62, xr, yr);
-  else q.quadraticCurveTo(cx, cy - r * 0.42, xr, yr); // bun / curly: soft hairline
+  else if (st === "side" || st === "pony") { q.lineTo(xl + r * 0.04, cy + r * H(-0.02)); q.quadraticCurveTo(cx - r * 0.2, cy + r * H(-0.1), cx + r * 0.3, cy + r * H(-0.52)); q.quadraticCurveTo(cx + r * 0.55, cy + r * H(-0.72), cx + r * 0.62, cy + r * H(-0.84)); q.quadraticCurveTo(cx + r * 0.9, cy + r * H(-0.5), xr - r * 0.03, cy + r * H(-0.12)); }
+  else if (st === "long") { q.lineTo(xl + r * 0.1, cy + r * H(0.2)); q.quadraticCurveTo(cx - r * 0.75, cy + r * H(-0.55), cx - r * 0.05, cy + r * H(-0.86)); q.quadraticCurveTo(cx + r * 0.75, cy + r * H(-0.55), xr - r * 0.1, cy + r * H(0.2)); }
+  else if (st === "bob") { q.lineTo(xl + r * 0.12, cy + r * H(0.22)); q.lineTo(xl + r * 0.2, cy + r * H(-0.3)); q.quadraticCurveTo(cx, cy + r * H(-0.2), xr - r * 0.2, cy + r * H(-0.3)); q.lineTo(xr - r * 0.12, cy + r * H(0.22)); }
+  else if (st === "buzz") q.quadraticCurveTo(cx, cy + r * H(-0.62), xr, yr);
+  else q.quadraticCurveTo(cx, cy + r * H(-0.42), xr, yr); // bun / curly: soft hairline
   q.closePath(); front.push(q);
-  if (st === "curly") for (let i = 0; i < 9; i++) { const a = -P * (0.02 + (i / 8) * 0.96); front.push(ell(cx + Math.cos(a) * R * 0.98, cy + Math.sin(a) * R * 0.98, r * 0.28, r * 0.26)); }
+  if (st === "curly") for (let i = 0; i < 9; i++) { const a = -P * (0.02 + (i / 8) * 0.96); const [ex, ey] = se(a, R * 0.98); front.push(ell(ex, ey, r * 0.28, r * 0.26)); }
   if (st === "bun") front.push(ell(cx, cy - r * 1.2, r * 0.38, r * 0.32));
   if (st === "long") back.push(rrect(cx - r * 1.14, cy - r * 0.4, r * 2.28, r * 2.1, r * 0.55));
   if (st === "bob") back.push(rrect(cx - r * 1.12, cy - r * 0.4, r * 2.24, r * 1.5, r * 0.5));
@@ -1624,24 +1669,25 @@ function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy
 }
 /** Three-quarter hair (facing +x): the mass wraps the top and the back of the skull (-x side), the hairline and the fringe
  *  slide toward the face side, the near ear stays free (long / bob curtains cover it). Same silhouettes as the front view. */
-function bobbleHair3(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number): { front: Path2D[]; back: Path2D[] } {
+function bobbleHair3(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, lift = 0): { front: Path2D[]; back: Path2D[] } {
   const R = r * 1.045, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
   if (st === "bald") return { front, back };
   const q = new Path2D(), X = (k: number) => cx + r * k, Y = (k: number) => cy + r * k;
+  const Yh = (k: number) => cy + r * (k - lift * clamp((k + 1) / 0.7, 0, 1) * clamp((0.05 - k) / 0.15, 0, 1)); /* hairline points, lifted */
   const curtain = st === "long" || st === "bob";
   const aF = P * (st === "long" ? 0.1 : st === "bob" ? 0.03 : st === "buzz" ? -0.2 : -0.13), aB = P * (st === "long" ? 0.76 : st === "bob" ? 0.9 : st === "buzz" ? 0.93 : 0.87), sweep = 2 * P + aF - aB; // face-side end, nape end
   if (st === "spiky") { for (let i = 0; i <= 8; i++) { const a = aF - (i / 8) * sweep, rr = i % 2 ? R * 1.32 : R; const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr; if (i) q.lineTo(x, y); else q.moveTo(x, y); } }
   else { q.moveTo(cx + R * Math.cos(aF), cy + R * Math.sin(aF)); q.arc(cx, cy, R, aF, aB, true); }
   // hairline, nape -> past the near ear -> temple -> fringe -> face-side end
-  const burn = (tx: number, ty: number) => q.quadraticCurveTo(X(-0.8), Y(0.12), X(tx), Y(ty));
-  if (st === "cap" || st === "spiky") { const n = st === "spiky" ? 3 : 4, y0 = cy - r * (st === "spiky" ? 0.34 : 0.26), amp = r * (st === "spiky" ? 0.26 : 0.13), x0 = X(-0.5), x1 = X(0.88);
+  const burn = (tx: number, ty: number) => q.quadraticCurveTo(X(-0.8), Y(0.12), X(tx), Yh(ty));
+  if (st === "cap" || st === "spiky") { const n = st === "spiky" ? 3 : 4, y0 = Yh(st === "spiky" ? -0.34 : -0.26), amp = r * (st === "spiky" ? 0.26 : 0.13), x0 = X(-0.5), x1 = X(0.88);
     burn(-0.5, st === "spiky" ? -0.34 : -0.26);
     for (let i = 0; i < n; i++) { const k0 = Math.pow(i / n, 0.9), k1 = Math.pow((i + 1) / n, 0.9), xa = lerp(x0, x1, k0), xb = lerp(x0, x1, k1); q.quadraticCurveTo(lerp(xa, xb, 0.35), y0 + amp * 0.2, lerp(xa, xb, 0.7), y0 + amp * (i % 2 ? 0.7 : 1)); q.quadraticCurveTo(lerp(xa, xb, 0.9), y0 + amp * 0.2, xb, y0); } }
-  else if (st === "side" || st === "pony") { burn(-0.55, -0.06); q.quadraticCurveTo(X(-0.1), Y(-0.14), X(0.48), Y(-0.56)); q.quadraticCurveTo(X(0.68), Y(-0.7), X(0.74), Y(-0.76)); q.quadraticCurveTo(X(0.95), Y(-0.55), X(0.95), Y(-0.36)); }
-  else if (st === "long") { q.lineTo(X(-0.44), Y(0.66)); q.quadraticCurveTo(X(-0.52), Y(-0.42), X(0.34), Y(-0.86)); q.quadraticCurveTo(X(0.9), Y(-0.5), X(0.9), Y(0.34)); }
-  else if (st === "bob") { q.lineTo(X(-0.42), Y(0.3)); q.lineTo(X(-0.36), Y(-0.3)); q.quadraticCurveTo(X(0.28), Y(-0.2), X(0.84), Y(-0.3)); q.lineTo(X(0.93), Y(0.16)); }
-  else if (st === "buzz") { burn(-0.6, -0.3); q.quadraticCurveTo(X(0.2), Y(-0.7), cx + R * Math.cos(aF), cy + R * Math.sin(aF)); }
-  else { burn(-0.52, -0.24); q.quadraticCurveTo(X(0.26), Y(-0.52), cx + R * Math.cos(aF), cy + R * Math.sin(aF)); } // bun / curly: soft hairline
+  else if (st === "side" || st === "pony") { burn(-0.55, -0.06); q.quadraticCurveTo(X(-0.1), Yh(-0.14), X(0.48), Yh(-0.56)); q.quadraticCurveTo(X(0.68), Yh(-0.7), X(0.74), Yh(-0.76)); q.quadraticCurveTo(X(0.95), Yh(-0.55), X(0.95), Yh(-0.36)); }
+  else if (st === "long") { q.lineTo(X(-0.44), Yh(0.66)); q.quadraticCurveTo(X(-0.52), Yh(-0.42), X(0.34), Yh(-0.86)); q.quadraticCurveTo(X(0.9), Yh(-0.5), X(0.9), Yh(0.34)); }
+  else if (st === "bob") { q.lineTo(X(-0.42), Yh(0.3)); q.lineTo(X(-0.36), Yh(-0.3)); q.quadraticCurveTo(X(0.28), Yh(-0.2), X(0.84), Yh(-0.3)); q.lineTo(X(0.93), Yh(0.16)); }
+  else if (st === "buzz") { burn(-0.6, -0.3); q.quadraticCurveTo(X(0.2), Yh(-0.7), cx + R * Math.cos(aF), cy + R * Math.sin(aF)); }
+  else { burn(-0.52, -0.24); q.quadraticCurveTo(X(0.26), Yh(-0.52), cx + R * Math.cos(aF), cy + R * Math.sin(aF)); } // bun / curly: soft hairline
   q.closePath(); front.push(q);
   if (st === "curly") for (let i = 0; i < 8; i++) { const a = aF + P * 0.03 - (i / 7) * (sweep + P * 0.04); front.push(ell(cx + Math.cos(a) * R * 0.98, cy + Math.sin(a) * R * 0.98, r * 0.28, r * 0.26)); }
   if (st === "bun") front.push(ell(X(-0.24), Y(-1.17), r * 0.38, r * 0.32));
@@ -1688,7 +1734,9 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   const short = s.top.sleeves === "short" || (!s.top.sleeves && (st === "tee" || st === "dress" || st === "overall" || st === "apron"));
   const armW = d * 0.105, legW = d * 0.125, skinSh = skinShade(skin), hs = s.hair?.style ?? "bald", hcol = s.hair?.color ?? "#3a2a24";
   const hst = s.hat && (hs === "bun" || hs === "spiky" || hs === "curly") ? "cap" : hs; // tall hair would poke through a hat
-  const hair = three ? bobbleHair3(hst, cx, cy, r) : bobbleHair(hst, cx, cy, r, side);
+  const hhw = B?.head?.hw ?? 1, hairTip = 0.08 - 0.94 + (B?.eyes?.eyeY ?? 0.5) * 1.88 - (B?.hairline ?? 0) * 1.88, lift = B?.hairline ? Math.max(0, -0.13 - hairTip / hhw) : 0;
+  const hair = three ? bobbleHair3(hst, cx, cy, r, lift) : bobbleHair(hst, cx, cy, r, side, lift, B?.head?.n ?? 2);
+  if (hhw !== 1) { hair.front = hair.front.map((q) => moved(q, 0, cy * (1 - hhw), 1, hhw)); hair.back = hair.back.map((q) => moved(q, 0, cy * (1 - hhw), 1, hhw)); } /* the hair follows an egg or a wide head */
   const drawLeg = (L: BobbleLimb) => {
     const col = L.far ? shade(legC, 0.2) : legC, sc = L.far ? shade(shoeC, 0.2) : shoeC;
     if (LM !== "sleeve") { // one stroke from hip to foot, no knee, a small foot oval
@@ -1836,7 +1884,10 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if (side && !s.beard && B?.nose !== false) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.8; g.beginPath(); g.arc(cx + r * 0.9, cy + r * 0.22, r * 0.12, -Math.PI * 0.45, Math.PI * 0.5); g.stroke(); } // nose tick
   if (hair.front.length) { if (sv) { g.save(); g.translate(cx, cy); g.rotate(rad(sv * 0.45)); g.translate(-cx, -cy); } // the hair mass drags behind the head, then overshoots
     inkUnion(c, hair.front, hcol);
-    g.save(); for (const q of hair.front) g.clip(q); g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); if (sv) g.restore(); }
+    const HT = B?.hairShine ?? "arc";
+    if (HT === "arc") { g.save(); for (const q of hair.front) g.clip(q); g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); }
+    else if (HT === "rim") for (const q of hair.front) { g.save(); g.clip(q); g.fillStyle = shade(hcol, 0.24); g.fill(q); g.fillStyle = hcol; g.fill(moved(q, 0, -d * 0.06)); g.restore(); }
+    if (sv) g.restore(); }
   const ey = fb.y - fb.h / 2 + 0.5 * fb.h;
   if ((s.glasses || s.shades) && three) { // near lens round, far lens narrower, a temple arm back to the near ear
     const dx = ((fs3.eyeSpacing ?? 0.3) * fb.w) / 2, gn = d * 0.125, L3: [number, number][] = [[fb.x - dx, gn], [fb.x + dx, gn * (0.2 + 0.8 * far3)]];
@@ -1845,7 +1896,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   else if (s.glasses || s.shades) { const gr = d * 0.14, xs = side ? [fb.x + fb.w * 0.2] : [fb.x - fb.w * 0.18, fb.x + fb.w * 0.18];
     for (const x of xs) { const L = ell(x, ey, gr, gr * 0.92); if (s.shades) { g.fillStyle = s.shades; g.fill(L); g.save(); g.clip(L); g.fillStyle = "rgba(255,255,255,0.35)"; g.fillRect(x - gr, ey - gr, gr * 0.9, gr * 0.7); g.restore(); } g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.stroke(L); }
     g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.beginPath(); if (side) { g.moveTo(xs[0] - gr, ey); g.lineTo(cx - r * 0.3, ey - gr * 0.1); } else { g.moveTo(xs[0] + gr, ey); g.lineTo(xs[1] - gr, ey); } g.stroke(); }
-  if (s.hat && !R.hatAt) bobbleHat(c, s.hat, cx, cy, r, side, (p.hatTilt ?? 0) + sv, three);
+  if (s.hat && !R.hatAt) bobbleHat(c, s.hat, cx, cy - r * 0.6 * ((B?.head?.hw ?? 1) - 1), r, side, (p.hatTilt ?? 0) + sv, three);
   g.restore();
   if (s.hat && R.hatAt) bobbleHat(c, s.hat, R.hatAt[0], R.hatAt[1], r, side, p.hatTilt ?? 0, three); // a lifted hat follows the hand, not the head
   // ---- near arms last: they may cross the torso and the head

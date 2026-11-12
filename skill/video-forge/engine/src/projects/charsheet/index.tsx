@@ -8,13 +8,13 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { CharacterSpec, Pose, walkPose } from "../../lib/characters/toon";
-import { BOBBLE_POSES, BobbleSpec, BRANDS, CastBrand, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, PoseKey, poseTrack, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, BobbleSpec, brandReport, BRANDS, CastBrand, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, PoseKey, poseTrack, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
 import { ProjectDef } from "../../lib/project";
 import { FONTS } from "../../lib/two/text";
 
 type Spec = KindSpec | CharacterSpec;
 type CellDef = { spec: Spec; pose: KPose; label: string; pass?: PassSpec; w?: number };
-type RowDef = { title: string; cells: CellDef[] };
+type RowDef = { title: string; cells: CellDef[]; note?: string };
 const K = KIND_PRESETS;
 const BB = (Object.keys(K) as (keyof typeof K)[]).filter((k) => k.startsWith("bb"));
 const BASE: BobbleSpec = { id: "base", kind: "bobble", skin: "#f6cfae", hair: { style: "cap", color: "#6a3d22" }, top: { color: "#e2483a", style: "jacket", accent: "#ffd23f" }, legs: "#2f4a7a", shoes: "#2b2230" };
@@ -178,6 +178,7 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
     ] },
     page11(fps),
     page12(),
+    page13(),
   ];
 }
 
@@ -200,6 +201,45 @@ function page12(): { title: string; rows: RowDef[]; h: number } {
   };
   return { title: "PAGE 12 · CAST BRANDS (one house style per cast): today's bobble · measured calibration family (never publish) · example brand", h: 300, rows: [
     row("bobble"), row("calibration", BRANDS.calibration), row("example", BRANDS.example)] };
+}
+
+/** Brand directions for the channel's own cast (design round 2). Each is one idea carried by every brand layer, changes
+ *  at least four of the five signature layers of the measured reference family and meets the readability minimums
+ *  (the row note is `brandReport`). Same roles in every row, so only the brand differs. */
+export const BRAND_DRAFTS: Record<"A" | "B" | "C" | "D", CastBrand> = {
+  /** A "block": graphic and dry; squircle heads, box torsos, tall pill eyes, flat hair, sky card, navy line */
+  A: { id: "draft-A-block", face: "#E4F0FF", ink: "#1B2340", head: { hw: 0.88, n: 3.0 }, line: { w: 0.042 }, limbs: { mode: "tint", w: 0.07 }, hands: { mode: "ball", size: 0.15 },
+    eyes: { eyes: "pill", eyeSize: 0.12, eyeSpacing: 0.36, eyeY: 0.47, brows: "thick", browScale: 1.05, mouthWidth: 0.24, mouthY: 0.7, catchlight: true },
+    shock: { eyes: "whites", eyeSize: 0.2, eyeSpacing: 0.36 }, torso: "box", ears: false, nose: false, shine: true, faceShade: "gradient", hairline: 0.27, hairShine: "flat", heads: 3.4 },
+  /** B "egg": tall and curious; egg heads with a high forehead, small dot eyes set low, teal line, rimmed hair, peach card */
+  B: { id: "draft-B-egg", face: "#FFEEDD", ink: "#12393F", head: { hw: 1.24, n: 2.1 }, line: { w: 0.038 }, limbs: { mode: "tint", w: 0.056 }, hands: { mode: "disc", size: 0.13 },
+    eyes: { eyes: "dot", eyeSize: 0.15, eyeSpacing: 0.34, eyeY: 0.53, brows: "line", browScale: 1.3, mouthWidth: 0.18, mouthY: 0.75, catchlight: false },
+    shock: { eyes: "whites", eyeSize: 0.2, eyeSpacing: 0.34 }, torso: "bean", ears: false, nose: false, shine: true, faceShade: "gradient", hairline: 0.32, hairShine: "rim", heads: 3.7 },
+  /** C "wide": warm and comic; wide heads, big white eyes, brown line, butter card, bigger heads on the body */
+  C: { id: "draft-C-wide", face: "#FFF5E0", ink: "#3A2214", head: { hw: 0.8, n: 2.2 }, line: { w: 0.038 }, limbs: { mode: "tint", w: 0.065 }, hands: { mode: "ball", size: 0.14 },
+    eyes: { eyes: "whites", eyeSize: 0.18, eyeSpacing: 0.38, eyeY: 0.5, brows: "line", browScale: 1.0, mouthWidth: 0.28, mouthY: 0.74, catchlight: true },
+    shock: { eyes: "whites", eyeSize: 0.23, eyeSpacing: 0.38 }, torso: "bean", ears: false, nose: false, shine: true, faceShade: "gradient", hairline: 0.26, heads: 3.0 },
+  /** D "bold": loud; a heavy indigo line, chunky limbs and hands, round dark eyes, lavender card, flat hair */
+  D: { id: "draft-D-bold", face: "#F1EAFF", ink: "#2B1B57", head: { hw: 0.96, n: 2.4 }, line: { w: 0.055 }, limbs: { mode: "tint", w: 0.09 }, hands: { mode: "ball", size: 0.17 },
+    eyes: { eyes: "solid", eyeSize: 0.15, eyeSpacing: 0.33, eyeY: 0.47, brows: "thick", browScale: 1.2, mouthWidth: 0.26, mouthY: 0.72, catchlight: true },
+    shock: { eyes: "whites", eyeSize: 0.22, eyeSpacing: 0.33 }, torso: "bean", ears: false, nose: false, shine: false, faceShade: "gradient", hairline: 0.27, hairShine: "flat", heads: 3.2 },
+};
+
+/** The copy test and readability check of a brand as a short multi-line note for a sheet row. */
+export function brandNote(b: CastBrand): string {
+  const r = brandReport(b);
+  return [r.changed.length + "/5 changed", ...r.changed, "face L*" + r.face.L.toFixed(0) + " C" + r.face.C.toFixed(0), "eye " + r.eye[0].toFixed(2) + "x" + r.eye[1].toFixed(2), "brow " + r.brow.toFixed(3), "hairline " + r.hairline.toFixed(2),
+    r.fails.length ? "FAIL " + r.fails.join(", ") : "readable: ok"].join("\n");
+}
+
+/** PAGE 13 (still 370): the four brand directions, same roles, views and expressions as page 12. */
+function page13(): { title: string; rows: RowDef[]; h: number } {
+  const p12 = page12(), rowOf = (name: string, b: CastBrand): RowDef => {
+    const r = p12.rows[0];
+    return { title: name, note: brandNote(b), cells: r.cells.map((c) => ({ ...c, spec: { ...(c.spec as BobbleSpec), brand: b } as Spec })) };
+  };
+  return { title: "PAGE 13 · OUR CAST, round 2: four brand directions (A block · B egg · C wide · D bold), same roles in every row", h: 300,
+    rows: [rowOf("A block", BRAND_DRAFTS.A), rowOf("B egg", BRAND_DRAFTS.B), rowOf("C wide", BRAND_DRAFTS.C), rowOf("D bold", BRAND_DRAFTS.D)] };
 }
 
 /** PAGE 11 (still 310): the bobble three-quarter view and the smear / settle frames of poseTrack pops. */
@@ -243,7 +283,8 @@ const Sheet: React.FC = () => {
       <div style={{ fontFamily: FONTS.display, fontSize: 26, color: "#222" }}>CHARACTER KINDS · {pg.title}</div>
       {pg.rows.map((r) => (
         <div key={r.title} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
-          <div style={{ width: 92, fontFamily: FONTS.mono, fontSize: 13, color: "#333", paddingTop: 8, wordBreak: "break-all" }}>{r.title}</div>
+          <div style={{ width: r.note ? 136 : 92, fontFamily: FONTS.mono, fontSize: 13, color: "#333", paddingTop: 8, wordBreak: "break-all" }}>{r.title}
+            {r.note ? <div style={{ fontSize: 11, color: r.note.includes("FAIL") ? "#a01818" : "#355", whiteSpace: "pre-line", marginTop: 4, lineHeight: 1.25 }}>{r.note}</div> : null}</div>
           {r.cells.map((c, i) => <Cell key={i} {...c} h={pg.h} frame={frame} />)}
         </div>
       ))}
@@ -253,6 +294,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 12 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 13 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);
