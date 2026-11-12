@@ -206,7 +206,8 @@ Read `characters.md` first for how the reference family is built and measured. U
 | per-character face tweak | `BobbleSpec.face` (wins over `brand.eyes`) | - | built; at most a resting lid (`baseLid`), never the eye type or spacing |
 | brand page | `page12()` in `projects/charsheet/index.tsx`, still 340 | rows bobble, calibration, example | built |
 | our brand directions | `BRAND_DRAFTS` + `page13()`, still 370 | A block, B egg, C wide, D bold (same three roles in every row) | built; round 2 |
-| round 3 | `BRAND_A3` + `page14()` (still 400), close-up `page15()` (still 430) | A3, A3 mitt, A3 big head | built; drafts until one is locked |
+| round 3 | `BRAND_A3` + `page14()` (still 400) | A3, A3 mitt, A3 big head | built |
+| **our locked cast** | `BRANDS.ours` (id `ours-v1`), close-up `page15()` (still 430), sheet `page16()` (still 460), `references/sheets/our-cast-v1.jpg` | A3 big head: 3.2 heads, squircle head, near-white card, black ink limbs, lidded eyes with a catchlight, combed hair, blend 0.9 | locked 2026-11-12; a change gets a new id (`ours-v2`) |
 | silhouette view | `PassSpec { pass: "silhouette" }` (`drawAnyStyled`) | used on page 2 | partly: no brand silhouette row, no IoU check |
 | face-pop check | - | - | not built (no face lead gate in QA) |
 | other line laws (halo, double line) | - | - | not built |

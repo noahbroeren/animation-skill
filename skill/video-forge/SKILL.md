@@ -106,7 +106,7 @@ the 16:9 version.
 | | sets with marks, props | `buildSet(name, opts, origin)`, `PROPS` in `lib/three/sets.ts`; sheet `--project setsheet` |
 | | shots, moves, joins | `frameShot` / `shotKeys` in `lib/shots.ts` (`via`: dissolve, glide, cut, through, flash, iris, whip) |
 | | light plan | `lightPlan([[frame, key, fade?]])`, `LIGHT_KEYS` in `lib/three/lightplan.ts` |
-| | characters and a cast house style | `kind: "bobble"`, `CastBrand` / `BRANDS` in `lib/characters/kinds.ts`; sheet `--project charsheet --stills 340` |
+| | characters and a cast house style | `kind: "bobble"`, `CastBrand` / `BRANDS` in `lib/characters/kinds.ts`; **our cast: `brand: BRANDS.ours`** (locked `ours-v1`, sheet `references/sheets/our-cast-v1.jpg`, charsheet stills 430 / 460) |
 | | pose-to-pose acting | `poseTrack`, `BOBBLE_POSES` |
 | | vehicles, weather, crowds | `lib/three/vehicles.ts`, `lib/three/weather.ts`, `CrowdPool.react` |
 | | thumbnails, titles, 16:9 | `tools/thumbs.mjs`, `story.py titles --auto`, `make.mjs --also long` |

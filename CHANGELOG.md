@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.3 - 2026-11-12
+- **Our cast is locked: `BRANDS.ours` (`ours-v1`)**, round 3's "A3 big head" (3.2 heads). Use `brand: BRANDS.ours`
+  on a board. Brand sheet: charsheet still 460 (three roles, turnaround, nine expressions, point, cheer), close-up
+  still 430, and `references/sheets/our-cast-v1.jpg`. Any change gets a new id.
+- Fuller hair (`hairVolume`) now gets room in the card, like hats and egg heads.
+
 ## 1.9.2 - 2026-11-12
 - **Our cast, round 3** (charsheet page 14, still 400; close-up page 15, still 430): A's squircle head on B's body,
   line and limb widths, a near-white card, black ink limbs and feet, lidded dark eyes with a catchlight, thinner brows,

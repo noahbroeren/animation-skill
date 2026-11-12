@@ -1533,7 +1533,14 @@ export function brandReport(b: CastBrand): { changed: string[]; kept: string[]; 
   if (hairline < 0.25) fails.push("hairline " + hairline.toFixed(2));
   return { changed, kept, fails, face, eye, brow, hairline };
 }
-export const BRANDS: Record<"calibration" | "example", CastBrand> = {
+export const BRANDS: Record<"calibration" | "example" | "ours", CastBrand> = {
+  /** THE CHANNEL'S OWN CAST, locked 2026-11-12 (round 3, "A3 big head"): squircle head on a slim bean body, 3.2 heads,
+   *  near-white card, black ink limbs and feet with ink-disc hands, even black line, lidded dark eyes with a catchlight,
+   *  thin brows, fuller combed hair with a sheen arc, soft colour blends. Frozen: any change gets a new id (ours-v2). */
+  ours: { id: "ours-v1", face: "#FCF8F3", ink: "#15171F", head: { hw: 0.88, n: 3.0 }, line: { w: 0.038 }, limbs: { mode: "ink", w: 0.056 }, hands: { mode: "disc", size: 0.13 },
+    eyes: { eyes: "solid", eyeSize: 0.17, eyeSpacing: 0.3, eyeY: 0.48, baseLid: 0.4, brows: "line", browW: 1.5, browScale: 1.05, mouthWidth: 0.16, mouthY: 0.7, catchlight: true },
+    shock: { eyes: "whites", eyeSize: 0.21, eyeSpacing: 0.3, catchlight: true }, torso: "bean", ears: false, nose: false, shine: true, faceShade: "gradient",
+    hairline: 0.25, hairShine: "arc", hairStrands: 6, hairVolume: 1.13, heads: 3.2, blend: 0.9 },
   /** The construction family measured on the reference channel. CALIBRATION ONLY (engine tests and side-by-sides):
    *  never publish a cast with all of it; character-design.md lists the layers to change (at least 3 of 5). */
   calibration: { id: "calibration", face: "#FCF8F3", ink: "#20101A", head: { hw: 0.945, n: 1.85 }, line: { w: 0.026, taper: 0.038 },
@@ -1584,11 +1591,11 @@ const BOBBLE_HATX: Record<BobbleHat["style"], number> = { top: 0.5, chef: 0.52, 
 /** Hats and tall hair shrink a bobble to fit its card. Multiply the card height by this so every body has the same
  *  real size (a man with a top hat is taller than the same man bare-headed): `new CharacterCard(spec, 1.7 * bobbleScale(spec), ...)`. */
 export function bobbleScale(s: BobbleSpec) {
-  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04, heads = s.heightHeads ?? s.brand?.heads ?? 3.4, egg = Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5; /* an egg head rises above the round one */
+  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04, heads = s.heightHeads ?? s.brand?.heads ?? 3.4, egg = Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5 + (s.hat ? 0 : Math.max(0, (s.brand?.hairVolume ?? 1.045) - 1.045) * 0.5); /* an egg head or fuller hair rises above the round one */
   return (heads + hx + egg) / (heads + 0.04);
 }
 function bobbleRig(c: Ctx, s: BobbleSpec, p: KPose): BobbleRig {
-  const hs = s.hair?.style, hx = (s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04) + Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5;
+  const hs = s.hair?.style, hx = (s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04) + Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5 + (s.hat ? 0 : Math.max(0, (s.brand?.hairVolume ?? 1.045) - 1.045) * 0.5);
   // default = the tall, slim figure (3.4 heads: long jacket, straight legs); heightHeads 2.6 gives the short chibi-like build
   const heads = s.heightHeads ?? 3.4, tk = clamp((heads - 2.6) / 0.8, 0, 1.3), TL = 0.92 + 0.36 * tk;
   const d = c.u / (heads + hx), r = d / 2, side = c.side, three = !!c.three;

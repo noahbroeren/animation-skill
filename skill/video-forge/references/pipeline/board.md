@@ -239,7 +239,8 @@ eyes 37 % from the top, `medium` 13 % / 44 %, `full` 6.5 % / 45 %, `xclose` 32 %
 shot on a person, `close` for reactions, `full` and `wide` to show the act and the place. Depth of field follows the size
 (on for close, medium and inserts; off for full and wide).
 
-**One house style.** `brand: BRANDS.example` (or your own `CastBrand`) on the board gives every bobble in the cast the
+**One house style.** `brand: BRANDS.ours` (the channel's locked cast, `ours-v1`; sheet `references/sheets/our-cast-v1.jpg`)
+or another `CastBrand` on the board gives every bobble in the cast the
 same face fill, ink, head shape, line law, limbs, hands, eyes and torso; roles differ by hair or hat, torso colour and
 one prop. Design your own with `references/craft/character-design.md`.
 
