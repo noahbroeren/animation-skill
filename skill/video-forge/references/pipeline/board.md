@@ -220,3 +220,31 @@ every shot, and travels take 20-40 frames.
 ranked on the measured title data) and, with `--also long`, renders the 16:9 version into `OUT/long/`: the shot grammar
 re-frames every beat for the other aspect. Check its stills (`render.mjs --format long --stills cues+10`): props
 stacked for 9:16 may not fit 16:9.
+
+## 9. Added in 1.9: joins on sentences, framing by the head, one house style
+
+Measured on the 20 newest reference shorts (every frame looked at); rules and numbers in `references/craft/`.
+
+**Joins.** You rarely need `via` any more:
+- a shot beat on the first word of a new sentence dissolves (9 frames, starting on the word, both pictures moving);
+- a shot beat inside a sentence travels (an accent move of 14-26 frames);
+- a framing shorter than 20 frames becomes a soft cut (6 frames);
+- write `via` only for a special join: `"through"` (push into a window, lens, screen or photo and come out in the new
+  place), `"flash"` (through white: a glow, a flash, lightning), `"iris"` (a circle opens), `"cut"` (a hard stop on a
+  stressed word: at most 2 per film).
+- `event: [0, 6]` on a beat marks frames where a prop changes the picture on purpose (QA lists them for a look).
+
+**Framing.** Shots on one character are framed by the head: `close` puts the head at 20 % of the frame height with the
+eyes 37 % from the top, `medium` 13 % / 44 %, `full` 6.5 % / 45 %, `xclose` 32 % / 47 %. Use `medium` as the default
+shot on a person, `close` for reactions, `full` and `wide` to show the act and the place. Depth of field follows the size
+(on for close, medium and inserts; off for full and wide).
+
+**One house style.** `brand: BRANDS.example` (or your own `CastBrand`) on the board gives every bobble in the cast the
+same face fill, ink, head shape, line law, limbs, hands, eyes and torso; roles differ by hair or hat, torso colour and
+one prop. Design your own with `references/craft/character-design.md`.
+
+**Acting.** Expressions snap on their word and hold; set `talk: true` only on quoted lines (narrated characters do not
+lip-sync); keep one character per shot by default.
+
+**Words.** Write 215-245 words for ~62 s (`craft/script.md`); the narration starts on frame 0 (`voOffset` is passed to
+the mix, so picture and sound agree).

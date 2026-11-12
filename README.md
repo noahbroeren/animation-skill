@@ -99,7 +99,7 @@ py ../analyzer/vfa.py qa out/.../pendulum_3840x2160_30fps.mp4 --plan out/.../tim
 | engine: native 2K/4K, 30/60 fps, chunked resumable renders, ink/DOF/bloom/grade/grain post, camera rig, world kit, 2D character cards with shadows, captions, titles, charts, transitions | **functional, tested** (demo short 1440x2560; demo long-form 2560x1440 and 3840x2160) |
 | procedural SFX, score bed, two-pass loudness mastering, voice-keyed ducking | functional, tested (-14.0 LUFS / -1.0 dBTP measured) |
 | offline TTS (Windows SAPI / macOS `say` / espeak) + faster-whisper word alignment | functional; OS voices sound robotic |
-| premium voice (ElevenLabs etc.), AI video plates, Blender photoreal, AI upscalers | **external**: documented integration paths in `references/external.md`, cost confirmation required |
+| premium voice (ElevenLabs etc.), AI video plates, Blender photoreal, AI upscalers | **external**: documented integration paths in `references/tools/external.md`, cost confirmation required |
 | channel study (`vfa batch`, eras, views correlation) + sentence breakdowns (`vfa breakdown`) | **functional, tested** on 42 shorts of a 149-short channel |
 | toon shaders (painted cel world, card shading, wind, water), camera motion blur, DOF v2, knot grade, FX, one-word captions | **functional, tested** in the `manhole` demo (1440x2560, QA WARN with no FAIL) |
 | audio DSP (BS.1770 loudness, true-peak limiter, words-keyed ducking, sections, reverb, distance) | **functional, tested** (`tests/test_audio.py`; ffmpeg cross-check on every mix) |

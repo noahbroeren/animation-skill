@@ -22,7 +22,7 @@ track the procedural bed (music.py) is arranged from the same marks.
 
 AMBIENCE. One bed is rendered from `places` and `rain`: room tone inside, a street bed outside, rain where it rains.
 
-Levels follow references/craft.md "Sound": everything is set by loudness relative to the voice; hits -4..-8 LU,
+Levels follow references/craft/general.md "Sound": everything is set by loudness relative to the voice; hits -4..-8 LU,
 details -12..-18, beds -24..-34, music about 20 LU under the voice the whole way.
 """
 from __future__ import annotations
@@ -38,13 +38,14 @@ from scipy.io import wavfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SR = 48000
-DEFAULT_LU = {"impact": -6, "thud": -8, "whoosh": -12, "swish": -15, "pop": -15, "ding": -14, "chime": -16, "sparkle": -17, "tick": -18, "click": -14,
-              "snip": -9, "coin": -11, "coins": -10, "hammer": -8, "rasp": -11, "hooves": -9, "thunder": -9, "sizzle": -8, "press": -8, "car": -10,
+DEFAULT_LU = {"impact": -9, "thud": -11, "whoosh": -12, "swish": -15, "pop": -15, "ding": -14, "chime": -16, "sparkle": -17, "tick": -18, "click": -14,
+              "snip": -12, "coin": -11, "coins": -10, "hammer": -11, "rasp": -11, "hooves": -9, "thunder": -9, "sizzle": -11, "press": -11, "car": -10,
               "crowd_cheer": -11, "crowd_gasp": -10, "crowd_clap": -12, "crowd_laugh": -11, "crowd_boo": -11, "crowd_sad": -14, "creak": -15, "riser": -13, "rumble": -12, "splash": -10}
 # synthesized stand-ins (sfx.py names) when no real sample exists; None = skip the cue
 SYNTH = {"snip": "click", "coin": "ding", "coins": "sparkle", "hammer": "impact", "rasp": "creak", "hooves": "rumble", "thunder": "rumble", "sizzle": "whoosh", "press": "thud", "car": "whoosh",
          "crowd_cheer": None, "crowd_gasp": None, "crowd_clap": None, "crowd_laugh": None, "crowd_boo": None, "crowd_sad": None, "crowd_look": None, "crowd_point": None}
-MODE_DB = {"build": 0.0, "full": 1.5, "calm": -5.0, "thin": -7.0, "stop": None}
+# 1.9: the reference keeps ONE bed level (sections within ~6 dB) and changes the music at the twist, not at the pivot
+MODE_DB = {"build": 0.0, "full": 1.0, "calm": -1.0, "thin": -2.0, "stop": None}
 SYNTH_LAYERS = {"build": ["pad", "pluck"], "full": ["pad", "pluck", "kick"], "calm": ["pad"], "thin": ["pad"]}
 
 
@@ -98,13 +99,15 @@ def main():
     ap.add_argument("--mood", default="curious")
     ap.add_argument("--bpm", default="100")
     ap.add_argument("--vo", default="vo.wav")
-    ap.add_argument("--vo-offset", type=float, default=0.1)
+    ap.add_argument("--vo-offset", type=float, default=0.0)
     ap.add_argument("--sounds")
     ap.add_argument("--no-real", action="store_true", help="synthesized sounds only (what the repository can reproduce)")
     ap.add_argument("--music-lu", type=float, default=-19.0)
     ap.add_argument("--out", default="master.wav")
     a = ap.parse_args()
     tl = json.load(open(a.timeline, encoding="utf-8"))
+    if "voOffset" in tl and a.vo_offset == 0.0:  # a storyboard says where its narration starts: picture and sound agree
+        a.vo_offset = float(tl["voOffset"])
     fps, total = tl["fps"], tl["durationInFrames"]
     dur, n = total / fps, int(total / fps * SR)
     pub = os.path.abspath(a.project_dir)
@@ -216,7 +219,7 @@ def main():
     for i, (t, mode) in enumerate(marks):
         b = marks[i + 1][0] if i + 1 < len(marks) else dur
         sections.append([t, b, a.music_lu - (2.0 if mode in ("calm", "thin") else 0.0)])
-    plan = {"duration": dur, "fps": fps, "target_lufs": -14, "true_peak": -1.5, "words": "words.json", "words_offset": a.vo_offset, "duck_db": -3,
+    plan = {"duration": dur, "fps": fps, "target_lufs": -14, "true_peak": -2.0, "words": "words.json", "words_offset": a.vo_offset, "duck_db": -3,
             "music_sections": sections, "reverb": {"rt60": 1.1, "wet": 0.4}, "tracks": tracks}
     json.dump(plan, open(os.path.join(pub, "audio_plan.json"), "w"), indent=1)
     subprocess.run([sys.executable, os.path.join(HERE, "mix.py"), os.path.join(pub, "audio_plan.json"), "--out", os.path.join(pub, a.out), "--stems", os.path.join(pub, "stems")], check=True)

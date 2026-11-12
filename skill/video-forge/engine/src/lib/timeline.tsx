@@ -34,6 +34,8 @@ export type SceneDef = {
   places?: { f: number; set: string; interior: boolean }[];
   /** planned camera travels [start, end] in local frames: QA does not call a luminance swing inside one flicker (a cut inside one is still a defect) */
   travels?: [number, number][];
+  /** seconds the narration starts into the mix (storyboards): audio/score.py places the voice there, so picture and sound agree */
+  voOffset?: number;
   /** remarks about the edit from the storyboard lint (lib/board.tsx `lintBoard`): shown by tools/render.mjs and make.mjs */
   lint?: string[];
 };
@@ -48,6 +50,7 @@ export function plan(scenes: SceneDef[]) {
   const soft: number[] = [];
   const events: number[] = [];
   const cues: Record<string, number> = {};
+  let voOffset: number | undefined;
   const sounds: NonNullable<SceneDef["sounds"]> = [], music: NonNullable<SceneDef["music"]> = [], rain: NonNullable<SceneDef["rain"]> = [], places: NonNullable<SceneDef["places"]> = [], travels: [number, number][] = [], lint: string[] = [];
   scenes.forEach((s, i) => {
     const ov = i === 0 ? 0 : tf(s.transition);
@@ -64,9 +67,10 @@ export function plan(scenes: SceneDef[]) {
     for (const x of s.places ?? []) places.push({ ...x, f: start + x.f });
     for (const [a, b] of s.travels ?? []) travels.push([start + a, start + b]);
     for (const l of s.lint ?? []) lint.push(l);
+    if (s.voOffset !== undefined && voOffset === undefined) voOffset = start === 0 ? s.voOffset : undefined;
     at = start + s.frames;
   });
-  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues, ...(sounds.length ? { sounds, music, rain, places } : {}), ...(travels.length ? { travels } : {}), ...(lint.length ? { lint } : {}) };
+  return { totalFrames: at, scenes: out, cuts: cuts.sort((a, b) => a - b), soft, events: events.sort((a, b) => a - b), cues, ...(sounds.length ? { sounds, music, rain, places } : {}), ...(travels.length ? { travels } : {}), ...(lint.length ? { lint } : {}), ...(voOffset !== undefined ? { voOffset } : {}) };
 }
 
 const Wrap: React.FC<{ children: React.ReactNode; enter?: Transition; exit?: Transition; frames: number }> = ({ children, enter, exit, frames }) => {

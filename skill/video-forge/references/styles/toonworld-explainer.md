@@ -8,6 +8,25 @@ How this profile was built:
 
 Use it for any topic. The style is the *system* below, not the channel's stories.
 
+> **1.9 update (2026-11-12): the 20 newest shorts were re-studied frame by frame (all 35,987 frames looked at), and
+> several numbers below turned out to be measurement artefacts.** Where this pack and `references/craft/` disagree,
+> the craft sheets win. The corrections that matter:
+> - **Joins:** about 81 % of shot changes are cross-dissolves of 7-9 frames; hard cuts are 0-2 per film. The automatic
+>   cut detector misses dissolves, so the "16 s average shot" in the fingerprint is wrong: shots last a median 2.2 s,
+>   joined softly, with the camera moving through every join (`craft/edit.md`).
+> - **Glides:** the "44 f glide" is several moves merged. Accent moves last a median 16 f (about 7 f ease each side) on
+>   top of a constant push; the camera is still on fewer than 4 % of frames (`craft/camera.md`).
+> - **No whoosh on travels:** transitions carry a sound effect only at chance level (`craft/sound.md`).
+> - **Characters:** one off-white face fill for the whole cast (no skin tones; warm or pink faces are scene light), a
+>   plum-black ink, an outline thin on the lit side and thick on the shadow side, single-stroke limbs with disc hands;
+>   front view 76 %, three-quarter 20 %; 2-frame blinks; lip sync only on quoted lines (`craft/characters.md`,
+>   `craft/acting.md`). Do not copy that combination for a cast of our own (`craft/character-design.md`).
+> - **Shading:** a cast shadow keeps ~45 % of the light and the surface hue, a form shadow ~22 % (`craft/shading.md`).
+> - **Light:** about 4 keys and 5 changes per short, day first, night in the middle, golden late (`craft/lighting.md`).
+> - **Script:** 3.74 words/s, ~234 words in 63 s, sentences ~15.5 words, the mechanism at ~73 % (`craft/script.md`).
+> - **Sound:** a dark minor-key bed ~17.5 LU under the voice, ~50 small SFX a minute about 11 dB under it, -2 dBTP
+>   (`craft/sound.md`).
+
 ## 1. Two eras, and what changed
 
 | | sketch era (older, n=15) | explainer era (current, n=27) |

@@ -13,6 +13,10 @@
 import { clamp, ease as E, EaseName, fbm1, lerp } from "./time";
 
 export type V3 = [number, number, number];
+/** Join styles measured on the reference (frame study, 1.9): `fade` cross-dissolve (81 % of joins); `through` the camera
+ *  pushes into the old picture and comes out of the new one (a window, a lens, a photo, a pupil); `flash` the mix passes
+ *  through white (a glow, a lightning flash, a muzzle flash); `iris` a circle opens from the centre in a few frames. */
+export type JoinStyle = "fade" | "through" | "flash" | "iris";
 export type CamKey = {
   f: number;
   pos: V3;
@@ -28,6 +32,8 @@ export type CamKey = {
   cut?: boolean; // jump here instantly
   /** cross-dissolve INTO this key over n frames (two camera views blended; Stage3D dissolveAt) */
   dissolve?: number;
+  /** how the two views are joined during the dissolve (default a plain cross-fade) */
+  join?: JoinStyle;
 };
 export type Kick = { f: number; amp: number; frames?: number };
 export type CamState = { pos: V3; look: V3; fov: number; roll: number; focus: number };
@@ -161,14 +167,24 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
       }
       return { pos, look, fov: b.fov, roll, focus: b.focus };
     },
-    /** During a dissolve key: both camera states and the mix (0 = old view, 1 = new view); null otherwise. */
-    dissolveAt(f: number, fps = 30): { a: CamState; b: CamState; t: number } | null {
-      const k = ks.find((x) => x.dissolve && f >= x.f - x.dissolve / 2 && f < x.f + x.dissolve / 2);
+    /** During a dissolve key: both camera states, the mix (0 = old view, 1 = new view), the frame whose WORLD the old view
+     *  shows (`fa`, the last frame before the key) and the join style; null otherwise.
+     *  1.9 (frame study of 20 reference shorts): the mix starts ON the key and runs `dissolve` frames with a curve halfway
+     *  between linear and smoothstep (no frame carries more than ~0.14 of the mix); both cameras keep moving. Before, the
+     *  window was centred on the key, the new camera was frozen until the key and both halves rendered the same world, so
+     *  the change of actors, props and light at the key put half the mix into one frame and read as a cut. */
+    dissolveAt(f: number, fps = 30): { a: CamState; b: CamState; t: number; fa: number; style?: JoinStyle } | null {
+      const k = ks.find((x) => x.dissolve && f >= x.f && f < x.f + x.dissolve);
       if (!k) return null;
       const before = cameraRig(ks.filter((x) => x !== k && x.f < k.f), opts);
       const after = this as unknown as { at: (f: number, fps: number) => CamState };
-      const t = E.smooth(clamp((f - (k.f - k.dissolve! / 2)) / k.dissolve!));
-      return { a: before.at(f, fps), b: after.at(Math.max(f, k.f), fps), t };
+      const u = clamp((f - k.f + 1) / (k.dissolve! + 1)), t = 0.5 * u + 0.5 * E.smooth(u);
+      let a = before.at(f, fps), b = after.at(f, fps);
+      if (k.join === "through") { // push INTO the old picture (accelerating) and come out of the new one (decelerating)
+        const pa = 1 - 0.55 * E.inCubic(clamp(t * 1.25)), pb = 0.45 + 0.55 * E.outCubic(clamp(t * 1.1));
+        a = { ...a, pos: mix3(a.look, a.pos, pa) }; b = { ...b, pos: mix3(b.look, b.pos, pb) };
+      }
+      return { a, b, t, fa: k.f - 1, style: k.join };
     },
   };
 }

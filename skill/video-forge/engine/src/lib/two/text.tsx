@@ -207,8 +207,11 @@ export const GradientBg: React.FC<{ a: string; b: string; angle?: number; drift?
  * thin black outline, lower-middle). Words shorter than minFrames are merged with the next word
  * so nothing flashes for 1-2 frames.
  */
-export const WordCaptions: React.FC<{ words: Word[]; y?: number; yAt?: (frame: number) => number | undefined; size?: number; color?: string; outline?: number; minFrames?: number; uppercase?: boolean; lead?: number }> = ({
-  words, y, yAt, size, color = "#ffffff", outline = 0.06, minFrames = 3, /* outline 0.06 em measured (vfa ocr) */ uppercase = false, lead = 0.12,
+export const WordCaptions: React.FC<{ words: Word[]; y?: number; yAt?: (frame: number) => number | undefined; size?: number; color?: string; outline?: number; minFrames?: number; uppercase?: boolean; lead?: number;
+  /** 1.9 "metronome" captions (frame study of 20 reference shorts): `y` is the CENTRE of the line, the last word stays up
+   *  through pauses (never blank), a soft shadow down-right; set by storyboard projects. */
+  center?: boolean }> = ({
+  words, y, yAt, size, color = "#ffffff", outline = 0.06, minFrames = 3, /* outline 0.06 em measured (vfa ocr) */ uppercase = false, lead = 0.12, center = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -221,13 +224,13 @@ export const WordCaptions: React.FC<{ words: Word[]; y?: number; yAt?: (frame: n
     if (last && (last.end - last.start) * fps < minFrames && w.start - last.end < 0.15) { last.text += " " + w.word; last.end = w.end; }
     else chunks.push({ text: w.word, start: w.start, end: w.end });
   }
-  const i = chunks.findIndex((c, k) => t >= c.start - lead && t < (chunks[k + 1]?.start ?? c.end + 0.35) - lead); // appear ON the onset
+  const i = chunks.findIndex((c, k) => t >= c.start - lead && t < (chunks[k + 1]?.start ?? (center ? 1e9 : c.end + 0.35)) - lead); // appear ON the onset
   if (i < 0) return null;
   const fs = (size ?? (vertical ? 92 : 72)) * u;
   return (
-    <div style={{ position: "absolute", top: (yAt?.(frame) ?? y ?? (vertical ? 0.66 : 0.78)) * height, left: 0, right: 0, textAlign: "center",
+    <div style={{ position: "absolute", top: (yAt?.(frame) ?? y ?? (vertical ? 0.66 : 0.78)) * height, left: 0, right: 0, textAlign: "center", lineHeight: 1, transform: center ? "translateY(-50%)" : undefined,
       fontFamily: FONTS.heavy, fontWeight: 900, fontSize: fs, color, textTransform: uppercase ? "uppercase" : "none",
-      WebkitTextStroke: `${outline * fs}px #0b0b10`, paintOrder: "stroke fill", textShadow: `0 ${0.04 * fs}px ${0.1 * fs}px rgba(0,0,0,0.5)` }}>
+      WebkitTextStroke: `${outline * fs}px #0b0b10`, paintOrder: "stroke fill", textShadow: center ? `${3 * u}px ${3.5 * u}px ${4 * u}px rgba(0,0,0,0.5)` : `0 ${0.04 * fs}px ${0.1 * fs}px rgba(0,0,0,0.5)` }}>
       {chunks[i].text.replace(/[,.;:!?]+$/, (m) => (m.includes("?") || m.includes("!") ? m.slice(-1) : ""))}
     </div>
   );

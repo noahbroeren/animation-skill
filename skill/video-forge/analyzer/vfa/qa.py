@@ -190,7 +190,7 @@ def run_qa(path: str, out_dir: str, min_class: str = "2k", expect_fps: float | N
     md = [f"# QA: `{os.path.basename(path)}` -> **{worst}**", "", "| check | status | detail |", "|---|---|---|"]
     md += [f"| {c['check']} | {c['status']} | {c['detail']} |" for c in checks]
     md += ["", "Automated checks are necessary, not sufficient: now LOOK at the contact sheets and timeline "
-           "(`analysis/sheets`, `analysis/timeline.png`) and run the judge rubric in references/quality-gates.md."]
+           "(`analysis/sheets`, `analysis/timeline.png`) and run the judge rubric in references/pipeline/quality.md."]
     with open(os.path.join(out_dir, "qa.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(md) + "\n")
     return result

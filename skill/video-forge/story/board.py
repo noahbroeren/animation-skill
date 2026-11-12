@@ -207,7 +207,7 @@ def to_ts(D: dict) -> str:
          " * Every beat has a place, a lighting key, a shot and a proposed gag. Replace generic picks with the topic's own props",
          " * (`props: { name: (api) => Object3D | { group, update } }`), move people to real marks, then check the pictures:",
          f" *   node tools/render.mjs --project {D['id']} --stills cues --scale 0.3",
-         " * Authoring guide: references/board.md.", " */",
+         " * Authoring guide: references/pipeline/board.md.", " */",
          'import { Beat, Board, boardProject } from "../../lib/board";', 'import WORDS from "./words.json";', "", "const beats: Beat[] = ["]
     for b, r in zip(D["beats"], D["rows"]):
         L.append(f"  // {r['n']}. {r['beat']}: {r['text']}" + ("   <-- NEEDS A GAG" if not b.get("gag") else ""))

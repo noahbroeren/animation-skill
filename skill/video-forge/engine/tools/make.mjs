@@ -60,7 +60,7 @@ const story = (args) => run(PY, [path.join(SKILL, "story", "story.py"), ...args]
 const script = P("script.txt");
 if (A.script) fs.copyFileSync(path.resolve(A.script), script);
 if (on("script")) {
-  if (!fs.existsSync(script)) need("script", `write the script to ${script}\n(format and formulas: references/story-engine.md; examples: story/examples/*.txt)`);
+  if (!fs.existsSync(script)) need("script", `write the script to ${script}\n(format and formulas: references/pipeline/story-engine.md; examples: story/examples/*.txt)`);
   const r = story(["lint", script, ...(A.style ? ["--style", A.style] : [])]);
   process.stdout.write(r.stdout);
   if (r.status !== 0) need("script", "fix the FAIL lines of the lint above");
@@ -69,7 +69,7 @@ if (on("script")) {
 // ---- claims
 if (on("claims")) {
   const claims = P("claims.md");
-  if (!fs.existsSync(claims)) { story(["claims", script, "--out", claims]); need("claims", `fact-check every row of ${claims} (two independent sources, mark each OK with its source; references/story-engine.md "Fact check")`); }
+  if (!fs.existsSync(claims)) { story(["claims", script, "--out", claims]); need("claims", `fact-check every row of ${claims} (two independent sources, mark each OK with its source; references/pipeline/story-engine.md "Fact check")`); }
   const r = story(["verify", claims]);
   if (r.status !== 0) { process.stdout.write(r.stdout); need("claims", `finish the open rows in ${claims}`); }
   done("claims", "fact-check gate PASS");
@@ -112,7 +112,7 @@ if (on("board")) {
     const reg = path.join(ENGINE, "src", "projects", "index.ts"), camel = id.replace(/[^A-Za-z0-9]/g, "") + "Short";
     let s = fs.readFileSync(reg, "utf8");
     if (!s.includes(`"./${id}"`)) { s = s.replace(/\n\nexport const PROJECTS/, `\nimport { ${camel} } from "./${id}";\n\nexport const PROJECTS`).replace(/\];\s*$/, `, ${camel}];\n`); fs.writeFileSync(reg, s); }
-    need("board", `the DRAFT storyboard is in ${index} and the gag table in ${path.join(src, "board.md")}.\nGive every sentence its own picture (custom props, real marks, the cast's wardrobe), see references/board.md,\nthen check the pictures with:  node tools/make.mjs --project ${id} --from board --to stills`);
+    need("board", `the DRAFT storyboard is in ${index} and the gag table in ${path.join(src, "board.md")}.\nGive every sentence its own picture (custom props, real marks, the cast's wardrobe), see references/pipeline/board.md,\nthen check the pictures with:  node tools/make.mjs --project ${id} --from board --to stills`);
   }
   const t = run(process.platform === "win32" ? "npx.cmd" : "npx", ["tsc", "--noEmit", "-p", "."], { shell: process.platform === "win32" });
   if (t.status !== 0) { process.stdout.write(t.stdout.slice(0, 4000)); need("board", "fix the TypeScript errors above"); }

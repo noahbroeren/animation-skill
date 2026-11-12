@@ -22,7 +22,7 @@ Script format (plain text, one or more sentences per line):
   [beat:pivot] You see, ...                       (override the inferred beat)
 
 The formula and every number come from story/targets.json (measured style profiles). The writing itself is done by
-Claude in the workflow (references/story-engine.md); this tool measures, gates and turns the script into a plan.
+Claude in the workflow (references/pipeline/story-engine.md); this tool measures, gates and turns the script into a plan.
 """
 from __future__ import annotations
 
@@ -258,8 +258,39 @@ def lint(path: str, style: str | None, wps: float | None = None) -> dict:
         pa, pb = T["pivot_position"]
         if not pa <= pos <= pb:
             add("WARN", f"pivot at {pos:.0%} of the runtime (target {pa:.0%}-{pb:.0%})", "move the mechanism reveal")
-    if sum(1 for s in S if "you see" in s["text"].lower()) > 1:
-        add("WARN", "'You see' used more than once: weakens the pivot", "keep one")
+    ys = [i for i, s in enumerate(S) if "you see" in s["text"].lower()]
+    ca, cb = T.get("connector_you_see", [0.0, 0.0])
+    extra = [i for i in ys if not pivots or i != pivots[0]]
+    if len(ys) > 2 or any(not ca <= S[i]["start"] / max(dur, 1e-6) <= cb for i in extra):
+        add("WARN", "'You see' outside its two places (an optional connector in the first ~12 %, the pivot)", "keep one as the pivot, at most one early connector")
+    # 1.9 sentence shape (20-short study): storyteller sentences of 13-17 words, few very short ones, never three in a row
+    if "short_sentence_share" in T:
+        sw = T.get("short_sentence_words", 5)
+        sh = [s["words"] <= sw for s in S]
+        share = sum(sh) / len(S)
+        lo_s, hi_s = T["short_sentence_share"]
+        if share > hi_s:
+            add("WARN", f"{share:.0%} of the sentences have {sw} words or fewer (target {lo_s:.0%}-{hi_s:.0%})", "join them with but / so / then; keep very short lines for a doubter, a turn or a punch")
+        run = best = 0
+        for x in sh:
+            run = run + 1 if x else 0
+            best = max(best, run)
+        if best > T.get("max_consecutive_short", 2):
+            add("WARN", f"{best} very short sentences in a row", "never stack more than two")
+    allw = " ".join(s["text"] for s in S)
+    nw = max(1, len(allw.split()))
+    if "words_range" in T:
+        wa, wb = T["words_range"]
+        if nw < wa * 0.9 or nw > wb * 1.05:
+            add("INFO", f"{nw} words (style {wa}-{wb} for a ~{T.get('duration_target_s', 60)} s short)", "the measured pace leaves room for more story" if nw < wa else "trim the escalation first")
+    if "numbers_per_100w_max" in T:
+        nums = len(re.findall(r"\b\d[\d,.]*\b|\b(?:hundred|thousand|million|billion|dozen)\b", allw.lower()))
+        dates = len(re.findall(r"\b(1[0-9]{3}|20[0-9]{2})s?\b", allw))
+        if nums * 100 / nw > T["numbers_per_100w_max"]:
+            add("WARN", f"{nums * 100 / nw:.1f} numbers per 100 words (style <= {T['numbers_per_100w_max']})", "keep numbers you can show as a pile, a row or a gauge; drop the rest")
+        if dates > T.get("dates_max", 99):
+            add("WARN", f"{dates} dates (style <= {T['dates_max']})", "use clock words (that summer, one night) instead of years")
+    # (the hook echo is checked further down: 'the ending does not echo the hook')
     mocks = sum(1 for s in S if s["speaker"] != "narrator")
     ma, mb = T["mock_lines"]
     if not ma <= mocks <= mb:
@@ -479,7 +510,7 @@ def title_case(t: str) -> str:
 
 
 def title_variants(subject: str, fact: str | None, contrast: str | None) -> list[str]:
-    """Fill the measured title forms (references/hooks-topics.md): Why/How first, a negation/contradiction, the
+    """Fill the measured title forms (references/craft/hooks-titles.md): Why/How first, a negation/contradiction, the
     reference channel's 'The [X] That [Y]' label. No This/These, no ALL-CAPS, key words in the first ~40 chars."""
     S = subject.strip()
     out = []
@@ -684,7 +715,7 @@ def main():
                 print(f"{r['score']:3d}  {xv:<6} {r['chars']:3d}c  {r['title']}   [{', '.join(r['features']) or '-'}]")
             if R[0]["suggestions"]:
                 print("\nfor the best one: " + " | ".join(R[0]["suggestions"]))
-            print("\nScores are correlations from 7 measured channels (references/hooks-topics.md), not a promise.")
+            print("\nScores are correlations from 7 measured channels (references/craft/hooks-titles.md), not a promise.")
 
 
 if __name__ == "__main__":

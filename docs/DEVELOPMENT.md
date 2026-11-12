@@ -22,7 +22,7 @@ End-to-end verification used for 1.0.0:
 - **New character feature/prop**: `engine/src/lib/characters/toon.ts` (`Pose.prop`, `drawCharacter`). Keep sizes relative to `hw`/`headW`.
 - **New transition**: `engine/src/lib/timeline.tsx` (`Wrap` enter/exit branches + `DEF_FRAMES`).
 - **New metric**: compute in `analyzer/vfa/frame_metrics.py` (per frame) → add key to `COLOR_KEYS`/`TEX_KEYS` in
-  `analyze.py` → add a row to `METRICS` in `compare.py` (tolerance + advice) → document in `references/analyzer.md`.
+  `analyze.py` → add a row to `METRICS` in `compare.py` (tolerance + advice) → document in `references/tools/analyzer.md`.
 - **New QA check**: `analyzer/vfa/qa.py` (`add(name, status, detail)`); respect `intended()` for planned events.
 
 ## Conventions

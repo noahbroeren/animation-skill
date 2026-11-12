@@ -10,7 +10,7 @@ Cutting INSIDE the silence (never inside a word) keeps the performance and buys 
 - A gap between two words longer than --max-gap is shortened to it (--sentence-gap after . ! ? : and before a line
   of another speaker), cutting out the middle of the gap with 12 ms cosine crossfades at the quietest sample nearby.
 - Word times in --words-out are shifted to match, so captions and cues stay exact (no second alignment needed).
-- Leading silence is trimmed to 40 ms, the tail to 150 ms.
+- Leading silence is trimmed to 0 ms (the voice starts on frame 0), the tail to 150 ms.
 Prints the old and new duration and words/s.
 """
 from __future__ import annotations
@@ -37,8 +37,8 @@ def tighten(x: np.ndarray, sr: int, words: list[dict], max_gap=0.2, sentence_gap
 
     cuts: list[tuple[int, int]] = []  # sample ranges to remove
     lead = words[0]["start"]
-    if lead > 0.06:
-        cuts.append((0, int((lead - 0.04) * sr)))
+    if lead > 0.02:
+        cuts.append((0, int(lead * sr)))
     for a, b in zip(words, words[1:]):
         gap = b["start"] - a["end"]
         cap = sentence_gap if a["word"].rstrip('"\'').endswith((".", "!", "?", ":")) else max_gap
@@ -89,8 +89,10 @@ def main():
     ap.add_argument("--words", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--words-out", required=True)
-    ap.add_argument("--max-gap", type=float, default=0.2)
-    ap.add_argument("--sentence-gap", type=float, default=0.3)
+    # 1.9 (20-short study): ~0.08 s of silence at full stops, 0.06 s at commas, never more than ~0.15 s; TTS word ends
+    # carry ~0.05 s of tail, so these gaps leave about that much real silence
+    ap.add_argument("--max-gap", type=float, default=0.08)
+    ap.add_argument("--sentence-gap", type=float, default=0.14)
     a = ap.parse_args()
     sr, x = wavfile.read(a.wav)
     scale = 1.0

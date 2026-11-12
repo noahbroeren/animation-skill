@@ -21,6 +21,23 @@ engine/
   tools/new-project.mjs   scaffold
 ```
 
+## Map by subsystem
+
+The sections below were written release by release; this table finds the current state of each subsystem. The newest
+section about a subsystem wins where two disagree. The measured targets behind the defaults are in `references/craft/`.
+
+| subsystem | files | sections here | craft sheet |
+|---|---|---|---|
+| formats, projects, timeline | `formats.ts`, `project.tsx`, `timeline.tsx` | Formats, ProjectDef / SceneDef / Timeline | - |
+| storyboard | `board.tsx`, `tools/make.mjs` | Added in 1.7, 1.8, 1.9; and `references/pipeline/board.md` | `edit.md`, `script.md` |
+| camera, shots, joins | `camera.ts`, `shots.ts`, `three/Stage3D.tsx` | Camera rig, Added in 1.7, 1.9 | `camera.md`, `edit.md` |
+| characters | `characters/kinds.ts`, `characters/toon.ts`, `three/cast.ts` | Characters, Added in 1.4, 1.8, 1.9 | `characters.md`, `character-design.md`, `acting.md` |
+| shading, light, look, post | `three/shaders.ts`, `three/lightplan.ts`, `three/world.ts`, `look.ts`, `three/post.ts` | Looks and post, Added in 1.1, 1.6, 1.8.1, 1.9 | `shading.md`, `lighting.md`, `grade.md`, `ink.md`, `depth.md` |
+| world, sets, textures | `three/sets.ts`, `three/world.ts`, `three/textures.ts` | World kit, Added in 1.5, 1.7, 1.8 | `textures.md` |
+| effects, weather, vehicles | `three/fx.ts`, `three/weather.ts`, `three/vehicles.ts` | Added in 1.2, 1.7 | `effects.md` |
+| 2D, captions | `two/text.tsx` | 2D, typography and motion graphics, Added in 1.9 | `captions.md` |
+| render, tools | `tools/*.mjs` | Rendering, Troubleshooting | - |
+
 ## Formats (all finals render NATIVELY; nothing is upscaled)
 
 | id | size | use |
@@ -212,7 +229,7 @@ first incoming frame). A camera jump of more than 35 % of the focus distance is 
 **Lip-sync (visemes).** `Pose.viseme` takes `rest|A|E|I|O|U|M|F|L|W`; `visemeAt(frame, fps, words, lead = 2)` maps
 word timings (Whisper or ElevenLabs `/with-timestamps` -> `tts.py eleven` writes words.json) to mouth shapes by
 grapheme rules, leading the audio by 2 frames. Give each speaking character only ITS words
-(`words.slice(first, last + 1)`). See `references/characters.md` section 4 for the full phoneme/viseme tables.
+(`words.slice(first, last + 1)`). See `references/craft/character-types.md` section 4 for the full phoneme/viseme tables.
 
 **Side view.** `Pose.view = "side"` draws a profile: features slide to the facing side, one eye, a nose tick, slimmer
 torso. CrowdPool uses it automatically for walking extras.
@@ -239,9 +256,9 @@ Mux with ffmpeg (`-framerate 30 -i f%06d.png`) and run `vfa qa` like any render;
 
 **Director loop.** `node tools/produce.mjs --project ID --ref REF_fingerprint.json --ref-dir REF_ANALYSIS --style
 STYLE --change "what changed"` runs stills -> render -> audio -> mux -> QA -> gap -> judge pack -> learning log ->
-report.md. See `references/director-loop.md`.
+report.md. See `references/pipeline/director-loop.md`.
 
-**Character kinds (`lib/characters/kinds.ts`, build specs in `references/characters.md`).** Seven kinds beyond the
+**Character kinds (`lib/characters/kinds.ts`, build specs in `references/craft/character-types.md`).** Seven kinds beyond the
 toon.ts humans, all frame-pure Canvas2D sharing one face module (16 expressions, Rhubarb mouth cues A-H/X plus the
 toon visemes): `object` (face on any shape: box, can, ball, jelly, phone, house, tooth, custom SVG path; `rigidity`
 limits squash), `critter` (cat, dog, bird, frog, bear, mouse, rabbit, fox, pig; `cat4`/`dog4` quadrupeds with a
@@ -399,7 +416,7 @@ and run `vfa qa DIR_audit/video.mp4 --plan DIR_audit/timeline.json --min-class n
 
 ## Added in 1.6 (shading, lighting and colour, from the four research reports)
 
-Rules and sources: `references/shading-lighting.md` and `references/research/`. What changed in code:
+Rules and sources: `references/research/shading-lighting.md` and `references/research/`. What changed in code:
 
 **Shader patches compose (`addPatch`).** `addPatch(material, key, fn)` in `lib/three/shaders.ts` stacks patches and
 builds the program cache key from all of them. `windSway()` + `toonifyScene()` used to lose the wind (the later
@@ -447,7 +464,7 @@ Measured on the elevator short (cue stills and QA) in the CHANGELOG entry for 1.
 
 ## Added in 1.7 (storyboard as data, sets, shot grammar, weather, vehicles, sound from the picture)
 
-Full guide: `references/board.md`. The pieces, bottom up:
+Full guide: `references/pipeline/board.md`. The pieces, bottom up:
 
 | piece | file | what it gives |
 |---|---|---|
@@ -469,11 +486,11 @@ Bugs found on the way (both were silent):
   line start. No project used it, so nothing failed until the yard set's pool rendered as grass.
 - `Raycaster` hits invisible meshes; the shot audit reported a hidden prop as an occluder.
 
-Measured lessons (coin short, first board): see the nine rules in `references/board.md` section 3.
+Measured lessons (coin short, first board): see the nine rules in `references/pipeline/board.md` section 3.
 
 ## Added in 1.8 (hold the shot, tools in the hand, life in the set, thumbnails and 16:9 from the board)
 
-Rules and the authoring table: `references/board.md` section 8. The pieces:
+Rules and the authoring table: `references/pipeline/board.md` section 8. The pieces:
 
 - **Held props** (`lib/characters/kinds.ts`): `StickHold.item` adds `shears` (`open` 0..1), `coin` (`len` = radius in
   head units, `cut` = a shaved flat), `file`, `hammer`, `sack`, `quill`, `bar`; `KPose.hold2` is the other hand; `aim`
@@ -516,3 +533,38 @@ Rules and the authoring table: `references/board.md` section 8. The pieces:
   next to the character outlines.
 - **Board**: place dissolves take 14 frames (10 read as cuts to the detector); `BoardApi.aspect` lets a prop laid out
   for 9:16 re-arrange itself for 16:9.
+
+## Added in 1.9 (a frame-by-frame study of 20 reference shorts)
+
+Targets and reasons: `references/craft/` (one sheet per area). What changed in the engine:
+
+- **Joins** (`camera.ts dissolveAt`, `three/Stage3D.tsx`, `three/post.ts dissolve`): a dissolve starts ON its key and
+  runs `dissolve` frames (board default 9) with a curve halfway between linear and smoothstep, so no frame carries more
+  than ~0.14 of the mix. The outgoing half renders the WORLD of the frame before the key (`fa`): actors, props, place
+  and light that switch at the key no longer jump inside the mix. Both cameras keep moving. Join styles (`JoinStyle`,
+  `Via`): `through` (push into the old picture, out of the new one), `flash` (through white), `iris` (a circle opens);
+  `cut` is a 6-frame soft dissolve by default (`Board.softCut`).
+- **Board joins** (`board.tsx viaOf`): a shot beat on the first word of a new sentence dissolves; inside a sentence the
+  camera travels (`glideLen` 14-26 f, `inOutSine`); a framing shorter than 20 frames cuts. `Beat.event` declares an
+  intended picture change (a prop that turns or breaks) so QA lists it instead of failing the edit plan.
+- **Framing** (`shots.ts HEAD_FRAMING`, `Subject.head`): one character is framed by head height and eye line per size
+  (close 20 % / 37 %, medium 13 % / 44 %, full 6.5 % / 45 %, xclose 32 % / 47 %); two-shots put the eyes at 44 %.
+- **Depth of field** (`board.tsx DOF_BY_SIZE`): on for close, medium, xclose and inserts (insert 24), off for full and
+  wide; blended across travels; motion blur x0.45 while travelling.
+- **Captions** (`two/text.tsx WordCaptions center`): the board sets size 75 (at 1080 w), outline 0.17 em, lead 0.03 s,
+  centre at 70.4 % of the height, the last word stays up through pauses, a soft shadow down-right.
+- **Shading** (`three/shaders.ts`): cast and form shadow are separate terms. `ToonSetup.castMul` (linear) keeps ~45 % of
+  the light and the surface hue in a cast shadow; the form shadow keeps ~22 %; golden and sunset cast shadows mix toward
+  a blue-violet replacement. Terminator 0.02-0.60 (soft). Cards take `cardTint` per key with `cardTintMix` (0.85 at
+  night and under lamps), and rim light is down to a trace.
+- **Grade, ink, sky** (`look.ts`, `three/post.ts`, `three/world.ts`): darker blacks, near-white highs and more
+  saturation by day, plum darks at golden hour, saturated cobalt nights (sky #163c9e -> #3a5cc8); world ink 5.2 / 2.8,
+  `distFar` 60, `hue` 0.2, more silhouettes and creases inked.
+- **Cast house style** (`characters/kinds.ts CastBrand`, `BRANDS`, `Board.brand`): one choice per layer for the whole
+  cast: face fill, ink, head superellipse, line law (`taper`: an ink copy shifted away from the key light under the
+  fill), limbs (`sleeve`, `ink`, `tint`), hands (`fist`, `disc`, `ball`), eyes (`pill`, `baseLid`), torso (`bean`),
+  ears / nose / shine, face shading (`gradient`). `BRANDS.calibration` is the measured reference family for engine
+  tests only; `BRANDS.example` is an example house style. Sheet: `render.mjs --project charsheet --format long --stills 340`.
+- **Sound and narration** (`audio/tighten.py`, `audio/score.py`): pauses capped at 0.08 s (0.14 s at sentence ends), no
+  lead silence; quieter SFX defaults, flatter music sections, -2 dBTP; no swish on dissolves; the board passes its
+  narration offset (`voOffset`) to the mix through `timeline.json`.

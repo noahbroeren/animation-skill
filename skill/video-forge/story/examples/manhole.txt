@@ -1,17 +1,19 @@
 # title: Why Square Manhole Covers Don't Work
 # style: toonworld-explainer
 # topic: why manhole covers are round (geometry: constant width)
-In 1890, a mayor ordered every manhole cover in town made perfectly *square*.
-He wanted modern streets, and square covers match the square tiles.
-[place:foundry] The old foundry, the only one that casts covers, laughs at him.
+A proud mayor orders every manhole cover in his brand-new town cast perfectly *square*.
+He wants square lids to line up with the square paving stones around them.
+[place:foundry] The old foundry, the only workshop in the valley that can cast iron covers, laughs at the order.
 @founder: Square? Good luck with that.
-[place:street] But square covers are cheaper, and they stack neatly on a cart.
-So by spring, half the town has square holes.
-Then one morning, a worker lifts a cover, turns it to set it down, and it slips.
-Straight down the hole.
-Wait, what? The cover is bigger than the hole.
-[beat:pivot] You see, a square is wider from corner to corner than from side to side: about *1.41* times.
-Turn it on its diagonal, and it slides right through.
-A circle is the same width whichever way you turn it, so it can never fall into its own hole.
-By summer, the town quietly swaps every cover back.
-[place:foundry] And the old foundry? They *doubled* their prices.
+[place:street] But the mayor points out that square covers are cheaper to cast and stack flat on a cart.
+So the foundry pours them anyway, and by spring half the holes in town wear a square iron lid.
+Then one rainy morning, a worker lifts a cover to clean the drain, turns it to set it down, and lets go.
+The heavy lid tips onto its corner and drops straight down the hole with a splash.
+Wait, what?
+The cover was clearly bigger than the hole, so how could it possibly fall through?
+Within a week two more lids disappear, and the town engineer starts measuring every one of them.
+[beat:pivot] You see, a square is wider from corner to corner than from side to side, about *1.41* times wider.
+Tip it up on its diagonal, and the long side slides right through the short gap.
+A circle is the same width whichever way you turn it, so a round lid can never fall into its own hole.
+By summer, the mayor quietly orders every square cover replaced with a round one.
+[place:foundry] And the old foundry that laughed at the square order casts every round one, at double the price.

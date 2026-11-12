@@ -37,13 +37,13 @@ def test_lint_flags_weak_hook_cta_and_double_pivot():
                     "You see, a circle cannot fall in.\nSubscribe for more!\n")
     r = story.lint(p, "toonworld-explainer")
     msgs = " ".join(i["issue"] for i in r["issues"])
-    assert "greeting" in msgs and "call to action" in msgs and "'You see' used more than once" in msgs
+    assert "greeting" in msgs and "call to action" in msgs and "'You see' outside its two places" in msgs
     assert r["score"] < 50
 
 
 def test_claims_and_verify_gate():
     rows = story.claims(EX)
-    assert any("1890" in r["claim"] for r in rows) and any("1.41" in r["claim"] for r in rows)
+    assert any("1.41" in r["claim"] for r in rows) and any("double" in r["claim"] for r in rows)  # a measured ratio and a comparison
     p = os.path.join(tempfile.mkdtemp(), "c.md")
     open(p, "w", encoding="utf-8").write(story.claims_md(rows))
     assert len(story.verify(p)) == len(rows)  # all open
@@ -96,7 +96,7 @@ for (const fps of [30, 60]) {
                        cwd=engine, check=True)
         out = subprocess.run(["node", js], capture_output=True, text=True, check=True).stdout.split()
         steps = [float(x) for x in out[1::2]]
-        assert all(s < 0.3 for s in steps), out  # metres per 30-fps frame; a jump was 2.5 m before the push-carry fix
+        assert all(s < 0.5 for s in steps), out  # metres per 30-fps frame; a jump was 2.5 m before the push-carry fix (1.9: 16-f accent travels peak ~0.33)
     finally:
         shutil.rmtree(d, ignore_errors=True)
 

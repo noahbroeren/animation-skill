@@ -16,7 +16,7 @@ export const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: strin
   // warm key + cool sky fill => warm highlights, cool/violet shadows (the measured cartoon look)
   day: { sun: "#fff1d6", sunI: 2.6, sky: "#9cc8ff", ground: "#7a6a4a", hemiI: 1.1, amb: 0.15, dir: [-0.55, 0.8, 0.35], fog: "#bfe0ff", skyTop: "#3f8ff0", skyHorizon: "#bfe6ff" },
   golden: { sun: "#ffbd7a", sunI: 2.8, sky: "#8f86d6", ground: "#7a5236", hemiI: 0.9, amb: 0.12, dir: [-0.8, 0.32, 0.4], fog: "#ffc89a", skyTop: "#5a63c9", skyHorizon: "#ffb98a" },
-  night: { sun: "#9bb4ff", sunI: 0.9, sky: "#2a3570", ground: "#151a30", hemiI: 0.7, amb: 0.1, dir: [0.4, 0.7, 0.2], fog: "#1b2448", skyTop: "#0b1030", skyHorizon: "#2c3d7a" },
+  night: { sun: "#9bb4ff", sunI: 0.9, sky: "#2a3570", ground: "#151a30", hemiI: 0.7, amb: 0.1, dir: [0.4, 0.7, 0.2], fog: "#2a3a8a", skyTop: "#163c9e", skyHorizon: "#3a5cc8" },
   overcast: { sun: "#f4f6fa", sunI: 1.2, sky: "#c9d3df", ground: "#7d7a72", hemiI: 1.5, amb: 0.2, dir: [-0.3, 0.9, 0.2], fog: "#d4dbe3", skyTop: "#a7b3c2", skyHorizon: "#dfe5ec" },
   studio: { sun: "#ffffff", sunI: 2.2, sky: "#f0f0ff", ground: "#c9c0b0", hemiI: 1.0, amb: 0.25, dir: [-0.5, 0.85, 0.6], fog: "#ece6dc", skyTop: "#ece6dc", skyHorizon: "#ece6dc" },
   space: { sun: "#ffffff", sunI: 3.2, sky: "#1a2040", ground: "#000000", hemiI: 0.15, amb: 0.03, dir: [-1, 0.3, 0.5], fog: "#000000", skyTop: "#02030a", skyHorizon: "#050816" },
@@ -28,7 +28,7 @@ export const LIGHTS: Record<LightPreset, { sun: string; sunI: number; sky: strin
   morning:        { sun: "#ffe4ce", sunI: 2.3, sky: "#a9c9f5", ground: "#7d6f58", hemiI: 1.0, amb: 0.15, dir: [-0.78, 0.42, 0.45], fog: "#dbe7f2", skyTop: "#4d9be8", skyHorizon: "#ffe9d2", fogNF: [8, 90] },
   sunsetBack:     { sun: "#ff9d5a", sunI: 3.0, sky: "#7a78c8", ground: "#6a4a3a", hemiI: 1.1, amb: 0.15, dir: [-0.48, 0.26, -0.84], fog: "#ffb07a", skyTop: "#4a4fb0", skyHorizon: "#ff9a5c", fogNF: [8, 90] },
   dawn:           { sun: "#ffc9a0", sunI: 2.6, sky: "#b7b0ea", ground: "#806050", hemiI: 1.0, amb: 0.15, dir: [-0.88, 0.26, 0.41], fog: "#ffd9c4", skyTop: "#6f8fe0", skyHorizon: "#ffc9b0", fogNF: [10, 110] },
-  nightMoon:      { sun: "#a9bcff", sunI: 1.0, sky: "#2a3570", ground: "#151a30", hemiI: 0.8, amb: 0.10, dir: [0.71, 0.57, -0.41], fog: "#1b2448", skyTop: "#060b2e", skyHorizon: "#1d2f7a", fogNF: [6, 80] },
+  nightMoon:      { sun: "#a9bcff", sunI: 1.0, sky: "#2a3570", ground: "#151a30", hemiI: 0.8, amb: 0.10, dir: [0.71, 0.57, -0.41], fog: "#2a3a8a", skyTop: "#060b2e", skyHorizon: "#1d2f7a", fogNF: [6, 80] },
   nightPractical: { sun: "#a9bcff", sunI: 0.5, sky: "#1f2858", ground: "#10142a", hemiI: 0.55, amb: 0.08, dir: [0.71, 0.57, -0.41], fog: "#141a3c", skyTop: "#040824", skyHorizon: "#15235e", fogNF: [5, 60] },
   neon:           { sun: "#8fa0ff", sunI: 0.3, sky: "#1a1440", ground: "#0d0a24", hemiI: 0.5, amb: 0.06, dir: [0.71, 0.57, -0.41], fog: "#24124a", skyTop: "#05041c", skyHorizon: "#2a1456", fogNF: [4, 50] },
   interiorWindow: { sun: "#eef4ff", sunI: 2.2, sky: "#b8ccd8", ground: "#8a6a52", hemiI: 0.9, amb: 0.20, dir: [-0.85, 0.50, 0.15], fog: "#7297aa", skyTop: "#7297aa", skyHorizon: "#a9c2cf", fogNF: [15, 60] },

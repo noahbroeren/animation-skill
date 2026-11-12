@@ -112,7 +112,7 @@ def test_score_builds_a_master_from_the_cue_sheet_without_real_samples():
     plan = json.load(open(os.path.join(pub, "audio_plan.json")))
     assert any(t["file"] == "ambience.wav" for t in plan["tracks"]) and any(t.get("role") == "music" for t in plan["tracks"])
     snip = next(t for t in plan["tracks"] if t.get("at_frame") == 60)
-    assert snip["file"].endswith("click.wav") and snip["naive_lu"] == -9          # stand-in + default level by name
+    assert snip["file"].endswith("click.wav") and snip["naive_lu"] == -12          # stand-in + default level by name
 
 
 def test_strips_rows_for_planned_and_event_only_cuts():

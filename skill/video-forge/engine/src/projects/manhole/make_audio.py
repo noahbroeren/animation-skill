@@ -3,7 +3,7 @@
 
   py make_audio.py <render_out>/timeline.json
 
-Level model (references/craft.md "Sound"): every cue is set by LOUDNESS relative to the voice (naive_lu):
+Level model (references/craft/general.md "Sound"): every cue is set by LOUDNESS relative to the voice (naive_lu):
 beds -26..-32, big hits 0..-6, details -12..-20; camera travels get a whoosh/swish anchored at its peak; the music
 is arranged per story section and STOPS dead under the incident (silence under the big moment), comes back calm for
 the night explanation, full for the payoff with a button hit after the last word. Ducking keys off words.json.

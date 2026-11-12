@@ -84,7 +84,7 @@ Contracts between owners are exported constants (e.g. `timing()` cue names, `TOO
 
 After the loop, run `py SKILL/analyzer/vfa_loop.py lessons --style S`:
 - changes that improved a metric in at least 2 iterations become **confirmed rules**;
-- move them into the style profile's rules (and into `craft.md` if they are general).
+- move them into the style profile's rules (and into `references/craft/general.md` if they are general).
 
 Changes that regressed go to "avoid".
 

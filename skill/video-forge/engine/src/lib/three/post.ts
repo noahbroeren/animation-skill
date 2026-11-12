@@ -82,11 +82,11 @@ void main(){
       vec2 o = STEP[a] * texel * float(r);
       float z1 = dist(tDepth, vUv - o), z2 = dist(tDepth, vUv + o);
       float s = (1.0 / z1 + 1.0 / z2 - 2.0 * Wc) / Wc;      // 2nd difference of 1/z: 0 on planes
-      eD = max(eD, smoothstep(0.007, 0.021, -s) * cw);      // near side of depth jumps only (x0.6: judge/ink iter 2)
+      eD = max(eD, smoothstep(0.004, 0.014, -s) * cw);      // near side of depth jumps only (x0.6: judge/ink iter 2)
       if (ch > 0.0) {
         vec4 n1 = textureLod(tNormal, vUv - o, 0.0), n2 = textureLod(tNormal, vUv + o, 0.0);
-        float k1 = (n1.a > 0.5 && abs(z1 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.80, 0.94, dot(n0, n1.xyz)) : 0.0;
-        float k2 = (n2.a > 0.5 && abs(z2 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.80, 0.94, dot(n0, n2.xyz)) : 0.0;
+        float k1 = (n1.a > 0.5 && abs(z1 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.86, 0.96, dot(n0, n1.xyz)) : 0.0;
+        float k2 = (n2.a > 0.5 && abs(z2 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.86, 0.96, dot(n0, n2.xyz)) : 0.0;
         eN = max(eN, max(k1, k2) * ch);
       }
     }
@@ -435,16 +435,24 @@ export class PostPipeline {
   private outB?: THREE.WebGLRenderTarget;
   /** Two finished frames (e.g. two camera views) cross-dissolved to the screen. */
   dissolve(scene: THREE.Scene, camA: THREE.PerspectiveCamera, camB: THREE.PerspectiveCamera, look: Look,
-    o: { focusA: number; focusB: number; frame: number; t: number }) {
+    o: { focusA: number; focusB: number; frame: number; t: number; lookB?: Look; between?: () => void; style?: string }) {
     this.outA ??= new THREE.WebGLRenderTarget(this.w, this.h, { depthBuffer: false });
     this.outB ??= new THREE.WebGLRenderTarget(this.w, this.h, { depthBuffer: false });
     this.render(scene, camA, look, { focus: o.focusA, frame: o.frame, target: this.outA });
-    this.render(scene, camB, look, { focus: o.focusB, frame: o.frame, target: this.outB });
+    o.between?.(); /* the world moves on to the new shot's state before the second half */
+    this.render(scene, camB, o.lookB ?? look, { focus: o.focusB, frame: o.frame, target: this.outB });
     this.mats.mix ??= new THREE.ShaderMaterial({ vertexShader: VERT, depthTest: false, depthWrite: false,
-      uniforms: { tA: { value: null }, tB: { value: null }, t: { value: 0 } },
-      fragmentShader: `uniform sampler2D tA; uniform sampler2D tB; uniform float t; varying vec2 vUv;
-        void main(){ gl_FragColor = mix(texture2D(tA, vUv), texture2D(tB, vUv), t); }` });
+      uniforms: { tA: { value: null }, tB: { value: null }, t: { value: 0 }, mode: { value: 0 }, aspect: { value: 1 } },
+      fragmentShader: `uniform sampler2D tA; uniform sampler2D tB; uniform float t; uniform float mode; uniform float aspect; varying vec2 vUv;
+        void main(){ vec4 a = texture2D(tA, vUv), b = texture2D(tB, vUv);
+          if (mode < 0.5) { gl_FragColor = mix(a, b, t); return; }
+          if (mode < 1.5) { /* flash: through white, peak at the middle */ float w = 1.0 - abs(2.0 * t - 1.0); vec4 c = mix(a, b, smoothstep(0.35, 0.65, t)); gl_FragColor = mix(c, vec4(1.0), w * w * 0.92); return; }
+          /* iris: a circle opens from the centre, with a thin dark ring on its edge */
+          vec2 p = (vUv - 0.5) * vec2(aspect, 1.0); float r = length(p), R = t * 0.62 * sqrt(1.0 + aspect * aspect);
+          float inside = 1.0 - smoothstep(R - 0.004, R + 0.004, r); vec4 c = mix(a, b, inside);
+          float ring = smoothstep(0.012, 0.0, abs(r - R)) * step(0.02, t) * step(t, 0.98); gl_FragColor = mix(c, vec4(0.06, 0.05, 0.08, 1.0), ring * 0.85); }` });
     this.mats.mix.uniforms.tA.value = this.outA.texture; this.mats.mix.uniforms.tB.value = this.outB.texture; this.mats.mix.uniforms.t.value = o.t;
+    this.mats.mix.uniforms.mode.value = o.style === "flash" ? 1 : o.style === "iris" ? 2 : 0; this.mats.mix.uniforms.aspect.value = this.w / this.h;
     this.pass(this.mats.mix, null);
   }
 

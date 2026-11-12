@@ -9,7 +9,7 @@ PACK_DIR/<area>/ with:
   sbs.jpg     reference keyframes beside ours at matching relative times (when a reference analysis dir is given)
   sheets.txt  which contact sheets / frames to open
 The director spawns one reviewer per area with prompt.md + the images, collects their JSON into PACK_DIR/scores.json
-(`vfa_loop.py collect`), and routes fixes to fixer agents by file ownership (references/director-loop.md).
+(`vfa_loop.py collect`), and routes fixes to fixer agents by file ownership (references/pipeline/director-loop.md).
 """
 from __future__ import annotations
 

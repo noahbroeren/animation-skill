@@ -8,7 +8,7 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { CharacterSpec, Pose, walkPose } from "../../lib/characters/toon";
-import { BOBBLE_POSES, BobbleSpec, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, PoseKey, poseTrack, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
+import { BOBBLE_POSES, BobbleSpec, BRANDS, CastBrand, Cue, drawAnyStyled, hopPose, hopWalkPose, KEXPRS, KExpr, KIND_PRESETS, KindSpec, KPose, PassSpec, PoseKey, poseTrack, STICK_POSES, walk4Pose, withSecondary } from "../../lib/characters/kinds";
 import { ProjectDef } from "../../lib/project";
 import { FONTS } from "../../lib/two/text";
 
@@ -177,7 +177,29 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
       ] },
     ] },
     page11(fps),
+    page12(),
   ];
+}
+
+/** PAGE 12 (still 340): the cast brand system (1.9). The same roles under three house styles: today's bobble, the
+ *  measured CALIBRATION family (engine tests only, never published) and an EXAMPLE brand built with the design rules. */
+function page12(): { title: string; rows: RowDef[]; h: number } {
+  const ROLES: Partial<BobbleSpec>[] = [
+    { hair: { style: "cap", color: "#6a3d22" }, top: { color: "#e2483a", style: "jacket", accent: "#ffd23f" } },
+    { hat: { style: "chef", color: "#fbfaf6" }, stache: "#4a3020", top: { color: "#e9dcc6", style: "apron", accent: "#c0392b" } },
+    { hair: { style: "bun", color: "#2a2228" }, glasses: "#2b2230", top: { color: "#3d6b8a", style: "suit" }, neck: { style: "tie", color: "#c8323a" } },
+  ];
+  const row = (name: string, brand?: CastBrand): RowDef => {
+    const sp = (i: number): Spec => ({ ...BASE, ...ROLES[i], ...(brand ? { brand } : {}) }) as Spec;
+    const ex: KExpr[] = ["neutral", "smug", "happy", "laugh", "shock", "angry", "sad", "think", "nervous"];
+    return { title: name, cells: [
+      ...[0, 1, 2].flatMap((i) => [{ spec: sp(i), pose: {} as KPose, label: "front", w: 120 }, { spec: sp(i), pose: { view: "three" } as KPose, label: "3/4", w: 120 }, { spec: sp(i), pose: { view: "side" } as KPose, label: "side", w: 104 }]),
+      ...ex.map((e) => ({ spec: sp(0), pose: { expr: e } as KPose, label: e, w: 104 })),
+      { spec: sp(0), pose: BOBBLE_POSES.point, label: "point", w: 150 }, { spec: sp(1), pose: BOBBLE_POSES.cheer, label: "cheer", w: 130 },
+    ] };
+  };
+  return { title: "PAGE 12 · CAST BRANDS (one house style per cast): today's bobble · measured calibration family (never publish) · example brand", h: 300, rows: [
+    row("bobble"), row("calibration", BRANDS.calibration), row("example", BRANDS.example)] };
 }
 
 /** PAGE 11 (still 310): the bobble three-quarter view and the smear / settle frames of poseTrack pops. */
@@ -231,6 +253,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 11 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 12 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);

@@ -1,7 +1,7 @@
 # Research notes
 
 The full study of the reference video and of the 11 supplied skill projects lives in
-[`skill/video-forge/references/reference-study.md`](../skill/video-forge/references/reference-study.md) (it ships with
+[`skill/video-forge/references/research/reference-study.md`](../skill/video-forge/references/research/reference-study.md) (it ships with
 the skill so Claude can consult it). This page records the technology research and decisions.
 
 ## What was accessed and verified

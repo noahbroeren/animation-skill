@@ -12,7 +12,7 @@
  *   3. sound: src/projects/<id>/make_audio.py <timeline.json>  (or public/<id>/audio_plan.json -> audio/mix.py)
  *   4. mux (cached chunks are only concatenated)
  *   5. vfa qa (plan + mixreport + optional reference)  -> qa/qa.md, qa/gap.md
- *   6. judge pack for reviewer agents (references/director-loop.md)  -> judge/<area>/prompt.md
+ *   6. judge pack for reviewer agents (references/pipeline/director-loop.md)  -> judge/<area>/prompt.md
  *   7. iteration log + learning: if a previous iteration exists, record metric moves (vfa_loop learn)
  *   8. report.md: verdict, failing checks, gap score, worst gaps, what to do next
  * Exit code: 0 = QA PASS/WARN, 1 = QA FAIL (blocks delivery).
@@ -139,7 +139,7 @@ const R = [`# Produce report: ${A.project} (iteration ${its.length})`, "",
   ...(warns.length ? ["## Warnings", ...warns.map((c) => `- ${c.check}: ${c.detail}`), ""] : []),
   ...(worst.length ? ["## Biggest gaps vs reference", ...worst.map((r) => `- ${r.label}: ref ${r.ref.toFixed(3)} / ours ${r.ours.toFixed(3)} (gap ${r.gap}) -> ${r.advice}`), ""] : []),
   ...(keygap ? ["## Colour per lighting key", keygap.split("\n").filter((l) => l.startsWith("|")).join("\n"), ""] : []),
-  "## Next (director loop, references/director-loop.md)",
+  "## Next (director loop, references/pipeline/director-loop.md)",
   `1. Look at \`${path.join(qaDir, "strips.jpg")}\` (every transition, frame by frame), \`${path.join(out, "stills_sheet.jpg")}\` and the QA contact sheets.`,
   `2. Spawn one reviewer agent per folder in \`${pack}\` (prompt.md); save answers as <area>/answer.json; run \`py analyzer/vfa_loop.py collect ${pack}\`.`,
   "3. Route fixes by owner (fixes.md) to fixer agents with file ownership; merge; re-run produce with --change \"...\" --style <style>.",

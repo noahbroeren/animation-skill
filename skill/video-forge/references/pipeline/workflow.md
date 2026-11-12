@@ -83,7 +83,7 @@ holds refs, analysis and notes. The engine project lives in `SKILL/engine/src/pr
 
 ## D. Long-form and series
 
-Follow `longform.md`. Key differences:
+Follow `references/pipeline/longform.md`. Key differences:
 - A **series bible** (characters, palette, locations, look, typography, voice) is shared by all episodes.
 - **Chapters** are separate scenes with their own Stage3D, joined by transitions.
 - Render in chunks (default 20 s) and re-render only what changed.

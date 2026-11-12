@@ -3,7 +3,7 @@
 
   py make_audio.py <render_out>/timeline.json
 
-Same level model as the manhole demo (references/craft.md "Sound"): every cue is set by loudness relative to the
+Same level model as the manhole demo (references/craft/general.md "Sound"): every cue is set by loudness relative to the
 voice (naive_lu); camera place-changes get a swish centred on the dissolve; the music is arranged per story section
 and STOPS dead under the drop (silence under the big moment), comes back calm for the night explanation, and full
 for the payoff with a button hit after the last word.

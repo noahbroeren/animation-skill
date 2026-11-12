@@ -2,7 +2,7 @@
 
 Use this for mode C (original) and B (recreate better). Claude writes; the tools measure, gate and translate the story
 into a plan. Every number comes from `story/targets.json`, which follows the measured style profiles. Topic and hook
-evidence is in `references/hooks-topics.md`.
+evidence is in `references/craft/hooks-titles.md`.
 
 ```
 STORY = py SKILL_DIR/story/story.py
@@ -10,7 +10,7 @@ STORY = py SKILL_DIR/story/story.py
 
 ## 1. Topic (15 min)
 - Pick from evidence, not taste:
-  - `references/hooks-topics.md` lists the topic families that out-perform on measured channels.
+  - `references/craft/hooks-titles.md` lists the topic families that out-perform on measured channels.
   - `vfa topics <channel>` gives the outlier-score data for a reference channel.
 - A good topic is an everyday object or rule with a hidden mechanism, a paradox, an "illegal/impossible" fact, or a
   story with stakes. It can be explained with one visual analogy in 40-70 s.
@@ -33,7 +33,7 @@ Follow the formula of the style:
 4. escalation with time markers
 5. incident
 6. mystery ("Wait, what?")
-7. pivot ("You see,") once, at 40-75 % of the runtime
+7. pivot ("You see,") at 62-82 % of the runtime (measured 2026-11-12: the mechanism starts at ~73 %); an optional early "You see," as a connector in the first ~12 % is fine; never anywhere in between (12-60 %)
 8. mechanism with one analogy
 9. ironic payoff as the last line, with no outro or CTA
 
@@ -85,13 +85,13 @@ For on-screen speakers, also run `py AUDIO/lipsync.py vo.wav --script script.txt
 `STORY board script.txt --words words.json --id ID --out ENGINE/src/projects/ID` writes a draft `Board` (one beat per clause,
 anchored on its first content word) and `board.md`: a table with the proposed place, lighting key, shot and gag for every
 clause, and the list **"still needs a gag"**. Proposals come from `story/gags.json`; add the topic's nouns there first.
-The draft is generic on purpose: replace each generic pick with the topic's own prop (`references/board.md`, section 4).
+The draft is generic on purpose: replace each generic pick with the topic's own prop (`references/pipeline/board.md`, section 4).
 `node ENGINE/tools/make.mjs --project ID` runs lint, the fact-check gate, the voice, alignment, this draft, stills, the audit
 pass and the produce loop as one resumable command.
 
 ## 7. Build, produce, improve
-- Build the world and cast (`references/engine.md`, `references/characters.md`).
-- Then run the director loop (`references/director-loop.md`): `produce.mjs` -> reviewers -> fixes -> `learn`.
+- Build the world and cast (`references/tools/engine.md`, `references/craft/character-types.md`).
+- Then run the director loop (`references/pipeline/director-loop.md`): `produce.mjs` -> reviewers -> fixes -> `learn`.
 - Time the script at the voice you will use: after the first VO, `STORY calibrate words.json --voice ID` stores its
   measured words/s in `story/voices.json`; put `# voice: ID` in the script and `lint`/`beats` estimate with it (or
   `--wps`). The reference rate (3.63 w/s) predicted 48 s for the elevator script; the ElevenLabs narrator ran 59.6 s.
@@ -103,7 +103,7 @@ pass and the produce loop as one resumable command.
 
 ## Honesty rules
 - Never present invented specifics (dates, names, numbers) as fact. Mark them STORY in claims.md, and keep the mechanism true.
-- Don't claim a hook "will perform": the scores are correlations from measured channels (see the n and the CIs in `hooks-topics.md`).
+- Don't claim a hook "will perform": the scores are correlations from measured channels (see the n and the CIs in `references/craft/hooks-titles.md`).
 
 ## Formula B: scheme and comeuppance (measured on one 3.1 M-view hero short)
 

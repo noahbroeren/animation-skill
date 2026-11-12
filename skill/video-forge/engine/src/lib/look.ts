@@ -128,7 +128,7 @@ export const LOOKS: Record<string, Look> = {
  */
 const toonBase = deepMerge(base, {
   tonemap: "none", exposure: 1.0,
-  ink: { enabled: true, strength: 1, widthNear: 5.2, widthFar: 2.8, distNear: 6, distFar: 90, color: "#140c10", creases: 1.0, hue: 0.1 }, // 1.8: 3.0 / hue 0.22 left the world line 6x thinner than the character line (reference about 2:1) // 0.4 measured too light: ink-on-edges 0.21 vs 0.35 on the reference
+  ink: { enabled: true, strength: 1, widthNear: 5.2, widthFar: 2.8, distNear: 6, distFar: 60, color: "#140c10", creases: 1.0, hue: 0.2 }, // 1.9: lines 4-6 px near, 2-3 px far, far cores lift toward the surface; coverage 2.8 % of pixels // 1.8: 3.0 / hue 0.22 left the world line 6x thinner than the character line (reference about 2:1) // 0.4 measured too light: ink-on-edges 0.21 vs 0.35 on the reference
   ao: { enabled: true, strength: 0.5, radius: 0.55, tint: "#7c6a92" }, // (#6a5c9c pushed shadow b from -5.3 to -8.5; reference -5.4)
   dof: { enabled: false, maxBlur: 12, aperture: 1 },
   bloom: { enabled: true, threshold: 1.0, strength: 0.5, radius: 1.2 },
@@ -137,21 +137,22 @@ const toonBase = deepMerge(base, {
 });
 LOOKS["toonworld-day"] = deepMerge(toonBase, {
   name: "toonworld-day",
-  grade: { blackPoint: 0.045, whitePoint: 0.97, contrast: 1.22, pivot: 0.5, saturation: 1.26, vibrance: 0.15, // manhole loop iter 3: p1 .126 -> ~.10
-    shadowTint: [0.05, -0.008, 0.0], highlightTint: [-0.03, -0.004, 0.05] }, // (tintM removed in 1.6: it was never applied without knots, and the look was measured without it) // lifted magenta-violet blacks; whites ~0.95-0.97, cool-neutral highs
+  exposure: 1.06, // 1.9 frame study: day p1 .096 / p50 .548 / p99 .973, sat .45, darks plum (Lab +9 / -3), highs faintly warm
+  grade: { blackPoint: 0.03, whitePoint: 0.99, contrast: 1.22, pivot: 0.5, saturation: 1.32, vibrance: 0.15,
+    shadowTint: [0.03, -0.01, 0.03], highlightTint: [0.0, 0.0, -0.015] }, // (tintM removed in 1.6: it was never applied without knots, and the look was measured without it) // lifted magenta-violet blacks; whites ~0.95-0.97, cool-neutral highs
   vignette: { amount: 0.12, softness: 0.5 },
 });
 LOOKS["toonworld-golden"] = deepMerge(toonBase, {
   name: "toonworld-golden",
-  grade: { blackPoint: 0.06, whitePoint: 0.97, contrast: 1.2, pivot: 0.5, saturation: 1.25, vibrance: 0.2,
-    shadowTint: [0.0, -0.004, 0.034], highlightTint: [0.012, 0.004, 0.004] }, // 1.8: b 0.08 -> 0.02 (sampled den floor #4a4264 at 0.045: still violet), pink (not yellow) highs
-  vignette: { amount: 0.2, softness: 0.45 },
+  grade: { blackPoint: 0.04, whitePoint: 0.96, contrast: 1.2, pivot: 0.5, saturation: 1.25, vibrance: 0.2, // 1.9: plum darks, peach highs
+    shadowTint: [0.02, -0.01, 0.05], highlightTint: [0.03, 0.01, -0.03] }, // 1.8: b 0.08 -> 0.02 (sampled den floor #4a4264 at 0.045: still violet), pink (not yellow) highs
+  vignette: { amount: 0.25, softness: 0.45 },
 });
 LOOKS["toonworld-night"] = deepMerge(toonBase, {
   name: "toonworld-night",
-  grade: { blackPoint: 0.03, whitePoint: 0.96, contrast: 1.15, pivot: 0.45, saturation: 1.15, vibrance: 0.2, // 1.8: 1.35 / b 0.11 read as a blue filter (ground #131979)
-    shadowTint: [-0.01, 0.0, 0.06], highlightTint: [0.02, 0.0, 0.01] }, // blue-violet ambient (~9,10,38 blacks)
-  vignette: { amount: 0.42, softness: 0.45 },
+  grade: { blackPoint: 0.02, whitePoint: 0.94, contrast: 1.15, pivot: 0.45, saturation: 1.3, vibrance: 0.2, // 1.9: night is SATURATED cobalt (sat .54) with blue darks // 1.8: 1.35 / b 0.11 read as a blue filter (ground #131979)
+    shadowTint: [0.0, -0.01, 0.07], highlightTint: [0.02, 0.0, 0.01] }, // blue-violet ambient (~9,10,38 blacks)
+  vignette: { amount: 0.45, softness: 0.45 },
   bloom: { threshold: 0.95, strength: 0.6, radius: 1.4 },
 });
 LOOKS["toonworld-interior"] = deepMerge(toonBase, {

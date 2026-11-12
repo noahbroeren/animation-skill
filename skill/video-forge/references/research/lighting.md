@@ -2,7 +2,7 @@
 
 > **Status note (video-forge 1.6, 2026-11-11).** This is a research report written against the engine as it was on
 > 2026-11-11 before / during the 1.6 work. Its "what our engine has vs gaps" and "upgrades" sections are a backlog, not
-> the current state: see `references/shading-lighting.md` section 5 for what has been applied since. Evidence labels
+> the current state: see `references/research/shading-lighting.md` section 5 for what has been applied since. Evidence labels
 > in the text say which claims were read in a source, summarised from search, measured, or left unverified.
 
 

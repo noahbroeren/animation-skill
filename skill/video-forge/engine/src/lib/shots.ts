@@ -26,7 +26,7 @@ import { CamKey, frameDistance, V3 } from "./camera";
 
 export type ShotSize = "wide" | "full" | "medium" | "close" | "xclose" | "two" | "group" | "insert" | "low" | "high" | "top" | "pov";
 export type ShotMove = "hold" | "push" | "pull" | "orbit" | "crane" | "track" | "tilt" | "rise";
-export type Subject = { at: V3; h: number; /** world height of the eyes: closer shots put them 38 % from the top of the frame */ eye?: number };
+export type Subject = { at: V3; h: number; /** world height of the eyes */ eye?: number; /** world height of the head (characters): single-character shots frame by it */ head?: number };
 export type ShotSpec = {
   size: ShotSize;
   on: Subject | Subject[];
@@ -62,6 +62,12 @@ const SIZES: Record<ShotSize, { lo: number; hi: number; fill: number; fov: numbe
   top: { lo: 0, hi: 1, fill: 0.34, fov: 40, camH: 5.5 },
   pov: { lo: 0.5, hi: 1.08, fill: 0.6, fov: 44, camH: 0.86 },
 };
+/** Single-character framing measured on 20 reference shorts (1.9): head height as a share of the frame height and the eye
+ *  line from the top, per size (CU 20 % / 37 %, MCU 13 % / 44 %, FS 6 % / 45 %; ECU crops the crown at >= 30 %). Before,
+ *  our medium put the head at 22 % with the eyes at 30 % from the top: crowns cut off, faces too big. */
+export const HEAD_FRAMING: Partial<Record<ShotSize, { head: number; eye: number }>> = {
+  xclose: { head: 0.32, eye: 0.47 }, close: { head: 0.2, eye: 0.37 }, medium: { head: 0.13, eye: 0.44 }, full: { head: 0.065, eye: 0.45 }, low: { head: 0.08, eye: 0.42 },
+};
 const rad = (d: number) => (d * Math.PI) / 180;
 const clampBox = (p: V3, box?: { min: V3; max: V3 }): V3 => (box ? [Math.min(box.max[0], Math.max(box.min[0], p[0])), Math.min(box.max[1], Math.max(box.min[1], p[1])), Math.min(box.max[2], Math.max(box.min[2], p[2]))] : p);
 
@@ -86,6 +92,8 @@ export function frameShot(spec: ShotSpec, aspect: number, box?: { min: V3; max: 
   const lo = base + H * S.lo, hi = base + H * S.hi, fill = spec.fill ?? S.fill;
   let dist = frameDistance({ height: hi - lo, width: spec.size === "wide" ? undefined : width, vfov: fov, aspect, fill });
   if (spec.size === "wide") dist = Math.max(dist, frameDistance({ width: width * 2.2, vfov: fov, aspect, fill: 0.9 }));
+  const HF = HEAD_FRAMING[spec.size], one = subs.length === 1 && subs[0].head && subs[0].eye !== undefined && HF && spec.fill === undefined ? subs[0] : null;
+  if (one) dist = one.head! / (HF!.head * 2 * Math.tan(rad(fov) / 2));
   const mid = (lo + hi) / 2, eyeLine = lo + (hi - lo) * 0.56; // aim a little above the middle: eyes on the upper third
   const camY = base + (spec.height ?? S.camH * (spec.size === "top" || spec.size === "high" ? 1 : H)) + (spec.size === "high" ? H * 0.6 : 0);
   const horiz = spec.size === "top" ? dist * 0.18 : spec.size === "high" ? dist * 0.78 : dist;
@@ -94,7 +102,8 @@ export function frameShot(spec: ShotSpec, aspect: number, box?: { min: V3; max: 
   const look: V3 = [cx - right[0] * side, spec.size === "low" ? mid + H * 0.12 : spec.size === "top" ? base + H * 0.4 : eyeLine, cz - right[2] * side];
   // eye line: reviewers measured our eyes at 58 % from the top (40 % of dead headroom) against about 40 % in the reference
   const eyes = subs.map((s) => s.eye).filter((e): e is number => e !== undefined);
-  if (eyes.length && (spec.size === "medium" || spec.size === "close" || spec.size === "xclose" || spec.size === "two")) look[1] = Math.max(...eyes) - (spec.size === "two" ? 0.07 : 0.12) * 2 * dist * Math.tan(rad(fov) / 2);
+  if (one && spec.size !== "low") look[1] = one.eye! - (0.5 - HF!.eye) * 2 * dist * Math.tan(rad(fov) / 2);
+  else if (eyes.length && (spec.size === "medium" || spec.size === "close" || spec.size === "xclose" || spec.size === "two")) look[1] = Math.max(...eyes) - 0.06 * 2 * dist * Math.tan(rad(fov) / 2); // eyes 44 % from the top
   pos = clampBox(pos, box);
   return { pos, look, fov, focus: Math.hypot(pos[0] - look[0], pos[1] - look[1], pos[2] - look[2]) };
 }
@@ -114,7 +123,8 @@ export function moveEnd(spec: ShotSpec, a: Framed, aspect: number, box?: { min: 
   return { ...a };
 }
 
-export type Via = "cut" | "soft" | "dissolve" | "glide" | "whip";
+/** How a shot arrives. 1.9: `through` (push into the old picture, out of the new one), `flash` (through white), `iris`. */
+export type Via = "cut" | "soft" | "dissolve" | "glide" | "whip" | "through" | "flash" | "iris";
 /** Camera keys for one beat: arrive at f0 by `via`, then run the move until just before f1. */
 export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number; soft?: number }): CamKey[] {
   const a = frameShot(spec, o.aspect, o.box), via = o.via ?? "cut";
@@ -128,7 +138,7 @@ export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: nu
   if (settle) { const v: V3 = [a.pos[0] - a.look[0], a.pos[1] - a.look[1], a.pos[2] - a.look[2]], L = Math.hypot(v[0], v[2]) || 1, sg = o.f0 % 2 ? 1 : -1, r: V3 = [(v[2] / L) * sg, 0, (-v[0] / L) * sg], d = Math.hypot(...v) * st * 0.55;
     const p = clampBox([a.look[0] + v[0] * (1 + st) + r[0] * d, a.look[1] + v[1] * (1 + st * 0.6), a.look[2] + v[2] * (1 + st) + r[2] * d], o.box);
     pre = { f: o.f0, pos: p, look: a.look, fov: a.fov, focus: a.focus, cut: !o.first }; }
-  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 10; else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); k0.ease = "inOutSine"; } } // a travel starts before the word and lands just after it
+  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 9; else if (via === "through" || via === "flash" || via === "iris") { k0.dissolve = via === "iris" ? 6 : via === "flash" ? 10 : 9; k0.join = via; } else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); k0.ease = "inOutSine"; } } // a travel starts before the word and lands just after it
   if (pre) { k0.cut = undefined; k0.f = o.f0 + 16; k0.glide = 16; k0.ease = "outCubic"; }
   const keys = pre ? [pre, k0] : [k0], end = o.f1 - 2, len = end - k0.f;
   if ((spec.move ?? "hold") !== "hold" && len > 12) { const b = moveEnd(spec, a, o.aspect, o.box); keys.push({ f: end, pos: b.pos, look: b.look, fov: b.fov, focus: b.focus, glide: len, via: b.via, ease: "smooth" }); }

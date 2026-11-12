@@ -36,7 +36,7 @@ export type Stage3DProps<W> = {
   /** camera as a pure function of frame (e.g. rig.at) -> enables camera motion blur (look.motionBlur) */
   camAt?: (frame: number, fps: number) => CamState;
   /** cross-dissolve between two camera views inside ONE world (rig.dissolveAt) */
-  dissolveAt?: (frame: number, fps: number) => { a: CamState; b: CamState; t: number } | null;
+  dissolveAt?: (frame: number, fps: number) => { a: CamState; b: CamState; t: number; fa?: number; style?: string } | null;
   /** hard-cut frames (rig.cuts): no camera motion blur across a cut (the incoming frame must be clean) */
   cuts?: number[];
   /** shot audit (lib/three/audit.ts): return the subjects that must read on this frame (or null to skip); occlusion,
@@ -152,7 +152,12 @@ export function Stage3D<W>({ build, update, look, frameOffset = 0, shadowMapSize
       const ca = (it as any).dzA ?? ((it as any).dzA = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
       const cb = (it as any).dzB ?? ((it as any).dzB = new THREE.PerspectiveCamera(35, width / height, c.near, c.far));
       applyCam(ca, dz.a, width / height); applyCam(cb, dz.b, width / height);
-      it.post.dissolve(it.ctx.scene, ca, cb, lk, { focusA: dz.a.focus, focusB: dz.b.focus, frame, t: dz.t });
+      // the old view shows the world of the last frame before the join (actors, props and light switch at the join)
+      const own = dz.fa !== undefined && dz.fa < frame;
+      if (own) { update(it.world, dz.fa!, it.ctx); it.ctx.scene.updateMatrixWorld(true); }
+      const lkA = own && typeof look === "function" ? look(dz.fa!) : lk;
+      it.post.dissolve(it.ctx.scene, ca, cb, lkA, { focusA: dz.a.focus, focusB: dz.b.focus, frame, t: dz.t, lookB: lk, style: dz.style,
+        between: own ? () => { update(it.world, frame, it.ctx); it.ctx.scene.updateMatrixWorld(true); } : undefined });
     } else it.post.render(it.ctx.scene, c, lk, { focus: cam.focus, frame, prevViewProj });
     it.ctx.renderer.getContext().finish();
   };

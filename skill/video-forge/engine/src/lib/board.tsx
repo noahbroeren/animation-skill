@@ -11,14 +11,14 @@
  *
  * One source of truth: change a word time and picture, captions and sound move together. What a board cannot say in
  * data goes into `props` (custom 3D pieces with their own update) and `overlay` (custom 2D layers).
- * Start one with `node tools/make.mjs --project <id>` (it drafts the board from the script); guide: references/board.md.
+ * Start one with `node tools/make.mjs --project <id>` (it drafts the board from the script); guide: references/pipeline/board.md.
  */
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
 import { cameraRig, CameraRig, CamKey, CamState, V3 } from "./camera";
 import { blinkAt, idlePose, walkPose } from "./characters/toon";
-import { BOBBLE_POSES, bobbleScale, BobbleSpec, Cue, KExpr, KIND_PRESETS, KPose, PoseKey, poseTrack, StickHold } from "./characters/kinds";
+import { BOBBLE_POSES, bobbleScale, BobbleSpec, CastBrand, Cue, KExpr, KIND_PRESETS, KPose, PoseKey, poseTrack, StickHold } from "./characters/kinds";
 import { ProjectDef } from "./project";
 import { frameShot, shotKeys, ShotSpec, Subject, Via } from "./shots";
 import type { ShotSubject } from "./three/audit";
@@ -111,7 +111,7 @@ export type BoardProp = THREE.Object3D | { group: THREE.Object3D; update?: (f: n
 export type Board = {
   id: string; title: string; fps?: number;
   words: Word[];
-  /** seconds the narration starts into the mix (default 0.1) and seconds held after the last word (default 0.9) */
+  /** seconds the narration starts into the mix (default 0: the voice from frame 0) and seconds held after the last word (default 0.9) */
   voOffset?: number; tail?: number;
   cast: Record<string, { spec: BobbleSpec | keyof typeof KIND_PRESETS; height?: number; tex?: number }>;
   places: Record<string, BoardPlace>;
@@ -122,6 +122,8 @@ export type Board = {
   overlay?: (T: Record<string, number>, fps: number) => React.ReactNode;
   thumbnails?: (T: Record<string, number>, World: React.FC) => ThumbVariant[];
   audio?: string;
+  /** the cast's house style (lib/characters/kinds.ts `CastBrand`, `BRANDS`): applied to every bobble in `cast` that has none */
+  brand?: CastBrand;
   rig?: { handheld?: number; push?: number };
   /** frames of cross-dissolve on every `via: "cut"` (default 4: a soft cut; 0 = hard cuts) */
   softCut?: number;
@@ -130,7 +132,7 @@ export type Board = {
 // ------------------------------------------------------------------------------------------------ timing (pure, no three.js)
 const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 export function planBoard(b: Board, fps: number) {
-  const off = b.voOffset ?? 0.1, words = b.words.map((w) => ({ ...w, start: w.start + off, end: w.end + off }));
+  const off = b.voOffset ?? 0, words = b.words.map((w) => ({ ...w, start: w.start + off, end: w.end + off }));
   const wordIdx = (a: string): number => {
     const m = /^(.*?)(?:#(\d+)|>(\d+))?$/.exec(a)!, txt = clean(m[1]), nth = m[2] ? Number(m[2]) : 1, from = m[3] ? Number(m[3]) : 0;
     // exact word first ("so" must not match "soon"), then a prefix ("clip" finds "clips")
@@ -161,11 +163,15 @@ export function planBoard(b: Board, fps: number) {
   // the middle 40 %, so it now takes 30-60 frames with a gentler ease; when the framing before it is shorter than 32 frames
   // there is no room for one and the default becomes a soft cut.
   const prevLen = new Map<number, number>(); shotBeats.forEach((x, k) => { if (k > 0) prevLen.set(x.i, x.f - shotBeats[k - 1].f); });
-  const viaOf = (x: (typeof beats)[number]): Via => x.via ?? (x.newPlace ? "dissolve" : (prevLen.get(x.i) ?? 99) < 32 ? "cut" : "glide");
-  const cuts = shotBeats.filter((x) => x.i > 0 && viaOf(x) === "cut").map((x) => x.f), soft = shotBeats.filter((x) => x.i > 0 && (viaOf(x) === "dissolve" || viaOf(x) === "whip")).map((x) => (viaOf(x) === "whip" ? x.f - 3 : x.f)); // a whip is a planned soft transition (it starts 3 frames before its cue)
+  // 1.9 (frame study): 81 % of the reference's joins are 7-9 f dissolves that start on the first word of a new sentence;
+  // inside a sentence the camera travels to the next subject (accent moves of ~16 f); hard cuts are 0-2 per film.
+  const sentenceStart = (wi: number) => wi <= 0 || /[.?!]["')]?$/.test(words[wi - 1]?.word ?? "");
+  const viaOf = (x: (typeof beats)[number]): Via => x.via ?? (x.newPlace || (x.shot && typeof x.at === "string" && sentenceStart(x.wi)) ? "dissolve" : (prevLen.get(x.i) ?? 99) < 20 ? "cut" : "glide");
+  const cuts = shotBeats.filter((x) => x.i > 0 && viaOf(x) === "cut").map((x) => x.f), soft = shotBeats.filter((x) => x.i > 0 && ["dissolve", "whip", "through", "flash", "iris"].includes(viaOf(x))).map((x) => (viaOf(x) === "whip" ? x.f - 3 : x.f + (viaOf(x) === "iris" ? 3 : 4))); // a whip is a planned soft transition (it starts 3 frames before its cue)
   // travel windows (pure: the same arithmetic the camera uses): length follows the shot before, 12-28 frames, 60 % before the cue
   // 1.8: 20-40 frames. Reviewers called the 12-28 frame re-framings "teleports between keyframes" (reference glide: 44 f)
-  const glideLen = (k: number) => { if (k <= 0) return 0; const len = shotBeats[k].f - shotBeats[k - 1].f; return Math.max(12, Math.min(len - 2, Math.max(30, Math.min(60, Math.round(len * 0.6))))); };
+  // accent travel (reference: median 16 f, 7 f ease in and out, peak ~0.9 frame widths/s); long slow moves are `move`s
+  const glideLen = (k: number) => { if (k <= 0) return 0; const len = shotBeats[k].f - shotBeats[k - 1].f; return Math.max(10, Math.min(len - 2, Math.max(14, Math.min(26, Math.round(len * 0.35))))); };
   const travels = shotBeats.map((x, k) => (k > 0 && viaOf(x) === "glide" ? ([x.f + Math.round(glideLen(k) * 0.4) - glideLen(k), x.f + Math.round(glideLen(k) * 0.4)] as [number, number]) : null)).filter((t): t is [number, number] => !!t);
   return { words, beats, T, total, end, viaOf, shotBeats, cuts, soft, F, travels, glideLen };
 }
@@ -179,7 +185,8 @@ export function boardSounds(b: Board, fps: number): { sounds: SoundCue[]; music:
   for (const bt of P.beats) {
     const via = P.viaOf(bt), isShot = bt.i > 0 && (bt.shot || bt.newPlace);
     if (bt.i === 0 || bt.newPlace) places.push({ f: bt.f, set: b.places[bt.placeNow].set, interior: INTERIOR.has(b.places[bt.placeNow].set) });
-    if (isShot && via === "dissolve") sounds.push({ f: bt.f, name: "swish", lu: -15, anchor: 0.135, pan: bt.i % 2 ? -0.3 : 0.3 });
+    // 1.9: no swish on dissolves or travels (the reference puts a sound on a transition only at chance level); sound
+    // comes from what moves: contacts, landings, pop-ins
     if (isShot && via === "whip") sounds.push({ f: bt.f + 3, name: "whoosh", lu: -12, anchor: 0.27 });
     for (const g of gagsOf(bt)) {
       if ("fx" in g) sounds.push({ f: bt.f, name: g.fx === "impact" ? "impact" : g.fx === "dust" ? "thud" : g.fx === "sparkle" || g.fx === "stars" ? "sparkle" : g.fx === "speedlines" ? "whoosh" : "pop", lu: g.fx === "impact" ? -8 : -15 });
@@ -204,7 +211,8 @@ const MODERN_SETS = new Set(["road", "office"]);
 /** Rooms measured dark (mean luma 0.29-0.33 against 0.47 in the reference): wood and brick under a toon ramp. A gamma lift keeps the whites. */
 export const INTERIOR_LIFT = { grade: { gamma: 1.22 } };
 /** Depth of field by shot size [maxBlur, aperture]: the closer the shot, the softer the background (measured centre / border sharpness 1.06 without it, 1.95 in the reference). */
-const DOF_BY_SIZE: Record<string, [number, number]> = { xclose: [15, 1.4], close: [14, 1.35], medium: [11, 1.15], insert: [16, 1.5], pov: [9, 1.0], two: [9, 1.05], full: [6, 0.85], low: [6, 0.85], wide: [3, 0.6], high: [4, 0.75], group: [4, 0.75] }; // wides stay sharp: the set is the picture
+// 1.9 frame study: DOF on for CU / MCU / ECU and inserts (background sigma 7-9 px, macro >= 12), OFF for MS / FS / WS (about 1/3 of shots)
+const DOF_BY_SIZE: Record<string, [number, number]> = { xclose: [16, 1.4], close: [14, 1.35], medium: [14, 1.3], insert: [24, 1.6], pov: [9, 1.0], two: [6, 0.9], full: [0, 0.6], low: [4, 0.8], wide: [0, 0.6], high: [0, 0.6], group: [0, 0.6] }; // wides stay sharp: the set is the picture
 const specOf = (s: BobbleSpec | keyof typeof KIND_PRESETS): BobbleSpec => (typeof s === "string" ? (KIND_PRESETS[s] as BobbleSpec) : s);
 const VEH = { car, bus, truck, carriage, bicycle } as Record<string, (o?: Record<string, unknown>) => Vehicle>;
 const TALK: Cue[] = ["D", "C", "B", "E", "C", "F", "B", "D"];
@@ -216,7 +224,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // light plan from the beats' keys
   // a key change is an edit: on a cut it switches on the frame, on a dissolve it fades with the dissolve, inside a shot it fades over 14 frames
   const lpKeys: [number, string | LightKey, number][] = []; { let last: unknown; for (const bt of P.beats) if (bt.i === 0 || (bt.key && bt.key !== last)) { const sh = bt.i > 0 && (bt.shot || bt.newPlace), via = P.viaOf(bt);
-    const sc = b.softCut ?? 4;
+    const sc = b.softCut ?? 6;
     lpKeys.push(!sh ? [bt.f, bt.keyNow, 14] : via === "dissolve" ? [bt.f + 5, bt.keyNow, 10] : via === "whip" ? [bt.f + 3, bt.keyNow, 0] : via === "glide" ? [bt.f + 6, bt.keyNow, 14] : [bt.f + Math.ceil(sc / 2), bt.keyNow, sc]); last = bt.keyNow; } }
   const LP = lightPlan(lpKeys, { fade: 14 });
   const L = LP.build(scene, { shadowSize: 46, target: origin(P.beats[0].placeNow) });
@@ -235,7 +243,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     return def.ease === "stop" ? ease.outCubic(u) : def.ease === "start" ? ease.inCubic(u) : u; };
   const placeVehicle = (vid: string, f: number) => { const x = vehicles[vid]; drive(x.v, x.path, vehU(vid, f)); x.v.group.updateMatrixWorld(true); };
   // actors: where everybody is, beat by beat
-  const cast = Object.fromEntries(Object.entries(b.cast).map(([id, c]) => { const spec = { ...specOf(c.spec), id }, h = (c.height ?? 1.72);
+  const cast = Object.fromEntries(Object.entries(b.cast).map(([id, c]) => { const spec = { ...specOf(c.spec), id, ...(b.brand && !specOf(c.spec).brand ? { brand: b.brand } : {}) }, h = (c.height ?? 1.72);
     const card = new CharacterCard(spec, h * bobbleScale(spec), c.tex ?? 1500, L.sun, undefined, { top: 0.45, x: 0.6 }); card.group.visible = false; scene.add(card.group);
     return [id, { card, h, spec, segs: [] as Seg[], keys: [] as PoseKey[], talk: [] as [number, number, number, number][], looks: [] as { f: number; look?: string }[] }]; }));
   for (const bt of P.beats) for (const [id, a] of Object.entries(bt.act ?? {})) {
@@ -281,7 +289,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   }
   const subjectOf = (name: string | V3, f: number, place: string, h = 1): Subject => {
     if (Array.isArray(name)) return { at: mark(name, place), h };
-    if (cast[name]) { const p = actorPos(name, f) ?? mark("center", place); return { at: p, h: cast[name].h * (cast[name].spec.hat ? 1.12 : 1), eye: p[1] + cast[name].h * 0.8 }; }
+    if (cast[name]) { const p = actorPos(name, f) ?? mark("center", place); return { at: p, h: cast[name].h * (cast[name].spec.hat ? 1.12 : 1), eye: p[1] + cast[name].h * 0.8, head: cast[name].h * 0.3 }; }
     const pr = props.find((x) => x.id === name); if (pr) { const hh = h === 1 ? 0.5 : h; return { at: pr.center ? [pr.at[0], pr.at[1] - hh / 2, pr.at[2]] : pr.at, h: hh }; }
     if (vehicles[name]) { placeVehicle(name, f); const p = vehicles[name].v.group.position; return { at: [p.x, p.y, p.z], h: vehicles[name].v.height }; }
     return { at: mark(name, place), h };
@@ -291,7 +299,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // A travel (glide) starts BEFORE its cue and lands just after it, so the shot before it must END where the travel starts.
   // 1.7.0 ended every shot 2 frames before the next cue: the two moves overlapped, the rig handed over mid-travel and the
   // picture jumped half the way in one frame (12 of 23 detected cuts in the first board were these jumps).
-  const soft = b.softCut ?? 4, GL = 28;
+  const soft = b.softCut ?? 6, GL = 28;
   const glideOf = (k: number) => P.glideLen(k); void GL;
   const leadOf = (k: number) => { const x = P.shotBeats[k]; if (!x) return 0; const v = P.viaOf(x); if (v === "glide") { const g = glideOf(k); return g - Math.round(g * 0.4) + 2; } return v === "whip" ? 5 : 0; };
   let lastSide = 0;
@@ -304,12 +312,12 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     if (sh.on !== undefined && typeof sh.side === "number") lastSide = sh.side;
     const names = sh.on === undefined ? [] : Array.isArray(sh.on) && typeof sh.on[0] === "string" ? (sh.on as string[]) : [sh.on as string | V3];
     let ks: CamKey[];
-    if (!names.length) { const w = set.wide; ks = shotKeys({ ...sh, size: sh.size, on: { at: w.look, h: 0 } } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 26, settle: 0, soft, dissolve: 14 });
+    if (!names.length) { const w = set.wide; ks = shotKeys({ ...sh, size: sh.size, on: { at: w.look, h: 0 } } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 26, settle: 0, soft, dissolve: 9 });
       const d: V3 = [w.pos[0] - w.look[0], w.pos[1] - w.look[1], w.pos[2] - w.look[2]]; // re-base the framing on the set's own establishing camera
       const p0 = ks[0].pos, l0 = ks[0].look; ks = ks.map((q) => ({ ...q, pos: [w.look[0] + d[0] + (q.pos[0] - p0[0]), w.look[1] + d[1] + (q.pos[1] - p0[1]), w.look[2] + d[2] + (q.pos[2] - p0[2])] as V3,
         look: [w.look[0] + (q.look[0] - l0[0]), w.look[1] + (q.look[1] - l0[1]), w.look[2] + (q.look[2] - l0[2])] as V3, fov: sh.fov ?? w.fov, via: undefined, focus: undefined })); }
     else { const subs = names.map((n) => subjectOf(n, fAct, bt.placeNow, sh.h)), from = sh.from ? subjectOf(sh.from, fAct, bt.placeNow) : undefined;
-      ks = shotKeys({ ...sh, on: subs, from } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 24, soft, dissolve: 14 });
+      ks = shotKeys({ ...sh, on: subs, from } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 24, soft, dissolve: 9 });
       if (sh.from && sh.size === "pov") povHide.push({ f0: bt.f, f1, id: sh.from });
       audit.push({ f0: ks[0].f + 2, f1, subs: names.filter((n): n is string => typeof n === "string" && !!cast[n]), place: bt.placeNow });
       if (sh.follow) { const s0 = subjectOf(sh.follow, fAct, bt.placeNow), a = frameShot({ ...sh, on: subs, from } as ShotSpec, aspect, set.camBox), id = sh.follow, hh = s0.h * 0.6;
@@ -456,7 +464,7 @@ export function boardProject(b: Board): ProjectDef {
         // camera motion blur smears a subject the camera is following (it is still on screen): keep only a trace of it
         return w.follows!.some((x) => f >= x.f0 && f <= x.f1) ? { ...l, motionBlur: l.motionBlur * 0.15 } : l; }}
         camAt={(f, fp) => driftCam(ref.current!.rig.at(f, fp), f, fp)} cuts={P.cuts}
-        dissolveAt={(f, fp) => { const d = ref.current!.rig.dissolveAt(f, fp); return d ? { a: driftCam(d.a, f, fp), b: driftCam(d.b, f, fp), t: d.t } : null; }}
+        dissolveAt={(f, fp) => { const d = ref.current!.rig.dissolveAt(f, fp); return d ? { ...d, a: driftCam(d.a, f, fp), b: driftCam(d.b, f, fp) } : null; }}
         audit={(f, w) => { if (f % 6) return null; const a = w.audit.find((x) => f >= x.f0 && f < x.f1), ms = w.mustSee.filter((x) => f >= x.f0 && f < x.f1); if (!a && !ms.length) return null;
           const names = [...new Set([...(a?.subs ?? []), ...ms.map((x) => x.name)])], place = a?.place ?? ms[0].place;
           return names.map((n): ShotSubject | null => { const s = w.subjectOf(n, f, place), isCard = !!w.cast[n]; return isCard && !w.actorState(n, f) ? null : { name: n, at: [s.at[0], s.at[1] + s.h * (isCard ? 0.72 : 0.5), s.at[2]], r: s.h * 0.3 }; }).filter((x): x is ShotSubject => !!x); }}
@@ -472,9 +480,9 @@ export function boardProject(b: Board): ProjectDef {
       const scene: SceneDef = {
         id: "board", frames: P.total, innerCuts: P.cuts, innerSoft: P.soft, cues: Object.fromEntries(P.beats.map((x) => [x.id, x.f])),
         events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(x.event ?? []).map((d) => x.f + d), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 7, x.f, x.f + 7] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
-        sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps),
+        sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps), voOffset: b.voOffset ?? 0,
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
-          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={110} yAt={(fr) => { y = 0.7; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
+          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={75} outline={0.17} lead={0.03} center yAt={(fr) => { y = 0.704; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
       };
       return [scene];
     },
