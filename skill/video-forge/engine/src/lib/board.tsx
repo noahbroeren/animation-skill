@@ -482,7 +482,7 @@ export function boardProject(b: Board): ProjectDef {
         events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(x.event ?? []).map((d) => x.f + d), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 7, x.f, x.f + 7] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
         sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps), voOffset: b.voOffset ?? 0,
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
-          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={75} outline={0.17} lead={0.03} center yAt={(fr) => { y = 0.704; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
+          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={75} outline={0.17} lead={0.03} minFrames={6} center yAt={(fr) => { y = 0.704; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
       };
       return [scene];
     },
@@ -500,7 +500,8 @@ export function lintBoard(b: Board, fps: number): string[] {
   if (asl < 3) out.push(`average shot ${asl.toFixed(1)} s (${shots.length} shots in ${sec(P.total)} s): hold shots 4-6 s and let beats change the acting, the gag and the \`focus\` inside a shot`);
   for (const { x, len } of shots) if (len < 1.2 * fps && x.i > 0) out.push(`shot "${x.id}" lasts ${sec(len)} s (f ${x.f}): too short to read; make it a beat inside the shot before it, or give it 1.5 s`);
   P.shotBeats.forEach((x, k) => { const len = (P.shotBeats[k + 1]?.f ?? P.total) - x.f; if (x.i > 0 && P.viaOf(x) === "glide" && len < 0.9 * fps) out.push(`the camera re-frames on "${x.id}" for only ${sec(len)} s (f ${x.f}): start the travel a beat earlier or drop it`); });
-  for (const x of P.shotBeats) if (x.i > 0 && P.viaOf(x) === "whip") out.push(`shot "${x.id}" comes in on a whip: use a slow travel inside a place, a dissolve to a new one`);
+  const whips = P.shotBeats.filter((x) => x.i > 0 && P.viaOf(x) === "whip");
+  if (whips.length > 1) out.push(`${whips.length} whips (${whips.map((x) => x.id).join(", ")}): about one per film reads as energy, more read as noise; dissolve or travel instead`);
   // the viewer counts FRAMINGS, not takes: every travel is a new picture
   const fr = P.shotBeats.map((x, k) => (P.shotBeats[k + 1]?.f ?? P.total) - x.f), shortest = Math.min(...fr);
   if (P.shotBeats.length > shots.length * 2.2) out.push(`${P.shotBeats.length} framings in ${shots.length} takes (shortest ${sec(shortest)} s): more than two re-framings per take read as restless; let a beat act inside the framing instead`);

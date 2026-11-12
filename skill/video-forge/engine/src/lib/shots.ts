@@ -126,7 +126,7 @@ export function moveEnd(spec: ShotSpec, a: Framed, aspect: number, box?: { min: 
 /** How a shot arrives. 1.9: `through` (push into the old picture, out of the new one), `flash` (through white), `iris`. */
 export type Via = "cut" | "soft" | "dissolve" | "glide" | "whip" | "through" | "flash" | "iris";
 /** Camera keys for one beat: arrive at f0 by `via`, then run the move until just before f1. */
-export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number; soft?: number }): CamKey[] {
+export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number; soft?: number; /** default push-in per frame for shots without a move (0 = locked) */ creep?: number }): CamKey[] {
   const a = frameShot(spec, o.aspect, o.box), via = o.via ?? "cut";
   const k0: CamKey = { f: o.f0, pos: a.pos, look: a.look, fov: a.fov, focus: a.focus };
   // SETTLE: a shot that arrives by a cut starts a little wide and off to one side and lands on its framing in 11 frames
@@ -141,7 +141,10 @@ export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: nu
   if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 9; else if (via === "through" || via === "flash" || via === "iris") { k0.dissolve = via === "iris" ? 6 : via === "flash" ? 10 : 9; k0.join = via; } else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); k0.ease = "inOutSine"; } } // a travel starts before the word and lands just after it
   if (pre) { k0.cut = undefined; k0.f = o.f0 + 16; k0.glide = 16; k0.ease = "outCubic"; }
   const keys = pre ? [pre, k0] : [k0], end = o.f1 - 2, len = end - k0.f;
-  if ((spec.move ?? "hold") !== "hold" && len > 12) { const b = moveEnd(spec, a, o.aspect, o.box); keys.push({ f: end, pos: b.pos, look: b.look, fov: b.fov, focus: b.focus, glide: len, via: b.via, ease: "smooth" }); }
+  // 1.9: a shot without a move still creeps in (measured base push 0.1-0.4 % per frame; the camera is still on < 4 % of
+  // frames). Before, a board shot without `move` was locked: the rig's push only acts on holds and a board shot is one glide.
+  const creep = o.creep ?? 0.0022, sp: ShotSpec = (spec.move ?? "hold") === "hold" && creep > 0 && len > 12 && spec.size !== "pov" ? { ...spec, move: "push", amount: 1 - Math.exp(-creep * len) } : spec;
+  if ((sp.move ?? "hold") !== "hold" && len > 12) { const b = moveEnd(sp, a, o.aspect, o.box); keys.push({ f: end, pos: b.pos, look: b.look, fov: b.fov, focus: b.focus, glide: len, via: b.via, ease: "smooth" }); }
   else if (len > 4) keys.push({ f: end, pos: a.pos, look: a.look, fov: a.fov, focus: a.focus, glide: 1e6 });
   return keys;
 }

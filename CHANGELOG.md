@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.9.0 - 2026-11-12
+- **Every frame of the 20 newest reference shorts was looked at** (35,987 frames in 610 every-frame contact sheets,
+  ten viewers, one log per video) and five studies measured characters, acting and angles, the look, camera and edit,
+  and script and sound. The study material stays private; the skill gets numbers, rules and our own renders.
+- **New structure.** `references/` is split into `pipeline/` (how a video gets made), `craft/` (measured reference
+  sheets, one per area, each mapped to engine parameters with a status column), `tools/` (analyzer, engine, external),
+  `styles/`, `research/` and `sheets/` (our own rendered sheets); `references/README.md` is the map. `SKILL.md` is
+  rewritten around modes, the production loop, the non-negotiables, the numbers that matter most and the tools by stage.
+- **Craft sheets:** characters, character design (our own branded cast), acting, camera, edit (with transition recipes),
+  captions, lighting, shading, grade, ink, textures, depth, effects, script, sound.
+- **Dissolves fixed.** Both halves of a dissolve used to render the same world, so actors, props and light that change
+  at the cue jumped inside the mix (half the mix in one frame: it read as a cut). The outgoing half now shows the world
+  of the frame before the cue, the mix starts on the cue and runs 9 frames on a curve halfway between linear and
+  smoothstep, and both cameras keep moving. New joins: `through` (push into a window, lens or photo), `flash`, `iris`.
+- **Joins on sentences:** a shot on the first word of a new sentence dissolves, a shot inside a sentence travels (14-26
+  frames, `inOutSine`), a very short framing becomes a soft cut. `Beat.event` marks intended picture changes for QA.
+- **Framing by the head:** one character is framed by head height and eye line per shot size (medium close-up: head
+  13 % of the frame height, eyes 44 % from the top; ours had 22 % and 30 %, cutting crowns).
+- **Look:** cast and form shadow are separate (a cast shadow keeps ~45 % of the light and the surface hue; ours was
+  28 % and blue), soft terminator, cards take the light's colour with no rim line, new grade per key, saturated cobalt
+  nights, more world ink, depth of field on close-ups and inserts only.
+- **Captions:** 1-2 words centred at 70.4 % of the height, smaller, with a real outline and a soft shadow, switched on
+  the word and never blank.
+- **Cast house style (`CastBrand`, `Board.brand`):** one choice per layer for the whole cast (face fill, ink, head
+  superellipse, line law with a light-driven thick-thin option, limbs as sleeves / ink strokes / tinted strokes, hands,
+  eye construction incl. pill eyes and a resting lid, bean torso, ears / nose / shine, gradient face shading).
+  `BRANDS.example` shows a house style built with the design rules; `BRANDS.calibration` reproduces the measured
+  construction family for engine tests only and is never published. Sheet: `charsheet` page 12,
+  `references/sheets/cast-brands.jpg`.
+- **Script and sound:** the style targets are re-measured (3.74 words/s, 215-245 words for ~62 s, sentences of 13-17
+  words with few very short ones, the mechanism at 62-82 %, <= 1 date); `story.py lint` checks sentence shape, numbers
+  and dates, and where "You see" may stand. Narration pauses are capped at 0.08 s (0.14 s at sentence ends) and the
+  voice starts on frame 0; SFX defaults are quieter, music sections flatter, the master peaks at -2 dBTP, no swish on
+  dissolves, and the storyboard passes its narration offset to the mix. The manhole example script is rewritten to the
+  new targets.
+- **Camera never locked:** a board shot without a `move` used to stand still (the rig's push only acts on holds and a
+  board shot is one glide); it now creeps in at 0.22 % per frame. Measured on the coin short: still frames 3.4 %
+  (reference < 4 %).
+- Measured on the coin short (same script, voice and music; 1.8.1 -> 1.9.0, full render before the creep fix):
+  detected cuts 5 -> 0, hardest transition 7.6 -> 2.0, edge density 5.0 -> 6.4 % (reference 6.1 %), ink on edges
+  0.21 -> 0.26 (0.35), background blur ratio 1.45 -> 1.66 (1.95), shadow b -1.7 -> -3.2 (-5.4), style match 16 -> 17/32.
+  Worse: fast camera frames 36 -> 22 % (reference 55 %: the accent re-frames are the next step) and warmth 0.118 ->
+  0.141 (0.046). The analyzer's cut detector misses dissolves, so its "average shot length" is not meaningful for
+  dissolve-joined videos.
+- Not built yet (each sheet's status column lists more): automatic accent re-frames, a medium-shot (head 9 %) preset,
+  2-frame blinks, 6-frame walk steps, the foreground-wipe join, god rays, a voice-speed calibration to 3.7 words/s,
+  music selection by key and tempo, an SFX peak limiter.
+
 ## 1.8.1 - 2026-11-12
 - **Motivated light** (third round, aimed at the three lowest review scores: light 5, ink 4.5, texture 4.5). Sets throw
   window light as a patch on the floor, the stage or the desk (`sunPatch`), the workshop has a flickering lantern, the

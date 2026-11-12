@@ -262,7 +262,7 @@ const beats: Beat[] = [
 ];
 
 const board: Board = {
-  id: "coins", title: "Why You Can't Shave a Coin", words: WORDS, brand: BRANDS.example, // 1.9: one house style for the whole cast (an EXAMPLE brand, not final) voOffset: 0.1, tail: 0.45,
+  id: "coins", title: "Why You Can't Shave a Coin", words: WORDS, brand: BRANDS.example /* 1.9: one house style for the whole cast (an EXAMPLE brand, not final) */, voOffset: 0.1, tail: 0.45,
   cast: { clipper: { spec: clipper, height: 1.72, tex: 2400 }, keeper: { spec: keeper, height: 1.6 }, smith: { spec: smith, height: 1.74 }, baker: { spec: baker, height: 1.7 }, barber: { spec: barber, height: 1.72 },
     officer: { spec: officer, height: 1.7 }, newton: { spec: newton, height: 1.76 }, girl: { spec: girl, height: 1.62 } },
   places: {

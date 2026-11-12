@@ -34,7 +34,7 @@ A **beat** is one clause of the narration:
 |---|---|
 | `at` | the spoken word it starts on: `"coin"`, `"coin#2"` (second occurrence), `"the>79"` (first after word 79), or seconds. An exact word wins over a prefix. `off` shifts it (default -0.06 s: the picture leads the word). |
 | `place`, `key` | where we are and the lighting key (`LIGHT_KEYS` name or a `LightKey`). Both persist until changed. |
-| `via` | how the shot arrives: `glide` (default inside a place: the camera travels, starting before the cue and landing just after it), `dissolve` (default on a place change), `cut` (a soft cut: 4 frames of cross-dissolve, `softCut: 0` on the board for hard cuts), `whip`. |
+| `via` | how the shot arrives: `glide` (default inside a place: the camera travels, starting before the cue and landing just after it), `dissolve` (default on a place change), `cut` (a soft cut: 6 frames of cross-dissolve, `softCut: 0` on the board for hard cuts), `whip`, and since 1.9 `through`, `flash`, `iris` (section 9). A new sentence dissolves by default (section 9). |
 | `shot` | `{ size, on, angle, side, move, amount, from, follow, h }` (section 3). |
 | `act` | per actor: `at` / `walk` a mark, `pose` (a `BOBBLE_POSES` name or a pose), `expr`, `turn`, `view`, `hold`, `look`, `talk`, `hide`, `seat`. A pose holds until the next one; it pops 3 frames before the word. |
 | `gag` | one or several of: `{ prop, at, id, origin, scale, in, until }`, `{ fx, on }`, `{ stamp }`, `{ label }`, `{ counter }`, `{ big }`. |
@@ -101,7 +101,7 @@ Rules the tools enforce or that the first board taught:
    around each travel as intended events. Now a shot ends where the next travel starts, travels are not listed as
    events, and QA warns about every detected cut that only an event explains.
 10. **Cuts should not be felt.** Inside a place travel; cut only where the cut is the point (on a word, shot / reverse
-   shot, a reveal). A cut is softened by 4 frames of cross-dissolve, the settle after it is small (12 % over 16 frames)
+   shot, a reveal). A cut is softened by 6 frames of cross-dissolve (1.9; was 4), the settle after it is off by default
    and the new subject keeps the previous subject's side of the frame (`side` carries over unless you set it), so the
    eye does not have to jump across the picture.
 11. **Look at one still per beat before any render:** `--stills cues+10` (10 frames after each cue, past the cut and
@@ -170,7 +170,7 @@ is showing in the same frames, a `big` word held under 1 s, and boards where few
 | `crowd: "snip"` | everybody is at it (shears and a coin, blades opening and closing); the other kinds: gasp, cheer, laugh, boo, look, clap, point, sad |
 | gag `big` with `y`, `counter` with `color` | where the big word sits, the counter's colour (yellow by default) |
 | `event: [0, 6]` on a beat | frames (relative to the beat) where a prop changes the picture on purpose (a coin turns edge-on, something breaks). QA lists a jump it detects there for a look instead of failing the edit plan. Gags, crowd reactions and kicks declare themselves |
-| `caption: 0.8` on a beat | caption height from that beat on (captions are 110 px at 70 % of the height by default) |
+| `caption: 0.8` on a beat | caption height (the CENTRE of the line, a fraction of the frame height) from that beat on; default 0.704, size 75 at 1080 w, 1-2 words per caption (`craft/captions.md`) |
 
 **Rules (each one was a defect in the first board):**
 1. The action word of the sentence is a pose change ON that word, with the tool in the hand: open blades on the beat

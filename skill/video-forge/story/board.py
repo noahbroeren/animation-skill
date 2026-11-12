@@ -190,8 +190,7 @@ def draft(sc: dict, sents: list[dict], words: list[dict] | None, pid: str) -> di
                 b["gag"] = gag
             if si == 0 and ci == 0:
                 b["music"] = "build"
-            if s["beat"] == "pivot" and ci == 0:
-                b["music"] = "calm"
+            # 1.9: no music change at the pivot (measured: the bed keeps its level through "You see"; it changes at the twist)
             if s["beat"] == "payoff" and ci == 0:
                 b["music"] = "full"
             beats.append(b)
