@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.10.0 - 2026-11-13
+- **Our complete cast (brand ours-v1): 111 characters.** `lib/characters/ours.ts`: a core ensemble of 14 recurring
+  characters (Milo, Juno, Dr. Ada Vale, Mr. Bigsby, Vex, Gus, Pip, Nana Rose, Officer Dee, Chef Sal, Kai, Professor
+  Hal, Dr. Luz, Rook), each with a role, personality, resting face, signature pose and prop, height and voice
+  direction, plus a role library of 97 (everyday, family, work, care, sport, history, fantasy and costumes) and
+  `extra(seed)` for endless background people. `castEntry(id, more?)` puts one on a board; `signaturePose(id)`.
+  Core silhouettes at 64 px overlap at most 0.78 (limit 0.85). Cast bible: `references/cast/ours-v1.md` (generated
+  by `node tools/castbible.mjs`); sheets `references/sheets/our-cast-v1-*.jpg` and `--project castsheet`.
+- **Faces** (`faces.ts`): 118 expressions (102 new: wink, asleep, dizzy, love, starstruck, KO, rage, terrified,
+  sick, vomit, sneeze, yawn, kiss, money, freezing, zombie, hypnotized, ...), 25 eye kinds, 51 mouths, 43 new face
+  effects (zzz, stars, steam, question, hearts, gloom, sweatdrop, snot, idea, ...) drawn over the hair and hat, head
+  tilt per expression, and 52 skin marks and conditions (`BobbleSpec.marks`, `KPose.skin`: freckles, stubble,
+  wrinkles, scar, lashes, lipstick, sunburn, sick green, pale, frozen, soot, black eye, spots, mud, war paint, ...).
+- **Hair** (`hair.ts`): 52 new styles in front, three-quarter and profile (afro, puffs, mohawk, pigtails, braids,
+  cornrows, dreads, mullet, pompadour, buns, beehive, emo, pixie, man bun, receding, mane, ...); 62 in all. The sheen
+  now works on hair built from several shapes.
+- **Wardrobe** (`wardrobe.ts`): 63 new hats (73 in all), 44 new tops (55), 18 prints (`top.pattern`), 18 new
+  neckwear (21), capes and hoods behind the body, and 87 new held props (103).
+- **Engine**: `kinds.ts` calls the three modules through typed hooks (`kit.ts`), so each grows on its own; the shared
+  sheet grid `lib/sheetgrid.tsx` (with `scale` for true heights); new sheet projects `hairsheet`, `facesheet`,
+  `wardrobesheet`, `castsheet`.
+
 ## 1.9.3 - 2026-11-12
 - **Our cast is locked: `BRANDS.ours` (`ours-v1`)**, round 3's "A3 big head" (3.2 heads). Use `brand: BRANDS.ours`
   on a board. Brand sheet: charsheet still 460 (three roles, turnaround, nine expressions, point, cheer), close-up

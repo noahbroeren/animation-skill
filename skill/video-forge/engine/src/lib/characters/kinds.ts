@@ -21,6 +21,10 @@
  */
 import { clamp, hash32, lerp, rng } from "../time";
 import { CharacterSpec, drawCharacter, Expression, Pose, Viseme } from "./toon";
+import type { ExprDefX, Kit } from "./kit";
+import { HAIR_X_HX, HAIR_X_TALL, hairX, type HairX } from "./hair";
+import { drawEyeX, drawFaceFx, drawMouthX, drawSkinFx, EX_X, FACE_X_EXPRS, WIDE_X, type FaceXExpr } from "./faces";
+import { drawHatX, drawNeckX, drawPropX, drawTopBackX, drawTopPattern, drawTopX, HAT_X_HX, TOP_X_FLARE, TOP_X_HEM, TOP_X_SHORT, type HatX, type NeckX, type PatternX, type PropX, type TopX } from "./wardrobe";
 
 const TAU = Math.PI * 2;
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -159,11 +163,18 @@ function limb(c: Ctx, pts: V2[], w: number, col: string, o: { ink?: boolean; cur
   g.strokeStyle = col; g.lineWidth = w; g.stroke(p);
 }
 const dot = (g: CanvasRenderingContext2D, x: number, y: number, r: number, col: string) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, Math.max(0.3, r), 0, TAU); g.fill(); };
+/** The helper kit handed to hair.ts / faces.ts / wardrobe.ts (bound to this character's ink, line and light). */
+const kitOf = (c: Ctx): Kit => ({ g: c.g, ink: c.ink, lw: c.lw, light: c.light, u: c.u, side: c.side, three: !!c.three,
+  part: (path, fill, o) => part(c, path, fill, o), limb: (pts, w, col, o) => limb(c, pts, w, col, o), dot: (x, y, r, col) => dot(c.g, x, y, r, col),
+  ell, rrect: (x, y, w, h, r) => rrect(x, y, w, h, r), poly, sePath: (cx, cy, rx, ry, n) => sePath(cx, cy, rx, ry, n), moved, shade, tint, mix });
 
 // ================================================================ poses, expressions, visemes
 /** Extended expression set (characters.md 3.8 storytime tier: 16). */
-export type KExpr = Expression | "disgust" | "determined" | "embarrassed" | "cry" | "deadpan" | "scheming";
+type KExprBase = Expression | "disgust" | "determined" | "embarrassed" | "cry" | "deadpan" | "scheming";
+export type KExpr = KExprBase | FaceXExpr;
 export const KEXPRS: KExpr[] = ["neutral", "happy", "laugh", "shock", "nervous", "sad", "angry", "whistle", "smug", "think", "disgust", "determined", "embarrassed", "cry", "deadpan", "scheming"];
+/** Every expression: the 16 above plus the faces.ts set (wink, asleep, dizzy, love, sick, ...). */
+export const KEXPRS_ALL: KExpr[] = [...KEXPRS, ...FACE_X_EXPRS];
 /** Rhubarb Lip Sync canonical cues (characters.md 4.2 recommendation). */
 export type Cue = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "X";
 /** toon.ts viseme letters -> Rhubarb cue (4.3 table). */
@@ -192,6 +203,8 @@ export const OCULUS_TO_CUE: Record<string, Cue> = { sil: "X", PP: "A", FF: "G", 
 export type KPose = Omit<Pose, "expr" | "view"> & {
   /** "three" = three-quarter view (bobble kind only; every other kind draws its front view). `facing` picks the side. */
   view?: "front" | "side" | "three";
+  /** temporary skin conditions for this pose (faces.ts): sunburn, sick, pale, frozen, flushed, soot, blackeye, ... */
+  skin?: string[];
   expr?: KExpr; cue?: Cue; gait?: number; jiggle?: number; tail?: number; headDip?: number;
   limbs?: { handL?: V2; handR?: V2; footL?: V2; footR?: V2 }; prev?: KPose;
   /** stick extras: held prop, hat lifted off the head (head units) and tilted (deg; hat tip / doff). */
@@ -209,8 +222,8 @@ export type KPose = Omit<Pose, "expr" | "view"> & {
   settle?: number;
 };
 /** Fallback for styles with only the 10 toon.ts drawings (characters.md 5.2). */
-export const EXPR_FALLBACK: Record<KExpr, Expression> = { neutral: "neutral", happy: "happy", laugh: "laugh", shock: "shock", nervous: "nervous", sad: "sad", angry: "angry", whistle: "whistle", smug: "smug", think: "think", disgust: "angry", determined: "angry", embarrassed: "nervous", cry: "sad", deadpan: "neutral", scheming: "smug" };
-export const toToonPose = (p: KPose): Pose => { const { view, ...q } = p; return { ...q, ...(view ? { view: view === "three" ? "front" as const : view } : {}), expr: p.expr ? EXPR_FALLBACK[p.expr] : undefined, viseme: p.cue ? CUE_TO_VISEME[p.cue] : p.viseme }; };
+export const EXPR_FALLBACK: Partial<Record<KExpr, Expression>> = { neutral: "neutral", happy: "happy", laugh: "laugh", shock: "shock", nervous: "nervous", sad: "sad", angry: "angry", whistle: "whistle", smug: "smug", think: "think", disgust: "angry", determined: "angry", embarrassed: "nervous", cry: "sad", deadpan: "neutral", scheming: "smug" };
+export const toToonPose = (p: KPose): Pose => { const { view, ...q } = p; return { ...q, ...(view ? { view: view === "three" ? "front" as const : view } : {}), expr: p.expr ? EXPR_FALLBACK[p.expr] ?? "neutral" : undefined, viseme: p.cue ? CUE_TO_VISEME[p.cue] : p.viseme }; };
 
 export type FaceSpec = {
   eyes: "solid" | "dot" | "whites" | "none" | "pill";
@@ -229,13 +242,15 @@ export type FaceSpec = {
 };
 const FACE0: FaceSpec = { eyes: "whites", eyeSize: 0.2, eyeSpacing: 0.4, eyeY: 0.42, brows: "line", browScale: 1, mouthTier: 9, mouthWidth: 0.3, mouthY: 0.74, mouthScale: 1, catchlight: true, blush: false };
 
-type EyeSt = { lid: number; tilt: number; bot: number; size: number; pupil: number; shape: "open" | "happy" | "tight" };
+type EyeSt = { lid: number; tilt: number; bot: number; size: number; pupil: number; shape: "open" | "happy" | "tight" | (string & {}) };
 type Mouth = "neutral" | "smile" | "grin" | "O" | "frown" | "wavy" | "grit" | "whistle" | "smirk" | "side" | "bleh" | "firm" | "wavySmall" | "wail" | "flat" | "evil"
-  | "closed" | "half" | "teeth" | "open" | "wide" | "round" | "pucker" | "lipbite" | "tongue";
-type FX = "sweat" | "blush" | "tears" | "vein" | "lines";
+  | "closed" | "half" | "teeth" | "open" | "wide" | "round" | "pucker" | "lipbite" | "tongue" | (string & {});
+type FX = "sweat" | "blush" | "tears" | "vein" | "lines" | (string & {});
 /** brow: deg, + = inner end up (worry), - = inner down (anger). up: brow raise in eye heights. tilt: lid slant, + = inner side lower. */
-type ExprDef = { brow: number; up: number; asym?: number; eye?: Partial<EyeSt>; mouth: Mouth; look?: V2; fx?: FX[]; act?: { squash?: number; scale?: number } };
-const EX: Record<KExpr, ExprDef> = {
+type ExprDef = { brow: number; up: number; asym?: number; eye?: Partial<EyeSt>; mouth: Mouth; look?: V2; fx?: FX[]; act?: { squash?: number; scale?: number };
+  /** faces.ts: an eye kind for both eyes, per-eye kinds, skin conditions this face turns on */
+  eyeX?: string; eyeLR?: [string | null, string | null]; skin?: string[]; tilt?: number };
+const EX0: Record<KExprBase, ExprDef> = {
   neutral: { brow: 0, up: 0, mouth: "neutral" },
   happy: { brow: -4, up: 0.15, eye: { bot: 0.22 }, mouth: "smile" },
   laugh: { brow: -6, up: 0.3, eye: { shape: "happy" }, mouth: "grin", fx: ["blush"], act: { squash: 0.95 } },
@@ -253,6 +268,7 @@ const EX: Record<KExpr, ExprDef> = {
   deadpan: { brow: 0, up: -0.12, eye: { lid: 0.5, bot: 0.1 }, mouth: "flat" },
   scheming: { brow: -22, up: -0.1, eye: { lid: 0.42, tilt: 10, bot: 0.22 }, look: [0.5, 0], mouth: "evil" },
 };
+const EX = { ...EX0, ...(EX_X as Record<string, ExprDefX>) } as Record<KExpr, ExprDef>;
 
 /** Viseme reductions per mouth tier (characters.md 4.4). Returns null for rest (the expression mouth shows). */
 export function reduceCue(cue: Cue, tier: 2 | 3 | 5 | 9): Mouth | null {
@@ -278,13 +294,15 @@ export type FaceOpts = {
   eyeAt?: V2[]; mouthAt?: V2; beakSize?: number; noBrows?: boolean;
   /** per-eye width factor (three-quarter view: the far eye is narrower); x shift of sweat / vein in face widths */
   eyeSx?: number[]; fxDx?: number;
+  /** collect the faces.ts effects instead of drawing them (bobbles draw them after the hair and hat) */
+  deferFx?: (fx: string[], ctx: import("./kit").FaceFxCtx) => void;
 };
 const MDARK = "#4a1a22", TONGUE = "#e0707a";
 
 export function drawFace(g: CanvasRenderingContext2D, f0: Partial<FaceSpec>, p: KPose, b: FaceBox, o: FaceOpts) {
   const f = { ...FACE0, ...f0 }, E = EX[p.expr ?? "neutral"] ?? EX.neutral;
   const st: EyeSt = { lid: 0, tilt: 0, bot: 0, size: 1, pupil: 1, shape: "open", ...E.eye };
-  if (f.baseLid && st.shape === "open" && f.eyes !== "whites" && p.expr !== "shock" && p.expr !== "nervous") st.lid = Math.max(st.lid, f.baseLid);
+  if (f.baseLid && st.shape === "open" && f.eyes !== "whites" && p.expr !== "shock" && p.expr !== "nervous" && !WIDE_X.includes(p.expr ?? "")) st.lid = Math.max(st.lid, f.baseLid);
   const lk = p.look ?? [0, 0], look: V2 = [clamp(lk[0] + (E.look?.[0] ?? 0), -1, 1), clamp(lk[1] + (E.look?.[1] ?? 0), -1, 1)];
   const blink = clamp(p.blink ?? 0), side = !!o.side, W = b.w, top = b.y - b.h / 2, lw = o.lw;
   const rx = (f.eyeSize * W) / 2, ry = rx * (f.eyes === "whites" ? 1.22 : f.eyes === "solid" ? 1.32 : f.eyes === "pill" ? 1.9 : 1.05);
@@ -302,7 +320,7 @@ export function drawFace(g: CanvasRenderingContext2D, f0: Partial<FaceSpec>, p: 
     g.beginPath(); g.ellipse(x + (side ? -rx * 0.2 : s * rx * 0.35), y + ry * 1.5, rx * 0.95, rx * 0.46, 0, 0, TAU); g.fill();
     if (fx.has("lines")) { g.strokeStyle = "#d8344e"; g.lineWidth = lw * 0.7; for (let k = -1; k <= 1; k++) { const xx = x + s * rx * 0.35 + k * rx * 0.5; g.beginPath(); g.moveTo(xx + rx * 0.15, y + ry * 1.25); g.lineTo(xx - rx * 0.15, y + ry * 1.75); g.stroke(); } }
   }
-  eyes.forEach(([x, y, s], i) => drawEye(g, f, o, x, y, rx * (o.eyeSx?.[i] ?? 1), ry, st, blink, s, look, dark));
+  eyes.forEach(([x, y, s], i) => { const k = E.eyeLR?.[i] ?? E.eyeX; drawEye(g, f, o, x, y, rx * (o.eyeSx?.[i] ?? 1), ry, k ? { ...st, shape: k } : st, blink, s, look, dark); });
   // brows carry ~half the emotion on simple faces: always on, even on dot eyes (characters.md 3.4)
   if (f.brows !== "none" && !o.noBrows) {
     const bl0 = rx * (f.eyes === "whites" ? 1.05 : 1.5) * f.browScale;
@@ -335,6 +353,8 @@ export function drawFace(g: CanvasRenderingContext2D, f0: Partial<FaceSpec>, p: 
     g.strokeStyle = "#e2333f"; g.lineWidth = lw * 1.2;
     for (let k = 0; k < 4; k++) { const a = (k * Math.PI) / 2 + Math.PI / 4; g.beginPath(); g.arc(x + Math.cos(a) * d * 1.5, y + Math.sin(a) * d * 1.5, d, a + Math.PI * 0.6, a + Math.PI * 1.4); g.stroke(); }
   }
+  const fxX = [...fx].filter((n) => !["sweat", "blush", "tears", "vein", "lines"].includes(n));
+  if (fxX.length) { const fctx = { box: b, eyes, rx, ry, ink: o.ink, lw, skin: o.skin, side, fxDx: o.fxDx ?? 0, mouth: [mx, my] as V2, mw, expr: p.expr ?? "neutral" }; if (o.deferFx) o.deferFx(fxX, fctx); else drawFaceFx(g, fxX, fctx); }
   g.restore();
 }
 
@@ -344,6 +364,7 @@ function drawEye(g: CanvasRenderingContext2D, f: FaceSpec, o: FaceOpts, x: numbe
   if (st.shape === "happy") { g.strokeStyle = dark; g.lineWidth = lw * (f.eyes === "whites" ? 1.45 : 1.6); g.beginPath(); g.ellipse(x, y + ry * 0.35, rx, ry * 0.7, 0, Math.PI * 1.12, Math.PI * 1.88); g.stroke(); return; }
   if (st.shape === "tight") { g.strokeStyle = dark; g.lineWidth = lw * 1.45; g.beginPath(); g.moveTo(x + s * rx, y - ry * 0.55); g.lineTo(x - s * rx * 0.7, y); g.lineTo(x + s * rx, y + ry * 0.55); g.stroke(); return; }
   const lid = Math.max(st.lid, blink);
+  if (st.shape !== "open" && st.shape !== "happy" && st.shape !== "tight" && drawEyeX(g, st.shape, { x, y, rx, ry, s, look, dark, ink: o.ink, lw, skin: o.skin, catchlight: f.catchlight, blink, lid: st.lid, tilt: st.tilt })) return;
   // squash-blink for dot/solid, lid-blink for whites (characters.md 4.7)
   if (lid > 0.86) { g.strokeStyle = dark; g.lineWidth = lw * 1.35; g.beginPath(); g.ellipse(x, y, rx * 1.02, ry * 0.32, 0, Math.PI * 0.05, Math.PI * 0.95); g.stroke(); return; }
   const whites = f.eyes === "whites", RX = rx * st.size, RY = ry * st.size;
@@ -386,6 +407,7 @@ function drawEye(g: CanvasRenderingContext2D, f: FaceSpec, o: FaceOpts, x: numbe
 }
 
 function drawMouth(g: CanvasRenderingContext2D, shape: Mouth, mx: number, my: number, m: number, o: FaceOpts, cat: boolean, side: boolean) {
+  if (drawMouthX(g, shape, { x: mx, y: my, m, ink: o.ink, lw: o.lw, skin: o.skin, side })) return;
   const lw = o.lw, flat = !!o.flat;
   g.save(); g.translate(mx, my); if (side) g.scale(1, 1);
   g.strokeStyle = o.ink; g.lineWidth = lw * 1.25; g.lineCap = "round"; g.lineJoin = "round";
@@ -565,7 +587,7 @@ export type StickSpec = KBase & {
 export type HandShape = "fist" | "point" | "open";
 /** 1.8: `shears` (`open` 0..1), `coin` (`len` = radius in head units, `cut` = a shaved flat), `file`, `hammer`, `sack`, `quill`: tools belong IN the hand.
  *  A prop floating next to an empty hand reads as clip art (reviewer, coin short). A second prop goes in `KPose.hold2`. */
-export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper" | "shears" | "coin" | "file" | "hammer" | "sack" | "quill" | "bar"; open?: number; cut?: boolean; /** absolute direction on screen in degrees (0 = right, 90 = up, 180 = left) instead of `angle` relative to the forearm: shears that must point AT the coin */ aim?: number; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
+export type StickHold = { item: "axe" | "cane" | "hat" | "flag" | "lever" | "bag" | "phone" | "cup" | "paper" | "shears" | "coin" | "file" | "hammer" | "sack" | "quill" | "bar" | PropX; open?: number; cut?: boolean; /** absolute direction on screen in degrees (0 = right, 90 = up, 180 = left) instead of `angle` relative to the forearm: shears that must point AT the coin */ aim?: number; hand?: "L" | "R"; angle?: number; len?: number; color?: string; hat?: StickHat | BobbleHat; as?: "bobble" };
 export type ChibiSpec = KBase & {
   kind: "chibi"; skin: string;
   hair?: { color: string; style: "short" | "bob" | "spiky" | "long" | "bun" | "curly" | "bald" | "side" };
@@ -1280,6 +1302,7 @@ function stickHat(c: Ctx, hat: StickHat, h: V2, d: number, tilt = 0) {
 function stickProp(c: Ctx, h: StickHold, a: { j: V2; e: V2 }, d: number, w: number) {
   const g = c.g, ang = h.aim !== undefined ? -rad(h.aim) : Math.atan2(a.e[1] - a.j[1], a.e[0] - a.j[0]) + rad(h.angle ?? 0), L = (h.len ?? (h.item === "axe" ? 2.2 : 1.7)) * d;
   g.save(); g.translate(a.e[0], a.e[1]); g.rotate(ang);
+  if (drawPropX(kitOf(c), { item: h.item, color: h.color, L, w, d, open: h.open })) { g.restore(); return; }
   const wood = h.color ?? "#9a6a3c";
   if (h.item === "axe") {
     part(c, rrect(-L * 0.22, -w * 0.38, L, w * 0.76, w * 0.3), wood, { off: 0 });
@@ -1458,7 +1481,7 @@ function hat(c: Ctx, h: NonNullable<ChibiSpec["hat"]>, cx: number, cy: number, r
  * Identity = hair/hat silhouette + one outfit shape + one accent colour; polish = thick-thin ink, cel crescents,
  * the fringe's drop shadow on the forehead, the head's shadow on the collar, a soft key highlight.
  */
-export type BobbleHat = { style: "cap" | "top" | "bowler" | "beanie" | "hardhat" | "chef" | "ranger" | "crown" | "boater" | "beret"; color: string; accent?: string };
+export type BobbleHat = { style: "cap" | "top" | "bowler" | "beanie" | "hardhat" | "chef" | "ranger" | "crown" | "boater" | "beret" | HatX; color: string; accent?: string };
 /**
  * A cast-wide house style (1.9): one choice per LAYER, never varied per character. Measured on a 20-short reference
  * study (799 faces): what makes a cast recognisable is a constant face fill, ink colour, head geometry, line law, limb
@@ -1556,12 +1579,16 @@ export const BRANDS: Record<"calibration" | "example" | "ours", CastBrand> = {
 };
 export type BobbleSpec = KBase & {
   kind: "bobble"; skin: string;
-  hair?: { style: "cap" | "side" | "spiky" | "curly" | "long" | "bob" | "bun" | "pony" | "buzz" | "bald"; color: string };
+  hair?: { style: "cap" | "side" | "spiky" | "curly" | "long" | "bob" | "bun" | "pony" | "buzz" | "bald" | HairX; color: string };
   hat?: BobbleHat;
-  top: { color: string; style?: "jacket" | "hoodie" | "shirt" | "suit" | "tee" | "dress" | "overall" | "uniform" | "coat" | "vest" | "apron"; accent?: string; sleeves?: "long" | "short" };
+  top: { color: string; style?: "jacket" | "hoodie" | "shirt" | "suit" | "tee" | "dress" | "overall" | "uniform" | "coat" | "vest" | "apron" | TopX; accent?: string; sleeves?: "long" | "short";
+    /** a print on the top (wardrobe.ts) in `patternColor` */
+    pattern?: PatternX; patternColor?: string };
   legs?: string; shoes?: string;
   beard?: string; stache?: string; glasses?: string; shades?: string;
-  neck?: { style: "tie" | "bow" | "scarf"; color: string };
+  neck?: { style: "tie" | "bow" | "scarf" | NeckX; color: string };
+  /** permanent skin marks (faces.ts): freckles, stubble, wrinkles, eyebags, mole, scar, lashes, lipstick, rosy, ... */
+  marks?: string[];
   face?: Partial<FaceSpec>; cheeks?: boolean; build?: "slim" | "regular" | "stout";
   /** the cast's house style (set once for the whole cast, e.g. by `Board.brand`) */
   brand?: CastBrand;
@@ -1587,22 +1614,24 @@ export const BOBBLE_POSES: Record<string, KPose> = {
 };
 type BobbleLimb = { r: V2; j: V2; e: V2; far: boolean; sg: number; sm?: V2 };
 type BobbleRig = { d: number; r: number; cx: number; cy: number; tw: number; yT: number; yB: number; hem: number; hip: V2; sh: V2; arms: BobbleLimb[]; legs: BobbleLimb[]; hatAt: V2 | null };
-const BOBBLE_HATX: Record<BobbleHat["style"], number> = { top: 0.5, chef: 0.52, crown: 0.24, ranger: 0.2, bowler: 0.22, boater: 0.14, hardhat: 0.12, cap: 0.08, beanie: 0.16, beret: 0.1 };
+const hatHx = (st: string) => (BOBBLE_HATX as Record<string, number>)[st] ?? HAT_X_HX[st] ?? 0.2;
+const hairHx = (hs?: string): number => (hs ? HAIR_X_HX[hs] : undefined) ?? (hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04);
+const BOBBLE_HATX: Partial<Record<BobbleHat["style"], number>> = { top: 0.5, chef: 0.52, crown: 0.24, ranger: 0.2, bowler: 0.22, boater: 0.14, hardhat: 0.12, cap: 0.08, beanie: 0.16, beret: 0.1 };
 /** Hats and tall hair shrink a bobble to fit its card. Multiply the card height by this so every body has the same
  *  real size (a man with a top hat is taller than the same man bare-headed): `new CharacterCard(spec, 1.7 * bobbleScale(spec), ...)`. */
 export function bobbleScale(s: BobbleSpec) {
-  const hs = s.hair?.style, hx = s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04, heads = s.heightHeads ?? s.brand?.heads ?? 3.4, egg = Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5 + (s.hat ? 0 : Math.max(0, (s.brand?.hairVolume ?? 1.045) - 1.045) * 0.5); /* an egg head or fuller hair rises above the round one */
+  const hs = s.hair?.style, hx = s.hat ? hatHx(s.hat.style) : hairHx(hs), heads = s.heightHeads ?? s.brand?.heads ?? 3.4, egg = Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5 + (s.hat ? 0 : Math.max(0, (s.brand?.hairVolume ?? 1.045) - 1.045) * 0.5); /* an egg head or fuller hair rises above the round one */
   return (heads + hx + egg) / (heads + 0.04);
 }
 function bobbleRig(c: Ctx, s: BobbleSpec, p: KPose): BobbleRig {
-  const hs = s.hair?.style, hx = (s.hat ? BOBBLE_HATX[s.hat.style] : hs === "spiky" ? 0.14 : hs === "bun" ? 0.2 : hs === "curly" ? 0.1 : 0.04) + Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5 + (s.hat ? 0 : Math.max(0, (s.brand?.hairVolume ?? 1.045) - 1.045) * 0.5);
+  const hs = s.hair?.style, hx = (s.hat ? hatHx(s.hat.style) : hairHx(hs)) + Math.max(0, (s.brand?.head?.hw ?? 1) - 1) * 0.5 + (s.hat ? 0 : Math.max(0, (s.brand?.hairVolume ?? 1.045) - 1.045) * 0.5);
   // default = the tall, slim figure (3.4 heads: long jacket, straight legs); heightHeads 2.6 gives the short chibi-like build
   const heads = s.heightHeads ?? 3.4, tk = clamp((heads - 2.6) / 0.8, 0, 1.3), TL = 0.92 + 0.36 * tk;
   const d = c.u / (heads + hx), r = d / 2, side = c.side, three = !!c.three;
   const k = s.build === "stout" ? 1.24 : s.build === "slim" ? 0.86 : 1;
   const cx = side ? d * 0.03 : three ? d * 0.045 : 0, cy = -c.u + hx * d + r;
   const tw = d * 0.66 * k * (side ? 0.8 : three ? 0.9 : 1), yT = cy + r * 0.78, yB = yT + d * TL;
-  const st = s.top.style ?? "tee", hem = st === "dress" ? yB + d * 0.2 : st === "coat" ? yB + d * 0.24 : yB;
+  const st = s.top.style ?? "tee", hem = st === "dress" ? yB + d * 0.2 : st === "coat" ? yB + d * 0.24 : yB + d * (TOP_X_HEM[st] ?? 0);
   const hip: V2 = [0, yB - d * 0.1], sh: V2 = [0, yT + d * 0.22];
   const legLen = -hip[1] - d * 0.06, l1 = legLen * 0.52, l2 = legLen * 0.5, a1 = d * (0.44 + 0.13 * tk);
   const ks = (0.29 + TL) / 1.21; // pose targets are authored on the 2.6-head build and scale with the torso
@@ -1654,6 +1683,7 @@ function inkUnion(c: Ctx, paths: Path2D[], fill: string, lw = c.lw) {
 /** Hair for a round head: `front` sits on the head, `back` behind it (long / bob / pony), `extra` on top (bun). */
 function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, side: boolean, lift = 0, n = 2, vol = 1.045): { front: Path2D[]; back: Path2D[] } {
   const R = r * vol, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
+  const hx0 = hairX(st, { view: side ? "side" : "front", cx, cy, r, lift, n, vol }); if (hx0) return hx0;
   /* a point on the crown at angle a and radius rr: a circle for n = 2, the head's own squircle for n > 2 */
   const se = (a: number, rr: number): V2 => [cx + rr * Math.sign(Math.cos(a)) * Math.abs(Math.cos(a)) ** (2 / n), cy + rr * Math.sign(Math.sin(a)) * Math.abs(Math.sin(a)) ** (2 / n)];
   const crown = (from: number, to: number) => { for (let i = 0; i <= 48; i++) { const [x, y] = se(lerp(from, to, i / 48), R); q.lineTo(x, y); } };
@@ -1700,6 +1730,7 @@ function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy
 /** Three-quarter hair (facing +x): the mass wraps the top and the back of the skull (-x side), the hairline and the fringe
  *  slide toward the face side, the near ear stays free (long / bob curtains cover it). Same silhouettes as the front view. */
 function bobbleHair3(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, lift = 0, vol = 1.045): { front: Path2D[]; back: Path2D[] } {
+  const hx0 = hairX(st, { view: "three", cx, cy, r, lift, n: 2, vol }); if (hx0) return hx0;
   const R = r * vol, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
   if (st === "bald") return { front, back };
   const q = new Path2D(), X = (k: number) => cx + r * k, Y = (k: number) => cy + r * k;
@@ -1733,10 +1764,11 @@ function bobbleHead3(cx: number, cy: number, r: number) {
     if (i) q.lineTo(cx + Math.cos(a) * k, cy + Math.sin(a) * k); else q.moveTo(cx + Math.cos(a) * k, cy + Math.sin(a) * k); }
   q.closePath(); return q;
 }
-function bobbleHat(c: Ctx, h: BobbleHat, cx: number, cy: number, r: number, side: boolean, tilt: number, three = false) {
+function bobbleHat(c: Ctx, h: BobbleHat, cx: number, cy: number, r: number, side: boolean, tilt: number, three = false, hatHw = 1) {
   const g = c.g, d = r * 2, band = h.accent ?? shade(h.color, 0.5), off = d * 0.05;
   const dome = (rx: number, ry: number, y = 0) => { const q = new Path2D(); q.ellipse(0, y, rx, ry, 0, Math.PI, 0); q.closePath(); return q; };
   g.save(); g.translate(cx, cy - r * 0.6); g.rotate(rad(tilt + (side ? -3 : three ? -4 : -5)));
+  if (drawHatX(kitOf(c), { style: h.style, color: h.color, accent: h.accent, r, side, three, hw: hatHw })) { g.restore(); return; }
   switch (h.style) {
     case "cap": part(c, dome(r * 1.04, r * 0.72, r * 0.06), h.color, { off, thick: true }); part(c, side ? ell(r * 1.1, r * 0.05, r * 0.62, r * 0.11) : three ? ell(r * 0.52, r * 0.1, r * 0.84, r * 0.15) : ell(0, r * 0.1, r * 1.0, r * 0.16), band, { off: 0 }); dot(g, three ? r * 0.1 : 0, -r * 0.66, r * 0.07, band); break;
     case "beanie": part(c, dome(r * 1.06, r * 0.8, r * 0.16), h.color, { off }); part(c, rrect(-r * 1.08, -r * 0.04, r * 2.16, r * 0.32, r * 0.14), band, { off: 0 }); part(c, ell(0, -r * 0.72, r * 0.2, r * 0.2), h.accent ?? "#f4efe6", { off: 0 }); break;
@@ -1762,9 +1794,9 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   // on the shadow side, biased 20 degrees down, and thins to the plain stroke on the lit side)
   const taperUnder = (path: Path2D, k = 1) => { const tp2 = (B?.line?.taper ?? 0) * d * k; if (tp2 <= 0) return; g.fillStyle = c.ink; g.fill(moved(path, -c.light * tp2 * 0.94, tp2 * 0.34)); };
   const st = s.top.style ?? "tee", topC = s.top.color, acc = s.top.accent, legC = s.legs ?? "#33415f", shoeC = s.shoes ?? "#2b2230";
-  const short = s.top.sleeves === "short" || (!s.top.sleeves && (st === "tee" || st === "dress" || st === "overall" || st === "apron"));
+  const short = s.top.sleeves === "short" || (!s.top.sleeves && (st === "tee" || st === "dress" || st === "overall" || st === "apron" || TOP_X_SHORT.includes(st)));
   const armW = d * 0.105, legW = d * 0.125, skinSh = skinShade(skin), hs = s.hair?.style ?? "bald", hcol = s.hair?.color ?? "#3a2a24";
-  const hst = s.hat && (hs === "bun" || hs === "spiky" || hs === "curly") ? "cap" : hs; // tall hair would poke through a hat
+  const hst = s.hat && (hs === "bun" || hs === "spiky" || hs === "curly" || HAIR_X_TALL.includes(hs)) ? "cap" : hs; // tall hair would poke through a hat
   const hhw = B?.head?.hw ?? 1, hairTip = 0.08 - 0.94 + (B?.eyes?.eyeY ?? 0.5) * 1.88 - (B?.hairline ?? 0) * 1.88, lift = B?.hairline ? Math.max(0, -0.13 - hairTip / hhw) : 0;
   const hvol = B?.hairVolume ?? 1.045, hair = three ? bobbleHair3(hst, cx, cy, r, lift, hvol) : bobbleHair(hst, cx, cy, r, side, lift, B?.head?.n ?? 2, hvol);
   if (hhw !== 1) { hair.front = hair.front.map((q) => moved(q, 0, cy * (1 - hhw), 1, hhw)); hair.back = hair.back.map((q) => moved(q, 0, cy * (1 - hhw), 1, hhw)); } /* the hair follows an egg or a wide head */
@@ -1833,10 +1865,11 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   const holdOf = (arm: number) => (holdArm === arm ? p.hold : hold2Arm === arm ? p.hold2 : undefined);
   // head tilt around the neck: the cheapest big acting cue (curious, sad, smug); expressions bring a small default
   const TILT: Partial<Record<KExpr, number>> = { sad: 5, cry: 6, think: -7, smug: -4, laugh: -5, embarrassed: 5, scheming: 4, whistle: -4, disgust: -3, nervous: 2 };
-  const tiltDeg = p.headTilt ?? TILT[p.expr ?? "neutral"] ?? 0, neckY = cy + r * 0.86;
+  const tiltDeg = p.headTilt ?? TILT[p.expr ?? "neutral"] ?? EX[p.expr ?? "neutral"]?.tilt ?? 0, neckY = cy + r * 0.86;
   const headXf = () => { g.translate(cx, neckY); g.rotate(rad(tiltDeg)); g.translate(-cx, -neckY); };
   // ---- back hair, far limbs
   if (hair.back.length) { g.save(); headXf(); if (sv) { g.translate(cx, cy - r * 0.3); g.rotate(rad(sv * 0.9)); g.translate(-cx, -(cy - r * 0.3)); } inkUnion(c, hair.back, shade(hcol, 0.12)); g.restore(); }
+  drawTopBackX(kitOf(c), { st, color: topC, accent: acc, d, tw, yT, yB, hem, side, three, cx, cy, r }); /* capes and other garments behind the body */
   // three-quarter: the far (R) arm hangs behind the body; it comes in front only when its hand lands on the head or the chest
   const farE = R.arms[1].e, farFront = three && (!!R.hatAt || Math.hypot(farE[0] - cx, farE[1] - cy) < r * 1.2 || (Math.abs(farE[0]) < tw * 0.42 && farE[1] > yT && farE[1] < hem));
   if (side) { drawLeg(R.legs[0]); drawArm(R.arms[0], holdOf(0)); }
@@ -1844,7 +1877,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   // ---- legs under the torso
   if (side) drawLeg(R.legs[1]); else if (three) drawLeg(R.legs[0]); else { drawLeg(R.legs[0]); drawLeg(R.legs[1]); }
   // ---- torso
-  const tp = new Path2D(), hw = tw / 2, flare = st === "dress" ? hw * 1.5 : st === "coat" ? hw * 1.12 : hw, rr = hw * 0.78;
+  const tp = new Path2D(), hw = tw / 2, flare = st === "dress" ? hw * 1.5 : st === "coat" ? hw * 1.12 : hw * (TOP_X_FLARE[st] ?? 1), rr = hw * 0.78;
   tp.moveTo(-hw + rr, yT); tp.lineTo(hw - rr, yT); tp.quadraticCurveTo(hw, yT, hw, yT + rr);
   if (hem > yB && sv) { const hx = -sv * d * 0.014; tp.lineTo(flare + hx, hem - d * 0.03); tp.quadraticCurveTo(flare + hx, hem, flare - d * 0.04 + hx, hem); tp.lineTo(-flare + d * 0.04 + hx, hem); tp.quadraticCurveTo(-flare + hx, hem, -flare + hx, hem - d * 0.03); } // coat / dress hem swings behind the pop
   else if (hem > yB) { tp.lineTo(flare, hem - d * 0.03); tp.quadraticCurveTo(flare, hem, flare - d * 0.04, hem); tp.lineTo(-flare + d * 0.04, hem); tp.quadraticCurveTo(-flare, hem, -flare, hem - d * 0.03); }
@@ -1862,6 +1895,8 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   const line = (pts: V2[], col = c.ink, w = c.lw * 0.7) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); };
   const fill = (path: Path2D, col: string, stroke = true) => { g.fillStyle = col; g.fill(path); if (stroke) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.7; g.stroke(path); } };
   const collar = (col: string, wdt = 0.3, dep = 0.26) => { for (const sg of sgs) fill(poly([[ox, chest - d * 0.02], [ox + sg * tw * wdt * WK(sg), yT - d * 0.02], [ox + sg * tw * (wdt + 0.16) * WK(sg), chest + d * dep * 0.4], [ox + sg * tw * 0.06 * WK(sg), chest + d * dep]]), col); };
+  const tctx = { skin, st, color: topC, accent: acc, pattern: s.top.pattern, patternColor: s.top.patternColor, d, tw, hw, yT, yB, hem, chest, ox, wk, sgs, wL, wR, side, three, flare, torso: tpB, line, fill, collar };
+  drawTopPattern(kitOf(c), tctx);
   if (st === "jacket") { const zw = d * 0.085 * wk; fill(rrect(ox - zw / 2, yT, zw, th + d * 0.1, 0), acc ?? "#ffd23f"); collar(shade(topC, 0.2), 0.3, 0.2); fill(rrect(-hw * 1.2, yB - d * 0.1, tw * 1.2, d * 0.12, 0), shade(topC, 0.2), false); line([[-hw, yB - d * 0.1], [hw, yB - d * 0.1]]); }
   if (st === "hoodie") { fill(three ? rrect(ox - tw * 0.3 * wL, yB - th * 0.4, tw * 0.3 * (wL + wR), th * 0.26, d * 0.05) : rrect(ox - tw * 0.3 * wk, yB - th * 0.4, tw * 0.6 * wk, th * 0.26, d * 0.05), shade(topC, 0.16)); for (const sg of sgs) { line([[ox + sg * tw * 0.1 * WK(sg), chest - d * 0.04], [ox + sg * tw * 0.11 * WK(sg), chest + d * 0.2]], "#f4efe6", c.lw * 0.9); dot(g, ox + sg * tw * 0.11 * WK(sg), chest + d * 0.21, c.lw * 0.8, "#f4efe6"); } }
   if (st === "shirt") { collar(tint(topC, 0.55), 0.26, 0.2); line([[ox, chest + d * 0.05], [ox, yB]]); for (let i = 0; i < 3; i++) dot(g, ox + d * 0.03, chest + d * (0.14 + i * 0.17), d * 0.022, c.ink); }
@@ -1872,6 +1907,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if (st === "vest") { for (const sg of sgs) { const ex = three ? sg * hw * 1.3 : ox + sg * hw * 1.3; fill(poly([[ox + sg * tw * 0.1 * WK(sg), yT - d * 0.02], [ex, yT - d * 0.02], [ex, yB + d * 0.02], [ox + sg * tw * 0.16 * WK(sg), yB + d * 0.02], [ox + sg * tw * 0.06 * WK(sg), chest + d * 0.25]]), topC); } }
   if (st === "uniform") { collar(shade(topC, 0.2), 0.26, 0.18); line([[ox, chest + d * 0.05], [ox, yB]]); for (let i = 0; i < 2; i++) dot(g, ox + d * 0.03, chest + d * (0.14 + i * 0.16), d * 0.024, "#f1c94a"); fill(rrect(-hw * 1.2, yB - d * 0.26, tw * 1.2, d * 0.1, 0), "#2b2230", false); fill(rrect(ox - d * 0.045, yB - d * 0.27, d * 0.09, d * 0.12, d * 0.01), "#f1c94a"); const bx = ox + (side ? -tw * 0.05 : three ? -tw * 0.28 : -tw * 0.24), by = chest + d * 0.14, star = new Path2D(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, q2 = d * (i % 2 ? 0.035 : 0.075); if (i) star.lineTo(bx + Math.cos(a) * q2, by + Math.sin(a) * q2); else star.moveTo(bx + Math.cos(a) * q2, by + Math.sin(a) * q2); } star.closePath(); fill(star, acc ?? "#f1c94a"); }
   if (st === "apron") { fill(three ? rrect(ox - tw * 0.33 * wL, chest + d * 0.06, tw * 0.33 * (wL + wR), th, d * 0.03) : rrect(ox - tw * 0.33 * wk, chest + d * 0.06, tw * 0.66 * wk, th, d * 0.03), acc ?? "#f4efe6"); for (const sg of sgs) line([[ox + sg * tw * 0.3 * WK(sg), chest + d * 0.08], [ox + sg * tw * 0.16 * WK(sg), yT - d * 0.03]], acc ?? "#f4efe6", c.lw * 1.3); fill(rrect(ox - tw * 0.14 * wk, chest + d * 0.3, tw * 0.28 * wk, d * 0.15, d * 0.02), shade(acc ?? "#f4efe6", 0.12)); }
+  drawTopX(kitOf(c), tctx);
   // the head's shadow on the collar + a soft key highlight down the lit side (polish)
   g.fillStyle = "rgba(30,14,50,0.26)"; g.beginPath(); g.ellipse(cx + (side ? 0 : -c.light * d * 0.03), cy + r * 0.12, r * 0.99, r * 1.0, 0, 0, TAU); g.fill();
   g.fillStyle = "rgba(255,255,255,0.16)"; g.fill(rrect(c.light * hw * 0.5 - hw * 0.14, chest, hw * 0.28, th * 0.5, hw * 0.14));
@@ -1879,7 +1915,8 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   g.strokeStyle = c.ink; g.lineWidth = c.lw; g.stroke(tpB);
   if (st === "hoodie") { const hood = new Path2D(); hood.moveTo(-hw * 0.95, yT + d * 0.16); hood.quadraticCurveTo(0, yT + d * 0.44, hw * 0.95, yT + d * 0.16); hood.quadraticCurveTo(hw * 1.1, yT - d * 0.12, 0, yT - d * 0.12); hood.quadraticCurveTo(-hw * 1.1, yT - d * 0.12, -hw * 0.95, yT + d * 0.16); hood.closePath(); part(c, side ? moved(hood, -tw * 0.22, 0, 0.8, 1) : three ? moved(hood, -tw * 0.1, 0, 0.92, 1) : hood, shade(topC, 0.14), { off: 0 }); }
   if (s.neck) { const n = s.neck, y = yT + d * 0.3, x = ox;
-    if (n.style === "tie") part(c, poly([[x - d * 0.05, y - d * 0.06], [x + d * 0.05, y - d * 0.06], [x + d * 0.08, y + d * 0.36], [x, y + d * 0.46], [x - d * 0.08, y + d * 0.36]]), n.color, { off: d * 0.02 });
+    if (drawNeckX(kitOf(c), { style: n.style, color: n.color, x, y, d, hw, tw, sgs, side, three })) { /* wardrobe.ts drew it */ }
+    else if (n.style === "tie") part(c, poly([[x - d * 0.05, y - d * 0.06], [x + d * 0.05, y - d * 0.06], [x + d * 0.08, y + d * 0.36], [x, y + d * 0.46], [x - d * 0.08, y + d * 0.36]]), n.color, { off: d * 0.02 });
     else if (n.style === "bow") { for (const sg of sgs) { const bw = d * (three && sg > 0 ? 0.11 : 0.17); part(c, poly([[x, y], [x + sg * bw, y - d * 0.1], [x + sg * bw, y + d * 0.1]]), n.color, { off: 0 }); } dot(g, x, y, d * 0.05, shade(n.color, 0.3)); }
     else { part(c, rrect(-hw * 0.98, y - d * 0.12, tw * 0.98, d * 0.2, d * 0.09), n.color, { off: d * 0.03 }); part(c, poly([[hw * 0.2, y + d * 0.02], [hw * 0.62, y + d * 0.02], [hw * 0.7, y + d * 0.5], [hw * 0.3, y + d * 0.46]]), n.color, { off: d * 0.02 }); } }
   // ---- head (everything up to the hat rotates with the tilt)
@@ -1903,7 +1940,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if ((side || three) && B?.ears !== false) { const ex = cx - r * (three ? 0.98 - 0.34 * turn : 0.3), ey = cy + r * 0.16; part(c, ell(ex, ey, r * 0.14, r * 0.18), skin, { off: 0, sh: skinSh }); g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.7; g.beginPath(); g.arc(ex + r * 0.03, ey, r * 0.07, Math.PI * 0.6, Math.PI * 1.4); g.stroke(); }
   if (s.cheeks && three) for (const [x, cr] of [[turn * r * 0.3 - r * 0.46, 0.17], [turn * r * 0.3 + r * 0.4, 0.13]]) { g.save(); g.globalAlpha = 0.32; dot(g, cx + x, cy + r * 0.34, r * cr, "#ff6f86"); g.restore(); }
   else if (s.cheeks) for (const x of side ? [r * 0.42] : [-r * 0.52 + (p.turn ?? 0) * r * 0.26, r * 0.52 + (p.turn ?? 0) * r * 0.26]) { g.save(); g.globalAlpha = 0.32; dot(g, cx + x, cy + r * 0.34, r * 0.17, "#ff6f86"); g.restore(); }
-  const wide = (p.expr === "shock" || p.expr === "nervous") && !s.glasses && !s.shades; // ring eyes inside lenses read as double circles
+  const wide = (p.expr === "shock" || p.expr === "nervous" || WIDE_X.includes(p.expr ?? "")) && !s.glasses && !s.shades; // ring eyes inside lenses read as double circles
   const face: Partial<FaceSpec> = { eyes: wide ? "whites" : "dot", eyeSize: wide ? 0.21 : 0.12, eyeSpacing: 0.37, eyeY: 0.5, brows: "line", browScale: wide ? 0.9 : 1.25, mouthTier: 9, mouthWidth: 0.25, mouthY: s.beard ? 0.7 : 0.72, mouthScale: 1, catchlight: true, blush: false };
   const fb: FaceBox = { x: cx + (side ? r * 0.06 : turn * r * (three ? 0.3 : 0.26)), y: cy + r * 0.08, w: d * 0.94, h: d * 0.94 };
   if (B?.eyes) Object.assign(face, B.eyes);
@@ -1911,8 +1948,16 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   face.eyeSpacing = (face.eyeSpacing ?? 0.37) * (1 - 0.22 * Math.abs(turn));
   const fs3 = { ...face, ...s.face }, far3 = clamp(1.02 - 0.22 * turn, 0.7, 1); // far eye / lens width in the three-quarter view
   if (Math.abs(turn) > 0.3 && B?.nose !== false) { const sgn = Math.sign(turn); g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.75; g.beginPath(); g.arc(fb.x + sgn * r * 0.02, cy + r * 0.27, r * 0.09, sgn > 0 ? -Math.PI * 0.4 : Math.PI * 0.6, sgn > 0 ? Math.PI * 0.5 : Math.PI * 1.4, false); g.stroke(); }
-  if (three) drawFace(g, { ...fs3, mouthWidth: (fs3.mouthWidth ?? 0.25) * 0.93 }, p, fb, { ink: c.ink, lw: c.lw * 0.92, skin: skin, side, eyeSx: [1, far3], fxDx: -0.16, mouthAt: [fb.x + r * 0.05, fb.y - fb.h / 2 + (fs3.mouthY ?? 0.72) * fb.h] });
-  else drawFace(g, { ...face, ...s.face }, p, fb, { ink: c.ink, lw: c.lw * 0.92, skin: skin, side });
+  const skinL = [...(s.marks ?? []), ...(p.skin ?? []), ...(EX[p.expr ?? "neutral"]?.skin ?? [])];
+  if (skinL.length) { /* skin marks and conditions (faces.ts), inside the head, under the features */
+    const fsk = { ...face, ...s.face }, ey0 = fb.y - fb.h / 2 + (fsk.eyeY ?? 0.5) * fb.h, ex0 = ((fsk.eyeSpacing ?? 0.37) * fb.w) / 2;
+    g.save(); g.clip(head);
+    drawSkinFx(g, skinL, { cx, cy, r, d, hw: hw2, light: c.light, side, three, turn, box: fb, skin, ink: c.ink, lw: c.lw, eyes: side ? [[fb.x + fb.w * 0.2, ey0]] : [[fb.x - ex0, ey0], [fb.x + ex0, ey0]], mouth: [fb.x + (side ? fb.w * 0.27 : 0), fb.y - fb.h / 2 + (fsk.mouthY ?? 0.72) * fb.h], head });
+    g.restore();
+  }
+  let fxLater: [string[], import("./kit").FaceFxCtx] | null = null; const deferFx = (fx: string[], ctx: import("./kit").FaceFxCtx) => { fxLater = [fx, ctx]; };
+  if (three) drawFace(g, { ...fs3, mouthWidth: (fs3.mouthWidth ?? 0.25) * 0.93 }, p, fb, { ink: c.ink, lw: c.lw * 0.92, skin: skin, side, eyeSx: [1, far3], fxDx: -0.16, deferFx, mouthAt: [fb.x + r * 0.05, fb.y - fb.h / 2 + (fs3.mouthY ?? 0.72) * fb.h] });
+  else drawFace(g, { ...face, ...s.face }, p, fb, { ink: c.ink, lw: c.lw * 0.92, skin: skin, side, deferFx });
   if (s.stache) { const y = cy + r * 0.3, x = side ? cx + r * 0.62 : three ? fb.x + r * 0.05 : fb.x, q = r * 0.34; const wing = (sg: number) => { const w = new Path2D(); w.moveTo(x, y - q * 0.15); w.quadraticCurveTo(x + sg * q * 0.9, y - q * 0.7, x + sg * q * 1.45, y - q * 0.02); w.quadraticCurveTo(x + sg * q * 0.9, y + q * 0.28, x, y + q * 0.2); w.closePath(); return w; }; for (const sg of side ? [1, -0.5] : three ? [-1, 0.74] : [-1, 1]) part(c, wing(sg), s.stache, { off: 0, lw: c.lw * 0.8 }); }
   if (side && !s.beard && B?.nose !== false) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.8; g.beginPath(); g.arc(cx + r * 0.9, cy + r * 0.22, r * 0.12, -Math.PI * 0.45, Math.PI * 0.5); g.stroke(); } // nose tick
   if (hair.front.length) { if (sv) { g.save(); g.translate(cx, cy); g.rotate(rad(sv * 0.45)); g.translate(-cx, -cy); } // the hair mass drags behind the head, then overshoots
@@ -1934,7 +1979,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
       g.restore();
     }
     const HT = B?.hairShine ?? "arc";
-    if (HT === "arc") { g.save(); for (const q of hair.front) g.clip(q); g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); }
+    if (HT === "arc") { g.save(); g.clip(hair.front[0]); /* the main mass only: several shapes would intersect to nothing */ g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); }
     else if (HT === "rim") for (const q of hair.front) { g.save(); g.clip(q); g.fillStyle = shade(hcol, 0.24); g.fill(q); g.fillStyle = hcol; g.fill(moved(q, 0, -d * 0.06)); g.restore(); }
     if (sv) g.restore(); }
   const ey = fb.y - fb.h / 2 + 0.5 * fb.h;
@@ -1945,7 +1990,8 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   else if (s.glasses || s.shades) { const gr = d * 0.14, xs = side ? [fb.x + fb.w * 0.2] : [fb.x - fb.w * 0.18, fb.x + fb.w * 0.18];
     for (const x of xs) { const L = ell(x, ey, gr, gr * 0.92); if (s.shades) { g.fillStyle = s.shades; g.fill(L); g.save(); g.clip(L); g.fillStyle = "rgba(255,255,255,0.35)"; g.fillRect(x - gr, ey - gr, gr * 0.9, gr * 0.7); g.restore(); } g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.stroke(L); }
     g.strokeStyle = s.glasses ?? c.ink; g.lineWidth = c.lw * 1.05; g.beginPath(); if (side) { g.moveTo(xs[0] - gr, ey); g.lineTo(cx - r * 0.3, ey - gr * 0.1); } else { g.moveTo(xs[0] + gr, ey); g.lineTo(xs[1] - gr, ey); } g.stroke(); }
-  if (s.hat && !R.hatAt) bobbleHat(c, s.hat, cx, cy - r * 0.6 * ((B?.head?.hw ?? 1) - 1), r, side, (p.hatTilt ?? 0) + sv, three);
+  if (s.hat && !R.hatAt) bobbleHat(c, s.hat, cx, cy - r * 0.6 * ((B?.head?.hw ?? 1) - 1), r, side, (p.hatTilt ?? 0) + sv, three, B?.head?.hw ?? 1);
+  const fl = fxLater as [string[], import("./kit").FaceFxCtx] | null; if (fl) drawFaceFx(g, fl[0], { ...fl[1], head: { cx, cy, r, hw: hw2, turn } }); /* face effects over the hair and hat */
   g.restore();
   if (s.hat && R.hatAt) bobbleHat(c, s.hat, R.hatAt[0], R.hatAt[1], r, side, p.hatTilt ?? 0, three); // a lifted hat follows the hand, not the head
   // ---- near arms last: they may cross the torso and the head

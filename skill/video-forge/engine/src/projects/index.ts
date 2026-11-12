@@ -10,5 +10,9 @@ import { elevatorShort } from "./elevator";
 import { setsheet } from "./setsheet";
 import { coinShort } from "./coins";
 import { propsheet } from "./propsheet";
+import { hairsheet } from "./hairsheet";
+import { facesheet } from "./facesheet";
+import { wardrobesheet } from "./wardrobesheet";
+import { castsheet } from "./castsheet";
 
-export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet, elevatorShort, setsheet, propsheet, coinShort];
+export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet, elevatorShort, setsheet, propsheet, coinShort, hairsheet, facesheet, wardrobesheet, castsheet];

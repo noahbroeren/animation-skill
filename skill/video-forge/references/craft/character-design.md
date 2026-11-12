@@ -212,7 +212,11 @@ Read `characters.md` first for how the reference family is built and measured. U
 | face-pop check | - | - | not built (no face lead gate in QA) |
 | other line laws (halo, double line) | - | - | not built |
 | back, three-quarter back, lying, chin-up views | `KPose.view` | front / three / side | not built |
-| wink, asleep, dizzy, rage faces; 2-frame blink | `KEXPRS`, `EX` | 16 faces, 4-frame blink | partly |
+| expressions | `KEXPRS_ALL` (`faces.ts` `FACE_X_EXPRS` + `EX_X`) | 118 faces (wink, asleep, dizzy, love, sick, rage, ...), 25 eye kinds, 51 mouths, 48 face effects; 4-frame blink | built; 2-frame blink not built |
+| skin marks and conditions | `BobbleSpec.marks`, `KPose.skin`, an expression's `skin` (`faces.ts` `SKIN_X`) | 52: freckles, stubble, wrinkles, eyebags, scar, lashes, lipstick, sunburn, sick, pale, frozen, soot, blackeye, ... | built |
+| hair styles | `hair.ts` `HAIR_X` (+ the 10 in kinds.ts) | 62 styles in front, three-quarter and profile | built |
+| wardrobe | `wardrobe.ts`: `HAT_X`, `TOP_X`, `PATTERN_X`, `NECK_X`, `PROP_X` | 73 hats, 55 tops, 18 prints, 21 neckwear, 103 held props | built |
+| our cast | `ours.ts` `OUR_CAST`, `castEntry`, `signaturePose`, `extra(seed)`; bible `references/cast/ours-v1.md` | 111 characters (14 core) + endless extras; core silhouettes at 64 px overlap at most 0.78 | built |
 | brand in the series bible | `templates/series-bible.json` | no brand field | not built |
 
 ```ts

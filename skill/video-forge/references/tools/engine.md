@@ -31,7 +31,7 @@ section about a subsystem wins where two disagree. The measured targets behind t
 | formats, projects, timeline | `formats.ts`, `project.tsx`, `timeline.tsx` | Formats, ProjectDef / SceneDef / Timeline | - |
 | storyboard | `board.tsx`, `tools/make.mjs` | Added in 1.7, 1.8, 1.9; and `references/pipeline/board.md` | `edit.md`, `script.md` |
 | camera, shots, joins | `camera.ts`, `shots.ts`, `three/Stage3D.tsx` | Camera rig, Added in 1.7, 1.9 | `camera.md`, `edit.md` |
-| characters | `characters/kinds.ts`, `characters/toon.ts`, `three/cast.ts` | Characters, Added in 1.4, 1.8, 1.9 | `characters.md`, `character-design.md`, `acting.md` |
+| characters | `characters/kinds.ts`, `characters/toon.ts`, `three/cast.ts`; modules `characters/hair.ts`, `faces.ts`, `wardrobe.ts` (hooks typed in `kit.ts`); our cast `characters/ours.ts` | Characters, Added in 1.4, 1.8, 1.9, 1.10 | `characters.md`, `character-design.md`, `acting.md`, `references/cast/ours-v1.md` |
 | shading, light, look, post | `three/shaders.ts`, `three/lightplan.ts`, `three/world.ts`, `look.ts`, `three/post.ts` | Looks and post, Added in 1.1, 1.6, 1.8.1, 1.9 | `shading.md`, `lighting.md`, `grade.md`, `ink.md`, `depth.md` |
 | world, sets, textures | `three/sets.ts`, `three/world.ts`, `three/textures.ts` | World kit, Added in 1.5, 1.7, 1.8 | `textures.md` |
 | effects, weather, vehicles | `three/fx.ts`, `three/weather.ts`, `three/vehicles.ts` | Added in 1.2, 1.7 | `effects.md` |
@@ -568,3 +568,26 @@ Targets and reasons: `references/craft/` (one sheet per area). What changed in t
 - **Sound and narration** (`audio/tighten.py`, `audio/score.py`): pauses capped at 0.08 s (0.14 s at sentence ends), no
   lead silence; quieter SFX defaults, flatter music sections, -2 dBTP; no swish on dissolves; the board passes its
   narration offset (`voOffset`) to the mix through `timeline.json`.
+
+## Added in 1.10 (our cast: hair, faces, wardrobe modules)
+
+- **Character modules** (`lib/characters/`): `kinds.ts` stays the drawing core and calls three modules first, so each
+  can grow without touching it. `kit.ts` types the hooks and the helper kit (`part`, `limb`, `ell`, `rrect`, `poly`,
+  `sePath`, `moved`, `shade`, `tint`, `mix`, bound to the character's ink, line and light).
+  - `hair.ts`: `hairX(style, { view, cx, cy, r, lift, n, vol })` returns the front / back hair paths per view (front,
+    three-quarter, profile); `HAIR_X_HX` makes room in the card for tall styles; `HAIR_X_TALL` swaps them for the cap
+    under a hat.
+  - `faces.ts`: `FACE_X_EXPRS` + `EX_X` extend the expression table (`KEXPRS_ALL`); `drawEyeX`, `drawMouthX` add eye
+    kinds and mouths; `drawFaceFx` adds effects around the head; `drawSkinFx` draws skin marks
+    (`BobbleSpec.marks`: freckles, stubble, wrinkles, ...) and conditions (`KPose.skin` or an expression's `skin`:
+    sunburn, sick, pale, frozen, soot, ...) inside the head, under the features; `WIDE_X` opens the eyes wide.
+  - `wardrobe.ts`: hats (`drawHatX`, `HAT_X_HX`), tops (`drawTopX`, `TOP_X_HEM`, `TOP_X_FLARE`, `TOP_X_SHORT`),
+    prints (`top.pattern`, `top.patternColor`, `drawTopPattern`), garments behind the body (`drawTopBackX`),
+    neckwear (`drawNeckX`) and held props (`StickHold.item`, `drawPropX`).
+- **Our cast** (`lib/characters/ours.ts`): `OUR_CAST` (core ensemble + role library, each with name, role,
+  personality, resting face, signature pose and prop, height and voice direction), `castEntry(id, more?)` for a board,
+  `signaturePose(id)`, `extra(seed)` for deterministic background people. `node tools/castbible.mjs` writes
+  `references/cast/ours-v1.md` and `.json` from the data.
+- **Sheets** (`lib/sheetgrid.tsx`, a shared grid; page N at frame N*30+10; `SheetCell.scale` for true heights):
+  `castsheet` (line-ups, heights, core turnarounds, silhouettes, extras), `hairsheet`, `facesheet`, `wardrobesheet`.
+

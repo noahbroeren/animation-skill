@@ -1,0 +1,9143 @@
+{
+ "milo": {
+  "spec": {
+   "id": "milo",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "spiky",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#2a9d8f",
+    "style": "hoodie"
+   }
+  },
+  "name": "Milo",
+  "role": "the everyman hero: curious, unlucky, asks what the viewer asks",
+  "group": "core",
+  "traits": "curious, deadpan, stubborn",
+  "rest": "neutral",
+  "pose": "phone",
+  "prop": {
+   "item": "phone"
+  },
+  "height": 1.74,
+  "voice": "young adult male, dry, understated"
+ },
+ "juno": {
+  "spec": {
+   "id": "juno",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "highpony",
+    "color": "#a0482a"
+   },
+   "top": {
+    "color": "#ee6352",
+    "style": "jacket",
+    "accent": "#fff3e0"
+   },
+   "marks": [
+    "freckles"
+   ]
+  },
+  "name": "Juno",
+  "role": "the best friend: fearless, jumps in first, cheers the hero on",
+  "group": "core",
+  "traits": "energetic, loyal, loud",
+  "rest": "happy",
+  "pose": "cheer",
+  "prop": {
+   "item": "coffee"
+  },
+  "height": 1.66,
+  "voice": "young adult female, bright, fast"
+ },
+ "ada": {
+  "spec": {
+   "id": "ada",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "bun",
+    "color": "#b9b4c4"
+   },
+   "glasses": "#2b2230",
+   "top": {
+    "color": "#eef2f6",
+    "style": "labcoat",
+    "accent": "#7b4fc9"
+   },
+   "marks": [
+    "lashes"
+   ]
+  },
+  "name": "Dr. Ada Vale",
+  "role": "the expert: knows how it works and explains the mechanism",
+  "group": "core",
+  "traits": "brilliant, precise, impatient",
+  "rest": "smug",
+  "pose": "think",
+  "prop": {
+   "item": "testtube"
+  },
+  "height": 1.68,
+  "voice": "adult female, crisp, warm authority"
+ },
+ "bigsby": {
+  "spec": {
+   "id": "bigsby",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "top",
+    "color": "#22252e",
+    "accent": "#8e2b3d"
+   },
+   "stache": "#e9e6ee",
+   "top": {
+    "color": "#8e2b3d",
+    "style": "suit"
+   },
+   "neck": {
+    "style": "tie",
+    "color": "#e0b33a"
+   },
+   "build": "stout"
+  },
+  "name": "Mr. Bigsby",
+  "role": "the rich boss: owns the factory, the bank or the kingdom",
+  "group": "core",
+  "traits": "greedy, loud, vain",
+  "rest": "smug",
+  "pose": "hips",
+  "prop": {
+   "item": "money"
+  },
+  "height": 1.7,
+  "voice": "older male, booming, pompous"
+ },
+ "vex": {
+  "spec": {
+   "id": "vex",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "slick",
+    "color": "#1f1a22"
+   },
+   "shades": "#14121a",
+   "top": {
+    "color": "#5b3f8c",
+    "style": "trench"
+   },
+   "build": "slim",
+   "marks": [
+    "scar"
+   ]
+  },
+  "name": "Vex",
+  "role": "the schemer: con artist, cheat, the one who games the system",
+  "group": "core",
+  "traits": "sly, charming, sneaky",
+  "rest": "mischief",
+  "pose": "shrug",
+  "prop": {
+   "item": "briefcase"
+  },
+  "height": 1.82,
+  "voice": "adult male, smooth, whispery"
+ },
+ "gus": {
+  "spec": {
+   "id": "gus",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "hardhat",
+    "color": "#f5c21b"
+   },
+   "beard": "#5a3a26",
+   "top": {
+    "color": "#e8862e",
+    "style": "overall",
+    "accent": "#3f6fb5"
+   },
+   "build": "stout"
+  },
+  "name": "Gus",
+  "role": "the builder: fixes, builds and breaks things with his hands",
+  "group": "core",
+  "traits": "practical, calm, strong",
+  "rest": "neutral",
+  "pose": "carry",
+  "prop": {
+   "item": "wrench"
+  },
+  "height": 1.78,
+  "voice": "adult male, low, slow, friendly"
+ },
+ "pip": {
+  "spec": {
+   "id": "pip",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "curl",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#7cc242",
+    "style": "jersey",
+    "accent": "#ffffff",
+    "pattern": "number",
+    "patternColor": "#ffffff"
+   },
+   "heightHeads": 2.55
+  },
+  "name": "Pip",
+  "role": "the kid: little brother, asks why, gets into everything",
+  "group": "core",
+  "traits": "curious, cheeky, fast",
+  "rest": "happy",
+  "pose": "wave",
+  "prop": {
+   "item": "ball"
+  },
+  "height": 1.16,
+  "voice": "child, high, excited"
+ },
+ "rose": {
+  "spec": {
+   "id": "rose",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "beehive",
+    "color": "#ecebf0"
+   },
+   "top": {
+    "color": "#d46a8a",
+    "style": "cardigan",
+    "accent": "#f4efe6"
+   },
+   "neck": {
+    "style": "pearls",
+    "color": "#f6f1e8"
+   },
+   "marks": [
+    "wrinkles",
+    "rosy"
+   ]
+  },
+  "name": "Nana Rose",
+  "role": "the elder: remembers how it used to be, tells the history",
+  "group": "core",
+  "traits": "kind, sharp, nosy",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "cane"
+  },
+  "height": 1.55,
+  "voice": "elderly female, warm, slow, wry"
+ },
+ "dee": {
+  "spec": {
+   "id": "dee",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "police",
+    "color": "#22305a",
+    "accent": "#f1c94a"
+   },
+   "hair": {
+    "style": "braids",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#2c3f78",
+    "style": "uniform",
+    "accent": "#f1c94a"
+   }
+  },
+  "name": "Officer Dee",
+  "role": "the rules: police, inspector, referee, the one who says no",
+  "group": "core",
+  "traits": "strict, honest, tired",
+  "rest": "skeptical",
+  "pose": "hips",
+  "prop": {
+   "item": "paper"
+  },
+  "height": 1.76,
+  "voice": "adult female, firm, clipped"
+ },
+ "sal": {
+  "spec": {
+   "id": "sal",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "chef",
+    "color": "#fbfaf6"
+   },
+   "stache": "#2a2228",
+   "top": {
+    "color": "#f4f1ea",
+    "style": "chefcoat",
+    "accent": "#d8344e"
+   },
+   "neck": {
+    "style": "scarf",
+    "color": "#d8344e"
+   },
+   "build": "stout"
+  },
+  "name": "Chef Sal",
+  "role": "the merchant: cook, shopkeeper, seller of whatever the story needs",
+  "group": "core",
+  "traits": "proud, dramatic, generous",
+  "rest": "happy",
+  "pose": "point",
+  "prop": {
+   "item": "pizza"
+  },
+  "height": 1.72,
+  "voice": "adult male, theatrical, hearty"
+ },
+ "kai": {
+  "spec": {
+   "id": "kai",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "undercut",
+    "color": "#3f6fd6"
+   },
+   "top": {
+    "color": "#3a3f8f",
+    "style": "sweater"
+   },
+   "neck": {
+    "style": "lanyard",
+    "color": "#f08a24"
+   },
+   "build": "slim"
+  },
+  "name": "Kai",
+  "role": "the teen: online, tech, games, trends",
+  "group": "core",
+  "traits": "bored, clever, sarcastic",
+  "rest": "deadpan",
+  "pose": "carry",
+  "prop": {
+   "item": "laptop"
+  },
+  "height": 1.7,
+  "voice": "teen, flat, quick"
+ },
+ "hal": {
+  "spec": {
+   "id": "hal",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "horseshoe",
+    "color": "#ecebf0"
+   },
+   "glasses": "#2b2230",
+   "top": {
+    "color": "#c9a13a",
+    "style": "cardigan",
+    "accent": "#8a6a4a"
+   },
+   "neck": {
+    "style": "bow",
+    "color": "#b3263a"
+   },
+   "marks": [
+    "wrinkles",
+    "eyebags"
+   ]
+  },
+  "name": "Professor Hal",
+  "role": "the historian: old stories, dates, maps and dusty books",
+  "group": "core",
+  "traits": "wise, absent-minded, gentle",
+  "rest": "neutral",
+  "pose": "think",
+  "prop": {
+   "item": "book"
+  },
+  "height": 1.7,
+  "voice": "elderly male, soft, storyteller"
+ },
+ "luz": {
+  "spec": {
+   "id": "luz",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "sidebraid",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#5b9bd5",
+    "style": "scrubs"
+   },
+   "neck": {
+    "style": "stethoscope",
+    "color": "#3a3f5c"
+   }
+  },
+  "name": "Dr. Luz",
+  "role": "the doctor: the body, health, what happens inside",
+  "group": "core",
+  "traits": "caring, fast, blunt",
+  "rest": "neutral",
+  "pose": "idle",
+  "prop": {
+   "item": "clipboard"
+  },
+  "height": 1.66,
+  "voice": "adult female, calm, precise"
+ },
+ "rook": {
+  "spec": {
+   "id": "rook",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "safari",
+    "color": "#d8c08a",
+    "accent": "#7a5a3a"
+   },
+   "top": {
+    "color": "#b59a62",
+    "style": "shirt"
+   },
+   "neck": {
+    "style": "bandanaNeck",
+    "color": "#c0392b"
+   },
+   "marks": [
+    "stubble"
+   ]
+  },
+  "name": "Rook",
+  "role": "the adventurer: explorer, pilot, the one who goes to the place",
+  "group": "core",
+  "traits": "brave, reckless, cheerful",
+  "rest": "smug",
+  "pose": "point",
+  "prop": {
+   "item": "binoculars"
+  },
+  "height": 1.8,
+  "voice": "adult male, gravelly, upbeat"
+ },
+ "shopkeeper": {
+  "spec": {
+   "id": "shopkeeper",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "combover",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#3f8a5a",
+    "style": "apron",
+    "accent": "#f4efe6"
+   },
+   "build": "stout"
+  },
+  "name": "Mo",
+  "role": "shopkeeper / cashier",
+  "group": "everyday",
+  "traits": "patient, chatty, sharp",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "coin"
+  },
+  "height": 1.68,
+  "voice": "adult male, friendly"
+ },
+ "waiter": {
+  "spec": {
+   "id": "waiter",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "slick",
+    "color": "#6a3d22"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "waistcoat",
+    "accent": "#ffffff"
+   },
+   "neck": {
+    "style": "bow",
+    "color": "#1c1a20"
+   }
+  },
+  "name": "Theo",
+  "role": "waiter",
+  "group": "everyday",
+  "traits": "polite, stiff, tired",
+  "rest": "deadpan",
+  "pose": "idle",
+  "prop": {
+   "item": "tray"
+  },
+  "height": 1.78,
+  "voice": "adult male, formal"
+ },
+ "barista": {
+  "spec": {
+   "id": "barista",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "puffs",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#7a5a3a",
+    "style": "barista",
+    "accent": "#e9dcc6"
+   }
+  },
+  "name": "Noor",
+  "role": "barista",
+  "group": "everyday",
+  "traits": "cheerful, quick, nosy",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "coffee"
+  },
+  "height": 1.64,
+  "voice": "adult female, upbeat"
+ },
+ "courier": {
+  "spec": {
+   "id": "courier",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "cap",
+    "color": "#f08a24",
+    "accent": "#22252e"
+   },
+   "top": {
+    "color": "#f5a524",
+    "style": "polo"
+   },
+   "build": "slim"
+  },
+  "name": "Dex",
+  "role": "delivery driver / mail carrier",
+  "group": "everyday",
+  "traits": "rushed, upbeat, lost",
+  "rest": "nervous",
+  "pose": "carry",
+  "prop": {
+   "item": "letter"
+  },
+  "height": 1.76,
+  "voice": "adult male, out of breath"
+ },
+ "office": {
+  "spec": {
+   "id": "office",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "bob",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#5b6fa8",
+    "style": "blazer",
+    "accent": "#ffffff"
+   },
+   "glasses": "#2b2230"
+  },
+  "name": "Priya",
+  "role": "office worker",
+  "group": "everyday",
+  "traits": "busy, organised, sarcastic",
+  "rest": "deadpan",
+  "pose": "phone",
+  "prop": {
+   "item": "file"
+  },
+  "height": 1.64,
+  "voice": "adult female, dry"
+ },
+ "banker": {
+  "spec": {
+   "id": "banker",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "side",
+    "color": "#b9b4c4"
+   },
+   "top": {
+    "color": "#2b3a55",
+    "style": "suit"
+   },
+   "neck": {
+    "style": "tie",
+    "color": "#3f8a5a"
+   },
+   "glasses": "#2b2230",
+   "build": "slim"
+  },
+  "name": "Mr. Penn",
+  "role": "banker / accountant",
+  "group": "everyday",
+  "traits": "careful, nervous, exact",
+  "rest": "nervous",
+  "pose": "idle",
+  "prop": {
+   "item": "briefcase"
+  },
+  "height": 1.74,
+  "voice": "adult male, thin, precise"
+ },
+ "teacher": {
+  "spec": {
+   "id": "teacher",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "afro",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#b3263a",
+    "style": "cardigan",
+    "accent": "#f4efe6"
+   },
+   "glasses": "#b3263a"
+  },
+  "name": "Ms. Okafor",
+  "role": "teacher",
+  "group": "everyday",
+  "traits": "warm, firm, tired",
+  "rest": "skeptical",
+  "pose": "point",
+  "prop": {
+   "item": "book"
+  },
+  "height": 1.68,
+  "voice": "adult female, clear"
+ },
+ "student": {
+  "spec": {
+   "id": "student",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "pigtails",
+    "color": "#8a4a26"
+   },
+   "top": {
+    "color": "#8fc6e8",
+    "style": "sweater",
+    "pattern": "hstripes",
+    "patternColor": "#ffffff"
+   }
+  },
+  "name": "Lena",
+  "role": "student",
+  "group": "everyday",
+  "traits": "curious, distracted, sweet",
+  "rest": "think",
+  "pose": "think",
+  "prop": {
+   "item": "pen"
+  },
+  "height": 1.62,
+  "voice": "young female, soft"
+ },
+ "reporter": {
+  "spec": {
+   "id": "reporter",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "curtains",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#e2483a",
+    "style": "blazer",
+    "accent": "#ffffff"
+   }
+  },
+  "name": "Jules",
+  "role": "reporter / news anchor",
+  "group": "everyday",
+  "traits": "fast, dramatic, nosy",
+  "rest": "happy",
+  "pose": "point",
+  "prop": {
+   "item": "mic"
+  },
+  "height": 1.7,
+  "voice": "adult, broadcast voice"
+ },
+ "tourist": {
+  "spec": {
+   "id": "tourist",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "sunhat",
+    "color": "#f0d58a",
+    "accent": "#e07aa8"
+   },
+   "top": {
+    "color": "#2fb3a6",
+    "style": "hawaiian",
+    "pattern": "flowers",
+    "patternColor": "#f5c21b"
+   },
+   "marks": [
+    "sunburn"
+   ]
+  },
+  "name": "Bev",
+  "role": "tourist",
+  "group": "everyday",
+  "traits": "lost, excited, loud",
+  "rest": "happy",
+  "pose": "phone",
+  "prop": {
+   "item": "camera"
+  },
+  "height": 1.62,
+  "voice": "older female, loud"
+ },
+ "gamer": {
+  "spec": {
+   "id": "gamer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "messy",
+    "color": "#4caf7a"
+   },
+   "hat": {
+    "style": "headphones",
+    "color": "#22252e",
+    "accent": "#e2483a"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "hoodie"
+   },
+   "marks": [
+    "eyebags"
+   ]
+  },
+  "name": "Zed",
+  "role": "gamer / streamer",
+  "group": "everyday",
+  "traits": "intense, loud, sleepy",
+  "rest": "deadpan",
+  "pose": "carry",
+  "prop": {
+   "item": "laptop"
+  },
+  "height": 1.72,
+  "voice": "young male, hyped"
+ },
+ "influencer": {
+  "spec": {
+   "id": "influencer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "wavy",
+    "color": "#ece2c0"
+   },
+   "top": {
+    "color": "#e07aa8",
+    "style": "tank"
+   },
+   "neck": {
+    "style": "necklace",
+    "color": "#f5c21b"
+   },
+   "marks": [
+    "lashes",
+    "lipstick"
+   ]
+  },
+  "name": "Mia",
+  "role": "influencer",
+  "group": "everyday",
+  "traits": "bubbly, vain, quick",
+  "rest": "smug",
+  "pose": "phone",
+  "prop": {
+   "item": "selfie"
+  },
+  "height": 1.66,
+  "voice": "young female, upbeat"
+ },
+ "dad": {
+  "spec": {
+   "id": "dad",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "combover",
+    "color": "#6a3d22"
+   },
+   "top": {
+    "color": "#4f78b0",
+    "style": "polo"
+   },
+   "glasses": "#2b2230",
+   "build": "stout",
+   "marks": [
+    "stubble"
+   ]
+  },
+  "name": "Dad",
+  "role": "father",
+  "group": "family",
+  "traits": "tired, punny, proud",
+  "rest": "happy",
+  "pose": "hips",
+  "prop": {
+   "item": "spatula"
+  },
+  "height": 1.8,
+  "voice": "adult male, warm"
+ },
+ "mom": {
+  "spec": {
+   "id": "mom",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "wavy",
+    "color": "#8a4a26"
+   },
+   "top": {
+    "color": "#3f8a5a",
+    "style": "cardigan",
+    "accent": "#f4efe6"
+   }
+  },
+  "name": "Mom",
+  "role": "mother",
+  "group": "family",
+  "traits": "busy, caring, sharp",
+  "rest": "skeptical",
+  "pose": "hips",
+  "prop": {
+   "item": "mug"
+  },
+  "height": 1.68,
+  "voice": "adult female, warm"
+ },
+ "grandpa": {
+  "spec": {
+   "id": "grandpa",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "horseshoe",
+    "color": "#b9b4c4"
+   },
+   "top": {
+    "color": "#7a5a3a",
+    "style": "vest",
+    "accent": "#f4efe6"
+   },
+   "stache": "#e9e6ee",
+   "marks": [
+    "wrinkles"
+   ]
+  },
+  "name": "Grandpa Joe",
+  "role": "grandfather",
+  "group": "family",
+  "traits": "grumpy, funny, slow",
+  "rest": "skeptical",
+  "pose": "idle",
+  "prop": {
+   "item": "newspaper"
+  },
+  "height": 1.68,
+  "voice": "elderly male, raspy"
+ },
+ "girl": {
+  "spec": {
+   "id": "girl",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "spacebuns",
+    "color": "#c8642c"
+   },
+   "top": {
+    "color": "#a77bd0",
+    "style": "dress",
+    "accent": "#f4efe6",
+    "pattern": "dots",
+    "patternColor": "#ffffff"
+   },
+   "heightHeads": 2.55,
+   "marks": [
+    "freckles"
+   ]
+  },
+  "name": "Tilly",
+  "role": "little girl",
+  "group": "family",
+  "traits": "bold, bossy, sweet",
+  "rest": "mischief",
+  "pose": "wave",
+  "prop": {
+   "item": "balloon"
+  },
+  "height": 1.12,
+  "voice": "child, high"
+ },
+ "boy": {
+  "spec": {
+   "id": "boy",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "afro",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#f39a2b",
+    "style": "tee",
+    "accent": "#ffffff"
+   },
+   "heightHeads": 2.55
+  },
+  "name": "Benji",
+  "role": "little boy",
+  "group": "family",
+  "traits": "shy, clever, messy",
+  "rest": "shy",
+  "pose": "idle",
+  "prop": {
+   "item": "teddy"
+  },
+  "height": 1.1,
+  "voice": "child, soft"
+ },
+ "teen": {
+  "spec": {
+   "id": "teen",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "emo",
+    "color": "#7a4fc9"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "hoodie"
+   },
+   "heightHeads": 2.95
+  },
+  "name": "Ava",
+  "role": "teenager",
+  "group": "family",
+  "traits": "moody, smart, funny",
+  "rest": "deadpan",
+  "pose": "phone",
+  "prop": {
+   "item": "phone"
+  },
+  "height": 1.62,
+  "voice": "teen female, dry"
+ },
+ "mechanic": {
+  "spec": {
+   "id": "mechanic",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "buzz",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#5a6b7a",
+    "style": "coverall",
+    "accent": "#e9dcc6"
+   },
+   "marks": [
+    "soot"
+   ]
+  },
+  "name": "Vic",
+  "role": "mechanic",
+  "group": "work",
+  "traits": "gruff, handy, honest",
+  "rest": "deadpan",
+  "pose": "carry",
+  "prop": {
+   "item": "wrench"
+  },
+  "height": 1.76,
+  "voice": "adult male, gravel"
+ },
+ "farmer": {
+  "spec": {
+   "id": "farmer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "boater",
+    "color": "#f0d58a",
+    "accent": "#8a5a34"
+   },
+   "hair": {
+    "style": "braids",
+    "color": "#b9b4c4"
+   },
+   "top": {
+    "color": "#4f78b0",
+    "style": "overall",
+    "accent": "#c0392b"
+   },
+   "marks": [
+    "sunburn"
+   ]
+  },
+  "name": "Old Mae",
+  "role": "farmer",
+  "group": "work",
+  "traits": "tough, dry, early",
+  "rest": "deadpan",
+  "pose": "idle",
+  "prop": {
+   "item": "rake"
+  },
+  "height": 1.64,
+  "voice": "older female, country"
+ },
+ "fisher": {
+  "spec": {
+   "id": "fisher",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "captain",
+    "color": "#f4f6fa",
+    "accent": "#22305a"
+   },
+   "beard": "#b9b4c4",
+   "top": {
+    "color": "#2c3f78",
+    "style": "sweater",
+    "pattern": "hstripes",
+    "patternColor": "#f4f6fa"
+   }
+  },
+  "name": "Bo",
+  "role": "fisherman / sailor",
+  "group": "work",
+  "traits": "patient, salty, calm",
+  "rest": "neutral",
+  "pose": "idle",
+  "prop": {
+   "item": "fishingrod"
+  },
+  "height": 1.78,
+  "voice": "older male, slow"
+ },
+ "miner": {
+  "spec": {
+   "id": "miner",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "miner",
+    "color": "#f5c21b"
+   },
+   "top": {
+    "color": "#6b5a4a",
+    "style": "overall",
+    "accent": "#3a3f5c"
+   },
+   "marks": [
+    "soot"
+   ]
+  },
+  "name": "Rocco",
+  "role": "miner",
+  "group": "work",
+  "traits": "strong, quiet, dusty",
+  "rest": "neutral",
+  "pose": "carry",
+  "prop": {
+   "item": "pickaxe"
+  },
+  "height": 1.74,
+  "voice": "adult male, deep"
+ },
+ "firefighter": {
+  "spec": {
+   "id": "firefighter",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "firefighter",
+    "color": "#c0392b",
+    "accent": "#f1c94a"
+   },
+   "top": {
+    "color": "#2b2b33",
+    "style": "coat",
+    "accent": "#f1c94a"
+   },
+   "marks": [
+    "soot"
+   ]
+  },
+  "name": "Kat",
+  "role": "firefighter",
+  "group": "work",
+  "traits": "brave, fast, kind",
+  "rest": "determined",
+  "pose": "point",
+  "height": 1.74,
+  "voice": "adult female, strong"
+ },
+ "pilot": {
+  "spec": {
+   "id": "pilot",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "captain",
+    "color": "#22305a",
+    "accent": "#f1c94a"
+   },
+   "top": {
+    "color": "#22305a",
+    "style": "pilot",
+    "accent": "#f1c94a"
+   },
+   "shades": "#14121a"
+  },
+  "name": "Captain Ray",
+  "role": "pilot",
+  "group": "work",
+  "traits": "smooth, calm, proud",
+  "rest": "smug",
+  "pose": "idle",
+  "height": 1.8,
+  "voice": "adult male, radio calm"
+ },
+ "astronaut": {
+  "spec": {
+   "id": "astronaut",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "astronaut",
+    "color": "#f4f6fa",
+    "accent": "#8fc6e8"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "spacesuit",
+    "accent": "#e2483a"
+   }
+  },
+  "name": "Nova",
+  "role": "astronaut",
+  "group": "work",
+  "traits": "focused, brave, nerdy",
+  "rest": "happy",
+  "pose": "wave",
+  "prop": {
+   "item": "flag"
+  },
+  "height": 1.7,
+  "voice": "adult female, clear"
+ },
+ "scientist": {
+  "spec": {
+   "id": "scientist",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "messy",
+    "color": "#ecebf0"
+   },
+   "glasses": "#2b2230",
+   "top": {
+    "color": "#eef2f6",
+    "style": "labcoat",
+    "accent": "#3f8a5a"
+   }
+  },
+  "name": "Igor",
+  "role": "lab scientist / inventor",
+  "group": "work",
+  "traits": "excitable, odd, brilliant",
+  "rest": "crazy",
+  "pose": "think",
+  "prop": {
+   "item": "flask"
+  },
+  "height": 1.72,
+  "voice": "adult male, eccentric"
+ },
+ "judge": {
+  "spec": {
+   "id": "judge",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "ringlets",
+    "color": "#ecebf0"
+   },
+   "top": {
+    "color": "#1c1a20",
+    "style": "judge"
+   },
+   "glasses": "#2b2230"
+  },
+  "name": "Judge Hart",
+  "role": "judge",
+  "group": "work",
+  "traits": "stern, slow, fair",
+  "rest": "skeptical",
+  "pose": "idle",
+  "prop": {
+   "item": "gavel"
+  },
+  "height": 1.7,
+  "voice": "older female, grave"
+ },
+ "lawyer": {
+  "spec": {
+   "id": "lawyer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "bob",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#3a3f5c",
+    "style": "suit"
+   },
+   "neck": {
+    "style": "tie",
+    "color": "#c8323a"
+   }
+  },
+  "name": "Ms. Lark",
+  "role": "lawyer",
+  "group": "work",
+  "traits": "sharp, fast, confident",
+  "rest": "smug",
+  "pose": "point",
+  "prop": {
+   "item": "briefcase"
+  },
+  "height": 1.7,
+  "voice": "adult female, quick"
+ },
+ "nurse": {
+  "spec": {
+   "id": "nurse",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "nurse",
+    "color": "#ffffff",
+    "accent": "#e2483a"
+   },
+   "top": {
+    "color": "#7fc7b7",
+    "style": "scrubs"
+   }
+  },
+  "name": "Nurse Ben",
+  "role": "nurse",
+  "group": "care",
+  "traits": "gentle, steady, funny",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "clipboard"
+  },
+  "height": 1.76,
+  "voice": "adult male, soft"
+ },
+ "paramedic": {
+  "spec": {
+   "id": "paramedic",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "undercut",
+    "color": "#6a3d22"
+   },
+   "top": {
+    "color": "#2b6b4a",
+    "style": "jacket",
+    "accent": "#f1c94a"
+   }
+  },
+  "name": "Sam",
+  "role": "paramedic",
+  "group": "care",
+  "traits": "calm, quick, practical",
+  "rest": "focused",
+  "pose": "carry",
+  "prop": {
+   "item": "medkit"
+  },
+  "height": 1.74,
+  "voice": "adult, steady"
+ },
+ "vet": {
+  "spec": {
+   "id": "vet",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "braids",
+    "color": "#a0482a"
+   },
+   "top": {
+    "color": "#7d8a55",
+    "style": "shirt"
+   }
+  },
+  "name": "Dr. Fern",
+  "role": "vet / zookeeper",
+  "group": "care",
+  "traits": "gentle, outdoorsy, patient",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "carrot"
+  },
+  "height": 1.68,
+  "voice": "adult female, kind"
+ },
+ "builder2": {
+  "spec": {
+   "id": "builder2",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "hardhat",
+    "color": "#f08a24"
+   },
+   "hair": {
+    "style": "highpony",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#f5c21b",
+    "style": "vest",
+    "accent": "#5a6b7a"
+   }
+  },
+  "name": "Tess",
+  "role": "construction worker",
+  "group": "work",
+  "traits": "tough, funny, loud",
+  "rest": "happy",
+  "pose": "carry",
+  "prop": {
+   "item": "hammer"
+  },
+  "height": 1.72,
+  "voice": "adult female, loud"
+ },
+ "cleaner": {
+  "spec": {
+   "id": "cleaner",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "flatcap",
+    "color": "#5a6b7a"
+   },
+   "top": {
+    "color": "#5a6b7a",
+    "style": "coverall",
+    "accent": "#e9dcc6"
+   },
+   "stache": "#5a3a26"
+  },
+  "name": "Gil",
+  "role": "janitor / cleaner",
+  "group": "work",
+  "traits": "quiet, observant, wise",
+  "rest": "deadpan",
+  "pose": "idle",
+  "prop": {
+   "item": "broom"
+  },
+  "height": 1.7,
+  "voice": "older male, mumbly"
+ },
+ "athlete": {
+  "spec": {
+   "id": "athlete",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "flattop",
+    "color": "#1f1a22"
+   },
+   "hat": {
+    "style": "headband",
+    "color": "#e2483a"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "tank",
+    "accent": "#e2483a"
+   },
+   "build": "slim"
+  },
+  "name": "Dash",
+  "role": "runner / athlete",
+  "group": "sport",
+  "traits": "competitive, fast, cocky",
+  "rest": "determined",
+  "pose": "cheer",
+  "prop": {
+   "item": "trophy"
+  },
+  "height": 1.82,
+  "voice": "young male, breathless"
+ },
+ "footballer": {
+  "spec": {
+   "id": "footballer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "mohawk",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#2a7de1",
+    "style": "jersey",
+    "accent": "#ffffff",
+    "pattern": "number",
+    "patternColor": "#ffffff"
+   }
+  },
+  "name": "Rafa",
+  "role": "football player",
+  "group": "sport",
+  "traits": "dramatic, quick, proud",
+  "rest": "smug",
+  "pose": "cheer",
+  "prop": {
+   "item": "ball"
+  },
+  "height": 1.76,
+  "voice": "young male, excited"
+ },
+ "coach": {
+  "spec": {
+   "id": "coach",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "cap",
+    "color": "#c0392b",
+    "accent": "#f4f6fa"
+   },
+   "top": {
+    "color": "#3a3f5c",
+    "style": "jacket",
+    "accent": "#c0392b"
+   },
+   "build": "stout",
+   "marks": [
+    "stubble"
+   ]
+  },
+  "name": "Coach Bear",
+  "role": "coach",
+  "group": "sport",
+  "traits": "loud, tough, soft inside",
+  "rest": "angry",
+  "pose": "point",
+  "prop": {
+   "item": "stopwatch"
+  },
+  "height": 1.8,
+  "voice": "adult male, shouting"
+ },
+ "referee": {
+  "spec": {
+   "id": "referee",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "buzz",
+    "color": "#b9b4c4"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "tee",
+    "pattern": "stripes",
+    "patternColor": "#1c1a20"
+   },
+   "neck": {
+    "style": "whistle",
+    "color": "#c9ced8"
+   }
+  },
+  "name": "Ref",
+  "role": "referee",
+  "group": "sport",
+  "traits": "strict, alert, unloved",
+  "rest": "skeptical",
+  "pose": "point",
+  "height": 1.76,
+  "voice": "adult, whistle sharp"
+ },
+ "lifeguard": {
+  "spec": {
+   "id": "lifeguard",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "highpony",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#e2483a",
+    "style": "tank"
+   },
+   "shades": "#14121a",
+   "neck": {
+    "style": "whistle",
+    "color": "#f5c21b"
+   },
+   "marks": [
+    "sunburn"
+   ]
+  },
+  "name": "Kira",
+  "role": "lifeguard / swimmer",
+  "group": "sport",
+  "traits": "alert, sporty, cool",
+  "rest": "neutral",
+  "pose": "idle",
+  "height": 1.7,
+  "voice": "young female, cool"
+ },
+ "king": {
+  "spec": {
+   "id": "king",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "crown",
+    "color": "#f5c21b"
+   },
+   "beard": "#6a3d22",
+   "top": {
+    "color": "#b3263a",
+    "style": "royal",
+    "accent": "#f5c21b"
+   }
+  },
+  "name": "King Aldric",
+  "role": "king",
+  "group": "history",
+  "traits": "vain, grand, childish",
+  "rest": "smug",
+  "pose": "point",
+  "height": 1.78,
+  "voice": "older male, regal"
+ },
+ "queen": {
+  "spec": {
+   "id": "queen",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "tiara",
+    "color": "#f5c21b"
+   },
+   "hair": {
+    "style": "ringlets",
+    "color": "#a0482a"
+   },
+   "top": {
+    "color": "#5b3f8c",
+    "style": "gown",
+    "accent": "#f5c21b"
+   },
+   "neck": {
+    "style": "pearls",
+    "color": "#f6f1e8"
+   }
+  },
+  "name": "Queen Ida",
+  "role": "queen",
+  "group": "history",
+  "traits": "clever, cold, elegant",
+  "rest": "skeptical",
+  "pose": "idle",
+  "prop": {
+   "item": "rose"
+  },
+  "height": 1.7,
+  "voice": "older female, regal"
+ },
+ "knight": {
+  "spec": {
+   "id": "knight",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "knight",
+    "color": "#b7c0ce"
+   },
+   "top": {
+    "color": "#b7c0ce",
+    "style": "armor",
+    "accent": "#b3263a"
+   }
+  },
+  "name": "Sir Gareth",
+  "role": "knight",
+  "group": "history",
+  "traits": "brave, dim, loyal",
+  "rest": "determined",
+  "pose": "idle",
+  "prop": {
+   "item": "sword"
+  },
+  "height": 1.8,
+  "voice": "adult male, booming"
+ },
+ "peasant": {
+  "spec": {
+   "id": "peasant",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "shag",
+    "color": "#6a3d22"
+   },
+   "top": {
+    "color": "#8a7a5a",
+    "style": "tunic"
+   },
+   "marks": [
+    "soot"
+   ]
+  },
+  "name": "Wat",
+  "role": "peasant / villager",
+  "group": "history",
+  "traits": "poor, hopeful, funny",
+  "rest": "happy",
+  "pose": "carry",
+  "prop": {
+   "item": "sack"
+  },
+  "height": 1.68,
+  "voice": "adult male, rustic"
+ },
+ "pharaoh": {
+  "spec": {
+   "id": "pharaoh",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "nemes",
+    "color": "#f5c21b",
+    "accent": "#2a7de1"
+   },
+   "top": {
+    "color": "#f4efe6",
+    "style": "pharaoh",
+    "accent": "#f5c21b"
+   },
+   "neck": {
+    "style": "collar",
+    "color": "#2a7de1"
+   }
+  },
+  "name": "Pharaoh Neb",
+  "role": "pharaoh / ancient ruler",
+  "group": "history",
+  "traits": "proud, strange, grand",
+  "rest": "smug",
+  "pose": "idle",
+  "height": 1.76,
+  "voice": "adult male, echoing"
+ },
+ "roman": {
+  "spec": {
+   "id": "roman",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "roman",
+    "color": "#c9a13a",
+    "accent": "#c0392b"
+   },
+   "top": {
+    "color": "#c0392b",
+    "style": "armor",
+    "accent": "#c9a13a"
+   }
+  },
+  "name": "Marcus",
+  "role": "Roman soldier / citizen",
+  "group": "history",
+  "traits": "disciplined, proud, sweaty",
+  "rest": "focused",
+  "pose": "idle",
+  "prop": {
+   "item": "shield"
+  },
+  "height": 1.76,
+  "voice": "adult male, firm"
+ },
+ "viking": {
+  "spec": {
+   "id": "viking",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "viking",
+    "color": "#b7c0ce",
+    "accent": "#ece2c0"
+   },
+   "hair": {
+    "style": "braids",
+    "color": "#ece2c0"
+   },
+   "top": {
+    "color": "#7a5a3a",
+    "style": "tunic"
+   }
+  },
+  "name": "Sigrid",
+  "role": "viking",
+  "group": "history",
+  "traits": "fierce, loud, hungry",
+  "rest": "determined",
+  "pose": "cheer",
+  "prop": {
+   "item": "axe"
+  },
+  "height": 1.76,
+  "voice": "adult female, roaring"
+ },
+ "pirate": {
+  "spec": {
+   "id": "pirate",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "tricorn",
+    "color": "#22252e",
+    "accent": "#ece2c0"
+   },
+   "hair": {
+    "style": "wavy",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#8e2b3d",
+    "style": "trench",
+    "accent": "#f1c94a"
+   },
+   "marks": [
+    "scar"
+   ]
+  },
+  "name": "Captain Mags",
+  "role": "pirate captain",
+  "group": "history",
+  "traits": "greedy, funny, wild",
+  "rest": "mischief",
+  "pose": "point",
+  "prop": {
+   "item": "telescope"
+  },
+  "height": 1.74,
+  "voice": "adult female, raspy"
+ },
+ "cowboy": {
+  "spec": {
+   "id": "cowboy",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "cowboy",
+    "color": "#8a5a34",
+    "accent": "#3a2a20"
+   },
+   "top": {
+    "color": "#a85a3a",
+    "style": "vest",
+    "accent": "#e9dcc6"
+   },
+   "stache": "#3b2a20",
+   "marks": [
+    "stubble"
+   ]
+  },
+  "name": "Sheriff Clay",
+  "role": "cowboy / sheriff",
+  "group": "history",
+  "traits": "slow, brave, dusty",
+  "rest": "deadpan",
+  "pose": "hips",
+  "prop": {
+   "item": "lantern"
+  },
+  "height": 1.82,
+  "voice": "adult male, drawl"
+ },
+ "inventor": {
+  "spec": {
+   "id": "inventor",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "top",
+    "color": "#3b2f2a",
+    "accent": "#8a6a4a"
+   },
+   "stache": "#8a6a4a",
+   "top": {
+    "color": "#5a4a3a",
+    "style": "coat",
+    "accent": "#f1c94a"
+   },
+   "neck": {
+    "style": "bow",
+    "color": "#22252e"
+   }
+  },
+  "name": "Mr. Cogsworth",
+  "role": "Victorian inventor / gentleman",
+  "group": "history",
+  "traits": "proper, curious, fussy",
+  "rest": "think",
+  "pose": "think",
+  "prop": {
+   "item": "lightbulb"
+  },
+  "height": 1.76,
+  "voice": "older male, posh"
+ },
+ "monk": {
+  "spec": {
+   "id": "monk",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "horseshoe",
+    "color": "#6a3d22"
+   },
+   "top": {
+    "color": "#7a5a3a",
+    "style": "monk",
+    "accent": "#e9dcc6"
+   }
+  },
+  "name": "Brother Tobias",
+  "role": "monk / scribe",
+  "group": "history",
+  "traits": "quiet, patient, serene",
+  "rest": "content",
+  "pose": "idle",
+  "prop": {
+   "item": "candle"
+  },
+  "height": 1.7,
+  "voice": "adult male, hushed"
+ },
+ "caveman": {
+  "spec": {
+   "id": "caveman",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "shag",
+    "color": "#3b2a20"
+   },
+   "beard": "#3b2a20",
+   "top": {
+    "color": "#a0743a",
+    "style": "caveman"
+   }
+  },
+  "name": "Ug",
+  "role": "caveman / early human",
+  "group": "history",
+  "traits": "curious, simple, brave",
+  "rest": "deadpan",
+  "pose": "carry",
+  "prop": {
+   "item": "bone"
+  },
+  "height": 1.7,
+  "voice": "adult male, grunting"
+ },
+ "flapper": {
+  "spec": {
+   "id": "flapper",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "bangs",
+    "color": "#1f1a22"
+   },
+   "hat": {
+    "style": "headband",
+    "color": "#f5c21b"
+   },
+   "top": {
+    "color": "#2fb3a6",
+    "style": "dress",
+    "accent": "#f5c21b"
+   },
+   "neck": {
+    "style": "pearls",
+    "color": "#f6f1e8"
+   },
+   "marks": [
+    "lipstick"
+   ]
+  },
+  "name": "Dot",
+  "role": "1920s jazz singer",
+  "group": "history",
+  "traits": "glamorous, bold, funny",
+  "rest": "smug",
+  "pose": "cheer",
+  "prop": {
+   "item": "mic"
+  },
+  "height": 1.66,
+  "voice": "adult female, sultry"
+ },
+ "wizard": {
+  "spec": {
+   "id": "wizard",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "wizard",
+    "color": "#3f4fa8",
+    "accent": "#f5c21b"
+   },
+   "beard": "#ecebf0",
+   "top": {
+    "color": "#3f4fa8",
+    "style": "robe",
+    "accent": "#f5c21b",
+    "pattern": "stars",
+    "patternColor": "#f5c21b"
+   }
+  },
+  "name": "Morwen",
+  "role": "wizard",
+  "group": "fantasy",
+  "traits": "mysterious, old, grumpy",
+  "rest": "suspicious",
+  "pose": "point",
+  "prop": {
+   "item": "wand"
+  },
+  "height": 1.74,
+  "voice": "elderly, deep, slow"
+ },
+ "witch": {
+  "spec": {
+   "id": "witch",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "witch",
+    "color": "#2b2230",
+    "accent": "#7a4fc9"
+   },
+   "hair": {
+    "style": "long",
+    "color": "#4caf7a"
+   },
+   "top": {
+    "color": "#2b2230",
+    "style": "robe",
+    "accent": "#7a4fc9"
+   }
+  },
+  "name": "Hazel",
+  "role": "witch",
+  "group": "fantasy",
+  "traits": "cackling, clever, chaotic",
+  "rest": "mischief",
+  "pose": "point",
+  "prop": {
+   "item": "broom"
+  },
+  "height": 1.68,
+  "voice": "adult female, cackling"
+ },
+ "hero": {
+  "spec": {
+   "id": "hero",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "pompadour",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#2a7de1",
+    "style": "supersuit",
+    "accent": "#f5c21b"
+   },
+   "build": "regular"
+  },
+  "name": "Captain Bolt",
+  "role": "superhero",
+  "group": "fantasy",
+  "traits": "proud, kind, clumsy",
+  "rest": "smug",
+  "pose": "hips",
+  "height": 1.84,
+  "voice": "adult male, heroic"
+ },
+ "villain": {
+  "spec": {
+   "id": "villain",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "slick",
+    "color": "#ecebf0"
+   },
+   "top": {
+    "color": "#1c1a20",
+    "style": "cape",
+    "accent": "#b3263a"
+   },
+   "glasses": "#b3263a",
+   "marks": [
+    "scar",
+    "eyebags"
+   ]
+  },
+  "name": "Dr. Gloom",
+  "role": "villain",
+  "group": "fantasy",
+  "traits": "dramatic, petty, evil",
+  "rest": "scheming",
+  "pose": "shrug",
+  "height": 1.8,
+  "voice": "adult male, hissing"
+ },
+ "elf": {
+  "spec": {
+   "id": "elf",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "elf",
+    "color": "#3f8a5a",
+    "accent": "#c0392b"
+   },
+   "hair": {
+    "style": "pixie",
+    "color": "#c8642c"
+   },
+   "top": {
+    "color": "#3f8a5a",
+    "style": "tunic",
+    "accent": "#c0392b"
+   },
+   "heightHeads": 2.55,
+   "marks": [
+    "freckles"
+   ]
+  },
+  "name": "Twig",
+  "role": "elf / helper",
+  "group": "fantasy",
+  "traits": "cheerful, tiny, busy",
+  "rest": "happy",
+  "pose": "wave",
+  "prop": {
+   "item": "gift"
+  },
+  "height": 1.2,
+  "voice": "child-like, squeaky"
+ },
+ "santa": {
+  "spec": {
+   "id": "santa",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "santa",
+    "color": "#c0392b",
+    "accent": "#ffffff"
+   },
+   "beard": "#ffffff",
+   "top": {
+    "color": "#c0392b",
+    "style": "coat",
+    "accent": "#ffffff"
+   },
+   "build": "stout",
+   "marks": [
+    "rosy"
+   ]
+  },
+  "name": "Father Frost",
+  "role": "winter gift-bringer",
+  "group": "fantasy",
+  "traits": "jolly, warm, tired",
+  "rest": "happy",
+  "pose": "carry",
+  "prop": {
+   "item": "gift"
+  },
+  "height": 1.76,
+  "voice": "elderly male, jolly"
+ },
+ "zombie": {
+  "spec": {
+   "id": "zombie",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "messy",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#6b7a5a",
+    "style": "shirt"
+   },
+   "marks": [
+    "scar",
+    "eyebags"
+   ]
+  },
+  "name": "Gary",
+  "role": "zombie (Halloween)",
+  "group": "fantasy",
+  "traits": "slow, hungry, sad",
+  "rest": "zombie",
+  "pose": "idle",
+  "height": 1.74,
+  "voice": "adult male, groaning"
+ },
+ "party": {
+  "spec": {
+   "id": "party",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "party",
+    "color": "#e07aa8",
+    "accent": "#f5c21b"
+   },
+   "hair": {
+    "style": "curl",
+    "color": "#6a3d22"
+   },
+   "top": {
+    "color": "#f5c21b",
+    "style": "tee",
+    "pattern": "dots",
+    "patternColor": "#e2483a"
+   },
+   "heightHeads": 2.55
+  },
+  "name": "Birthday Max",
+  "role": "party guest",
+  "group": "fantasy",
+  "traits": "excited, sugary, loud",
+  "rest": "happy",
+  "pose": "cheer",
+  "prop": {
+   "item": "balloon"
+  },
+  "height": 1.14,
+  "voice": "child, shrieking"
+ },
+ "barber": {
+  "spec": {
+   "id": "barber",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "pompadour",
+    "color": "#1f1a22"
+   },
+   "stache": "#1f1a22",
+   "top": {
+    "color": "#e9dcc6",
+    "style": "suspenders",
+    "accent": "#8e2b3d"
+   }
+  },
+  "name": "Lou",
+  "role": "barber / hairdresser",
+  "group": "everyday",
+  "traits": "chatty, vain, precise",
+  "rest": "smug",
+  "pose": "idle",
+  "prop": {
+   "item": "shears"
+  },
+  "height": 1.74,
+  "voice": "adult male, smooth talker"
+ },
+ "librarian": {
+  "spec": {
+   "id": "librarian",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "sidebun",
+    "color": "#a0482a"
+   },
+   "glasses": "#2b2230",
+   "top": {
+    "color": "#2a7f86",
+    "style": "cardigan",
+    "accent": "#f4efe6"
+   }
+  },
+  "name": "Mrs. Page",
+  "role": "librarian",
+  "group": "everyday",
+  "traits": "quiet, strict, kind",
+  "rest": "skeptical",
+  "pose": "idle",
+  "prop": {
+   "item": "book"
+  },
+  "height": 1.64,
+  "voice": "older female, hushed"
+ },
+ "neighbor": {
+  "spec": {
+   "id": "neighbor",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "mullet",
+    "color": "#8a4a26"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "tank"
+   },
+   "build": "stout",
+   "marks": [
+    "stubble",
+    "sunburn"
+   ]
+  },
+  "name": "Hank",
+  "role": "the neighbour",
+  "group": "everyday",
+  "traits": "loud, friendly, nosy",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "mug"
+  },
+  "height": 1.8,
+  "voice": "adult male, loud"
+ },
+ "musician": {
+  "spec": {
+   "id": "musician",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "dreads",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#6d4fc2",
+    "style": "varsity",
+    "accent": "#f4efe6"
+   }
+  },
+  "name": "Jaz",
+  "role": "street musician",
+  "group": "everyday",
+  "traits": "cool, dreamy, broke",
+  "rest": "content",
+  "pose": "idle",
+  "prop": {
+   "item": "guitar"
+  },
+  "height": 1.76,
+  "voice": "adult, warm, husky"
+ },
+ "skater": {
+  "spec": {
+   "id": "skater",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "fauxhawk",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#f39a2b",
+    "style": "tee",
+    "pattern": "ringer",
+    "patternColor": "#22252e"
+   },
+   "heightHeads": 2.95
+  },
+  "name": "Rio",
+  "role": "skater teen",
+  "group": "everyday",
+  "traits": "chill, daring, funny",
+  "rest": "mischief",
+  "pose": "idle",
+  "prop": {
+   "item": "lollipop"
+  },
+  "height": 1.6,
+  "voice": "teen male, laid back"
+ },
+ "abuela": {
+  "spec": {
+   "id": "abuela",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "bun",
+    "color": "#b9b4c4"
+   },
+   "top": {
+    "color": "#c0392b",
+    "style": "dress",
+    "accent": "#f4efe6",
+    "pattern": "flowers",
+    "patternColor": "#f5c21b"
+   },
+   "neck": {
+    "style": "scarf",
+    "color": "#2a7f86"
+   },
+   "marks": [
+    "wrinkles",
+    "rosy"
+   ]
+  },
+  "name": "Abuela Ines",
+  "role": "grandmother",
+  "group": "family",
+  "traits": "warm, bossy, feeds everyone",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "rollingpin"
+  },
+  "height": 1.52,
+  "voice": "elderly female, warm"
+ },
+ "nerd": {
+  "spec": {
+   "id": "nerd",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "bowl",
+    "color": "#c8642c"
+   },
+   "glasses": "#2b2230",
+   "top": {
+    "color": "#4f78b0",
+    "style": "vest",
+    "accent": "#f4efe6",
+    "pattern": "argyle",
+    "patternColor": "#f5c21b"
+   },
+   "neck": {
+    "style": "bow",
+    "color": "#c0392b"
+   },
+   "marks": [
+    "freckles"
+   ]
+  },
+  "name": "Ollie",
+  "role": "the nerd",
+  "group": "everyday",
+  "traits": "brainy, awkward, honest",
+  "rest": "shy",
+  "pose": "think",
+  "prop": {
+   "item": "calculator"
+  },
+  "height": 1.68,
+  "voice": "young male, nasal"
+ },
+ "gymbro": {
+  "spec": {
+   "id": "gymbro",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "crew",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#e2483a",
+    "style": "tank"
+   },
+   "build": "stout"
+  },
+  "name": "Brock",
+  "role": "bodybuilder / gym coach",
+  "group": "everyday",
+  "traits": "proud, loud, sweet",
+  "rest": "smug",
+  "pose": "hips",
+  "prop": {
+   "item": "banana"
+  },
+  "height": 1.84,
+  "voice": "adult male, booming"
+ },
+ "baker": {
+  "spec": {
+   "id": "baker",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "chefcap",
+    "color": "#fbfaf6"
+   },
+   "hair": {
+    "style": "braids",
+    "color": "#8a4a26"
+   },
+   "top": {
+    "color": "#e07aa8",
+    "style": "apron",
+    "accent": "#f4efe6"
+   },
+   "marks": [
+    "rosy"
+   ]
+  },
+  "name": "Bea",
+  "role": "baker",
+  "group": "everyday",
+  "traits": "early, cheerful, floury",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "baguette"
+  },
+  "height": 1.64,
+  "voice": "adult female, sing-song"
+ },
+ "taxi": {
+  "spec": {
+   "id": "taxi",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "flatcap",
+    "color": "#3a3f5c"
+   },
+   "stache": "#1f1a22",
+   "top": {
+    "color": "#f5c21b",
+    "style": "polo"
+   }
+  },
+  "name": "Ravi",
+  "role": "taxi / bus driver",
+  "group": "everyday",
+  "traits": "fast, chatty, tired",
+  "rest": "deadpan",
+  "pose": "idle",
+  "prop": {
+   "item": "key"
+  },
+  "height": 1.72,
+  "voice": "adult male, fast"
+ },
+ "detective": {
+  "spec": {
+   "id": "detective",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "deerstalker",
+    "color": "#8a7a5a",
+    "accent": "#5a4a3a"
+   },
+   "top": {
+    "color": "#8a6a4a",
+    "style": "trench",
+    "accent": "#5a4a3a"
+   },
+   "build": "slim"
+  },
+  "name": "Inspector Grey",
+  "role": "detective",
+  "group": "work",
+  "traits": "sharp, cold, curious",
+  "rest": "suspicious",
+  "pose": "think",
+  "prop": {
+   "item": "magnifier"
+  },
+  "height": 1.8,
+  "voice": "adult male, dry, slow"
+ },
+ "spy": {
+  "spec": {
+   "id": "spy",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "slick",
+    "color": "#3b2a20"
+   },
+   "shades": "#14121a",
+   "top": {
+    "color": "#22252e",
+    "style": "tux"
+   }
+  },
+  "name": "Agent Kay",
+  "role": "secret agent",
+  "group": "work",
+  "traits": "cool, silent, smug",
+  "rest": "smug",
+  "pose": "idle",
+  "prop": {
+   "item": "briefcase"
+  },
+  "height": 1.78,
+  "voice": "adult, low, clipped"
+ },
+ "singer": {
+  "spec": {
+   "id": "singer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "halfup",
+    "color": "#a0482a"
+   },
+   "top": {
+    "color": "#8e2b6b",
+    "style": "gown",
+    "accent": "#f5c21b"
+   },
+   "marks": [
+    "lashes",
+    "lipstick"
+   ]
+  },
+  "name": "Lyra",
+  "role": "singer / performer",
+  "group": "everyday",
+  "traits": "dramatic, kind, loud",
+  "rest": "proud",
+  "pose": "idle",
+  "prop": {
+   "item": "mic"
+  },
+  "height": 1.68,
+  "voice": "adult female, singing"
+ },
+ "painter": {
+  "spec": {
+   "id": "painter",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "beret",
+    "color": "#2b2230"
+   },
+   "hair": {
+    "style": "shag",
+    "color": "#3b2a20"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "tee",
+    "pattern": "dots",
+    "patternColor": "#e2483a"
+   },
+   "marks": [
+    "paint"
+   ]
+  },
+  "name": "Remy",
+  "role": "painter / artist",
+  "group": "everyday",
+  "traits": "dreamy, messy, proud",
+  "rest": "content",
+  "pose": "idle",
+  "prop": {
+   "item": "paintbrush"
+  },
+  "height": 1.72,
+  "voice": "adult male, soft"
+ },
+ "magician": {
+  "spec": {
+   "id": "magician",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "top",
+    "color": "#3a1f5c",
+    "accent": "#f5c21b"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "cloak",
+    "accent": "#8e2b6b"
+   }
+  },
+  "name": "Zara",
+  "role": "magician",
+  "group": "fantasy",
+  "traits": "showy, sly, charming",
+  "rest": "mischief",
+  "pose": "point",
+  "prop": {
+   "item": "wand"
+  },
+  "height": 1.72,
+  "voice": "adult female, theatrical"
+ },
+ "clown": {
+  "spec": {
+   "id": "clown",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "afro",
+    "color": "#3f6fd6"
+   },
+   "top": {
+    "color": "#f5c21b",
+    "style": "jersey",
+    "pattern": "dots",
+    "patternColor": "#e2483a"
+   },
+   "neck": {
+    "style": "ruff",
+    "color": "#f4f6fa"
+   },
+   "marks": [
+    "rednose"
+   ]
+  },
+  "name": "Bingo",
+  "role": "clown / entertainer",
+  "group": "fantasy",
+  "traits": "silly, loud, sad inside",
+  "rest": "happy",
+  "pose": "cheer",
+  "prop": {
+   "item": "balloon"
+  },
+  "height": 1.74,
+  "voice": "adult male, honky"
+ },
+ "toddler": {
+  "spec": {
+   "id": "toddler",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "babycurl",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#8fc6e8",
+    "style": "pajamas",
+    "pattern": "stars",
+    "patternColor": "#f5c21b"
+   },
+   "heightHeads": 2.25,
+   "marks": [
+    "rosy"
+   ]
+  },
+  "name": "Bub",
+  "role": "toddler",
+  "group": "family",
+  "traits": "curious, sticky, loud",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "teddy"
+  },
+  "height": 0.95,
+  "voice": "toddler, babbling"
+ },
+ "hipster": {
+  "spec": {
+   "id": "hipster",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "manbun",
+    "color": "#6a3d22"
+   },
+   "beard": "#6a3d22",
+   "top": {
+    "color": "#c9a13a",
+    "style": "cardigan",
+    "accent": "#f4efe6"
+   }
+  },
+  "name": "Finn",
+  "role": "hipster / start-up founder",
+  "group": "everyday",
+  "traits": "smug, kind, trendy",
+  "rest": "smug",
+  "pose": "idle",
+  "prop": {
+   "item": "coffee"
+  },
+  "height": 1.8,
+  "voice": "adult male, mellow"
+ },
+ "punk": {
+  "spec": {
+   "id": "punk",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "punk",
+    "color": "#e07aa8"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "jacket",
+    "accent": "#c9ced8"
+   },
+   "neck": {
+    "style": "chain",
+    "color": "#c9ced8"
+   }
+  },
+  "name": "Spike",
+  "role": "punk / rebel",
+  "group": "everyday",
+  "traits": "loud, loyal, rebellious",
+  "rest": "mischief",
+  "pose": "shrug",
+  "prop": {
+   "item": "mic"
+  },
+  "height": 1.74,
+  "voice": "young, raspy"
+ },
+ "retiree": {
+  "spec": {
+   "id": "retiree",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "receding",
+    "color": "#ecebf0"
+   },
+   "top": {
+    "color": "#8a9a7a",
+    "style": "sweater"
+   },
+   "glasses": "#2b2230",
+   "marks": [
+    "wrinkles",
+    "eyebags"
+   ]
+  },
+  "name": "Old Ken",
+  "role": "retiree",
+  "group": "family",
+  "traits": "slow, wise, grumpy",
+  "rest": "deadpan",
+  "pose": "idle",
+  "prop": {
+   "item": "newspaper"
+  },
+  "height": 1.7,
+  "voice": "elderly male, slow"
+ },
+ "beekeeper": {
+  "spec": {
+   "id": "beekeeper",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "beekeeper",
+    "color": "#f4f1ea",
+    "accent": "#3a3f5c"
+   },
+   "top": {
+    "color": "#f4f1ea",
+    "style": "coverall",
+    "accent": "#c9a13a"
+   }
+  },
+  "name": "Hon",
+  "role": "beekeeper / gardener",
+  "group": "work",
+  "traits": "calm, slow, patient",
+  "rest": "content",
+  "pose": "idle",
+  "prop": {
+   "item": "wateringcan"
+  },
+  "height": 1.7,
+  "voice": "adult, calm"
+ },
+ "diver": {
+  "spec": {
+   "id": "diver",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "divemask",
+    "color": "#2a9d8f",
+    "accent": "#8fc6e8"
+   },
+   "hair": {
+    "style": "wavy",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#22305a",
+    "style": "wetsuit",
+    "accent": "#2a9d8f"
+   }
+  },
+  "name": "Marina",
+  "role": "diver / marine biologist",
+  "group": "work",
+  "traits": "brave, nerdy, calm",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "net"
+  },
+  "height": 1.68,
+  "voice": "adult female, bubbly"
+ },
+ "scout": {
+  "spec": {
+   "id": "scout",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "backcap",
+    "color": "#3f8a5a"
+   },
+   "hair": {
+    "style": "pigtails",
+    "color": "#8a4a26"
+   },
+   "top": {
+    "color": "#7d8a55",
+    "style": "polo"
+   },
+   "neck": {
+    "style": "neckerchief",
+    "color": "#f08a24"
+   },
+   "heightHeads": 2.55,
+   "marks": [
+    "freckles"
+   ]
+  },
+  "name": "Sunny",
+  "role": "scout / camper kid",
+  "group": "family",
+  "traits": "brave, eager, lost",
+  "rest": "happy",
+  "pose": "point",
+  "prop": {
+   "item": "binoculars"
+  },
+  "height": 1.2,
+  "voice": "child, eager"
+ },
+ "philosopher": {
+  "spec": {
+   "id": "philosopher",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "laurel",
+    "color": "#6a8a3a"
+   },
+   "hair": {
+    "style": "receding",
+    "color": "#ecebf0"
+   },
+   "beard": "#ecebf0",
+   "top": {
+    "color": "#f4efe6",
+    "style": "toga",
+    "accent": "#2a7de1"
+   }
+  },
+  "name": "Sophos",
+  "role": "ancient philosopher / teacher",
+  "group": "history",
+  "traits": "wise, slow, curious",
+  "rest": "think",
+  "pose": "think",
+  "prop": {
+   "item": "scroll"
+  },
+  "height": 1.72,
+  "voice": "elderly male, calm"
+ },
+ "princess": {
+  "spec": {
+   "id": "princess",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "tiara",
+    "color": "#f5c21b"
+   },
+   "hair": {
+    "style": "hime",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#e07aa8",
+    "style": "gown",
+    "accent": "#f5c21b"
+   }
+  },
+  "name": "Princess Elin",
+  "role": "princess",
+  "group": "history",
+  "traits": "brave, curious, polite",
+  "rest": "happy",
+  "pose": "idle",
+  "prop": {
+   "item": "rose"
+  },
+  "height": 1.62,
+  "voice": "young female, bright"
+ },
+ "maid": {
+  "spec": {
+   "id": "maid",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "bonnet",
+    "color": "#f4f6fa",
+    "accent": "#22252e"
+   },
+   "hair": {
+    "style": "bun",
+    "color": "#a0482a"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "dress",
+    "accent": "#f4f6fa"
+   }
+  },
+  "name": "Molly",
+  "role": "maid / servant",
+  "group": "history",
+  "traits": "busy, clever, cheeky",
+  "rest": "deadpan",
+  "pose": "idle",
+  "prop": {
+   "item": "broom"
+  },
+  "height": 1.62,
+  "voice": "young female, quick"
+ },
+ "frontier": {
+  "spec": {
+   "id": "frontier",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "bonnet",
+    "color": "#d8c08a",
+    "accent": "#8a5a34"
+   },
+   "hair": {
+    "style": "ringlets",
+    "color": "#d9b25a"
+   },
+   "top": {
+    "color": "#4f78b0",
+    "style": "dress",
+    "accent": "#f4efe6",
+    "pattern": "check",
+    "patternColor": "#f4efe6"
+   }
+  },
+  "name": "Belle",
+  "role": "frontier pioneer",
+  "group": "history",
+  "traits": "tough, proper, brave",
+  "rest": "skeptical",
+  "pose": "idle",
+  "prop": {
+   "item": "basket"
+  },
+  "height": 1.66,
+  "voice": "adult female, drawl"
+ },
+ "soldier": {
+  "spec": {
+   "id": "soldier",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "helmet",
+    "color": "#6b7a4a"
+   },
+   "top": {
+    "color": "#6b7a4a",
+    "style": "uniform",
+    "accent": "#c9a13a"
+   },
+   "neck": {
+    "style": "medal",
+    "color": "#f5c21b"
+   }
+  },
+  "name": "Private Lee",
+  "role": "soldier (any era, generic)",
+  "group": "history",
+  "traits": "young, scared, brave",
+  "rest": "nervous",
+  "pose": "idle",
+  "height": 1.76,
+  "voice": "young male, tense"
+ },
+ "deckhand": {
+  "spec": {
+   "id": "deckhand",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "bandana",
+    "color": "#c0392b"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "tunic",
+    "pattern": "hstripes",
+    "patternColor": "#22305a"
+   },
+   "marks": [
+    "stubble",
+    "scar"
+   ]
+  },
+  "name": "Scurvy Sam",
+  "role": "pirate deckhand / sailor",
+  "group": "history",
+  "traits": "loyal, dim, salty",
+  "rest": "happy",
+  "pose": "carry",
+  "prop": {
+   "item": "oar"
+  },
+  "height": 1.7,
+  "voice": "adult male, gravel"
+ },
+ "admiral": {
+  "spec": {
+   "id": "admiral",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "tricorn",
+    "color": "#22305a",
+    "accent": "#f5c21b"
+   },
+   "hair": {
+    "style": "ringlets",
+    "color": "#ecebf0"
+   },
+   "top": {
+    "color": "#22305a",
+    "style": "coat",
+    "accent": "#f5c21b"
+   }
+  },
+  "name": "Admiral Brae",
+  "role": "navigator / ship captain",
+  "group": "history",
+  "traits": "proud, brave, stubborn",
+  "rest": "smug",
+  "pose": "point",
+  "prop": {
+   "item": "map"
+  },
+  "height": 1.78,
+  "voice": "older male, commanding"
+ },
+ "jester": {
+  "spec": {
+   "id": "jester",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "jester",
+    "color": "#c0392b",
+    "accent": "#f5c21b"
+   },
+   "top": {
+    "color": "#3f6fd6",
+    "style": "tunic",
+    "pattern": "check",
+    "patternColor": "#f5c21b"
+   }
+  },
+  "name": "Motley",
+  "role": "jester / court fool",
+  "group": "history",
+  "traits": "silly, sharp, brave",
+  "rest": "mischief",
+  "pose": "cheer",
+  "prop": {
+   "item": "ball"
+  },
+  "height": 1.66,
+  "voice": "adult, squeaky"
+ },
+ "samurai": {
+  "spec": {
+   "id": "samurai",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "kabuto",
+    "color": "#2b2230",
+    "accent": "#c9a13a"
+   },
+   "top": {
+    "color": "#8e2b3d",
+    "style": "armor",
+    "accent": "#2b2230"
+   }
+  },
+  "name": "Ronin Kenji",
+  "role": "historical warrior (generic armour)",
+  "group": "history",
+  "traits": "calm, proud, loyal",
+  "rest": "determined",
+  "pose": "idle",
+  "height": 1.76,
+  "voice": "adult male, low, calm"
+ },
+ "vampire": {
+  "spec": {
+   "id": "vampire",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "slick",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#22252e",
+    "style": "cloak",
+    "accent": "#b3263a"
+   },
+   "neck": {
+    "style": "amulet",
+    "color": "#b3263a"
+   },
+   "marks": [
+    "eyebags"
+   ]
+  },
+  "name": "Count Nocturne",
+  "role": "vampire (Halloween costume)",
+  "group": "fantasy",
+  "traits": "dramatic, polite, spooky",
+  "rest": "scheming",
+  "pose": "shrug",
+  "prop": {
+   "item": "candle"
+  },
+  "height": 1.82,
+  "voice": "adult male, rolling accent"
+ },
+ "bunny": {
+  "spec": {
+   "id": "bunny",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "bunny",
+    "color": "#f4f6fa",
+    "accent": "#e07aa8"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "pajamas"
+   },
+   "heightHeads": 2.55,
+   "marks": [
+    "rosy"
+   ]
+  },
+  "name": "Hoppy",
+  "role": "kid in a bunny costume",
+  "group": "fantasy",
+  "traits": "bouncy, sweet, shy",
+  "rest": "shy",
+  "pose": "wave",
+  "prop": {
+   "item": "carrot"
+  },
+  "height": 1.1,
+  "voice": "child, giggly"
+ },
+ "reindeer": {
+  "spec": {
+   "id": "reindeer",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "antlers",
+    "color": "#8a5a34"
+   },
+   "top": {
+    "color": "#c0392b",
+    "style": "sweater",
+    "pattern": "zigzag",
+    "patternColor": "#f4f6fa"
+   },
+   "marks": [
+    "rednose"
+   ]
+  },
+  "name": "Rudi",
+  "role": "reindeer costume",
+  "group": "fantasy",
+  "traits": "jolly, clumsy, warm",
+  "rest": "happy",
+  "pose": "cheer",
+  "prop": {
+   "item": "gift"
+  },
+  "height": 1.7,
+  "voice": "adult, jolly"
+ },
+ "angel": {
+  "spec": {
+   "id": "angel",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "halo",
+    "color": "#f5c21b"
+   },
+   "hair": {
+    "style": "wavy",
+    "color": "#ece2c0"
+   },
+   "top": {
+    "color": "#f4f6fa",
+    "style": "gown",
+    "accent": "#f5c21b"
+   }
+  },
+  "name": "Gabi",
+  "role": "angel costume / good conscience",
+  "group": "fantasy",
+  "traits": "kind, calm, preachy",
+  "rest": "content",
+  "pose": "idle",
+  "prop": {
+   "item": "lightbulb"
+  },
+  "height": 1.66,
+  "voice": "adult female, soft"
+ },
+ "devil": {
+  "spec": {
+   "id": "devil",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hat": {
+    "style": "horns",
+    "color": "#c0392b"
+   },
+   "hair": {
+    "style": "spiky",
+    "color": "#1f1a22"
+   },
+   "top": {
+    "color": "#c0392b",
+    "style": "cape",
+    "accent": "#22252e"
+   }
+  },
+  "name": "Imp",
+  "role": "devil costume / bad conscience",
+  "group": "fantasy",
+  "traits": "tempting, sly, funny",
+  "rest": "mischief",
+  "pose": "shrug",
+  "prop": {
+   "item": "money"
+  },
+  "height": 1.6,
+  "voice": "adult, whispery"
+ },
+ "heroine": {
+  "spec": {
+   "id": "heroine",
+   "kind": "bobble",
+   "skin": "#ffffff",
+   "brand": {
+    "id": "ours-v1",
+    "face": "#FCF8F3",
+    "ink": "#15171F",
+    "head": {
+     "hw": 0.88,
+     "n": 3
+    },
+    "line": {
+     "w": 0.038
+    },
+    "limbs": {
+     "mode": "ink",
+     "w": 0.056
+    },
+    "hands": {
+     "mode": "disc",
+     "size": 0.13
+    },
+    "eyes": {
+     "eyes": "solid",
+     "eyeSize": 0.17,
+     "eyeSpacing": 0.3,
+     "eyeY": 0.48,
+     "baseLid": 0.4,
+     "brows": "line",
+     "browW": 1.5,
+     "browScale": 1.05,
+     "mouthWidth": 0.16,
+     "mouthY": 0.7,
+     "catchlight": true
+    },
+    "shock": {
+     "eyes": "whites",
+     "eyeSize": 0.21,
+     "eyeSpacing": 0.3,
+     "catchlight": true
+    },
+    "torso": "bean",
+    "ears": false,
+    "nose": false,
+    "shine": true,
+    "faceShade": "gradient",
+    "hairline": 0.25,
+    "hairShine": "arc",
+    "hairStrands": 6,
+    "hairVolume": 1.13,
+    "heads": 3.2,
+    "blend": 0.9
+   },
+   "legs": "#2f3442",
+   "shoes": "#1c1a20",
+   "hair": {
+    "style": "highpony",
+    "color": "#e07aa8"
+   },
+   "top": {
+    "color": "#e07aa8",
+    "style": "supersuit",
+    "accent": "#22252e"
+   }
+  },
+  "name": "Volt",
+  "role": "superhero (second hero)",
+  "group": "fantasy",
+  "traits": "fast, brave, cheeky",
+  "rest": "smug",
+  "pose": "hips",
+  "height": 1.7,
+  "voice": "adult female, upbeat"
+ }
+}

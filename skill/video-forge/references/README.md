@@ -9,7 +9,8 @@ Everything the skill knows, in four layers. Read the row that matches the task; 
 | **tools** | `tools/` | the analyzer (`vfa`), the engine API, external tools | you need a command, a parameter or a file |
 | **styles** | `styles/` | style packs: one measured channel style each (fingerprint data in `styles/data/`) | you match or compare against a style |
 | research | `research/` | long background reports the craft sheets were distilled from | a craft sheet is not enough |
-| sheets | `sheets/` | our own rendered reference sheets (characters, brands) | you want to SEE a rule |
+| sheets | `sheets/` | our own rendered reference sheets (characters, brands, cast) | you want to SEE a rule |
+| cast | `cast/` | our cast bible (`ours-v1.md`, generated from `lib/characters/ours.ts`) | you cast a story with our characters |
 
 ## Pipeline (`pipeline/`)
 

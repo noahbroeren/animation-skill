@@ -244,6 +244,11 @@ or another `CastBrand` on the board gives every bobble in the cast the
 same face fill, ink, head shape, line law, limbs, hands, eyes and torso; roles differ by hair or hat, torso colour and
 one prop. Design your own with `references/craft/character-design.md`.
 
+**Our cast.** Cast stories from `OUR_CAST` (`lib/characters/ours.ts`, bible in `references/cast/ours-v1.md`):
+`cast: { milo: castEntry("milo"), boss: castEntry("bigsby"), ex1: { spec: extra(1), height: 1.7 } }`. The core
+ensemble keeps its look in every video; a scene variant is `castEntry("milo", { marks: ["soot"] })` or a pose
+`skin: ["sunburn"]`, never a new design. Faces: any name in `KEXPRS_ALL`.
+
 **Acting.** Expressions snap on their word and hold; set `talk: true` only on quoted lines (narrated characters do not
 lip-sync); keep one character per shot by default.
 
