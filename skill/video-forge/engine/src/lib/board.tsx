@@ -106,7 +106,7 @@ export type BoardPlace = { set: SetName; opts?: SetOpts; crowd?: number; walkers
   look?: Record<string, unknown>;
   /** who fills the background (presets or specs); default: period dress for `era: "old"` sets, modern otherwise */
   extras?: (BobbleSpec | keyof typeof KIND_PRESETS)[] };
-export type BoardApi = { T: Record<string, number>; fps: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene };
+export type BoardApi = { T: Record<string, number>; fps: number; /** width / height of the frame: a prop laid out for 9:16 can re-arrange itself for 16:9 */ aspect: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene };
 export type BoardProp = THREE.Object3D | { group: THREE.Object3D; update?: (f: number, fps: number, api: BoardApi) => void };
 export type Board = {
   id: string; title: string; fps?: number;
@@ -271,7 +271,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   };
   const actorPos = (id: string, f: number) => actorState(id, f)?.pos ?? null;
   // props (gags)
-  const api: BoardApi = { T: P.T, fps, sets, mark, actorPos, scene };
+  const api: BoardApi = { T: P.T, fps, aspect, sets, mark, actorPos, scene };
   const props: { id: string; obj: THREE.Object3D; upd?: (f: number, fps: number, api: BoardApi) => void; f0: number; f1: number; mode: string; scale: number; at: V3; center: boolean }[] = [];
   for (const bt of P.beats) for (const g of gagsOf(bt)) if ("prop" in g) {
     const made: BoardProp = b.props?.[g.prop] ? b.props[g.prop](api) : PROPS[g.prop] ? PROPS[g.prop](g.opts) : (() => { throw new Error(`board "${b.id}": unknown prop "${g.prop}" (${[...Object.keys(b.props ?? {}), ...Object.keys(PROPS)].join(", ")})`); })();
@@ -304,12 +304,12 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     if (sh.on !== undefined && typeof sh.side === "number") lastSide = sh.side;
     const names = sh.on === undefined ? [] : Array.isArray(sh.on) && typeof sh.on[0] === "string" ? (sh.on as string[]) : [sh.on as string | V3];
     let ks: CamKey[];
-    if (!names.length) { const w = set.wide; ks = shotKeys({ ...sh, size: sh.size, on: { at: w.look, h: 0 } } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 26, settle: 0, soft });
+    if (!names.length) { const w = set.wide; ks = shotKeys({ ...sh, size: sh.size, on: { at: w.look, h: 0 } } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 26, settle: 0, soft, dissolve: 14 });
       const d: V3 = [w.pos[0] - w.look[0], w.pos[1] - w.look[1], w.pos[2] - w.look[2]]; // re-base the framing on the set's own establishing camera
       const p0 = ks[0].pos, l0 = ks[0].look; ks = ks.map((q) => ({ ...q, pos: [w.look[0] + d[0] + (q.pos[0] - p0[0]), w.look[1] + d[1] + (q.pos[1] - p0[1]), w.look[2] + d[2] + (q.pos[2] - p0[2])] as V3,
         look: [w.look[0] + (q.look[0] - l0[0]), w.look[1] + (q.look[1] - l0[1]), w.look[2] + (q.look[2] - l0[2])] as V3, fov: sh.fov ?? w.fov, via: undefined, focus: undefined })); }
     else { const subs = names.map((n) => subjectOf(n, fAct, bt.placeNow, sh.h)), from = sh.from ? subjectOf(sh.from, fAct, bt.placeNow) : undefined;
-      ks = shotKeys({ ...sh, on: subs, from } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 24, soft });
+      ks = shotKeys({ ...sh, on: subs, from } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 24, soft, dissolve: 14 });
       if (sh.from && sh.size === "pov") povHide.push({ f0: bt.f, f1, id: sh.from });
       audit.push({ f0: ks[0].f + 2, f1, subs: names.filter((n): n is string => typeof n === "string" && !!cast[n]), place: bt.placeNow });
       if (sh.follow) { const s0 = subjectOf(sh.follow, fAct, bt.placeNow), a = frameShot({ ...sh, on: subs, from } as ShotSpec, aspect, set.camBox), id = sh.follow, hh = s0.h * 0.6;
@@ -471,7 +471,7 @@ export function boardProject(b: Board): ProjectDef {
       const P = planFor(fps), S = boardSounds(b, fps);
       const scene: SceneDef = {
         id: "board", frames: P.total, innerCuts: P.cuts, innerSoft: P.soft, cues: Object.fromEntries(P.beats.map((x) => [x.id, x.f])),
-        events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(x.event ?? []).map((d) => x.f + d), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 6, x.f, x.f + 6] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
+        events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(x.event ?? []).map((d) => x.f + d), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 7, x.f, x.f + 7] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
         sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps),
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
           return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={110} yAt={(fr) => { y = 0.7; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },

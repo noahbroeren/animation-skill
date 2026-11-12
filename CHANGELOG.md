@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.8.1 - 2026-11-12
+- **Motivated light** (third round, aimed at the three lowest review scores: light 5, ink 4.5, texture 4.5). Sets throw
+  window light as a patch on the floor, the stage or the desk (`sunPatch`), the workshop has a flickering lantern, the
+  old office a candle pool; character cards carry a stronger rim light; the mint hall of the proof short keeps one time
+  of day (it had night-violet panes under a sun key).
+- **Shade colour settled**: cool blue-grey. Violet read as mud on warm floors (review), neutral measured too far from
+  the reference's cool shadows (shadow b -0.1 against -5.4); now -1.7.
+- **Heavier prop ink**: `widthNear` 5.2 and creases from shallower folds; ink on edges 0.18 -> 0.21 (reference 0.35).
+- **Dressing**: ledgers and coin stacks on the office desk, a rope barrier in the hall.
+- Place dissolves take 14 frames (10 read as cuts to the detector); `BoardApi.aspect` lets a prop re-arrange itself
+  for 16:9 (the three odd coins of the proof short sit side by side there).
+- Measured on the coin short (1.8.0 -> 1.8.1): edge density 4.4 -> 5.0 % (reference 6.1 %, now inside the tolerance),
+  mean brightness 0.39 -> 0.40 (0.47), micro-animation 0.017 -> 0.018 (0.020), background blur ratio 1.42 -> 1.45
+  (1.95), cuts per minute 8.5 -> 5.3, average shot by the detector 6.3 -> 9.4 s (16.2), style match 15/32 -> 16/32.
+  QA: WARN with 0 FAIL for 9:16 (the proof coin's turn is one declared event), PASS for 16:9.
+- Worse: the grade is a little warmer again (0.111 -> 0.118 against 0.046), because the mint hall is now a warm day.
+- Not done: a hand that holds the shears on the proof coin; these changes were not scored by a reviewer.
+
 ## 1.8.0 - 2026-11-12
 - **The person is shown doing the thing.** Three strict reviewers scored the 1.7.1 coin short camera 4, edit 3, depth 3,
   characters 4 out of 10: 34 setups of 1.7 s, tools floating beside empty hands, a climax of half a second. The proof

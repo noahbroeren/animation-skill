@@ -203,6 +203,10 @@ is showing in the same frames, a `big` word held under 1 s, and boards where few
     shade's hue on the floor) and report only what moved. The second review found a "cream wall" hidden behind drapes
     and "brighter rooms" that measured darker.
 
+12. Light needs a source the viewer can see: window light lands on the floor or the desk as a patch (the sets do this
+    by themselves in day keys), a lamp makes a pool behind the head, and one place keeps ONE time of day (the mint hall
+    had night-violet panes under a sun key until the third round).
+
 **Life in every set.** Sets carry their own motion (`update`): chimney and forge smoke, sparks, swinging signs, bunting,
 curtains and trees in the wind, flickering lanterns, candles and chandeliers. Characters breathe, shift their weight,
 move their eyes and nod a little on every spoken word. The camera is never level or still: a slow roll drift rides on

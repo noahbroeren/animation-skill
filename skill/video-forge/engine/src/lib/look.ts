@@ -128,7 +128,7 @@ export const LOOKS: Record<string, Look> = {
  */
 const toonBase = deepMerge(base, {
   tonemap: "none", exposure: 1.0,
-  ink: { enabled: true, strength: 1, widthNear: 4.2, widthFar: 2.8, distNear: 6, distFar: 90, color: "#140c10", creases: 0.9, hue: 0.1 }, // 1.8: 3.0 / hue 0.22 left the world line 6x thinner than the character line (reference about 2:1) // 0.4 measured too light: ink-on-edges 0.21 vs 0.35 on the reference
+  ink: { enabled: true, strength: 1, widthNear: 5.2, widthFar: 2.8, distNear: 6, distFar: 90, color: "#140c10", creases: 1.0, hue: 0.1 }, // 1.8: 3.0 / hue 0.22 left the world line 6x thinner than the character line (reference about 2:1) // 0.4 measured too light: ink-on-edges 0.21 vs 0.35 on the reference
   ao: { enabled: true, strength: 0.5, radius: 0.55, tint: "#7c6a92" }, // (#6a5c9c pushed shadow b from -5.3 to -8.5; reference -5.4)
   dof: { enabled: false, maxBlur: 12, aperture: 1 },
   bloom: { enabled: true, threshold: 1.0, strength: 0.5, radius: 1.2 },
@@ -144,7 +144,7 @@ LOOKS["toonworld-day"] = deepMerge(toonBase, {
 LOOKS["toonworld-golden"] = deepMerge(toonBase, {
   name: "toonworld-golden",
   grade: { blackPoint: 0.06, whitePoint: 0.97, contrast: 1.2, pivot: 0.5, saturation: 1.25, vibrance: 0.2,
-    shadowTint: [0.0, -0.004, 0.02], highlightTint: [0.012, 0.004, 0.004] }, // 1.8: b 0.08 -> 0.02 (sampled den floor #4a4264 at 0.045: still violet), pink (not yellow) highs
+    shadowTint: [0.0, -0.004, 0.034], highlightTint: [0.012, 0.004, 0.004] }, // 1.8: b 0.08 -> 0.02 (sampled den floor #4a4264 at 0.045: still violet), pink (not yellow) highs
   vignette: { amount: 0.2, softness: 0.45 },
 });
 LOOKS["toonworld-night"] = deepMerge(toonBase, {

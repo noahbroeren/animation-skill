@@ -66,7 +66,7 @@ function coin(r: number, o: { teeth?: number; rough?: string; cut?: number; text
   return g;
 }
 const anvilCoin = () => { const c = coin(0.2, { rough: "ham" }); c.rotation.x = -Math.PI / 2; c.position.y = 0.03; const g = new THREE.Group(); g.add(c); return g; };
-const oddCoins = () => { const g = new THREE.Group(), cs = ["a", "b", "c"].map((k, i) => { const c = coin(0.3, { rough: "odd" + k }); c.position.set(i === 1 ? 0.12 : -0.08, (1 - i) * 0.7, 0); g.add(c); return c; }); // 9:16: stack them
+const oddCoins = (api: BoardApi) => { const row = api.aspect > 1, g = new THREE.Group(), cs = ["a", "b", "c"].map((k, i) => { const c = coin(0.3, { rough: "odd" + k }); if (row) c.position.set((i - 1) * 0.72, i === 1 ? 0.08 : -0.05, 0); else c.position.set(i === 1 ? 0.12 : -0.08, (1 - i) * 0.7, 0); g.add(c); return c; }); // 9:16: stack them
   return { group: g, update(f: number, fps: number) { cs.forEach((c, i) => { c.rotation.y = 0.35 * Math.sin((f / fps) * 1.6 + i * 2); c.rotation.z = 0.2 * Math.sin((f / fps) * 0.9 + i); }); } }; };
 /** A tin cup on the bench: the heap of clippings grows with every snip and stroke of the file. */
 const cup = (api: BoardApi) => { const g = new THREE.Group(); const tin = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.26, 16, 1, true), lam({ color: "#8d96a6", side: THREE.DoubleSide })); tin.position.y = 0.13; tin.castShadow = true; g.add(tin);
@@ -228,7 +228,7 @@ const beats: Beat[] = [
   { at: "mint", id: "mint" },
   { at: "isaac", id: "isaac", shot: { size: "medium", on: "newton", angle: -14, side: 0.2, move: "push", amount: 0.16 }, act: { newton: { seat: null, at: [-1.5, 0, 3.3], pose: { limbs: { handR: [0.45, 0.3] }, hold: { item: "cane", hand: "R" }, expr: "determined" }, ...T3(1) } }, punch: true },
   // ---- J (1035-1162). The recall: everyone queues with a sack; the camera ends on the crucible.
-  { at: "that", id: "recall", place: "mint", key: FORGE, rain: 0, music: "build", shot: { size: "full", on: [-0.45, -0.5, 0.9], h: 3.0, angle: 16, move: "push", amount: 0.18 }, crowd: "look",
+  { at: "that", id: "recall", place: "mint", key: WARM, rain: 0, music: "build", shot: { size: "full", on: [-0.45, -0.5, 0.9], h: 3.0, angle: 16, move: "push", amount: 0.18 }, crowd: "look",
     act: { baker: { hide: false, at: [-2.3, 0, 1.9], pose: "carry", hold: { item: "sack", hand: "R" }, hold2: null, expr: "sad", view: "front" }, barber: { hide: false, at: [-1.4, 0, 2.5], pose: "carry", hold: { item: "sack", hand: "R" }, hold2: null, expr: "sad", view: "front" },
       keeper: { at: [-0.5, 0, 3.1], pose: "carry", hold: { item: "sack", hand: "R" }, expr: "sad", view: "front" }, newton: { at: [0.65, 0, 1.5], pose: hand(0.95, 1.0, { hands: { R: "point" }, expr: "determined" }), hold: null, ...T3(-1) },
       officer: { hide: true } },

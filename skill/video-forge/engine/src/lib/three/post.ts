@@ -85,8 +85,8 @@ void main(){
       eD = max(eD, smoothstep(0.007, 0.021, -s) * cw);      // near side of depth jumps only (x0.6: judge/ink iter 2)
       if (ch > 0.0) {
         vec4 n1 = textureLod(tNormal, vUv - o, 0.0), n2 = textureLod(tNormal, vUv + o, 0.0);
-        float k1 = (n1.a > 0.5 && abs(z1 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.74, 0.9, dot(n0, n1.xyz)) : 0.0;
-        float k2 = (n2.a > 0.5 && abs(z2 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.74, 0.9, dot(n0, n2.xyz)) : 0.0;
+        float k1 = (n1.a > 0.5 && abs(z1 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.80, 0.94, dot(n0, n1.xyz)) : 0.0;
+        float k2 = (n2.a > 0.5 && abs(z2 - zc) < zc * 0.02) ? 1.0 - smoothstep(0.80, 0.94, dot(n0, n2.xyz)) : 0.0;
         eN = max(eN, max(k1, k2) * ch);
       }
     }

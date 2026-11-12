@@ -1661,5 +1661,136 @@
     "result": "regressed"
    }
   ]
+ },
+ {
+  "date": "2026-11-12",
+  "project": "coins",
+  "change": "round 3: window light patches, rim light on cards, lantern in the workshop, daylight in the mint, cool shade, heavier prop ink, softer dissolves, desk and hall dressing",
+  "note": "",
+  "match_score_before": 46.9,
+  "match_score_after": 50.0,
+  "judge_mean": null,
+  "moved": [
+   {
+    "metric": "camera.attack_frames_median",
+    "label": "move ease-in frames",
+    "gap_before": 0.12,
+    "gap_after": 0.75,
+    "ours_before": 8.5,
+    "ours_after": 12.0,
+    "ref": 9.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.push_in_shot_frac",
+    "label": "push-in shot fraction",
+    "gap_before": 3.33,
+    "gap_after": 4.44,
+    "ours_before": 0.5,
+    "ours_after": 0.3333333333333333,
+    "ref": 1.0,
+    "result": "regressed"
+   },
+   {
+    "metric": "camera.release_frames_median",
+    "label": "move ease-out frames",
+    "gap_before": 1.12,
+    "gap_after": 1.38,
+    "ours_before": 7.0,
+    "ours_after": 6.0,
+    "ref": 11.5,
+    "result": "regressed"
+   },
+   {
+    "metric": "color.high_a.median",
+    "label": "highlight tint a",
+    "gap_before": 1.85,
+    "gap_after": 1.49,
+    "ours_before": 5.641767978668213,
+    "ours_after": 4.924585819244385,
+    "ref": 1.936219334602356,
+    "result": "improved"
+   },
+   {
+    "metric": "color.luma_mean.median",
+    "label": "mean brightness",
+    "gap_before": 1.93,
+    "gap_after": 1.66,
+    "ours_before": 0.38770143687725067,
+    "ours_after": 0.3985836058855057,
+    "ref": 0.46486346423625946,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_a.median",
+    "label": "shadow tint a (green-/magenta+)",
+    "gap_before": 0.59,
+    "gap_after": 0.11,
+    "ours_before": 11.752991676330566,
+    "ours_after": 10.793832302093506,
+    "ref": 10.56808090209961,
+    "result": "improved"
+   },
+   {
+    "metric": "color.shadow_b.median",
+    "label": "shadow tint b (blue-/yellow+)",
+    "gap_before": 2.65,
+    "gap_after": 1.86,
+    "ours_before": -0.06961731985211372,
+    "ours_after": -1.6503725051879883,
+    "ref": -5.367428779602051,
+    "result": "improved"
+   },
+   {
+    "metric": "color.warmth.median",
+    "label": "warmth (R-B)",
+    "gap_before": 2.6,
+    "gap_after": 2.88,
+    "ours_before": 0.11112942919135094,
+    "ours_after": 0.11796427890658379,
+    "ref": 0.04604286700487137,
+    "result": "regressed"
+   },
+   {
+    "metric": "editing.asl_seconds",
+    "label": "average shot length",
+    "gap_before": 16.59,
+    "gap_after": 11.38,
+    "ours_before": 6.2518518518518515,
+    "ours_after": 9.377777777777778,
+    "ref": 16.20724959882321,
+    "result": "improved"
+   },
+   {
+    "metric": "editing.cuts_per_minute",
+    "label": "cuts per minute",
+    "gap_before": 1.95,
+    "gap_after": 0.89,
+    "ours_before": 8.530805687203792,
+    "ours_after": 5.33175355450237,
+    "ref": 2.666844444444444,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.edge_density.median",
+    "label": "edge density (detail)",
+    "gap_before": 1.1,
+    "gap_after": 0.72,
+    "ours_before": 0.044210379464285715,
+    "ours_after": 0.04988624656593407,
+    "ref": 0.060645604395604395,
+    "result": "improved"
+   },
+   {
+    "metric": "texture.ink_on_edges.median",
+    "label": "ink lines on edges",
+    "gap_before": 2.13,
+    "gap_after": 1.8,
+    "ours_before": 0.18054965822472402,
+    "ours_after": 0.20680339339608084,
+    "ref": 0.35101842557508733,
+    "result": "improved"
+   }
+  ]
  }
 ]

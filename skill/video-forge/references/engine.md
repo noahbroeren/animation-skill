@@ -501,3 +501,18 @@ Rules and the authoring table: `references/board.md` section 8. The pieces:
 - **Tools**: `make.mjs` runs thumbnails, `titles.md` and (`--also long`) the 16:9 version after `produce`
   (`--no-extras` skips them); `render.mjs` prints `[board lint]` lines; `story.py titles --auto --out FILE`;
   `story.py board` drafts one shot per sentence.
+
+## Added in 1.8.1 (motivated light, heavier prop ink)
+
+- **Window light** (`lib/three/sets.ts` `sunPatch`): a window-shaped patch of sunlight on the floor, the stage or a
+  desk (additive, with mullion bars, fades out as the lamps come up). The office, the workshop and the hall have them.
+  The workshop also has a flickering lantern beside the tool rack and the old office a candle pool and a dressed desk
+  (ledgers, coin stacks); the hall a rope barrier in front of the stage.
+- **Rim light on cards** (`TOON_SETUPS`): interior 0.10 -> 0.32, window interior 0.12 -> 0.36, golden 0.30 -> 0.38,
+  night 0.22 -> 0.42 with a warm rim colour (night scenes in this style are lit by lamps).
+- **Shade colour**: golden shade is cool blue-grey (`#4c5268` at 0.14, `shadowTint` b 0.034). Violet read as mud on warm
+  floors, neutral measured too warm against the reference's cool shadows.
+- **Ink**: `widthNear` 5.2 and creases from shallower folds (`smoothstep(0.80, 0.94)`), so props carry a visible line
+  next to the character outlines.
+- **Board**: place dissolves take 14 frames (10 read as cuts to the detector); `BoardApi.aspect` lets a prop laid out
+  for 9:16 re-arrange itself for 16:9.

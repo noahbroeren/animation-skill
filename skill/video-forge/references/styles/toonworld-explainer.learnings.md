@@ -221,3 +221,20 @@ Appended automatically by `vfa_loop.py learn` after each measured iteration. A c
 - regressed: push-in shot fraction gap 2.5 -> 3.33 (ours 0.625 -> 0.5, ref 1)
 - regressed: move ease-out frames gap 0.5 -> 1.12 (ours 9.5 -> 7, ref 11.5)
 
+## 2026-11-12 - coins
+
+- change: round 3: window light patches, rim light on cards, lantern in the workshop, daylight in the mint, cool shade, heavier prop ink, softer dissolves, desk and hall dressing
+- match score: 46.9 -> 50.0
+- regressed: move ease-in frames gap 0.12 -> 0.75 (ours 8.5 -> 12, ref 9)
+- regressed: push-in shot fraction gap 3.33 -> 4.44 (ours 0.5 -> 0.3333, ref 1)
+- regressed: move ease-out frames gap 1.12 -> 1.38 (ours 7 -> 6, ref 11.5)
+- improved: highlight tint a gap 1.85 -> 1.49 (ours 5.642 -> 4.925, ref 1.936)
+- improved: mean brightness gap 1.93 -> 1.66 (ours 0.3877 -> 0.3986, ref 0.4649)
+- improved: shadow tint a (green-/magenta+) gap 0.59 -> 0.11 (ours 11.75 -> 10.79, ref 10.57)
+- improved: shadow tint b (blue-/yellow+) gap 2.65 -> 1.86 (ours -0.06962 -> -1.65, ref -5.367)
+- regressed: warmth (R-B) gap 2.6 -> 2.88 (ours 0.1111 -> 0.118, ref 0.04604)
+- improved: average shot length gap 16.59 -> 11.38 (ours 6.252 -> 9.378, ref 16.21)
+- improved: cuts per minute gap 1.95 -> 0.89 (ours 8.531 -> 5.332, ref 2.667)
+- improved: edge density (detail) gap 1.1 -> 0.72 (ours 0.04421 -> 0.04989, ref 0.06065)
+- improved: ink lines on edges gap 2.13 -> 1.8 (ours 0.1805 -> 0.2068, ref 0.351)
+

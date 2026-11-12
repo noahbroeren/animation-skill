@@ -181,7 +181,21 @@ export const PROPS: Record<string, (o?: { color?: string; n?: number; text?: str
 };
 
 // ------------------------------------------------------------------------------------------------ the sets
-type Ctx = { wind: ReturnType<typeof windUniforms>; g: THREE.Group; lamps: { l: THREE.PointLight; i: number }[]; glows: { m: THREE.MeshLambertMaterial | THREE.MeshBasicMaterial; day: number; night: number; col?: THREE.Color; k?: number }[]; panes: THREE.MeshBasicMaterial[]; upd: ((f: number, fps: number) => void)[] };
+type Ctx = { wind: ReturnType<typeof windUniforms>; g: THREE.Group; lamps: { l: THREE.PointLight; i: number }[]; glows: { m: THREE.MeshLambertMaterial | THREE.MeshBasicMaterial; day: number; night: number; col?: THREE.Color; k?: number }[]; panes: THREE.MeshBasicMaterial[]; patches: { m: THREE.MeshBasicMaterial; gain: number }[]; upd: ((f: number, fps: number) => void)[] };
+/** 1.8.1: a window-shaped patch of sunlight on the floor or a table (additive, no shadow maths): the cheapest MOTIVATED light
+ *  in a room. Reviewers scored the light 5/10 twice: "a huge window that lights nothing". `skew` leans it along x per metre
+ *  of depth; it fades out as the lamps come up (night keys). */
+function sunPatch(c: Ctx, w: number, d: number, x: number, z: number, o: { skew?: number; cols?: number; rows?: number; color?: string; y?: number; gain?: number } = {}) {
+  const cols = o.cols ?? 3, rows = o.rows ?? 2, cw = 228 / cols, rh = 228 / rows;
+  const tex = canvasTexture(`sunpatch|${cols}|${rows}`, 256, 256, (g) => { g.fillStyle = "#000000"; g.fillRect(0, 0, 256, 256); g.filter = "blur(4px)"; g.fillStyle = "#ffffff";
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) g.fillRect(14 + i * cw + 5, 14 + j * rh + 5, cw - 10, rh - 10);
+    g.filter = "none"; });
+  const geo = new THREE.PlaneGeometry(w, d, 1, 1); geo.rotateX(-Math.PI / 2);
+  const pa = geo.attributes.position; for (let i = 0; i < pa.count; i++) pa.setX(i, pa.getX(i) + (o.skew ?? 0.4) * pa.getZ(i));
+  const m = new THREE.MeshBasicMaterial({ map: tex, color: o.color ?? "#ffe6b8", transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 });
+  const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, o.y ?? 0.03, z); mesh.layers.set(NOINK); mesh.userData.auditIgnore = true; mesh.renderOrder = 0.6; c.g.add(mesh);
+  c.patches.push({ m, gain: o.gain ?? 0.5 }); return mesh;
+}
 const lampAt = (c: Ctx, x: number, y: number, z: number, i = 2.2, color = "#ffd9a0", dist = 9) => { const l = new THREE.PointLight(color, 0, dist, 1.3); l.position.set(x, y, z); c.g.add(l); c.lamps.push({ l, i }); return l; };
 const litWindow = (c: Ctx, w: number, h: number, x: number, y: number, z: number, ry = 0, color = "#ffd27a") => {
   const m = new THREE.MeshBasicMaterial({ color: "#3d4660" }); c.glows.push({ m, day: 0, night: 1, col: new THREE.Color(color) });
@@ -443,6 +457,8 @@ function workshop(o: SetOpts, c: Ctx): SetCore {
   const rm = room(c, W, D, H, old ? brickTexture(o.wall ?? "#8f6a58", "#3e2c28", [4, 3]) : wallpaper(o.wall ?? "#cfd4d8", "#c4c9ce", seed, [4, 2]), old ? lam({ map: flat.stone("#9a8f85", "#6f665e", [5, 8]) }) : lam({ map: asphalt([3, 5]), color: "#b9bcc6" }), old ? "#4a3626" : "#8a8f9a", old ? "#8a7a6a" : "#e9e6de");
   const bx = -2.1, bz = -D / 2 + 0.75; c.g.add(at(shadowed(table(2.8, 0.9, 0.95, "#7a5234")), bx, 0, bz));
   c.g.add(box(3.0, 1.6, 0.06, lam({ map: paint.planks(old ? "#7a5640" : "#b9a27a", [5, 1], true) }), bx, 2.3, -D / 2 + 0.2, false)); // 1.8: a plank rack (a flat #a8875e board filled half of every close-up with one orange plane; a very dark one read as one mass with the brick)
+  { const ln = lantern(); c.g.add(at(ln, bx + 1.75, 2.15, -D / 2 + 0.3)); const gl = { m: (ln.children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial, day: 0.9, night: 1.7, k: 1 }; c.glows.push(gl); flickerGlow(c, gl, 5); lampAt(c, bx + 1.6, 2.0, -D / 2 + 0.7, 2.6, "#ffcf8a", 4.5); }
+  sunPatch(c, 1.3, 1.9, old ? 1.0 : 0.5, -0.4, { skew: 0.36, cols: 2, rows: 2, gain: 0.5 });
   const tool = lam({ color: "#8d96a6" }), grip = lam({ color: "#b0603a" });
   for (let i = 0; i < 6; i++) { const tx = bx - 1.2 + i * 0.48, t = new THREE.Group(); t.add(box(0.06, 0.5, 0.04, grip, 0, -0.1, 0, false));
     if (i % 3 === 0) t.add(box(0.3, 0.14, 0.08, tool, 0, 0.2, 0, false)); else if (i % 3 === 1) t.add(box(0.05, 0.5, 0.03, tool, 0, 0.36, 0, false)); else { const d = cyl(0.12, 0.12, 0.03, tool, 0, 0.26, 0, 10); d.rotation.x = Math.PI / 2; t.add(d); }
@@ -490,6 +506,10 @@ function office(o: SetOpts, c: Ctx): SetCore {
   c.g.add(at(shadowed(chair(old ? "#5a2f2a" : "#39404e")), dx, 0, dz - 0.95), at(PROPS.papers(), dx - 0.6, 0.845, dz + 0.05), at(PROPS.book(), dx + 0.75, 0.845, dz - 0.15, 0.3));
   if (old) { c.g.add(at(PROPS.candle(), dx + 0.95, 0.845, dz + 0.3)); const quill = box(0.02, 0.34, 0.06, lam({ color: "#f4efe6" }), dx + 0.2, 1.0, dz + 0.2, false); quill.rotation.z = -0.5; c.g.add(quill, cyl(0.05, 0.06, 0.08, lam({ color: "#23252e" }), dx + 0.28, 0.885, dz + 0.2, 8)); }
   else { c.g.add(box(0.7, 0.44, 0.04, lam({ color: "#23252e" }), dx + 0.1, 1.2, dz - 0.2), box(0.08, 0.2, 0.08, lam({ color: "#6f7888" }), dx + 0.1, 0.94, dz - 0.2), box(0.5, 0.02, 0.18, lam({ color: "#d9dde6" }), dx + 0.1, 0.855, dz + 0.2, false)); }
+  sunPatch(c, 2.0, 2.6, -0.7, 0.5, { skew: 0.42, gain: 0.55 }); sunPatch(c, 1.1, 0.8, 0.15, dz, { skew: 0.42, cols: 2, rows: 1, y: 0.862, gain: 0.5 });
+  if (old) { lampAt(c, dx + 0.95, 1.25, dz + 0.45, 1.5, "#ffcf8a", 3.2);
+    for (let i = 0; i < 3; i++) c.g.add(box(0.36 - i * 0.03, 0.07, 0.26, lam({ color: ["#7a2f3a", "#2f4a6a", "#4a6a3a"][i] }), dx - 0.95 + i * 0.02, 0.88 + i * 0.07, dz - 0.2), box(0.33 - i * 0.03, 0.05, 0.24, lam({ color: "#e9dcc6" }), dx - 0.93 + i * 0.02, 0.88 + i * 0.07, dz - 0.19, false));
+    for (const [n, ox, oz] of [[7, -0.35, 0.3], [4, -0.2, 0.4]] as [number, number, number][]) { const cs = PROPS.coins({ n, seed: seed + "dk" + n }); cs.scale.setScalar(0.45); c.g.add(at(cs, dx + ox, 0.845, dz + oz)); } }
   const globe = new THREE.Group(); globe.add(cyl(0.12, 0.16, 0.06, lam({ color: "#6b3f26" }), 0, 0.03, 0)); const ball = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), lam({ map: paint.planet() })); ball.position.y = 0.3; ball.castShadow = true; globe.add(ball); c.g.add(at(globe, -W / 2 + 0.8, 0.9, 2.2), box(0.5, 0.9, 0.5, lam({ color: old ? "#5a3a26" : "#f4efe6" }), -W / 2 + 0.8, 0.45, 2.2));
   const pic = (x: number, y: number, col: string) => { const g = new THREE.Group(); g.add(box(0.9, 0.7, 0.05, lam({ color: "#c9a23a" }), 0, 0, 0, false), box(0.74, 0.54, 0.02, lam({ color: col }), 0, 0, 0.03, false)); c.g.add(at(g, x, y, -D / 2 + 0.2)); };
   pic(0.35, 4.35, "#5b8fd6"); pic(3.0, 4.45, "#c0392b"); pic(-2.4, 4.4, "#2f8f6a");
@@ -532,6 +552,10 @@ function hall(o: SetOpts, c: Ctx): SetCore {
   for (const [x, z] of [[-2.4, -1], [2.4, -1], [0, 3.4]] as [number, number][]) { const hl = hangingLamp(2.4, !old); c.g.add(at(hl.group, x, H, z)); c.glows.push({ m: hl.bulb, day: 0.6, night: 1.8 }); }
   lampAt(c, 0, H - 3.4, 0.5, 3.4, "#ffe2b8", 16);
   const crowdSpots: V3[] = []; for (let i = 0; i < 12; i++) crowdSpots.push([-3.4 + (i % 6) * 1.35 + ((i * 7) % 3) * 0.2, 0, 2.6 + Math.floor(i / 6) * 1.4 + ((i * 5) % 3) * 0.25]);
+  for (let i = 0; i < 3; i++) sunPatch(c, 1.6, 2.6, -3.6 + i * 3.6 + 0.7, -4.9, { skew: 0.3, cols: 2, rows: 3, y: o.stage ?? true ? 0.63 : 0.03, gain: 0.45 });
+  if (old) { const brass = lam({ color: "#c9a23a" }), rope = lam({ color: "#a8322a" }); const xs = [-3.6, -1.3, 1.3, 3.6];
+    for (const x of xs) c.g.add(cyl(0.04, 0.06, 0.95, brass, x, 0.475, -2.55, 8), cyl(0.07, 0.07, 0.05, brass, x, 0.97, -2.55, 8));
+    for (let i = 0; i < 3; i++) if (i !== 1) c.g.add(box(xs[i + 1] - xs[i], 0.05, 0.05, rope, (xs[i] + xs[i + 1]) / 2, 0.82, -2.55, false)); }
   // 1.8 dressing + life
   bunting(c, [-4.7, H - 0.75, -1.4], [4.7, H - 0.75, -1.4], 14); bunting(c, [-4.7, H - 0.9, 2.8], [4.7, H - 0.9, 2.8], 14); // above the title board
   chandelier(c, 0, H, -1.6, 2.8); chandelier(c, -2.7, H, 3.0, 2.3); chandelier(c, 2.7, H, 3.0, 2.3);
@@ -547,7 +571,7 @@ export const SET_NAMES = Object.keys(BUILDERS) as SetName[];
 /** Build a set at `origin` (marks, crowd spots and the wide camera come back in WORLD space). */
 export function buildSet(name: SetName, o: SetOpts = {}, origin: V3 = [0, 0, 0]): SetInstance {
   const b = BUILDERS[name]; if (!b) throw new Error(`buildSet: unknown set "${name}" (have: ${SET_NAMES.join(", ")})`);
-  const c: Ctx = { wind: windUniforms(), g: new THREE.Group(), lamps: [], glows: [], panes: [], upd: [] };
+  const c: Ctx = { wind: windUniforms(), g: new THREE.Group(), lamps: [], glows: [], panes: [], patches: [], upd: [] };
   const s = b(o, c);
   c.g.position.set(...origin);
   const off = (p: V3): V3 => [p[0] + origin[0], p[1] + origin[1], p[2] + origin[2]];
@@ -558,6 +582,7 @@ export function buildSet(name: SetName, o: SetOpts = {}, origin: V3 = [0, 0, 0])
     camBox: { min: off(s.camBox?.min ?? [-60, 0.3, -30]), max: off(s.camBox?.max ?? [60, 40, 40]) },
     setNight(n) { night = n; const k = s.interior ? 0.35 + 0.65 * n : n; // interiors keep their lamps on by day, dimmer
       for (const { l, i } of c.lamps) l.intensity = i * k * (l.userData.flick ?? 1);
+      for (const p of c.patches) p.m.opacity = p.gain * Math.max(0, 1 - n * 1.5);
       for (const gl of c.glows) { const v = (gl.day + (gl.night - gl.day) * n) * (gl.k ?? 1); const m = gl.m as THREE.MeshLambertMaterial;
         if ((m as THREE.MeshLambertMaterial).isMeshLambertMaterial) m.emissiveIntensity = v; else if (gl.col) (gl.m as THREE.MeshBasicMaterial).color.set("#3d4660").lerp(gl.col, v); } },
     setSky(top, horizon) { const t = new THREE.Color(top), h = new THREE.Color(horizon); for (const p of c.panes) p.color.copy(h).lerp(t, 0.35); },
