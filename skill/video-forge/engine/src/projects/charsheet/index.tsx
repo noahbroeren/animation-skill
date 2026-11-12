@@ -179,6 +179,8 @@ function pages(frame: number, fps: number): { title: string; rows: RowDef[]; h: 
     page11(fps),
     page12(),
     page13(),
+    page14(),
+    page15(),
   ];
 }
 
@@ -242,6 +244,38 @@ function page13(): { title: string; rows: RowDef[]; h: number } {
     rows: [rowOf("A block", BRAND_DRAFTS.A), rowOf("B egg", BRAND_DRAFTS.B), rowOf("C wide", BRAND_DRAFTS.C), rowOf("D bold", BRAND_DRAFTS.D)] };
 }
 
+/** Round 3 (user picks, 2026-11-12): A's squircle head on B's body, line and limb widths; the near-white card, black
+ *  ink limbs and feet, lidded dark eyes with a catchlight, thinner brows, combed hair with strands and a sheen arc,
+ *  soft colour blends on clothes and hair. `A3mitt` swaps the ink discs for black mittens (limb law changed). */
+const A3: CastBrand = { id: "draft-A3", face: "#FCF8F3", ink: "#15171F", head: { hw: 0.88, n: 3.0 }, line: { w: 0.038 }, limbs: { mode: "ink", w: 0.056 }, hands: { mode: "disc", size: 0.13 },
+  eyes: { eyes: "solid", eyeSize: 0.17, eyeSpacing: 0.3, eyeY: 0.48, baseLid: 0.4, brows: "line", browW: 1.5, browScale: 1.05, mouthWidth: 0.16, mouthY: 0.7, catchlight: true },
+  shock: { eyes: "whites", eyeSize: 0.21, eyeSpacing: 0.3, catchlight: true }, torso: "bean", ears: false, nose: false, shine: true, faceShade: "gradient",
+  hairline: 0.25, hairShine: "arc", hairStrands: 6, hairVolume: 1.13, heads: 3.7, blend: 0.9 };
+export const BRAND_A3: Record<"A3" | "A3mitt" | "A3big", CastBrand> = {
+  A3,
+  A3mitt: { ...A3, id: "draft-A3-mitt", hands: { mode: "mitt", size: 0.15 } },
+  /** the same with a bigger head on the body (3.2 heads instead of B's 3.7) */
+  A3big: { ...A3, id: "draft-A3-big", heads: 3.2 },
+};
+
+/** PAGE 14 (still 400): round 3, its mitten variant and a bigger-head variant. */
+function page14(): { title: string; rows: RowDef[]; h: number } {
+  const p12 = page12(), rowOf = (name: string, b: CastBrand): RowDef => {
+    const r = p12.rows[0];
+    return { title: name, note: brandNote(b), cells: r.cells.map((c) => ({ ...c, spec: { ...(c.spec as BobbleSpec), brand: b } as Spec })) };
+  };
+  return { title: "PAGE 14 · OUR CAST, round 3: A head on B body, near-white card, black limbs, lidded eyes with a catchlight, combed hair, soft blends", h: 300,
+    rows: [rowOf("A3", BRAND_A3.A3), rowOf("A3 mitt", BRAND_A3.A3mitt), rowOf("A3 big head", BRAND_A3.A3big)] };
+}
+
+/** PAGE 15 (still 430): a close-up of round 3, big enough to judge eyes, brows, hair strands and blends. */
+function page15(): { title: string; rows: RowDef[]; h: number } {
+  const sp = { ...BASE, brand: BRAND_A3.A3 } as Spec;
+  const cell = (pose: KPose, label: string): CellDef => ({ spec: sp, pose, label, w: 400 });
+  return { title: "PAGE 15 · round 3 close-up (A3)", h: 1180, rows: [{ title: "A3", cells: [cell({}, "front"), cell({ view: "three" }, "3/4"), cell({ expr: "happy" }, "happy"),
+    cell({ expr: "angry" }, "angry"), cell({ expr: "shock" }, "shock"), cell({ expr: "sad" }, "sad")] }] };
+}
+
 /** PAGE 11 (still 310): the bobble three-quarter view and the smear / settle frames of poseTrack pops. */
 function page11(fps: number): { title: string; rows: RowDef[]; h: number } {
   const P = BOBBLE_POSES, Q = (pose: KPose, more: KPose = {}): KPose => ({ ...pose, view: "three", ...more });
@@ -294,6 +328,6 @@ const Sheet: React.FC = () => {
 
 export const charsheet: ProjectDef = {
   id: "charsheet", title: "Character kinds sheet", defaultFormat: "long", fps: 30,
-  scenes: ({ fps }) => [{ id: "sheet", frames: 13 * 30 * (fps / 30), render: () => <Sheet /> }],
+  scenes: ({ fps }) => [{ id: "sheet", frames: 15 * 30 * (fps / 30), render: () => <Sheet /> }],
 };
 void ({} as Pose);

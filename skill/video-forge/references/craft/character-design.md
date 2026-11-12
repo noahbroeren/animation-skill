@@ -193,6 +193,10 @@ Read `characters.md` first for how the reference family is built and measured. U
 | fringe height | `CastBrand.hairline` (face widths above the eye centres) | unset = the old low fringe (~0.07 W, brows hidden); 0.25-0.32 in the drafts | built: lifts the cap / spiky fringe and the hairline points of every style, short sideburns |
 | hair treatment | `CastBrand.hairShine` | `"arc"` (default), `"flat"`, `"rim"` (a darker band along the hairline) | built |
 | proportions | `CastBrand.heads` | 3.4 default; a spec's own `heightHeads` wins | built |
+| hair volume and strands | `CastBrand.hairVolume`, `hairStrands` | 1.045 / 0; round 3: 1.13 / 6 | built: strands flow from the crown to the hairline (front, three-quarter, profile) with a lit-crown ramp; with strands on, layer 5 counts as kept |
+| colour running | `CastBrand.blend` (`Ctx.blend` in `part()`) | 0 = hard cel crescent; 0.9 in round 3 | built: blurs the crescent edge on clothes, hats and props drawn with `part()` |
+| mitten hands | `hands: { mode: "mitt" }` | ink mitten with a thumb, size 0.15 | built: black hands that are not ink discs (layer 3 changed) |
+| brow width | `FaceSpec.browW` (face line widths) | 1.5 in round 3 | built |
 | hair and hats follow the head | `bobbleHair(..., lift, n)`, a y-scale by `head.hw` | front and profile crowns trace the brand's superellipse; egg heads get taller hair, hats ride on the crown, the card makes room | built |
 | copy test + readability numbers | `brandReport(brand)`, `brandNote(brand)` (charsheet) | layers changed / kept, face L* and chroma, eye, brow, hairline, fails | built: printed beside every page-13 row |
 | apply to a cast | `Board.brand` (`lib/board.tsx`) | every bobble without its own `brand` | built |
@@ -201,7 +205,8 @@ Read `characters.md` first for how the reference family is built and measured. U
 | role fields | `BobbleSpec` hair, hat, top, legs, shoes, beard, stache, glasses, neck, build | `skin` is ignored when `brand.face` is set | built |
 | per-character face tweak | `BobbleSpec.face` (wins over `brand.eyes`) | - | built; at most a resting lid (`baseLid`), never the eye type or spacing |
 | brand page | `page12()` in `projects/charsheet/index.tsx`, still 340 | rows bobble, calibration, example | built |
-| our brand directions | `BRAND_DRAFTS` + `page13()`, still 370 | A block, B egg, C wide, D bold (same three roles in every row) | built; drafts until one is chosen and locked |
+| our brand directions | `BRAND_DRAFTS` + `page13()`, still 370 | A block, B egg, C wide, D bold (same three roles in every row) | built; round 2 |
+| round 3 | `BRAND_A3` + `page14()` (still 400), close-up `page15()` (still 430) | A3, A3 mitt, A3 big head | built; drafts until one is locked |
 | silhouette view | `PassSpec { pass: "silhouette" }` (`drawAnyStyled`) | used on page 2 | partly: no brand silhouette row, no IoU check |
 | face-pop check | - | - | not built (no face lead gate in QA) |
 | other line laws (halo, double line) | - | - | not built |
@@ -251,6 +256,8 @@ const board: Board = { id: "ID", title: "...", words: WORDS, brand: OURS, cast: 
 | brows under the fringe | page 12, all three rows | brows ~0.19 d above the eyes, the cap fringe ends 0.10-0.15 W above them | raise the fringe or lower the brows (rule 8) |
 | hair ignores the head shape | page 13 round 1 | an egg head (H/W 1.16) rose above the cap; squircle corners poked out beside a round crown; the lifted fringe left long sideburn tabs | the crown follows the brand superellipse and `hw`; a lifted fringe gets short sideburns |
 | four directions that look alike | page 13 round 1 | only line colour and eye type differed; the shared hair and jacket carried the read | push every brand layer of a direction the same way (geometry, line, limbs, eyes, hair, height) |
+| ghost lids | page 14 first render | the upper half of lidded dark eyes was painted over with a flat skin colour; on a gradient face it showed as a pale ring above the lid | clip the eye under the lid line, never paint skin over it |
+| strands as a fan | page 15 first render | every strand started at one parting point: the hair read as a pumpkin | start the strands spread along the crown, end them spread along the hairline |
 | layer 1 changed by accident only | `BRANDS.example` | the fill is the reference's near-white; only the squircle changes layer 1 | decide the fill and the geometry separately in the worksheet |
 
 ## Sources

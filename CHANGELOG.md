@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.9.2 - 2026-11-12
+- **Our cast, round 3** (charsheet page 14, still 400; close-up page 15, still 430): A's squircle head on B's body,
+  line and limb widths, a near-white card, black ink limbs and feet, lidded dark eyes with a catchlight, thinner brows,
+  fuller combed hair and soft colour blends. Variants: black mittens instead of ink discs (`A3mitt`, the limb law
+  changes) and a bigger head (`A3big`, 3.2 heads). `brandNote` prints the copy count per row (2/5, 3/5 with mittens).
+- **New brand fields:** `hairVolume` (fuller hair), `hairStrands` (combed strands that flow from the crown to the
+  hairline, plus a soft lit-crown ramp), `blend` (cel crescents on clothes and hats get a soft, blurred edge),
+  `hands: "mitt"` (a filled mitten with a thumb). `FaceSpec.browW` sets the brow width apart from its length.
+- **Dark lidded eyes are clipped under the lid** instead of covered by a flat skin patch, so a shaded face shows no
+  ghost of the upper eye; the catchlight sits under the lid line.
+
 ## 1.9.1 - 2026-11-12
 - **Our own cast, design round 2.** Charsheet page 13 (still 370) shows four brand directions for the channel's cast
   (`BRAND_DRAFTS`: A block, B egg, C wide, D bold) on the same three roles, each with its copy test and readability

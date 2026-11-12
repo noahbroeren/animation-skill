@@ -118,13 +118,15 @@ export function ik2(A: V2, T: V2, l1: number, l2: number, pole: V2): { joint: V2
 class THREE_COLOR { r = 1; g = 1; b = 1; constructor(hex: string) { const h = hex.replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map((x) => x + x).join("") : h, 16); this.r = ((n >> 16) & 255) / 255; this.g = ((n >> 8) & 255) / 255; this.b = (n & 255) / 255; } }
 
 // ================================================================ drawing context
-type Ctx = { g: CanvasRenderingContext2D; u: number; lw: number; ink: string; light: number; side: boolean; t: number; frame: number; three?: boolean };
+type Ctx = { g: CanvasRenderingContext2D; u: number; lw: number; ink: string; light: number; side: boolean; t: number; frame: number; three?: boolean;
+  /** 0 = a hard cel crescent; > 0 blurs the crescent edge by off x blend px, so colours run into each other (brand `blend`) */
+  blend?: number };
 
 /** Cel part (toon.ts trick): shade everywhere, base re-filled from a copy shifted toward the key => form crescent. */
 function part(c: Ctx, path: Path2D, fill: string, o: { sh?: string; off?: number; stroke?: boolean; thick?: boolean; lw?: number } = {}) {
   const g = c.g, off = o.off ?? c.u * 0.03;
   g.fillStyle = fill; g.fill(path);
-  if (off > 0) { g.save(); g.clip(path); g.fillStyle = o.sh ?? shade(fill); g.fill(path); g.translate(c.light * off, -off * 0.35); g.fillStyle = fill; g.fill(path); g.restore(); }
+  if (off > 0) { g.save(); g.clip(path); g.fillStyle = o.sh ?? shade(fill); g.fill(path); g.translate(c.light * off, -off * 0.35); if (c.blend) g.filter = "blur(" + (off * c.blend).toFixed(2) + "px)"; g.fillStyle = fill; g.fill(path); g.restore(); }
   if (o.stroke !== false) {
     const lw = o.lw ?? c.lw;
     g.strokeStyle = c.ink; g.lineWidth = lw; g.stroke(path);
@@ -222,6 +224,8 @@ export type FaceSpec = {
   catchlight: boolean; blush: boolean; iris?: string;
   /** a resting upper lid on open eyes (0 = none, 0.42 = half-lidded deadpan): a cast-wide habit, not an expression */
   baseLid?: number;
+  /** brow stroke width in face line widths (overrides the "line" / "thick" width, keeps the length) */
+  browW?: number;
 };
 const FACE0: FaceSpec = { eyes: "whites", eyeSize: 0.2, eyeSpacing: 0.4, eyeY: 0.42, brows: "line", browScale: 1, mouthTier: 9, mouthWidth: 0.3, mouthY: 0.74, mouthScale: 1, catchlight: true, blush: false };
 
@@ -302,7 +306,7 @@ export function drawFace(g: CanvasRenderingContext2D, f0: Partial<FaceSpec>, p: 
   // brows carry ~half the emotion on simple faces: always on, even on dot eyes (characters.md 3.4)
   if (f.brows !== "none" && !o.noBrows) {
     const bl0 = rx * (f.eyes === "whites" ? 1.05 : 1.5) * f.browScale;
-    g.strokeStyle = o.flat ? o.ink : o.ink; g.lineWidth = f.brows === "thick" ? lw * 2.5 * f.browScale : lw * 1.25;
+    g.strokeStyle = o.flat ? o.ink : o.ink; g.lineWidth = f.browW ? lw * f.browW : f.brows === "thick" ? lw * 2.5 * f.browScale : lw * 1.25;
     for (const [i, [x, y, s]] of eyes.entries()) {
       const asym = !side && s > 0 ? E.asym ?? 0 : 0, a = rad(E.brow - asym * 26), bl = bl0 * (o.eyeSx?.[i] ?? 1);
       const gap = Math.max(ry, W * 0.075), by = y - ry * st.size - gap * (0.5 + (E.up + asym) * 0.9) - (f.brows === "thick" ? lw * f.browScale : 0);
@@ -345,14 +349,26 @@ function drawEye(g: CanvasRenderingContext2D, f: FaceSpec, o: FaceOpts, x: numbe
   const whites = f.eyes === "whites", RX = rx * st.size, RY = ry * st.size;
   const cx = x + (whites ? 0 : look[0] * rx * 0.3), cy = y + (whites ? 0 : look[1] * ry * 0.22);
   const E = ell(cx, cy, RX, RY);
-  g.fillStyle = whites ? "#ffffff" : dark; g.fill(E);
+  if (!whites) { /* dark eyes: keep only the part between the lids (a clip, not a skin patch, so a shaded face shows no ghost) */
+    const yl0 = (xx: number) => cy - RY + 2 * RY * lid + Math.tan(rad(st.tilt)) * (xx - cx) * -s, L0 = cx - RX - 2, R0 = cx + RX + 2, yb0 = cy + RY - 2 * RY * st.bot;
+    g.save();
+    if (lid > 0.02 || st.bot > 0.02) {
+      const K = new Path2D(); K.moveTo(L0, lid > 0.02 ? yl0(L0) : cy - RY - 2); K.lineTo(R0, lid > 0.02 ? yl0(R0) : cy - RY - 2);
+      if (st.bot > 0.02) { K.lineTo(R0, yb0 + RY * 0.3); K.quadraticCurveTo(cx, yb0 - RY * 0.3, L0, yb0 + RY * 0.3); } else { K.lineTo(R0, cy + RY + 2); K.lineTo(L0, cy + RY + 2); }
+      K.closePath(); g.clip(K);
+    }
+    g.clip(E); g.fillStyle = dark; g.fill(E);
+    if (f.catchlight && RX > 2) { const hx = cx + RX * 0.3, hrr = RX * (lid > 0.02 ? 0.27 : 0.3); dot(g, hx, lid > 0.02 ? Math.max(cy - RY * 0.38, yl0(hx) + hrr * 1.5) : cy - RY * 0.38, hrr, "#ffffff"); }
+    g.restore(); return;
+  }
+  g.fillStyle = "#ffffff"; g.fill(E);
   g.save(); g.clip(E);
   if (whites) {
     const pr = RX * 0.6 * st.pupil, px = cx + look[0] * RX * 0.38, py = cy + look[1] * RY * 0.3 + RY * 0.06;
     if (f.iris) { dot(g, px, py, pr, f.iris); dot(g, px, py, pr * 0.55, dark); }
     else { g.fillStyle = dark; g.beginPath(); g.ellipse(px, py, pr, pr * 1.12, 0, 0, TAU); g.fill(); }
     if (f.catchlight) { dot(g, px + pr * 0.32, py - pr * 0.42, pr * 0.34, "#ffffff"); dot(g, px - pr * 0.36, py + pr * 0.42, pr * 0.14, "#ffffff"); }
-  } else if (f.catchlight && RX > 2) dot(g, cx + RX * 0.3, cy - RY * 0.38, RX * 0.3, "#ffffff");
+  }
   const yl = (xx: number) => cy - RY + 2 * RY * lid + Math.tan(rad(st.tilt)) * (xx - cx) * -s;
   const L = cx - RX - 2, R = cx + RX + 2;
   if (lid > 0.02) {
@@ -1461,8 +1477,9 @@ export type CastBrand = {
   line?: { w: number; taper?: number };
   /** limbs: "sleeve" (clothing tubes), "ink" (one ink stroke), "tint" (one stroke in a darker clothing colour) */
   limbs?: { mode: "sleeve" | "ink" | "tint"; w?: number };
-  /** hands: "fist" (default), "disc" (a filled dot in the limb colour), "ball" (a face-colour ball with an outline) */
-  hands?: { mode: "fist" | "disc" | "ball"; size?: number };
+  /** hands: "fist" (default), "disc" (a filled dot in the limb colour), "ball" (a face-colour ball with an outline),
+   *  "mitt" (a filled mitten with a thumb in the limb colour) */
+  hands?: { mode: "fist" | "disc" | "ball" | "mitt"; size?: number };
   /** face construction for neutral eyes, and for shock / alarm (the face box is 0.94 head widths, eyeY 0.457 = the widest row) */
   eyes?: Partial<FaceSpec>;
   shock?: Partial<FaceSpec>;
@@ -1477,6 +1494,12 @@ export type CastBrand = {
   hairShine?: "arc" | "flat" | "rim";
   /** adult height in heads (default 3.4; 3.0 = bigger heads, 3.7 = taller and slimmer); a spec's own heightHeads wins */
   heads?: number;
+  /** hair mass radius in head radii (default 1.045; 1.1-1.15 = fuller hair that stands off the skull) */
+  hairVolume?: number;
+  /** combed strand lines on the hair mass (count, 0 = none) plus a soft top-to-hairline ramp */
+  hairStrands?: number;
+  /** colour running: 0 = hard cel crescents on clothes and hats; 0.6-1 = soft blended edges (blur of the crescent edge) */
+  blend?: number;
 };
 /** CIE L* and chroma (D65) of a hex colour. */
 export function labOf(hex: string): { L: number; C: number } {
@@ -1497,7 +1520,7 @@ export function brandReport(b: CastBrand): { changed: string[]; kept: string[]; 
   put((b.limbs?.mode ?? "sleeve") !== "ink" || (b.hands?.mode ?? "fist") !== "disc", "3 " + (b.limbs?.mode ?? "sleeve") + " limbs + " + (b.hands?.mode ?? "fist"), "3 ink limbs");
   const et = e.eyes ?? "dot", lidded = et === "solid" && (e.baseLid ?? 0) > 0.1;
   put(!lidded && (e.eyeSpacing ?? 0.37) >= 0.3, "4 " + et + " eyes " + (e.eyeSpacing ?? 0.37).toFixed(2), "4 eye default");
-  put((b.hairShine ?? "arc") !== "arc", "5 " + b.hairShine + " hair", "5 sheen-arc hair");
+  put((b.hairShine ?? "arc") !== "arc" && !b.hairStrands, "5 " + b.hairShine + " hair", (b.hairStrands ? "5 strand" : "5 sheen-arc") + " hair");
   if (face.L < 85) fails.push("face L* " + face.L.toFixed(0));
   if (face.C > 12) fails.push("face chroma " + face.C.toFixed(0));
   const k = et === "whites" ? 1.22 : et === "solid" ? 1.32 : et === "pill" ? 1.9 : 1.05, es = e.eyeSize ?? 0.12, eye: [number, number] = [es * Math.max(1, k), es * Math.min(1, k)];
@@ -1622,8 +1645,8 @@ function inkUnion(c: Ctx, paths: Path2D[], fill: string, lw = c.lw) {
   for (const q of paths) g.fill(q);
 }
 /** Hair for a round head: `front` sits on the head, `back` behind it (long / bob / pony), `extra` on top (bun). */
-function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, side: boolean, lift = 0, n = 2): { front: Path2D[]; back: Path2D[] } {
-  const R = r * 1.045, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
+function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, side: boolean, lift = 0, n = 2, vol = 1.045): { front: Path2D[]; back: Path2D[] } {
+  const R = r * vol, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
   /* a point on the crown at angle a and radius rr: a circle for n = 2, the head's own squircle for n > 2 */
   const se = (a: number, rr: number): V2 => [cx + rr * Math.sign(Math.cos(a)) * Math.abs(Math.cos(a)) ** (2 / n), cy + rr * Math.sign(Math.sin(a)) * Math.abs(Math.sin(a)) ** (2 / n)];
   const crown = (from: number, to: number) => { for (let i = 0; i <= 48; i++) { const [x, y] = se(lerp(from, to, i / 48), R); q.lineTo(x, y); } };
@@ -1669,8 +1692,8 @@ function bobbleHair(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy
 }
 /** Three-quarter hair (facing +x): the mass wraps the top and the back of the skull (-x side), the hairline and the fringe
  *  slide toward the face side, the near ear stays free (long / bob curtains cover it). Same silhouettes as the front view. */
-function bobbleHair3(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, lift = 0): { front: Path2D[]; back: Path2D[] } {
-  const R = r * 1.045, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
+function bobbleHair3(st: NonNullable<BobbleSpec["hair"]>["style"], cx: number, cy: number, r: number, lift = 0, vol = 1.045): { front: Path2D[]; back: Path2D[] } {
+  const R = r * vol, front: Path2D[] = [], back: Path2D[] = [], P = Math.PI;
   if (st === "bald") return { front, back };
   const q = new Path2D(), X = (k: number) => cx + r * k, Y = (k: number) => cy + r * k;
   const Yh = (k: number) => cy + r * (k - lift * clamp((k + 1) / 0.7, 0, 1) * clamp((0.05 - k) / 0.15, 0, 1)); /* hairline points, lifted */
@@ -1726,6 +1749,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   const sv = p.settle ?? 0; // secondary overshoot in degrees (poseTrack): hair, hat, prop and hem; 0 = a plain pose
   const B = s.brand, skin = B?.face ?? s.skin, LM = B?.limbs?.mode ?? "sleeve", HM = B?.hands?.mode ?? "fist";
   if (B?.ink) c.ink = B.ink;
+  c.blend = B?.blend ?? 0;
   c.lw = B?.line ? Math.max(1, d * B.line.w) : Math.max(1.6, d * (s.lineW ?? 0.042));
   // a light-driven thick-thin line: an ink copy of the shape shifted away from the key, under the fill (the band is thickest
   // on the shadow side, biased 20 degrees down, and thins to the plain stroke on the lit side)
@@ -1735,7 +1759,7 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   const armW = d * 0.105, legW = d * 0.125, skinSh = skinShade(skin), hs = s.hair?.style ?? "bald", hcol = s.hair?.color ?? "#3a2a24";
   const hst = s.hat && (hs === "bun" || hs === "spiky" || hs === "curly") ? "cap" : hs; // tall hair would poke through a hat
   const hhw = B?.head?.hw ?? 1, hairTip = 0.08 - 0.94 + (B?.eyes?.eyeY ?? 0.5) * 1.88 - (B?.hairline ?? 0) * 1.88, lift = B?.hairline ? Math.max(0, -0.13 - hairTip / hhw) : 0;
-  const hair = three ? bobbleHair3(hst, cx, cy, r, lift) : bobbleHair(hst, cx, cy, r, side, lift, B?.head?.n ?? 2);
+  const hvol = B?.hairVolume ?? 1.045, hair = three ? bobbleHair3(hst, cx, cy, r, lift, hvol) : bobbleHair(hst, cx, cy, r, side, lift, B?.head?.n ?? 2, hvol);
   if (hhw !== 1) { hair.front = hair.front.map((q) => moved(q, 0, cy * (1 - hhw), 1, hhw)); hair.back = hair.back.map((q) => moved(q, 0, cy * (1 - hhw), 1, hhw)); } /* the hair follows an egg or a wide head */
   const drawLeg = (L: BobbleLimb) => {
     const col = L.far ? shade(legC, 0.2) : legC, sc = L.far ? shade(shoeC, 0.2) : shoeC;
@@ -1780,7 +1804,9 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
       const hr = d * (B?.hands?.size ?? 0.12) / 2, hc = HM === "ball" ? (A.far ? skinSh : skin) : ac;
       if (hsh2 === "point") limb(c, [A.e, [A.e[0] + Math.cos(fa2) * hr * 2.6, A.e[1] + Math.sin(fa2) * hr * 2.6]], lw2 * 0.8, HM === "ball" ? c.ink : ac, { ink: false });
       if (hsh2 === "open") for (const k of [-0.7, 0, 0.7]) { const a2 = fa2 + k * 0.6; limb(c, [A.e, [A.e[0] + Math.cos(a2) * hr * 2.2, A.e[1] + Math.sin(a2) * hr * 2.2]], lw2 * 0.6, HM === "ball" ? c.ink : ac, { ink: false }); }
-      if (HM === "ball") part(c, ell(A.e[0], A.e[1], hr, hr), hc, { off: 0, lw: c.lw * 0.9 }); else dot(g, A.e[0], A.e[1], hr, hc);
+      if (HM === "ball") part(c, ell(A.e[0], A.e[1], hr, hr), hc, { off: 0, lw: c.lw * 0.9 });
+      else if (HM === "mitt") { g.save(); g.translate(A.e[0], A.e[1]); g.rotate(fa2); g.fillStyle = ac; g.fill(ell(hr * 0.35, 0, hr * 1.15, hr * 0.92)); g.fill(ell(hr * 0.05, A.sg * hr * 0.78, hr * 0.5, hr * 0.36)); g.restore(); }
+      else dot(g, A.e[0], A.e[1], hr, hc);
       return;
     }
     if (hold && A.far) stickProp(c, { ...hold, as: "bobble" }, A, d, armW);
@@ -1884,6 +1910,22 @@ function drawBobble(c: Ctx, s: BobbleSpec, p: KPose) {
   if (side && !s.beard && B?.nose !== false) { g.strokeStyle = c.ink; g.lineWidth = c.lw * 0.8; g.beginPath(); g.arc(cx + r * 0.9, cy + r * 0.22, r * 0.12, -Math.PI * 0.45, Math.PI * 0.5); g.stroke(); } // nose tick
   if (hair.front.length) { if (sv) { g.save(); g.translate(cx, cy); g.rotate(rad(sv * 0.45)); g.translate(-cx, -cy); } // the hair mass drags behind the head, then overshoots
     inkUnion(c, hair.front, hcol);
+    if (B?.hairStrands && hair.front.length) { /* a soft ramp (lit crown, darker hairline) and combed strands fanning from a parting */
+      const hq = hair.front[0], top = cy - r * 1.05 * hhw;
+      g.save(); g.clip(hq);
+      const rg = g.createLinearGradient(cx + c.light * r * 0.3, top, cx - c.light * r * 0.2, cy + r * 0.1);
+      rg.addColorStop(0, "rgba(255,255,255,0.16)"); rg.addColorStop(0.5, "rgba(255,255,255,0)"); rg.addColorStop(1, "rgba(0,0,0,0.2)");
+      g.fillStyle = rg; g.fill(hq);
+      g.translate(0, cy * (1 - hhw)); g.scale(1, hhw);
+      g.strokeStyle = shade(hcol, 0.34); g.lineWidth = c.lw * 0.6; g.lineCap = "round";
+      const N = B.hairStrands, sh0 = side ? 0.3 : three ? 0.22 : -0.08, hv = hvol;
+      for (let i = 0; i < N; i++) {
+        const k = (i + 0.5) / N, xs = cx + r * (lerp(-0.42, 0.42, k) + sh0), ys = cy - r * hv * 0.97;
+        const xe = side ? cx + r * lerp(0.75, -1.05, k) : cx + r * (lerp(-1.05, 1.05, k) * hv + (three ? 0.18 : 0)), ye = cy + r * (side ? lerp(-0.25, 0.3, k) : i % 2 ? 0.15 : -0.2);
+        g.beginPath(); g.moveTo(xs, ys); g.quadraticCurveTo(cx + (xe - cx) * 1.02 + (xs - cx) * 0.2, cy - r * hv * 0.8, xe, ye); g.stroke();
+      }
+      g.restore();
+    }
     const HT = B?.hairShine ?? "arc";
     if (HT === "arc") { g.save(); for (const q of hair.front) g.clip(q); g.strokeStyle = tint(hcol, 0.28); g.lineWidth = d * 0.05; g.lineCap = "round"; g.beginPath(); g.arc(cx, cy, r * 0.8, -Math.PI * (c.light < 0 ? 0.78 : 0.42), -Math.PI * (c.light < 0 ? 0.58 : 0.22)); g.stroke(); g.restore(); }
     else if (HT === "rim") for (const q of hair.front) { g.save(); g.clip(q); g.fillStyle = shade(hcol, 0.24); g.fill(q); g.fillStyle = hcol; g.fill(moved(q, 0, -d * 0.06)); g.restore(); }
