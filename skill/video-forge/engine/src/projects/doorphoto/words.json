@@ -71,1157 +71,1157 @@
  },
  {
   "word": "He",
-  "start": 3.518,
-  "end": 3.625
+  "start": 3.875,
+  "end": 3.616
  },
  {
   "word": "set",
-  "start": 3.625,
-  "end": 3.839
+  "start": 3.616,
+  "end": 3.83
  },
  {
   "word": "it",
-  "start": 3.839,
-  "end": 3.929
+  "start": 3.83,
+  "end": 3.92
  },
  {
   "word": "on",
-  "start": 3.929,
-  "end": 4.036
+  "start": 3.92,
+  "end": 4.027
  },
  {
   "word": "the",
-  "start": 4.036,
-  "end": 4.125
+  "start": 4.027,
+  "end": 4.116
  },
  {
   "word": "doormat,",
-  "start": 4.125,
-  "end": 4.482
+  "start": 4.116,
+  "end": 4.473
  },
  {
   "word": "tapped",
-  "start": 4.579,
-  "end": 4.757
+  "start": 4.682,
+  "end": 4.861
  },
  {
   "word": "delivered",
-  "start": 4.757,
-  "end": 5.436
+  "start": 4.861,
+  "end": 5.539
  },
  {
   "word": "on",
-  "start": 5.436,
-  "end": 5.579
+  "start": 5.539,
+  "end": 5.682
  },
  {
   "word": "his",
-  "start": 5.579,
-  "end": 5.704
+  "start": 5.682,
+  "end": 5.807
  },
  {
   "word": "scanner,",
-  "start": 5.704,
-  "end": 6.007
+  "start": 5.807,
+  "end": 6.111
  },
  {
   "word": "and",
-  "start": 6.104,
-  "end": 6.175
+  "start": 6.389,
+  "end": 6.461
  },
  {
   "word": "drove",
-  "start": 6.175,
-  "end": 6.336
+  "start": 6.461,
+  "end": 6.621
  },
  {
   "word": "off.",
-  "start": 6.336,
-  "end": 6.604
+  "start": 6.621,
+  "end": 6.889
  },
  {
   "word": "Ten",
-  "start": 6.807,
-  "end": 7.004
+  "start": 7.532,
+  "end": 7.173
  },
  {
   "word": "minutes",
-  "start": 7.004,
-  "end": 7.182
+  "start": 7.173,
+  "end": 7.352
  },
  {
   "word": "later,",
-  "start": 7.182,
-  "end": 7.539
+  "start": 7.352,
+  "end": 7.709
  },
  {
   "word": "the",
-  "start": 7.636,
-  "end": 7.707
+  "start": 7.873,
+  "end": 7.945
  },
  {
   "word": "customer",
-  "start": 7.707,
-  "end": 8.046
+  "start": 7.945,
+  "end": 8.284
  },
  {
   "word": "called",
-  "start": 8.046,
-  "end": 8.35
+  "start": 8.284,
+  "end": 8.588
  },
  {
   "word": "the",
-  "start": 8.35,
-  "end": 8.529
+  "start": 8.588,
+  "end": 8.766
  },
  {
   "word": "shop:",
-  "start": 8.529,
-  "end": 8.761
+  "start": 8.766,
+  "end": 8.998
  },
  {
   "word": "the",
-  "start": 8.964,
-  "end": 9.054
+  "start": 9.245,
+  "end": 9.334
  },
  {
   "word": "box",
-  "start": 9.054,
-  "end": 9.304
+  "start": 9.334,
+  "end": 9.584
  },
  {
   "word": "never",
-  "start": 9.304,
-  "end": 9.554
+  "start": 9.584,
+  "end": 9.834
  },
  {
   "word": "arrived.",
-  "start": 9.554,
-  "end": 10.089
+  "start": 9.834,
+  "end": 10.37
  },
  {
   "word": "Nothing",
-  "start": 10.293,
-  "end": 10.561
+  "start": 10.617,
+  "end": 10.885
  },
  {
   "word": "on",
-  "start": 10.561,
-  "end": 10.775
+  "start": 10.885,
+  "end": 11.099
  },
  {
   "word": "my",
-  "start": 10.775,
-  "end": 10.9
+  "start": 11.099,
+  "end": 11.224
  },
  {
   "word": "mat.",
-  "start": 10.9,
-  "end": 11.186
+  "start": 11.224,
+  "end": 11.51
  },
  {
   "word": "Nothing",
-  "start": 11.389,
-  "end": 11.657
+  "start": 11.801,
+  "end": 12.069
  },
  {
   "word": "at",
-  "start": 11.657,
-  "end": 11.818
+  "start": 12.069,
+  "end": 12.229
  },
  {
   "word": "all.",
-  "start": 11.818,
-  "end": 12.05
+  "start": 12.229,
+  "end": 12.462
  },
  {
   "word": "Back",
-  "start": 12.254,
-  "end": 12.468
+  "start": 12.633,
+  "end": 12.847
  },
  {
   "word": "then,",
-  "start": 12.468,
-  "end": 12.789
+  "start": 12.847,
+  "end": 13.169
  },
  {
   "word": "a",
-  "start": 12.886,
-  "end": 12.975
+  "start": 13.383,
+  "end": 13.472
  },
  {
   "word": "delivery",
-  "start": 12.975,
-  "end": 13.261
+  "start": 13.472,
+  "end": 13.758
  },
  {
   "word": "was",
-  "start": 13.261,
-  "end": 13.564
+  "start": 13.758,
+  "end": 14.062
  },
  {
   "word": "just",
-  "start": 13.564,
-  "end": 13.779
+  "start": 14.062,
+  "end": 14.276
  },
  {
   "word": "one",
-  "start": 13.779,
-  "end": 14.082
+  "start": 14.276,
+  "end": 14.579
  },
  {
   "word": "tap,",
-  "start": 14.082,
-  "end": 14.35
+  "start": 14.579,
+  "end": 14.847
  },
  {
   "word": "and",
-  "start": 14.446,
-  "end": 14.625
+  "start": 15.079,
+  "end": 15.258
  },
  {
   "word": "the",
-  "start": 14.625,
-  "end": 14.714
+  "start": 15.258,
+  "end": 15.347
  },
  {
   "word": "shop",
-  "start": 14.714,
-  "end": 14.929
+  "start": 15.347,
+  "end": 15.562
  },
  {
   "word": "couldn't",
-  "start": 14.929,
-  "end": 15.232
+  "start": 15.562,
+  "end": 15.865
  },
  {
   "word": "see",
-  "start": 15.232,
-  "end": 15.446
+  "start": 15.865,
+  "end": 16.079
  },
  {
   "word": "a",
-  "start": 15.446,
-  "end": 15.589
+  "start": 16.079,
+  "end": 16.222
  },
  {
   "word": "single",
-  "start": 15.589,
-  "end": 15.857
+  "start": 16.222,
+  "end": 16.49
  },
  {
   "word": "doormat.",
-  "start": 15.857,
-  "end": 16.393
+  "start": 16.49,
+  "end": 17.026
  },
  {
   "word": "So",
-  "start": 16.596,
-  "end": 16.864
+  "start": 17.437,
+  "end": 17.34
  },
  {
   "word": "it",
-  "start": 16.864,
-  "end": 17.132
+  "start": 17.34,
+  "end": 17.608
  },
  {
   "word": "was",
-  "start": 17.132,
-  "end": 17.221
+  "start": 17.608,
+  "end": 17.697
  },
  {
   "word": "the",
-  "start": 17.221,
-  "end": 17.346
+  "start": 17.697,
+  "end": 17.822
  },
  {
   "word": "driver's",
-  "start": 17.346,
-  "end": 17.811
+  "start": 17.822,
+  "end": 18.287
  },
  {
   "word": "word",
-  "start": 17.811,
-  "end": 18.007
+  "start": 18.287,
+  "end": 18.483
  },
  {
   "word": "against",
-  "start": 18.007,
-  "end": 18.275
+  "start": 18.483,
+  "end": 18.751
  },
  {
   "word": "the",
-  "start": 18.275,
-  "end": 18.454
+  "start": 18.751,
+  "end": 18.929
  },
  {
   "word": "customer's,",
-  "start": 18.454,
-  "end": 18.811
+  "start": 18.929,
+  "end": 19.287
  },
  {
   "word": "and",
-  "start": 18.907,
-  "end": 19.086
+  "start": 19.626,
+  "end": 19.722
  },
  {
   "word": "the",
-  "start": 19.086,
-  "end": 19.193
+  "start": 19.722,
+  "end": 19.829
  },
  {
   "word": "customer",
-  "start": 19.193,
-  "end": 19.586
+  "start": 19.829,
+  "end": 20.222
  },
  {
   "word": "always",
-  "start": 19.586,
-  "end": 20.104
+  "start": 20.222,
+  "end": 20.667
  },
  {
   "word": "won.",
-  "start": 20.104,
-  "end": 20.389
+  "start": 20.667,
+  "end": 20.953
  },
  {
   "word": "Refund",
-  "start": 20.593,
-  "end": 21.021
+  "start": 21.328,
+  "end": 21.407
  },
  {
   "word": "him.",
-  "start": 21.021,
-  "end": 21.182
+  "start": 21.407,
+  "end": 21.568
  },
  {
   "word": "Happy",
-  "start": 21.386,
-  "end": 21.582
+  "start": 21.636,
+  "end": 21.832
  },
  {
   "word": "customers",
-  "start": 21.582,
-  "end": 21.904
+  "start": 21.832,
+  "end": 22.154
  },
  {
   "word": "come",
-  "start": 21.904,
-  "end": 22.171
+  "start": 22.154,
+  "end": 22.421
  },
  {
   "word": "back.",
-  "start": 22.171,
-  "end": 22.386
+  "start": 22.421,
+  "end": 22.636
  },
  {
   "word": "And",
-  "start": 22.589,
-  "end": 22.857
+  "start": 23.046,
+  "end": 23.016
  },
  {
   "word": "he",
-  "start": 22.857,
-  "end": 23.089
+  "start": 23.016,
+  "end": 23.248
  },
  {
   "word": "came",
-  "start": 23.089,
-  "end": 23.268
+  "start": 23.248,
+  "end": 23.427
  },
  {
   "word": "back",
-  "start": 23.268,
-  "end": 23.482
+  "start": 23.427,
+  "end": 23.641
  },
  {
   "word": "for",
-  "start": 23.482,
-  "end": 23.679
+  "start": 23.641,
+  "end": 23.837
  },
  {
   "word": "a",
-  "start": 23.679,
-  "end": 23.821
+  "start": 23.837,
+  "end": 23.98
  },
  {
   "word": "TV,",
-  "start": 23.821,
-  "end": 24.089
+  "start": 23.98,
+  "end": 24.248
  },
  {
   "word": "a",
-  "start": 24.186,
-  "end": 24.293
+  "start": 24.623,
+  "end": 24.73
  },
  {
   "word": "blender",
-  "start": 24.293,
-  "end": 24.579
+  "start": 24.73,
+  "end": 25.016
  },
  {
   "word": "and",
-  "start": 24.675,
-  "end": 24.8
+  "start": 25.248,
+  "end": 25.373
  },
  {
   "word": "golden",
-  "start": 24.8,
-  "end": 25.139
+  "start": 25.373,
+  "end": 25.712
  },
  {
   "word": "headphones",
-  "start": 25.139,
-  "end": 25.604
+  "start": 25.712,
+  "end": 26.177
  },
  {
   "word": "that",
-  "start": 25.604,
-  "end": 25.925
+  "start": 26.177,
+  "end": 26.498
  },
  {
   "word": "never",
-  "start": 25.925,
-  "end": 26.193
+  "start": 26.498,
+  "end": 26.766
  },
  {
   "word": "arrived",
-  "start": 26.193,
-  "end": 26.568
+  "start": 26.766,
+  "end": 27.141
  },
  {
   "word": "either.",
-  "start": 26.568,
-  "end": 26.871
+  "start": 27.141,
+  "end": 27.445
  },
  {
   "word": "By",
-  "start": 27.075,
-  "end": 27.289
+  "start": 27.962,
+  "end": 27.709
  },
  {
   "word": "Friday,",
-  "start": 27.289,
-  "end": 27.611
+  "start": 27.709,
+  "end": 28.03
  },
  {
   "word": "his",
-  "start": 27.707,
-  "end": 27.814
+  "start": 28.286,
+  "end": 28.393
  },
  {
   "word": "neighbors",
-  "start": 27.814,
-  "end": 28.1
+  "start": 28.393,
+  "end": 28.679
  },
  {
   "word": "knew",
-  "start": 28.1,
-  "end": 28.421
+  "start": 28.679,
+  "end": 29.0
  },
  {
   "word": "the",
-  "start": 28.421,
-  "end": 28.546
+  "start": 29.0,
+  "end": 29.125
  },
  {
   "word": "trick,",
-  "start": 28.546,
-  "end": 28.832
+  "start": 29.125,
+  "end": 29.411
  },
  {
   "word": "and",
-  "start": 28.929,
-  "end": 29.071
+  "start": 29.625,
+  "end": 29.734
  },
  {
   "word": "half",
-  "start": 29.071,
-  "end": 29.357
+  "start": 29.734,
+  "end": 30.02
  },
  {
   "word": "the",
-  "start": 29.357,
-  "end": 29.518
+  "start": 30.02,
+  "end": 30.18
  },
  {
   "word": "street's",
-  "start": 29.518,
-  "end": 29.857
+  "start": 30.18,
+  "end": 30.52
  },
  {
   "word": "boxes",
-  "start": 29.857,
-  "end": 30.107
+  "start": 30.52,
+  "end": 30.77
  },
  {
   "word": "started",
-  "start": 30.107,
-  "end": 30.446
+  "start": 30.77,
+  "end": 31.109
  },
  {
   "word": "vanishing.",
-  "start": 30.446,
-  "end": 30.964
+  "start": 31.109,
+  "end": 31.627
  },
  {
   "word": "Every",
-  "start": 31.168,
-  "end": 31.436
+  "start": 32.145,
+  "end": 31.921
  },
  {
   "word": "missing",
-  "start": 31.436,
-  "end": 31.721
+  "start": 31.921,
+  "end": 32.206
  },
  {
   "word": "box",
-  "start": 31.721,
-  "end": 32.007
+  "start": 32.206,
+  "end": 32.492
  },
  {
   "word": "put",
-  "start": 32.007,
-  "end": 32.293
+  "start": 32.492,
+  "end": 32.778
  },
  {
   "word": "a",
-  "start": 32.293,
-  "end": 32.418
+  "start": 32.778,
+  "end": 32.903
  },
  {
   "word": "red",
-  "start": 32.418,
-  "end": 32.632
+  "start": 32.903,
+  "end": 33.117
  },
  {
   "word": "mark",
-  "start": 32.632,
-  "end": 32.864
+  "start": 33.117,
+  "end": 33.349
  },
  {
   "word": "next",
-  "start": 32.864,
-  "end": 33.114
+  "start": 33.349,
+  "end": 33.599
  },
  {
   "word": "to",
-  "start": 33.114,
-  "end": 33.293
+  "start": 33.599,
+  "end": 33.778
  },
  {
   "word": "the",
-  "start": 33.293,
-  "end": 33.382
+  "start": 33.778,
+  "end": 33.867
  },
  {
   "word": "driver's",
-  "start": 33.382,
-  "end": 33.793
+  "start": 33.867,
+  "end": 34.278
  },
  {
   "word": "name.",
-  "start": 33.793,
-  "end": 33.989
+  "start": 34.278,
+  "end": 34.474
  },
  {
   "word": "I",
-  "start": 34.193,
-  "end": 34.354
+  "start": 34.831,
+  "end": 34.697
  },
  {
   "word": "left",
-  "start": 34.354,
-  "end": 34.604
+  "start": 34.697,
+  "end": 34.947
  },
  {
   "word": "it",
-  "start": 34.604,
-  "end": 34.764
+  "start": 34.947,
+  "end": 35.108
  },
  {
   "word": "on",
-  "start": 34.764,
-  "end": 34.889
+  "start": 35.108,
+  "end": 35.233
  },
  {
   "word": "his",
-  "start": 34.889,
-  "end": 35.014
+  "start": 35.233,
+  "end": 35.358
  },
  {
   "word": "mat.",
-  "start": 35.014,
-  "end": 35.318
+  "start": 35.358,
+  "end": 35.662
  },
  {
   "word": "I",
-  "start": 35.514,
-  "end": 35.604
+  "start": 35.858,
+  "end": 35.947
  },
  {
   "word": "swear.",
-  "start": 35.604,
-  "end": 35.925
+  "start": 35.947,
+  "end": 36.269
  },
  {
   "word": "By",
-  "start": 36.129,
-  "end": 36.307
+  "start": 36.912,
+  "end": 36.804
  },
  {
   "word": "winter,",
-  "start": 36.307,
-  "end": 36.557
+  "start": 36.804,
+  "end": 37.054
  },
  {
   "word": "the",
-  "start": 36.654,
-  "end": 36.761
+  "start": 37.276,
+  "end": 37.383
  },
  {
   "word": "refund",
-  "start": 36.761,
-  "end": 37.046
+  "start": 37.383,
+  "end": 37.669
  },
  {
   "word": "pile",
-  "start": 37.046,
-  "end": 37.421
+  "start": 37.669,
+  "end": 38.044
  },
  {
   "word": "stood",
-  "start": 37.421,
-  "end": 37.689
+  "start": 38.044,
+  "end": 38.312
  },
  {
   "word": "taller",
-  "start": 37.689,
-  "end": 38.1
+  "start": 38.312,
+  "end": 38.722
  },
  {
   "word": "than",
-  "start": 38.1,
-  "end": 38.296
+  "start": 38.722,
+  "end": 38.919
  },
  {
   "word": "his",
-  "start": 38.296,
-  "end": 38.439
+  "start": 38.919,
+  "end": 39.062
  },
  {
   "word": "van.",
-  "start": 38.439,
-  "end": 38.725
+  "start": 39.062,
+  "end": 39.347
  },
  {
   "word": "Then",
-  "start": 38.929,
-  "end": 39.25
+  "start": 39.847,
+  "end": 39.771
  },
  {
   "word": "one",
-  "start": 39.346,
-  "end": 39.543
+  "start": 40.021,
+  "end": 40.217
  },
  {
   "word": "grey",
-  "start": 39.543,
-  "end": 39.846
+  "start": 40.217,
+  "end": 40.521
  },
  {
   "word": "Monday,",
-  "start": 39.846,
-  "end": 40.15
+  "start": 40.521,
+  "end": 40.824
  },
  {
   "word": "every",
-  "start": 40.246,
-  "end": 40.514
+  "start": 41.235,
+  "end": 41.304
  },
  {
   "word": "scanner",
-  "start": 40.514,
-  "end": 40.871
+  "start": 41.304,
+  "end": 41.662
  },
  {
   "word": "in",
-  "start": 40.871,
-  "end": 41.068
+  "start": 41.662,
+  "end": 41.858
  },
  {
   "word": "the",
-  "start": 41.068,
-  "end": 41.157
+  "start": 41.858,
+  "end": 41.947
  },
  {
   "word": "depot",
-  "start": 41.157,
-  "end": 41.532
+  "start": 41.947,
+  "end": 42.322
  },
  {
   "word": "got",
-  "start": 41.532,
-  "end": 41.764
+  "start": 42.322,
+  "end": 42.554
  },
  {
   "word": "a",
-  "start": 41.764,
-  "end": 41.871
+  "start": 42.554,
+  "end": 42.662
  },
  {
   "word": "camera.",
-  "start": 41.871,
-  "end": 42.229
+  "start": 42.662,
+  "end": 43.019
  },
  {
   "word": "Why",
-  "start": 42.432,
-  "end": 42.7
+  "start": 43.447,
+  "end": 43.365
  },
  {
   "word": "would",
-  "start": 42.7,
-  "end": 42.825
+  "start": 43.365,
+  "end": 43.49
  },
  {
   "word": "a",
-  "start": 42.825,
-  "end": 42.932
+  "start": 43.49,
+  "end": 43.597
  },
  {
   "word": "camera",
-  "start": 42.932,
-  "end": 43.182
+  "start": 43.597,
+  "end": 43.847
  },
  {
   "word": "stop",
-  "start": 43.182,
-  "end": 43.468
+  "start": 43.847,
+  "end": 44.133
  },
  {
   "word": "him?",
-  "start": 43.468,
-  "end": 43.664
+  "start": 44.133,
+  "end": 44.329
  },
  {
   "word": "You",
-  "start": 43.664,
-  "end": 44.182
+  "start": 44.329,
+  "end": 44.503
  },
  {
   "word": "see,",
-  "start": 44.182,
-  "end": 44.343
+  "start": 44.503,
+  "end": 44.663
  },
  {
   "word": "the",
-  "start": 44.439,
-  "end": 44.511
+  "start": 44.883,
+  "end": 44.954
  },
  {
   "word": "scanner",
-  "start": 44.511,
-  "end": 44.814
+  "start": 44.954,
+  "end": 45.258
  },
  {
   "word": "saves",
-  "start": 44.814,
-  "end": 45.243
+  "start": 45.258,
+  "end": 45.687
  },
  {
   "word": "each",
-  "start": 45.243,
-  "end": 45.511
+  "start": 45.687,
+  "end": 45.954
  },
  {
   "word": "photo",
-  "start": 45.511,
-  "end": 45.832
+  "start": 45.954,
+  "end": 46.276
  },
  {
   "word": "with",
-  "start": 45.832,
-  "end": 46.082
+  "start": 46.276,
+  "end": 46.526
  },
  {
   "word": "the",
-  "start": 46.082,
-  "end": 46.189
+  "start": 46.526,
+  "end": 46.633
  },
  {
   "word": "exact",
-  "start": 46.189,
-  "end": 46.582
+  "start": 46.633,
+  "end": 47.026
  },
  {
   "word": "time",
-  "start": 46.582,
-  "end": 46.957
+  "start": 47.026,
+  "end": 47.401
  },
  {
   "word": "and",
-  "start": 46.957,
-  "end": 47.171
+  "start": 47.401,
+  "end": 47.615
  },
  {
   "word": "the",
-  "start": 47.171,
-  "end": 47.296
+  "start": 47.615,
+  "end": 47.74
  },
  {
   "word": "GPS",
-  "start": 47.296,
-  "end": 47.582
+  "start": 47.74,
+  "end": 48.026
  },
  {
   "word": "spot",
-  "start": 47.582,
-  "end": 48.029
+  "start": 48.026,
+  "end": 48.472
  },
  {
   "word": "where",
-  "start": 48.029,
-  "end": 48.225
+  "start": 48.472,
+  "end": 48.669
  },
  {
   "word": "it",
-  "start": 48.225,
-  "end": 48.314
+  "start": 48.669,
+  "end": 48.758
  },
  {
   "word": "was",
-  "start": 48.314,
-  "end": 48.439
+  "start": 48.758,
+  "end": 48.883
  },
  {
   "word": "taken.",
-  "start": 48.439,
-  "end": 48.725
+  "start": 48.883,
+  "end": 49.169
  },
  {
   "word": "It's",
-  "start": 48.929,
-  "end": 49.143
+  "start": 49.633,
+  "end": 49.428
  },
  {
   "word": "a",
-  "start": 49.143,
-  "end": 49.196
+  "start": 49.428,
+  "end": 49.481
  },
  {
   "word": "receipt",
-  "start": 49.196,
-  "end": 49.446
+  "start": 49.481,
+  "end": 49.731
  },
  {
   "word": "nobody",
-  "start": 49.446,
-  "end": 49.839
+  "start": 49.731,
+  "end": 50.124
  },
  {
   "word": "can",
-  "start": 49.839,
-  "end": 50.125
+  "start": 50.124,
+  "end": 50.41
  },
  {
   "word": "argue",
-  "start": 50.125,
-  "end": 50.339
+  "start": 50.41,
+  "end": 50.624
  },
  {
   "word": "with:",
-  "start": 50.339,
-  "end": 50.661
+  "start": 50.624,
+  "end": 50.946
  },
  {
   "word": "your",
-  "start": 50.864,
-  "end": 51.061
+  "start": 51.037,
+  "end": 51.233
  },
  {
   "word": "door,",
-  "start": 51.061,
-  "end": 51.329
+  "start": 51.233,
+  "end": 51.501
  },
  {
   "word": "your",
-  "start": 51.425,
-  "end": 51.514
+  "start": 51.876,
+  "end": 51.965
  },
  {
   "word": "mat,",
-  "start": 51.514,
-  "end": 51.746
+  "start": 51.965,
+  "end": 52.197
  },
  {
   "word": "your",
-  "start": 51.843,
-  "end": 51.986
+  "start": 52.51,
+  "end": 52.653
  },
  {
   "word": "box,",
-  "start": 51.986,
-  "end": 52.271
+  "start": 52.653,
+  "end": 52.938
  },
  {
   "word": "2:14",
-  "start": 52.368,
-  "end": 52.511
+  "start": 53.188,
+  "end": 53.331
  },
  {
   "word": "p.m.",
-  "start": 52.511,
-  "end": 53.296
+  "start": 53.331,
+  "end": 54.117
  },
  {
   "word": "So",
-  "start": 53.5,
-  "end": 53.732
+  "start": 54.617,
+  "end": 54.415
  },
  {
   "word": "the",
-  "start": 53.732,
-  "end": 53.946
+  "start": 54.415,
+  "end": 54.629
  },
  {
   "word": "next",
-  "start": 53.946,
-  "end": 54.125
+  "start": 54.629,
+  "end": 54.808
  },
  {
   "word": "time",
-  "start": 54.125,
-  "end": 54.339
+  "start": 54.808,
+  "end": 55.022
  },
  {
   "word": "he",
-  "start": 54.339,
-  "end": 54.464
+  "start": 55.022,
+  "end": 55.147
  },
  {
   "word": "called,",
-  "start": 54.464,
-  "end": 54.732
+  "start": 55.147,
+  "end": 55.415
  },
  {
   "word": "the",
-  "start": 54.829,
-  "end": 54.918
+  "start": 55.56,
+  "end": 55.649
  },
  {
   "word": "shop",
-  "start": 54.918,
-  "end": 55.15
+  "start": 55.649,
+  "end": 55.881
  },
  {
   "word": "just",
-  "start": 55.15,
-  "end": 55.382
+  "start": 55.881,
+  "end": 56.113
  },
  {
   "word": "sent",
-  "start": 55.382,
-  "end": 55.596
+  "start": 56.113,
+  "end": 56.328
  },
  {
   "word": "one",
-  "start": 55.596,
-  "end": 55.9
+  "start": 56.328,
+  "end": 56.631
  },
  {
   "word": "photo.",
-  "start": 55.9,
-  "end": 56.257
+  "start": 56.631,
+  "end": 56.988
  },
  {
   "word": "His",
-  "start": 56.461,
-  "end": 56.621
+  "start": 57.104,
+  "end": 57.265
  },
  {
   "word": "box,",
-  "start": 56.621,
-  "end": 56.925
+  "start": 57.265,
+  "end": 57.569
  },
  {
   "word": "on",
-  "start": 57.021,
-  "end": 57.182
+  "start": 57.837,
+  "end": 57.91
  },
  {
   "word": "his",
-  "start": 57.182,
-  "end": 57.343
+  "start": 57.91,
+  "end": 58.071
  },
  {
   "word": "own",
-  "start": 57.343,
-  "end": 57.611
+  "start": 58.071,
+  "end": 58.292
  },
  {
   "word": "doormat,",
-  "start": 57.611,
-  "end": 58.075
+  "start": 58.292,
+  "end": 58.756
  },
  {
   "word": "right",
-  "start": 58.171,
-  "end": 58.368
+  "start": 58.889,
+  "end": 59.086
  },
  {
   "word": "next",
-  "start": 58.368,
-  "end": 58.564
+  "start": 59.086,
+  "end": 59.282
  },
  {
   "word": "to",
-  "start": 58.564,
-  "end": 58.779
+  "start": 59.282,
+  "end": 59.496
  },
  {
   "word": "his",
-  "start": 58.779,
-  "end": 58.904
+  "start": 59.496,
+  "end": 59.621
  },
  {
   "word": "own",
-  "start": 58.904,
-  "end": 59.207
+  "start": 59.621,
+  "end": 59.911
  },
  {
   "word": "garden",
-  "start": 59.207,
-  "end": 59.546
+  "start": 59.911,
+  "end": 60.25
  },
  {
   "word": "gnome.",
-  "start": 59.546,
-  "end": 59.85
- },
- {
-  "word": "The",
-  "start": 60.054,
-  "end": 60.161
- },
- {
-  "word": "driver's",
-  "start": 60.161,
+  "start": 60.25,
   "end": 60.554
  },
  {
+  "word": "The",
+  "start": 60.586,
+  "end": 60.693
+ },
+ {
+  "word": "driver's",
+  "start": 60.693,
+  "end": 61.086
+ },
+ {
   "word": "red",
-  "start": 60.554,
-  "end": 60.732
+  "start": 61.086,
+  "end": 61.264
  },
  {
   "word": "marks",
-  "start": 60.732,
-  "end": 60.964
+  "start": 61.264,
+  "end": 61.496
  },
  {
   "word": "vanished",
-  "start": 60.964,
-  "end": 61.304
+  "start": 61.496,
+  "end": 61.836
  },
  {
   "word": "faster",
-  "start": 61.304,
-  "end": 61.786
+  "start": 61.836,
+  "end": 62.318
  },
  {
   "word": "than",
-  "start": 61.786,
-  "end": 61.964
+  "start": 62.318,
+  "end": 62.496
  },
  {
   "word": "any",
-  "start": 61.964,
-  "end": 62.304
+  "start": 62.496,
+  "end": 62.791
  },
  {
   "word": "of",
-  "start": 62.304,
-  "end": 62.446
+  "start": 62.791,
+  "end": 62.934
  },
  {
   "word": "those",
-  "start": 62.446,
-  "end": 62.589
+  "start": 62.934,
+  "end": 63.077
  },
  {
   "word": "boxes.",
-  "start": 62.589,
-  "end": 62.964
+  "start": 63.077,
+  "end": 63.452
  },
  {
   "word": "And",
-  "start": 62.964,
-  "end": 63.625
+  "start": 63.452,
+  "end": 63.75
  },
  {
   "word": "that's",
-  "start": 63.625,
-  "end": 63.929
+  "start": 63.75,
+  "end": 64.054
  },
  {
   "word": "why",
-  "start": 63.929,
-  "end": 64.089
+  "start": 64.054,
+  "end": 64.214
  },
  {
   "word": "your",
-  "start": 64.089,
-  "end": 64.304
+  "start": 64.214,
+  "end": 64.429
  },
  {
   "word": "driver",
-  "start": 64.304,
-  "end": 64.679
+  "start": 64.429,
+  "end": 64.804
  },
  {
   "word": "photographs",
-  "start": 64.679,
-  "end": 65.161
+  "start": 64.804,
+  "end": 65.286
  },
  {
   "word": "your",
-  "start": 65.161,
-  "end": 65.446
+  "start": 65.286,
+  "end": 65.571
  },
  {
   "word": "door",
-  "start": 65.446,
-  "end": 65.661
+  "start": 65.571,
+  "end": 65.786
  },
  {
   "word": "before",
-  "start": 65.661,
-  "end": 65.982
+  "start": 65.786,
+  "end": 66.107
  },
  {
   "word": "climbing",
-  "start": 65.982,
-  "end": 66.375
+  "start": 66.107,
+  "end": 66.5
  },
  {
   "word": "back",
-  "start": 66.375,
-  "end": 66.679
+  "start": 66.5,
+  "end": 66.804
  },
  {
   "word": "into",
-  "start": 66.679,
-  "end": 66.857
+  "start": 66.804,
+  "end": 66.982
  },
  {
   "word": "his",
-  "start": 66.857,
-  "end": 67.018
+  "start": 66.982,
+  "end": 67.143
  },
  {
   "word": "van.",
-  "start": 67.018,
-  "end": 67.214
+  "start": 67.143,
+  "end": 67.339
  }
 ]

@@ -26,6 +26,7 @@ import { CharacterCard, CrowdEvent, CrowdPool } from "./three/cast";
 import { FxKind, FxLayer } from "./three/fx";
 import { LightKey, lightPlan } from "./three/lightplan";
 import { loadModel, ModelOpts } from "./three/assets";
+import { addHull } from "./three/hull";
 import { bakedSet, BakedOpts } from "./three/baked";
 import { glbVehicle, GlbVehicleSpec } from "./three/glbvehicle";
 import { buildSet, PROPS, SetInstance, SetName, SetOpts } from "./three/sets";
@@ -48,7 +49,12 @@ export type Act = {
   walk?: Mark; speed?: number;
   /** a BOBBLE_POSES name or a pose object; held until the next beat that sets one */
   pose?: string | KPose;
-  expr?: KExpr; turn?: number; view?: "front" | "side" | "three"; facing?: 1 | -1; hold?: StickHold | null;
+  expr?: KExpr; turn?: number; view?: "front" | "side" | "three" | "back" | "threeBack"; facing?: 1 | -1; hold?: StickHold | null;
+  /** 1.11.2: the way the character faces IN THE WORLD: an actor id or a mark / point to face, or `yaw` in degrees (0 = +z,
+   *  90 = +x). The card then picks its view from where the camera stands, every frame: front, three-quarter, profile,
+   *  three-quarter back or back, and the side it turns to, so a character reads right from every angle and while walking.
+   *  `face: null` hands the view back to `view` / `facing`. */
+  face?: Mark | null; yaw?: number;
   /** a second prop, in the other hand (a coin in the left, shears in the right) */
   hold2?: StickHold | null;
   /** look toward another actor or a mark (sets the head turn) */
@@ -58,6 +64,8 @@ export type Act = {
   hide?: boolean;
   /** sit in a vehicle of the place */
   seat?: { vehicle: string; seat: string } | null;
+  /** 1.11.2: how much light reaches this character (0.4 dark corner .. 1 lit); eased over ~8 frames */
+  light?: number;
   /** frames the pose pops before the word (default 3) */
   lead?: number;
 };
@@ -117,10 +125,10 @@ export type BoardPlace = { set: SetName | "baked"; opts?: SetOpts;
   extras?: (BobbleSpec | keyof typeof KIND_PRESETS)[] };
 /** a model in a set: `model` is a Poly Haven id ("garden_gnome" -> assets/polyhaven/models/garden_gnome/garden_gnome_1k.gltf)
  *  or a public-relative path; `height` normalises its bounding box (m); `toon: false` keeps its PBR look (default: cel-shaded) */
-export type BoardDress = { model: string; at: Mark; ry?: number; height?: number; scale?: number; dy?: number; recolor?: Record<string, string>; toon?: boolean };
+export type BoardDress = { model: string; at: Mark; ry?: number; height?: number; scale?: number; dy?: number; recolor?: Record<string, string>; toon?: boolean; /** ink hull width in px (default 2.2; 0 = the screen-space ink) */ outline?: number };
 export type BoardApi = { T: Record<string, number>; fps: number; /** width / height of the frame: a prop laid out for 9:16 can re-arrange itself for 16:9 */ aspect: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene;
   /** load a model (Poly Haven id or public path) for a prop; it is cel-shaded with the world's light plan once loaded */
-  model: (url: string, o?: Omit<ModelOpts, "toon"> & { toon?: boolean }) => THREE.Group };
+  model: (url: string, o?: Omit<ModelOpts, "toon"> & { toon?: boolean; outline?: number }) => THREE.Group };
 export type BoardProp = THREE.Object3D | { group: THREE.Object3D; update?: (f: number, fps: number, api: BoardApi) => void };
 export type Board = {
   id: string; title: string; fps?: number;
@@ -139,6 +147,8 @@ export type Board = {
   /** the cast's house style (lib/characters/kinds.ts `CastBrand`, `BRANDS`): applied to every bobble in `cast` that has none */
   brand?: CastBrand;
   rig?: { handheld?: number; push?: number };
+  /** 1.11.2: walk cadence in steps per second (default 2.7; the reference's newest short steps about every 4-5 frames at 30 fps) */
+  walkRate?: number;
   /** frames of cross-dissolve on every `via: "cut"` (default 4: a soft cut; 0 = hard cuts) */
   softCut?: number;
 };
@@ -228,7 +238,7 @@ const MODERN_SETS = new Set(["road", "office"]);
 export const INTERIOR_LIFT = { grade: { gamma: 1.22 } };
 /** Depth of field by shot size [maxBlur, aperture]: the closer the shot, the softer the background (measured centre / border sharpness 1.06 without it, 1.95 in the reference). */
 // 1.9 frame study: DOF on for CU / MCU / ECU and inserts (background sigma 7-9 px, macro >= 12), OFF for MS / FS / WS (about 1/3 of shots)
-const DOF_BY_SIZE: Record<string, [number, number]> = { xclose: [16, 1.4], close: [14, 1.35], medium: [14, 1.3], insert: [24, 1.6], pov: [9, 1.0], two: [6, 0.9], full: [0, 0.6], low: [4, 0.8], wide: [0, 0.6], high: [0, 0.6], group: [0, 0.6] }; // wides stay sharp: the set is the picture
+const DOF_BY_SIZE: Record<string, [number, number]> = { xclose: [3, 1.0], close: [2, 1.0], medium: [0, 0.6], insert: [4, 1.0], pov: [0, 0.6], two: [0, 0.6], full: [0, 0.6], low: [0, 0.6], wide: [0, 0.6], high: [0, 0.6], group: [0, 0.6] }; // 1.11.2: the reference keeps backgrounds sharp (1-1.4 px) and separates the subject with light, not blur
 const specOf = (s: BobbleSpec | keyof typeof KIND_PRESETS): BobbleSpec => (typeof s === "string" ? (KIND_PRESETS[s] as BobbleSpec) : s);
 const VEH = { car, bus, truck, carriage, bicycle } as Record<string, (o?: Record<string, unknown>) => Vehicle>;
 const TALK: Cue[] = ["D", "C", "B", "E", "C", "F", "B", "D"];
@@ -250,7 +260,8 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // 1.11 models: the light plan's toon uniforms only exist after the world is built, so each model's options are kept
   // and handed the uniforms right after LP.toonify (a model finishes loading after build, so it is shaded on load)
   const lateToon: ModelOpts[] = [];
-  const model = (u: string, o: Omit<ModelOpts, "toon"> & { toon?: boolean } = {}) => { const { toon, ...rest } = o; const mo: ModelOpts = { ...rest }; if (toon !== false) lateToon.push(mo);
+  const model = (u: string, o: Omit<ModelOpts, "toon"> & { toon?: boolean; outline?: number } = {}) => { const { toon, outline, ...rest } = o; const mo: ModelOpts = { ...rest }; if (toon !== false) lateToon.push(mo);
+    const px = outline ?? (toon === false ? 0 : 3.0); if (px > 0) { const prev = mo.onLoad; mo.onLoad = (m) => { prev?.(m); addHull(m, { px, skip: /glass|glow|seam/i }); }; } /* 1.11.2: clean ink hulls on models */
     return loadModel(ctx, staticFile(/[./]/.test(u) ? u : `assets/polyhaven/models/${u}/${u}_1k.gltf`), mo); };
   const mark = (m: Mark, place?: string): V3 => {
     if (Array.isArray(m)) { const o = origin(place ?? placeIds[0]); return [m[0] + o[0], m[1] + o[1], m[2] + o[2]]; }
@@ -260,7 +271,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   };
   const glbSpec = (o: GlbVehicleSpec): GlbVehicleSpec => { if ((o.look ?? "toon") !== "toon") return o; const mo: ModelOpts = {}; lateToon.push(mo); return { ...o, toonRef: mo }; };
   for (const id of placeIds) for (const d of b.places[id].dress ?? []) {
-    const g = model(d.model, { height: d.height, recolor: d.recolor, toon: d.toon }), w = mark(d.at, id), o = sets[id].group.position;
+    const g = model(d.model, { height: d.height, recolor: d.recolor, toon: d.toon, outline: d.outline }), w = mark(d.at, id), o = sets[id].group.position;
     g.position.set(w[0] - o.x, w[1] - o.y + (d.dy ?? 0), w[2] - o.z); if (d.ry) g.rotation.y = d.ry; if (d.scale) g.scale.setScalar(d.scale); sets[id].group.add(g); }
   // vehicles
   const vehicles: Record<string, { v: Vehicle; def: BoardVehicle; place: string; path: V3[] }> = {};
@@ -274,7 +285,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // actors: where everybody is, beat by beat
   const cast = Object.fromEntries(Object.entries(b.cast).map(([id, c]) => { const spec = { ...specOf(c.spec), id, ...(b.brand && !specOf(c.spec).brand ? { brand: b.brand } : {}) }, h = (c.height ?? 1.72);
     const card = new CharacterCard(spec, h * bobbleScale(spec), c.tex ?? 1500, L.sun, undefined, { top: 0.45, x: 0.6 }); card.group.visible = false; scene.add(card.group);
-    return [id, { card, h, spec, segs: [] as Seg[], keys: [] as PoseKey[], talk: [] as [number, number, number, number][], looks: [] as { f: number; look?: string }[] }]; }));
+    return [id, { card, h, spec, segs: [] as Seg[], keys: [] as PoseKey[], talk: [] as [number, number, number, number][], looks: [] as { f: number; look?: string }[], faces: [] as { f: number; face?: Mark | null; yaw?: number; place: string }[], lights: [] as { f: number; k: number }[] }]; }));
   for (const bt of P.beats) for (const [id, a] of Object.entries(bt.act ?? {})) {
     const A = cast[id]; if (!A) throw new Error(`board "${b.id}": beat "${bt.id}" uses unknown actor "${id}"`);
     const last = A.segs[A.segs.length - 1], prev = last ? last.to : null;
@@ -297,6 +308,8 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     }
     if (a.talk) A.talk.push([bt.f, P.end(bt.i), bt.wi, P.beats[bt.i + 1]?.wi ?? P.words.length]);
     if (a.look !== undefined) A.looks.push({ f: bt.f, look: a.look || undefined });
+    if (a.face !== undefined || a.yaw !== undefined) A.faces.push({ f: bt.f, face: a.face, yaw: a.yaw, place: bt.placeNow });
+    if (a.light !== undefined) A.lights.push({ f: bt.f, k: a.light });
   }
   const actorState = (id: string, f: number): { pos: V3; walking: number; dir: V3; seg: Seg } | null => {
     const A = cast[id]; let s: Seg | null = null; for (const x of A.segs) if (x.f <= f) s = x; else break;
@@ -390,7 +403,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   const mustSee: { f0: number; f1: number; name: string; place: string }[] = [];
   P.beats.forEach((x) => { const nxt = P.shotBeats.find((y) => y.f > x.f)?.f ?? P.total, f1 = Math.min(nxt - 2, x.f + 26);
     for (const n of [x.focus, ...Object.entries(x.act ?? {}).filter(([, a]) => a.talk).map(([k]) => k)]) if (n && f1 > x.f + 8) mustSee.push({ f0: x.f + 8, f1, name: n, place: x.placeNow }); });
-  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv, mustSee };
+  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv, mustSee, walkRate: b.walkRate ?? 2.7 };
 }
 type BoardWorld = ReturnType<typeof makeWorld>;
 
@@ -413,7 +426,22 @@ function updateWorld(w: BoardWorld, P: BoardPlan, f: number, fps: number): CamSt
     let pose: KPose = { ...(idlePose(f, fps, seed) as KPose), ...(A.keys.length ? poseTrack(A.keys, f, fps) : {}) };
     let lk: string | undefined; for (const l of A.looks) if (l.f <= f) lk = l.look;
     if (lk && pose.turn === undefined) { const t = w.cast[lk] ? w.actorState(lk, f)?.pos : w.mark(lk, pid); if (t) pose.turn = 0.65 * side(st.pos, t); }
-    if (st.walking) { const wp = walkPose(f + seed * 3, fps, 2.7) as KPose; pose = { ...pose, ...wp, view: "side", facing: side([0, 0, 0], st.dir) as 1 | -1, limbs: undefined, turn: 0, hold: pose.hold }; }
+    // 1.11.2 auto view: the world facing (walk direction, a target or a yaw) against the camera picks the drawing
+    let fc: { face?: Mark | null; yaw?: number; place: string } | null = null; for (const x of A.faces) if (x.f <= f) fc = x; else break;
+    const auto = !!fc && fc.face !== null && !st.seg.seat;
+    let fdir: [number, number] | null = null;
+    if (auto) { if (st.walking) fdir = [st.dir[0], st.dir[2]];
+      else if (fc!.yaw !== undefined) fdir = [Math.sin((fc!.yaw * Math.PI) / 180), Math.cos((fc!.yaw * Math.PI) / 180)];
+      else if (fc!.face !== undefined && fc!.face !== null) { const tg = typeof fc!.face === "string" && w.cast[fc!.face] ? w.actorState(fc!.face, f)?.pos : w.mark(fc!.face as Mark, fc!.place); if (tg) fdir = [tg[0] - st.pos[0], tg[2] - st.pos[2]]; } }
+    const autoView = (): { yaw: number; facing: 1 | -1 } | null => {
+      if (!fdir || Math.hypot(fdir[0], fdir[1]) < 1e-4) return null;
+      const cv = [cam.pos[0] - st.pos[0], cam.pos[2] - st.pos[2]], A2 = Math.abs((Math.atan2(fdir[0] * cv[1] - fdir[1] * cv[0], fdir[0] * cv[0] + fdir[1] * cv[1]) * 180) / Math.PI);
+      const fs = side(st.pos, [st.pos[0] + fdir[0], 0, st.pos[2] + fdir[1]]) as 1 | -1;
+      return { yaw: fs * A2, facing: fs }; // continuous: the card draws its own in-between (kinds.ts viewOfYaw)
+    };
+    const av = autoView();
+    if (st.walking) { const wp = walkPose(f + seed * 3, fps, w.walkRate) as KPose; pose = { ...pose, ...wp, view: av ? undefined : "side", yaw: av?.yaw, facing: av ? av.facing : side([0, 0, 0], st.dir) as 1 | -1, limbs: undefined, turn: 0, hold: pose.hold }; }
+    else if (av) pose = { ...pose, yaw: av.yaw, facing: av.facing };
     if (st.seg.seat) pose = { ...pose, ...seatPose(w.vehicles[st.seg.seat.vehicle].v, st.seg.seat.seat, cam.pos, { expr: pose.expr }) };
     const tk = A.talk.find((t) => f >= t[0] && f < t[1]);
     if (tk) { const t = f / fps; pose.cue = "X"; for (let i = tk[2]; i < tk[3]; i++) { const wd = P.words[i]; if (t >= wd.start - 0.03 && t < wd.end) { pose.cue = TALK[(Math.floor((t - wd.start) / 0.08) + wd.word.length) % TALK.length]; break; } } }
@@ -432,6 +460,7 @@ function updateWorld(w: BoardWorld, P: BoardPlan, f: number, fps: number): CamSt
     if (!st.walking) { const t = f / fps; for (const wd of P.words) { if (wd.start > t) break; const dt = t - wd.start; if (dt < 0.2 && wd.word.length > 3) { const pu = Math.sin((dt / 0.2) * Math.PI); pose.bob = (pose.bob ?? 0) - 0.02 * pu; pose.headTilt = (pose.headTilt ?? 0) + 1.6 * pu * (seed % 2 ? 1 : -1); } } }
     pose.blink = blinkAt(f, fps, id, A.keys.map((k) => k.f));
     A.card.blob.visible = !st.seg.seat; // a seated card has no contact shadow on the ground
+    { let k0 = 1, k1 = 1, f1 = -1e9; for (const L of A.lights) if (L.f <= f) { k0 = k1; k1 = L.k; f1 = L.f; } else break; const n = Math.max(1, Math.round(8 * fps / 30)); A.card.setExposure(lerp(k0, k1, clamp((f - f1) / n))); }
     A.card.setPose(pose, f, fps); A.card.place(st.pos[0], st.pos[1], st.pos[2], cam.pos);
   }
   for (const p of w.props) { const on = f >= p.f0 && f < p.f1; p.obj.visible = on; if (!on) continue;

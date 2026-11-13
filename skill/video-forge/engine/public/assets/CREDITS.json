@@ -331,5 +331,285 @@
   "license": "CC0",
   "source": "https://polyhaven.com/a/vintage_telephone_wall_clock",
   "project": "doorphoto"
+ },
+ {
+  "id": "hanging_picture_frame_01",
+  "type": "models",
+  "name": "Hanging Picture Frame 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/hanging_picture_frame_01",
+  "project": null
+ },
+ {
+  "id": "ceramic_vase_01",
+  "type": "models",
+  "name": "Ceramic Vase 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/ceramic_vase_01",
+  "project": null
+ },
+ {
+  "id": "WetFloorSign_01",
+  "type": "models",
+  "name": "Wet Floor Sign 01",
+  "authors": [
+   "Fran Calvente"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/WetFloorSign_01",
+  "project": null
+ },
+ {
+  "id": "wall_clock",
+  "type": "models",
+  "name": "Wall Clock",
+  "authors": [
+   "PierreB3D"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/wall_clock",
+  "project": null
+ },
+ {
+  "id": "Barrel_02",
+  "type": "models",
+  "name": "Barrel 02",
+  "authors": [
+   "Jorge Camacho"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/Barrel_02",
+  "project": null
+ },
+ {
+  "id": "ArmChair_01",
+  "type": "models",
+  "name": "Arm Chair 01",
+  "authors": [
+   "Kirill Sannikov"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/ArmChair_01",
+  "project": null
+ },
+ {
+  "id": "standing_picture_frame_01",
+  "type": "models",
+  "name": "Standing Picture Frame 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/standing_picture_frame_01",
+  "project": null
+ },
+ {
+  "id": "fancy_picture_frame_01",
+  "type": "models",
+  "name": "Fancy Picture Frame 01",
+  "authors": [
+   "Rob Tuytel",
+   "Rico Cilliers"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/fancy_picture_frame_01",
+  "project": null
+ },
+ {
+  "id": "plastic_crate_02",
+  "type": "models",
+  "name": "Plastic Crate 02",
+  "authors": [
+   "Fabi_G"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/plastic_crate_02",
+  "project": null
+ },
+ {
+  "id": "trashbag",
+  "type": "models",
+  "name": "Trashbag",
+  "authors": [
+   "Benny Weimer"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/trashbag",
+  "project": null
+ },
+ {
+  "id": "wooden_crate_01",
+  "type": "models",
+  "name": "Wooden Crate 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/wooden_crate_01",
+  "project": null
+ },
+ {
+  "id": "planter_box_02",
+  "type": "models",
+  "name": "Planter Box 02",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/planter_box_02",
+  "project": null
+ },
+ {
+  "id": "coffee_table_round_01",
+  "type": "models",
+  "name": "Coffee Table Round 01",
+  "authors": [
+   "Ulan Cabanilla"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/coffee_table_round_01",
+  "project": null
+ },
+ {
+  "id": "hanging_picture_frame_03",
+  "type": "models",
+  "name": "Hanging Picture Frame 03",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/hanging_picture_frame_03",
+  "project": null
+ },
+ {
+  "id": "metal_toolbox",
+  "type": "models",
+  "name": "Metal Toolbox",
+  "authors": [
+   "Mateusz Sadek"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/metal_toolbox",
+  "project": null
+ },
+ {
+  "id": "binder_notebook",
+  "type": "models",
+  "name": "Binder Notebook",
+  "authors": [
+   "DaDrood"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/binder_notebook",
+  "project": null
+ },
+ {
+  "id": "power_box_01",
+  "type": "models",
+  "name": "Power Box 01",
+  "authors": [
+   "Rico Cilliers",
+   "Yann Kervran"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/power_box_01",
+  "project": null
+ },
+ {
+  "id": "classic_laptop",
+  "type": "models",
+  "name": "Classic Laptop",
+  "authors": [
+   "Arrangemonk"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/classic_laptop",
+  "project": null
+ },
+ {
+  "id": "book_encyclopedia_set_01",
+  "type": "models",
+  "name": "Book Encyclopedia Set 01",
+  "authors": [
+   "John Malcolm"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/book_encyclopedia_set_01",
+  "project": null
+ },
+ {
+  "id": "ladder_sectioned_01",
+  "type": "models",
+  "name": "Ladder Sectioned 01",
+  "authors": [
+   "MP"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/ladder_sectioned_01",
+  "project": null
+ },
+ {
+  "id": "korean_fire_extinguisher_01",
+  "type": "models",
+  "name": "Korean Fire Extinguisher 01",
+  "authors": [
+   "UM JOORIN"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/korean_fire_extinguisher_01",
+  "project": null
+ },
+ {
+  "id": "metal_tool_chest",
+  "type": "models",
+  "name": "Metal Tool Chest",
+  "authors": [
+   "Yann Kervran",
+   "John Hutcheson"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/metal_tool_chest",
+  "project": null
+ },
+ {
+  "id": "industrial_storage_cart",
+  "type": "models",
+  "name": "Industrial Storage Cart",
+  "authors": [
+   "Jule Bielitz"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/industrial_storage_cart",
+  "project": null
+ },
+ {
+  "id": "wooden_broom",
+  "type": "models",
+  "name": "Wooden Broom",
+  "authors": [
+   "Balen"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/wooden_broom",
+  "project": null
+ },
+ {
+  "id": "tea_set_01",
+  "type": "models",
+  "name": "Tea Set 01",
+  "authors": [
+   "James Ray Cock",
+   "Rico Cilliers",
+   "Jurita Burger"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/tea_set_01",
+  "project": null
  }
 ]

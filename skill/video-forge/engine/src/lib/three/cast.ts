@@ -30,6 +30,9 @@ export class CharacterCard {
   private sun?: THREE.DirectionalLight;
   private lightSide = -1;
   group = new THREE.Group();
+  private cardMat?: THREE.MeshLambertMaterial;
+  /** 1.11.2: the card's own exposure (the local light at the character): 1 = the shot's key, 0.4 = a dark corner */
+  setExposure(k: number) { const u = this.cardMat?.userData.uExpo as { value: number } | undefined; if (u) u.value = k; }
   private canvas: HTMLCanvasElement;
   private g: CanvasRenderingContext2D;
   private tex: THREE.CanvasTexture;
@@ -61,7 +64,7 @@ export class CharacterCard {
     const hm = heightM * 1.08 * (CH / h), wm = heightM * 1.08 * (CW / h);
     const geo = new THREE.PlaneGeometry(wm, hm);
     geo.translate(0, hm / 2 - heightM * (0.08 / ((spec as { heightHeads?: number }).heightHeads ?? 3.5)), 0); // feet exactly at y = 0 (padding only grows up and sideways)
-    const mat = cardShade(new THREE.MeshLambertMaterial({ map: this.tex, alphaTest: 0.5, alphaToCoverage: true, side: THREE.DoubleSide })); // 1.6: MSAA-smoothed silhouettes
+    const mat = this.cardMat = cardShade(new THREE.MeshLambertMaterial({ map: this.tex, alphaTest: 0.5, alphaToCoverage: true, side: THREE.DoubleSide })); // 1.6: MSAA-smoothed silhouettes
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = false;
     this.mesh.receiveShadow = true;

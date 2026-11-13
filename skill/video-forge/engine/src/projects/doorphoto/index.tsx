@@ -1,23 +1,29 @@
 /**
- * TEST SHORT v2 -- "Why Delivery Drivers Started Photographing Your Door" (9:16, 2K, 60 fps, our cast ours-v1).
+ * TEST SHORT v3 -- "Why Delivery Drivers Started Photographing Your Door" (9:16, 2K, 60 fps, our cast ours-v1).
  *
  * Story (script v2, approved 2026-11-13): a driver leaves the last box on a doormat and taps "delivered"; the customer
  * calls: "never arrived". The shop can't see a doormat, so the customer always wins; he comes back for more, the street
  * copies him and the driver collects red marks. Then the scanners get a camera: time + GPS. The shop sends one photo:
  * his box, on his own doormat, next to his own gnome. Facts: public/doorphoto/claims.md.
  *
- * The mix (1.11.1): the world is the engine's own inked style; the story's hero objects are modelled in Blender with
- * detail (tools/blender/build_set.py: the van, the porch with its door and mat, the parcel, the scanner) or come from
- * Poly Haven (the gnome, shelving, boxes), and all of them take the world's cel shading and ink, so they blend in.
+ * v3 (1.11.2), after a frame-by-frame study of the reference's newest short: every place is a Blender set with its light
+ * baked (practicals, pools, bounce, no world ink); hero objects are Blender models with real materials (the van in
+ * clearcoat white with a gradient, no branding and no outline; the parcel; the scanner); the cards keep their ink, take
+ * the local light, face a direction in the world and draw any side of themselves (16+ views, `face`), and sit centred
+ * in frame unless an action happens.
  * Cast: Dex (the driver), Vex (the customer), Mr. Bigsby (the shop), Hank (the neighbour) + extras, all BRANDS.ours.
  */
 import * as THREE from "three";
-import { Beat, Board, BoardApi, BoardDress, boardProject } from "../../lib/board";
+import { Beat, Board, BoardApi, boardProject } from "../../lib/board";
 import { BRANDS, KPose, StickHold } from "../../lib/characters/kinds";
 import { castEntry, extra } from "../../lib/characters/ours";
 import { LightKey, tweak } from "../../lib/three/lightplan";
 import { canvasTexture } from "../../lib/three/textures";
 import { clamp, ease } from "../../lib/time";
+import type { BakedManifest } from "../../lib/three/baked";
+import HOME0 from "../../../public/sets/home/set.json";
+import OFFICE0 from "../../../public/sets/office/set.json";
+import DEPOT0 from "../../../public/sets/depot/set.json";
 import VAN from "../../../public/sets/van/van.json";
 import WORDS from "./words.json";
 
@@ -110,11 +116,11 @@ const bigScanner = (api: BoardApi, screen: "tick" | "photo") => {
     on(rDoor, T.ydoor, T.ymat); on(rMat, T.ymat, T.ybox, 0.42); on(rBox, T.ybox, T.total); } };
 };
 /** the depot's charging rack: six Blender scanners; on "camera" each one gets its camera module and flashes */
-const scannerRack = (api: BoardApi) => { const g = new THREE.Group(), steel = lam({ color: "#9aa2b4" });
-  const desk = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 0.6), steel); desk.position.y = 0.92; g.add(desk); for (const sx of [-1, 1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.9, 0.5), steel); l.position.set(sx * 0.93, 0.45, 0); g.add(l); }
+const scannerRack = (api: BoardApi) => { const g = new THREE.Group(); /* stands on the depot's bench (top at y 0.96): no desk of its own */
   const units: THREE.Group[] = [], flashes: THREE.Mesh[] = [], flashM = new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 3, 2.6), transparent: true });
-  for (let i = 0; i < 6; i++) { const s = api.model("sets/props/scanner.glb", { groundAlign: false }); s.scale.setScalar(0.3); s.position.set(-0.8 + i * 0.32, 0.96 + 0.21, 0.02); s.rotation.x = -0.22; g.add(s); units.push(s);
-    const fl = new THREE.Mesh(new THREE.CircleGeometry(0.06, 16), flashM); fl.position.set(-0.8 + i * 0.32 + 0.04, 1.31, 0.08); g.add(fl); flashes.push(fl); }
+  for (let i = 0; i < 6; i++) { const s = api.model("sets/props/scanner.glb", { groundAlign: false }); s.scale.setScalar(0.3); s.position.set(-0.8 + i * 0.32, 0.96 + 0.24, 0.02); s.rotation.x = -0.22; g.add(s); units.push(s);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.62, 0.86, 1.0) })); scr.position.set(-0.8 + i * 0.32, 0.96 + 0.24 + 0.033 * 0.3 * 10 * 0.1 + 0.03, 0.02 + 0.0125); scr.rotation.x = -0.22; g.add(scr);
+    const fl = new THREE.Mesh(new THREE.CircleGeometry(0.06, 16), flashM); fl.position.set(-0.8 + i * 0.32 + 0.04, 1.34, 0.08); g.add(fl); flashes.push(fl); }
   return { group: shadowed(g), update(f: number, fps: number) { const T = api.T;
     units.forEach((u, i) => { const c = u.getObjectByName("RT_camera"); if (c) c.visible = f >= T.camera + i * 3; });
     flashes.forEach((fl, i) => { const u = (f - T.camera - i * 3) / fps; fl.visible = u >= 0 && u < 0.25; fl.scale.setScalar(1 + u * 6); }); } }; };
@@ -123,10 +129,6 @@ const scannerRack = (api: BoardApi) => { const g = new THREE.Group(), steel = la
 const tvBox = () => cardboard(0.95, 0.66, 0.2, { icon: "tv" });
 const blenderBox = () => cardboard(0.4, 0.55, 0.36, { icon: "blender" });
 const phonesBox = () => cardboard(0.36, 0.3, 0.3, { icon: "headphones", color: "#f4f6fa" });
-/** the neighbours' parcels on their doorsteps: they vanish one after another from "vanishing" */
-const streetBoxes = (api: BoardApi) => { const g = new THREE.Group(), boxes: THREE.Object3D[] = []; const spots: [number, number][] = [[7.2, -6.2], [8.0, -6.6], [8.9, -6.1], [9.7, -6.5], [10.4, -6.1], [7.6, -7.2], [9.3, -7.3]];
-  spots.forEach(([x, z], i) => { const b = cardboard(0.62 - (i % 3) * 0.06, 0.42, 0.48, { color: i % 2 ? "#b98250" : CARD }); b.position.set(x, 0.16, z); b.rotation.y = 0.25 * Math.sin(i * 1.7); g.add(b); boxes.push(b); });
-  return { group: g, update(f: number, fps: number) { boxes.forEach((b, i) => { const u = (f - api.T.vanish - i * 0.13 * fps) / fps, k = u < 0 ? 1 : Math.max(0, 1 - u / 0.18); b.visible = k > 0.01; b.scale.setScalar(k < 1 ? 1.15 * k : 1); }); } }; };
 /** the refund pile: boxes stack up from "winter" until it is taller than the van on "taller" */
 const refundPile = (api: BoardApi) => { const g = new THREE.Group(), boxes: THREE.Object3D[] = []; let y = 0;
   for (let i = 0; i < 17; i++) { const w = 0.9 - (i % 3) * 0.12, h = 0.24 + (i % 4) * 0.03, b = cardboard(w, h, 0.7 - (i % 2) * 0.1, { color: i % 3 ? CARD : "#b98250", icon: i % 5 === 2 ? "tv" : i % 7 === 3 ? "blender" : "none" }); b.position.set(0.08 * Math.sin(i * 1.7), y, 0.06 * Math.cos(i * 2.1)); b.rotation.y = 0.25 * Math.sin(i * 1.3); y += h; g.add(b); boxes.push(b); }
@@ -140,10 +142,13 @@ const recordBoard = (api: BoardApi) => { const g = new THREE.Group(), steel = la
   face.position.y = 1.55; g.add(face);
   for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.1, 8), steel); leg.position.set(sx * 0.6, 0.55, 0); g.add(leg); }
   const red = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.18, 0.16) }), X: THREE.Group[] = [];
-  for (let i = 0; i < 18; i++) { const x = new THREE.Group(); for (const s of [1, -1]) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.028, 0.01), red); bar.rotation.z = s * 0.8; x.add(bar); } x.position.set(-0.6 + (i % 7) * 0.2, 1.36 - Math.floor(i / 7) * 0.2, 0.035); g.add(x); X.push(x); }
+  for (let i = 0; i < 18; i++) { const x = new THREE.Group(); for (const s of [1, -1]) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.028, 0.01), red); bar.rotation.z = s * 0.8; x.add(bar); } x.position.set(-0.55 + (i % 6) * 0.22, 1.56 - Math.floor(i / 6) * 0.15, 0.035); g.add(x); X.push(x); } // 3 rows of 6 between the ruled lines, inside the board
   return { group: shadowed(g), update(f: number) { const T = api.T, up = clamp((f - T.every) / Math.max(1, T.name - T.every)), down = clamp((f - T.red2) / Math.max(1, T.boxes2 - T.red2));
     const n = Math.floor(up * 18 * (1 - down) + 0.0001); X.forEach((x, i) => { x.visible = i < n; x.scale.setScalar(n - i === 1 && down === 0 ? 1.25 : 1); }); } }; };
 /** the computer on the shop's desk: one green tick (the tap that said "delivered") and a little van */
+/** the green tick on the office's own monitor (a screen-sized plane in front of its screen) */
+const screenTick = () => { const g = new THREE.Group(); const m = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.28), new THREE.MeshBasicMaterial({ map: canvasTexture("tickscreen3", 320, 200, (c) => { c.fillStyle = "#e8f2fb"; c.fillRect(0, 0, 320, 200); c.strokeStyle = "#2f9a5a"; c.lineWidth = 26; c.lineCap = "round"; c.lineJoin = "round"; c.beginPath(); c.moveTo(80, 104); c.lineTo(138, 156); c.lineTo(250, 46); c.stroke(); }) }));
+  g.add(m); return g; };
 const monitor = () => { const g = new THREE.Group(), dark = lam({ color: "#2b2f3a" });
   const scr = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.46, 0.04), [dark, dark, dark, dark, new THREE.MeshBasicMaterial({ map: canvasTexture("tickscreen2", 320, 200, (c) => { c.fillStyle = "#e8f2fb"; c.fillRect(0, 0, 320, 200); c.strokeStyle = "#2f9a5a"; c.lineWidth = 26; c.lineCap = "round"; c.lineJoin = "round"; c.beginPath(); c.moveTo(70, 104); c.lineTo(128, 156); c.lineTo(240, 46); c.stroke();
     c.fillStyle = "#f3efe6"; c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.roundRect(214, 132, 80, 44, 8); c.fill(); c.stroke(); c.fillStyle = "#ec8a2c"; c.fillRect(218, 150, 72, 8); c.fillStyle = "#2b2f3a"; c.beginPath(); c.arc(232, 178, 9, 0, 7); c.arc(278, 178, 9, 0, 7); c.fill(); }) }), dark]);
@@ -172,159 +177,167 @@ const point = (x: number, y: number, expr: KPose["expr"]): KPose => ({ limbs: { 
 const shrug = (expr: KPose["expr"]): KPose => ({ limbs: { handR: [0.55, 0.85], handL: [0.55, 0.85] }, hands: { R: "open", L: "open" }, expr });
 const T3 = (facing: 1 | -1) => ({ view: "three" as const, facing });
 
-// ------------------------------------------------------------------------------------------------ the street: house 14 (x = 18) with the Blender porch
-const DX = 18, WALL = -7.7, PAV = 0.16; // the house front and the pavement top (street set, house 8 of 10)
-const MAT: [number, number, number] = [DX, PAV + 0.03, WALL + 0.95];
-const STEP: [number, number, number] = [DX + 0.05, PAV + 0.15, WALL + 0.32]; // on the step, in the doorway
-const BESIDE: [number, number, number] = [DX - 0.62, PAV, WALL + 1.4]; // beside the mat, toward the street
-const VANAT = 10.5; // where the van parks (lane z = -1.8), left of the porch so the porch shots see past it
-const BIGSBY: [number, number, number] = [-0.95, 0, -0.55]; // the shop: beside the desk, not behind the set's own monitor
-const STREET_DRESS: BoardDress[] = [
-  { model: "sets/props/porch.glb", at: [DX, PAV, WALL + 0.004] },
-  { model: "garden_gnome", at: [DX + 0.78, PAV, WALL + 1.05], height: 0.55, ry: -0.45 },
-];
-const DEPOT_DRESS: BoardDress[] = (() => {
-  const out: BoardDress[] = [];
-  const shelf = (x: number, z: number, seed: number) => { const k = 2.3 / 2.08; out.push({ model: "Shelf_01", at: [x, 0, z], height: 2.3 });
-    for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) { const r = ((seed * 7 + i * 13 + j * 29) % 17) / 17; if (r < 0.18) continue;
-      out.push({ model: "sets/props/parcel.glb", at: [x - 0.34 + j * 0.34 + (r - 0.5) * 0.05, (0.347 + i * 0.277) * k + 0.012, z + 0.14], height: 0.17 + r * 0.05, ry: (r - 0.5) * 0.6 }); } };
-  shelf(0.9, -3.4, 1); shelf(2.1, -3.4, 2); shelf(3.3, -3.4, 3);
-  out.push({ model: "hand_truck", at: [2.9, 0, 0.9], height: 1.25, ry: -0.6 }, { model: "plastic_crate_01", at: [-3.5, 0, 1.4], height: 0.36 }, { model: "plastic_crate_01", at: [-3.45, 0.36, 1.4], height: 0.36, ry: 0.2 },
-    { model: "sets/props/parcel.glb", at: [0.5, 0, -2.5], height: 0.3, ry: 0.3 }, { model: "sets/props/parcel.glb", at: [1.15, 0, -2.45], height: 0.26, ry: -0.2 }, { model: "metal_trash_can", at: [-3.9, 0, -0.7], height: 0.75 });
-  return out;
-})();
+// ------------------------------------------------------------------------------------------------ the places (v3: Blender sets, light baked with Cycles)
+// The reference renders its whole world (materials, bounce light, practicals, no ink on the world) and only draws the
+// characters. So every place here is a baked set; the hero objects (van, parcel, scanner) are Blender models with real
+// materials, and the cards keep their ink. Marks come from the set manifests (tools/blender/build_set.py).
+const HOME = HOME0 as unknown as BakedManifest, OFFICE = OFFICE0 as unknown as BakedManifest, DEPOT = DEPOT0 as unknown as BakedManifest;
+const mk = (M: BakedManifest, k: string, d: [number, number, number] = [0, 0, 0]): [number, number, number] => { const v = M.marks[k] as number[]; return [v[0] + d[0], v[1] + d[1], v[2] + d[2]]; };
+const keyOf = (M: BakedManifest, base: LightKey): LightKey => ({ ...base, sunDir: M.sun!.dir as [number, number, number], cookie: 0 });
+const KDAY = keyOf(HOME, DAY), KGREY = keyOf(HOME, GREY), KDUSK = keyOf(HOME, DUSK), KSHOP = keyOf(OFFICE, SHOP), KDEPOT = keyOf(DEPOT, SHOP), KDEPOTG = keyOf(DEPOT, GREY);
+const MAT = mk(HOME, "mat"), DOOR = mk(HOME, "door"), PORCH = mk(HOME, "porch"), PORCHL = mk(HOME, "porchL"), GNOME = mk(HOME, "gnome");
+const IN_DOOR = mk(HOME, "door", [0, 0, 0.32]); // standing in his doorway, behind the mat
+const BESIDE = mk(HOME, "porchL", [0.25, 0, -0.1]); // the driver beside the mat
+const VAN_Z = mk(HOME, "vanStop")[2] + 0.2, VAN_X = mk(HOME, "vanStop")[0];
+const DESK = mk(OFFICE, "desk"), DESKTOP = mk(OFFICE, "deskTop");
+const BIGSBY = mk(OFFICE, "desk", [-0.55, 0, 0.45]); // beside the desk, facing the room
+
+/** the neighbours' parcels on their porches and on the pavement: they vanish one after another from "vanishing" */
+const streetBoxes2 = (api: BoardApi) => { const g = new THREE.Group(), boxes: THREE.Object3D[] = [];
+  const spots: [number, number, number][] = [mk(HOME, "porch1", [0.3, 0, -0.35]), mk(HOME, "porch1", [-0.4, 0, -0.3]), mk(HOME, "porch2", [0.2, 0, -0.35]), mk(HOME, "porch2", [-0.5, 0, -0.2]), mk(HOME, "pavement", [3.2, 0, -0.2]), mk(HOME, "pavement", [-4.6, 0, -0.1]), mk(HOME, "pavement", [5.8, 0, 0])];
+  spots.forEach(([x, y, z], i) => { const b = api.model("sets/props/parcel.glb", { height: 0.3 + (i % 3) * 0.06 }); b.position.set(x, y, z); b.rotation.y = 0.4 * Math.sin(i * 1.7); g.add(b); boxes.push(b); });
+  return { group: g, update(f: number, fps: number) { boxes.forEach((b, i) => { const u = (f - api.T.vanish - i * 0.13 * fps) / fps, k = u < 0 ? 1 : Math.max(0, 1 - u / 0.18); b.visible = k > 0.01; b.scale.setScalar(k < 1 ? 1.15 * k : 1); }); } }; };
 
 // ------------------------------------------------------------------------------------------------ the storyboard
+// Framing rule (user, 2026-11-13): the character is centred in frame unless an action is happening; every actor has a
+// world facing (`face`), so the card draws the right side of itself from wherever the camera stands.
 const beats: Beat[] = [
-  // ---- 1 the van pulls up at the blue door; he gets out with the last box
-  { at: 0, id: "open", place: "street", key: DAY, music: "build",
-    shot: { size: "full", on: [10.9, 0, -2.2], h: 4.4, angle: -20, side: 0.05, move: "push", amount: 0.1 },
-    act: { dex: { seat: { vehicle: "van", seat: "driver" } }, vex: { hide: true }, vexg: { hide: true }, bigsby: { hide: true }, hank: { hide: true } },
+  // ---- 1 the van pulls up at the blue door
+  { at: 0, id: "open", place: "street", key: KDAY, music: "build", shot: { size: "wide", move: "push", amount: 0.1 },
+    act: { dex: { seat: { vehicle: "van", seat: "driver" }, light: 1 }, vex: { hide: true }, vexg: { hide: true }, bigsby: { hide: true }, hank: { hide: true } },
     sfx: [{ name: "car", lu: -10 }] },
-  { at: "blue", id: "last", via: "dissolve", shot: { size: "medium", on: "dex", angle: 25, side: -0.1, move: "push", amount: 0.12 },
-    act: { dex: { seat: null, at: [16.9, PAV, -5.3], pose: carry("focused"), ...T3(1) } } },
-  // ---- 2 the mat, one tap, gone
-  { at: "he", id: "he", shot: { size: "full", on: [DX - 0.35, PAV, WALL + 1.15], h: 2.3, angle: 18, side: 0.05, move: "push", amount: 0.1 },
-    act: { dex: { at: BESIDE, pose: carry("focused"), ...T3(1) } } },
-  { at: "doormat", id: "doormat", act: { dex: { pose: { limbs: { handR: [0.45, 0.35], handL: [0.4, 0.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, hold: null, ...T3(1) } },
-    gag: { prop: "parcel", id: "box", at: MAT, ry: 0.15, in: "drop", until: "ten" }, sfx: [{ name: "thud", lu: -10 }] },
-  { at: "tapped", id: "tapped", music: "thin", caption: 0.84, shot: { size: "insert", on: "tapScan", h: 0.82, angle: 0, move: "push", amount: 0.1 },
-    gag: { prop: "tapScanner", id: "tapScan", origin: "center", at: [DX + 3.6, 1.6, -3.5], in: "none", until: "drove" } },
+  // ---- his last box: we follow him up the path (his back to us, the blue door ahead)
+  { at: "blue", id: "last", via: "dissolve", shot: { size: "medium", on: "dex", angle: 22, move: "push", amount: 0.26 },
+    act: { dex: { seat: null, at: mk(HOME, "gate", [0, 0, 0.6]), pose: carry("focused"), face: DOOR } } },
+  { at: "with", id: "walkUp", act: { dex: { walk: mk(HOME, "steps", [0, 0, 0.4]), speed: 1.5, pose: carry("focused") } } },
+  // ---- the mat, one tap, gone
+  { at: "he", id: "he", via: "dissolve", shot: { size: "full", on: [MAT[0] - 0.35, MAT[1], MAT[2] + 0.2], h: 2.2, angle: 16, move: "push", amount: 0.1 },
+    act: { dex: { at: BESIDE, pose: carry("focused"), face: MAT } } },
+  { at: "doormat", id: "doormat", act: { dex: { pose: { limbs: { handR: [0.45, 0.35], handL: [0.4, 0.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, hold: null } },
+    gag: { prop: "parcel", id: "box", at: MAT, ry: 0.15, in: "pop", until: "ten" }, sfx: [{ name: "thud", lu: -10 }] },
+  { at: "tapped", id: "tapped", music: "thin", shot: { size: "insert", on: "tapScan", h: 0.82, angle: 0, move: "push", amount: 0.1 },
+    gag: { prop: "tapScanner", id: "tapScan", origin: "center", at: mk(HOME, "path", [1.1, 1.55, 0.2]), in: "none", until: "drove" } },
   { at: "delivered", id: "delivered", sfx: [{ name: "ding", lu: -8 }] },
-  { at: "and", id: "drove", music: "build", shot: { size: "full", on: [VANAT + 2.4, 0, -3.4], h: 4.8, angle: 22, move: "push", amount: 0.08 },
+  { at: "and", id: "drove", music: "build", shot: { size: "full", on: [VAN_X, 0, VAN_Z], h: 4.6, angle: 26, move: "push", amount: 0.26 },
     act: { dex: { seat: { vehicle: "van", seat: "driver" } } }, sfx: [{ name: "car", lu: -9 }] },
-  // ---- 3 ten minutes later: the box is gone, he calls
-  { at: "the#2", id: "ten", via: "dissolve", shot: { size: "medium", on: "vex", angle: -50, side: 0.15, move: "push", amount: 0.14 },
-    act: { vex: { hide: false, at: STEP, pose: onPhone("sneaky"), ...T3(1) } } },
-  { at: "the#4", id: "neverArrived", place: "shop", key: SHOP, shot: { size: "medium", on: "bigsby", angle: 16, side: 0.12, move: "push", amount: 0.12 },
-    act: { bigsby: { hide: false, at: BIGSBY, pose: onPhone("confused"), ...T3(1) } }, gag: { prop: "monitor", id: "monitor", at: [-0.3, 0.85, -1.05], ry: -0.55, in: "none" } },
-  // ---- 4 the customer: "Nothing on my mat. Nothing at all."
-  { at: "nothing", id: "nothing", place: "street", key: DAY, shot: { size: "close", on: "vex", angle: -10, side: 0.05, move: "push", amount: 0.1 },
-    act: { vex: { at: STEP, pose: point(0.55, 0.25, "innocent"), talk: true, ...T3(1) } } },
-  { at: "nothing#2", id: "nothing2", act: { vex: { pose: shrug("innocent"), talk: true, ...T3(1) } } },
-  // ---- 5 back then: one tap, and the shop can't see a doormat
-  { at: "back", id: "back", place: "shop", key: SHOP, shot: { size: "medium", on: "bigsby", angle: 18, side: 0.18, move: "push", amount: 0.12 }, focus: "monitor",
-    act: { bigsby: { at: BIGSBY, pose: point(0.75, 1.0, "think"), ...T3(1) } } },
-  { at: "couldnt", id: "couldnt", act: { bigsby: { pose: { limbs: { handR: [0.3, 1.45] }, expr: "skeptical" }, ...T3(1) } }, gag: { fx: "question", on: "bigsby", size: 0.7 } },
-  // ---- 6 the driver's word against the customer's; the customer always won
-  { at: "so", id: "so", shot: { size: "full", on: [-0.4, 0, -0.45], h: 2.45, angle: 8, move: "push", amount: 0.12 },
-    act: { bigsby: { pose: onPhone("skeptical"), ...T3(1) }, dex: { seat: null, at: [0.35, 0, -0.3], pose: { limbs: { handR: [0.35, 0.2] }, expr: "exhausted" }, hold: null, ...T3(-1) } } },
-  { at: "always", id: "always", act: { bigsby: { pose: onPhone("touched"), ...T3(1) }, dex: { pose: { limbs: { handR: [0.2, 0.15] }, expr: "heartbroken" }, ...T3(-1) } }, sfx: [{ name: "sad_trombone", lu: -14 }] },
-  // ---- 7 the boss: "Refund him."
-  { at: "refund", id: "refund", shot: { size: "close", on: "bigsby", angle: -6, move: "push", amount: 0.1 }, act: { dex: { hide: true }, bigsby: { pose: { limbs: { handR: [0.8, 1.05] }, hands: { R: "open" }, expr: "smug" }, talk: true, ...T3(1) } } },
-  { at: "happy", id: "happyW", act: { bigsby: { pose: point(0.8, 1.1, "confident"), talk: true, ...T3(1) } } },
-  // ---- 8 he comes back for more: a TV, a blender, golden headphones
-  { at: "and#4", id: "more", place: "street", key: DAY, shot: { size: "full", on: [DX - 0.55, PAV, WALL + 1.0], h: 2.4, angle: 10, move: "push", amount: 0.1 },
-    act: { vex: { at: STEP, pose: phoneUp("smug"), ...T3(1) } } },
-  { at: "tv", id: "tv", gag: { prop: "tvBox", id: "tvBox", at: [DX - 1.35, PAV, WALL + 0.9], ry: 0.35, in: "drop", until: "by" }, sfx: [{ name: "thud", lu: -10 }] },
-  { at: "blender", id: "blender", gag: { prop: "blenderBox", id: "blenderBox", at: [DX - 0.45, PAV, WALL + 1.35], ry: 0.3, in: "drop", until: "by" }, sfx: [{ name: "thud", lu: -10 }] },
-  { at: "golden", id: "golden", act: { vex: { hide: true }, vexg: { hide: false, at: STEP, pose: { limbs: { handR: [0.4, 1.05], handL: [0.35, 1.05] }, hands: { R: "open", L: "open" }, expr: "proud" }, ...T3(1) } },
+  // ---- ten minutes later: the box is gone, he calls the shop
+  { at: "the#2", id: "ten", via: "dissolve", shot: { size: "medium", on: "vex", angle: 0, move: "push", amount: 0.26 },
+    act: { vex: { hide: false, at: IN_DOOR, pose: onPhone("sneaky"), face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] } } },
+  { at: "the#4", id: "neverArrived", place: "shop", key: KSHOP, shot: { size: "medium", on: "bigsby", angle: 0, move: "push", amount: 0.26 },
+    act: { bigsby: { hide: false, at: BIGSBY, pose: onPhone("confused"), face: [BIGSBY[0] + 0.6, 0, BIGSBY[2] + 4] } },
+    gag: { prop: "screenTick", id: "monitor", origin: "center", at: mk(OFFICE, "monitor", [0, 0.06, 0.035]), in: "none" } },
+  // ---- the customer: "Nothing on my mat. Nothing at all."
+  { at: "nothing", id: "nothing", place: "street", key: KDAY, shot: { size: "close", on: "vex", angle: 0, move: "push", amount: 0.1 },
+    act: { vex: { at: IN_DOOR, pose: point(0.55, 0.25, "innocent"), hold: H("phone", { hand: "L" }), talk: true, face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] } } },
+  { at: "nothing#2", id: "nothing2", act: { vex: { pose: shrug("innocent"), talk: true } } },
+  // ---- back then: one tap, and the shop can't see a doormat
+  { at: "back", id: "back", place: "shop", key: KSHOP, shot: { size: "two", on: ["bigsby", "monitor"], move: "push", amount: 0.26 }, focus: "monitor",
+    act: { bigsby: { at: BIGSBY, pose: point(0.75, 1.0, "think"), hold: null, face: DESKTOP } } },
+  { at: "couldnt", id: "couldnt", act: { bigsby: { pose: { limbs: { handR: [0.3, 1.45] }, expr: "skeptical" } } }, gag: { fx: "question", on: "bigsby", size: 0.7 } },
+  // ---- the driver's word against the customer's; the customer always won
+  { at: "so", id: "so", shot: { size: "two", on: ["bigsby", "dex"], move: "push", amount: 0.1 },
+    act: { bigsby: { pose: onPhone("skeptical"), face: "dex" }, dex: { seat: null, at: [BIGSBY[0] + 1.05, 0, BIGSBY[2] + 0.1], pose: { limbs: { handR: [0.35, 0.2] }, expr: "exhausted" }, hold: null, face: "bigsby" } } },
+  { at: "always", id: "always", act: { bigsby: { pose: onPhone("touched") }, dex: { pose: { limbs: { handR: [0.2, 0.15] }, expr: "heartbroken" } } }, sfx: [{ name: "sad_trombone", lu: -14 }] },
+  // ---- the boss: "Refund him."
+  { at: "refund", id: "refund", shot: { size: "close", on: "bigsby", angle: 0, move: "push", amount: 0.1 },
+    act: { dex: { hide: true }, bigsby: { pose: { limbs: { handR: [0.8, 1.05] }, hands: { R: "open" }, expr: "smug" }, hold: null, talk: true, face: [BIGSBY[0], 0, BIGSBY[2] + 5] } } },
+  { at: "happy", id: "happyW", act: { bigsby: { pose: point(0.8, 1.1, "confident"), talk: true } } },
+  // ---- he comes back for more: a TV, a blender, golden headphones
+  { at: "and#4", id: "more", place: "street", key: KDAY, shot: { size: "full", on: [DOOR[0], DOOR[1], DOOR[2] + 0.6], h: 2.4, angle: 0, move: "push", amount: 0.1 },
+    act: { vex: { at: IN_DOOR, pose: phoneUp("smug"), face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] } } },
+  { at: "tv", id: "tv", gag: { prop: "tvBox", id: "tvBox", at: mk(HOME, "porchL", [0.05, 0, 0.1]), ry: 0.35, in: "drop", until: "by" }, sfx: [{ name: "thud", lu: -10 }] },
+  { at: "blender", id: "blender", gag: { prop: "blenderBox", id: "blenderBox", at: mk(HOME, "mat", [0.7, 0, 0.35]), ry: 0.3, in: "drop", until: "by" }, sfx: [{ name: "thud", lu: -10 }] },
+  { at: "golden", id: "golden", act: { vex: { hide: true }, vexg: { hide: false, at: IN_DOOR, pose: { limbs: { handR: [0.4, 1.05], handL: [0.35, 1.05] }, hands: { R: "open", L: "open" }, expr: "proud" }, hold: null, face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] } },
     gag: { fx: "sparkle", on: "vexg", size: 0.7, dy: -0.2 }, sfx: ["ding"], event: [0, 4] },
-  { at: "either", id: "either", act: { vexg: { pose: { limbs: { handR: [0.3, 1.5] }, hands: { R: "point" }, expr: "mischief" }, ...T3(1) } } },
-  // ---- 9 by Friday the neighbours know the trick; the street's boxes vanish
-  { at: "by", id: "by", shot: { size: "full", on: [DX + 1.8, PAV, -5.75], h: 2.1, angle: -6, move: "push", amount: 0.12 },
-    act: { vexg: { at: [DX + 1.3, PAV, -5.8], pose: { limbs: { handR: [0.85, 1.25] }, hands: { R: "open" }, expr: "sneaky" }, ...T3(1) }, hank: { hide: false, at: [DX + 2.3, PAV, -5.7], pose: { limbs: { handR: [0.3, 1.45] }, hands: { R: "open" }, expr: "amazed" }, ...T3(-1) } } },
-  { at: "half", id: "half", via: "dissolve", shot: { size: "full", on: [8.6, PAV, -6.4], h: 4.6, angle: 0, move: "crane", amount: 0.4 }, crowd: "laugh",
-    act: { vexg: { hide: true }, hank: { at: [11.6, PAV, -5.4], pose: { limbs: { handR: [0.25, 0.62], handL: [0.25, 0.6] }, hold: H("parcel", { len: 0.9 }), expr: "mischief" }, view: "front" },
-      ex1: { hide: false, at: [6.6, PAV, -5.4], pose: onPhone("innocent"), view: "front" }, ex2: { hide: false, at: [9.4, PAV, -5.5], pose: { limbs: { handR: [0.25, 0.62], handL: [0.25, 0.6] }, hold: H("parcel", { len: 0.9 }), expr: "smug" }, view: "front" } },
+  { at: "either", id: "either", act: { vexg: { pose: { limbs: { handR: [0.3, 1.5] }, hands: { R: "point" }, expr: "mischief" } } } },
+  // ---- by Friday the neighbours know the trick; the street's boxes vanish
+  { at: "by", id: "by", shot: { size: "two", on: ["vexg", "hank"], move: "push", amount: 0.26 },
+    act: { vexg: { at: mk(HOME, "pavement", [-0.5, 0, 0]), pose: { limbs: { handR: [0.85, 1.25] }, hands: { R: "open" }, expr: "sneaky" }, face: "hank" }, hank: { hide: false, at: mk(HOME, "pavement", [0.55, 0, 0.05]), pose: { limbs: { handR: [0.3, 1.45] }, hands: { R: "open" }, expr: "amazed" }, face: "vexg" } } },
+  { at: "half", id: "half", via: "dissolve", shot: { size: "full", on: mk(HOME, "porch2", [-1.0, 0, 2.2]), h: 4.2, angle: -32, move: "push", amount: 0.26 }, crowd: "laugh",
+    act: { vexg: { hide: true }, hank: { at: mk(HOME, "porch2", [-1.25, 0, 0.35]), pose: { limbs: { handR: [0.25, 0.62], handL: [0.25, 0.6] }, hold: H("parcel", { len: 0.9 }), expr: "mischief" }, face: [0, 0, 20] },
+      ex1: { hide: false, at: mk(HOME, "porch2", [0.6, 0, 0.3]), pose: onPhone("innocent"), face: [7, 0, 20] }, ex2: { hide: false, at: mk(HOME, "pavement", [-6.5, 0, -0.3]), pose: { limbs: { handR: [0.25, 0.62], handL: [0.25, 0.6] }, hold: H("parcel", { len: 0.9 }), expr: "smug" }, face: [-4, 0, 20] } },
     gag: { prop: "streetBoxes", id: "streetBoxes", at: [0, 0, 0], in: "none", until: "every" } },
   { at: "vanishing", id: "vanish", sfx: [{ name: "pop", lu: -10 }, { name: "pop", lu: -12, df: 8 }, { name: "pop", lu: -12, df: 16 }] },
-  // ---- 10 every missing box: a red mark next to the driver's name
-  { at: "every", id: "every", place: "depot", key: SHOP, music: "thin", shot: { size: "full", on: [-0.3, 0, -0.5], h: 2.4, angle: -16, move: "push", amount: 0.14 },
-    act: { ex1: { hide: true }, ex2: { hide: true }, hank: { hide: true }, dex: { hide: false, at: [0.35, 0, 0.0], pose: { limbs: { handR: [0.3, 0.3] }, hold: H("parcel", { len: 0.85 }), expr: "worried" }, ...T3(-1) } },
-    gag: { prop: "recordBoard", id: "record", at: [-0.85, 0, -1.0], ry: 0.25, in: "none" } },
-  { at: "red", id: "red", focus: "record", act: { dex: { pose: { limbs: { handR: [0.3, 0.3] }, hold: H("parcel", { len: 0.85 }), expr: "sad" }, ...T3(-1) } }, sfx: [{ name: "error", lu: -12 }] },
+  // ---- every missing box: a red mark next to the driver's name
+  { at: "every", id: "every", place: "depot", key: KDEPOT, music: "thin", shot: { size: "two", on: ["dex", "record"], move: "push", amount: 0.26 },
+    act: { ex1: { hide: true }, ex2: { hide: true }, hank: { hide: true }, dex: { hide: false, at: mk(DEPOT, "board", [0.9, 0, 0.9]), pose: { limbs: { handR: [0.3, 0.3] }, hold: H("parcel", { len: 0.85 }), expr: "worried" }, face: mk(DEPOT, "board") } },
+    gag: { prop: "recordBoard", id: "record", at: mk(DEPOT, "board"), ry: 0.0, in: "none" } },
+  { at: "red", id: "red", shot: { size: "insert", on: "record", h: 1.2, angle: 0, move: "push", amount: 0.26 }, focus: "record", act: { dex: { pose: { limbs: { handR: [0.3, 0.3] }, hold: H("parcel", { len: 0.85 }), expr: "sad" } } }, sfx: [{ name: "error", lu: -12 }] },
   { at: "name", id: "name", off: 0.2 },
-  // ---- 11 the driver: "I left it on his mat. I swear."
-  { at: "i", id: "iLeft", shot: { size: "close", on: "dex", angle: -10, side: -0.1, move: "push", amount: 0.1 }, focus: "dex", act: { dex: { pose: point(0.85, 0.75, "pleading"), hold: null, talk: true, ...T3(-1) } } },
-  { at: "swear", id: "swear", act: { dex: { pose: { limbs: { handR: [0.12, 1.0] }, hands: { R: "open" }, expr: "pleading" }, talk: true, ...T3(-1) } } },
-  // ---- 12 by winter, the refund pile beside the parked van stands taller than it
-  { at: "by#2", id: "winter", place: "street", key: GREY, music: "build", shot: { size: "full", on: [12.0, 0.8, -4.8], h: 4.6, angle: -16, move: "push", amount: 0.1 },
-    act: { dex: { hide: false, at: [13.4, PAV, -5.0], pose: { limbs: { handR: [0.4, 0.4] }, expr: "worried" }, hold: null, ...T3(-1) } },
-    gag: { prop: "refundPile", id: "pile", at: [12.3, PAV, -5.6], in: "none", until: "monday" } },
-  { at: "taller", id: "taller", shot: { size: "full", on: [11.8, 1.3, -5.0], h: 5.6, angle: -10, move: "crane", amount: 0.8 }, act: { dex: { pose: "shock", expr: "mindblown" } }, kick: 0.03, sfx: [{ name: "impact", lu: -7 }] },
-  // ---- 13 one grey Monday: the scanners get a camera
-  { at: "then#2", id: "monday", place: "depot", key: GREY, music: "calm", shot: { size: "medium", on: "dex", angle: 16, side: 0.2, move: "push", amount: 0.14 },
-    act: { dex: { at: [0.4, 0, 0.4], pose: { limbs: { handR: [0.3, 0.3] }, expr: "exhausted" }, hold: null, ...T3(1) } },
-    gag: { prop: "scannerRack", id: "rack", at: [1.5, 0, -1.3], ry: -0.15, in: "none" } },
-  { at: "scanner#2", id: "scannerW", act: { dex: { pose: scan(0, "confused"), ...T3(1) } } },
-  { at: "camera", id: "camera", act: { dex: { pose: scan(0.9, "amazed"), ...T3(1) } }, gag: { fx: "sparkle", on: "dex", size: 0.6, dy: -0.35 }, sfx: [{ name: "shutter", lu: -6, on_word: true }], event: [0, 4, 8, 12] },
-  // ---- 14 the mystery, on his face
-  { at: "why", id: "why", place: "street", key: DAY, shot: { size: "medium", on: "vexg", angle: -12, side: 0, move: "push", amount: 0.12 },
-    act: { vexg: { hide: false, at: STEP, pose: phoneUp("smug"), ...T3(1) }, dex: { hide: true } }, gag: { fx: "question", on: "vexg", size: 0.8 } },
-  // ---- 15-16 the HOW: the scanner screen: photo, time, GPS pin; rings on door, mat, box
-  { at: "you", id: "how", place: "depot", key: SHOP, music: "calm", caption: 0.84, shot: { size: "insert", on: "big", h: 0.82, angle: 0, move: "push", amount: 0.1 },
-    act: { vexg: { hide: true } }, gag: { prop: "photoScanner", id: "big", origin: "center", at: [0.2, 2.5, 2.2], in: "none", until: "so2" } },
+  // ---- the driver: "I left it on his mat. I swear."
+  { at: "i", id: "iLeft", shot: { size: "close", on: "dex", angle: 0, move: "push", amount: 0.1 }, focus: "dex",
+    act: { dex: { pose: point(0.85, 0.75, "pleading"), hold: null, talk: true, face: [0, 0, 30] } } },
+  { at: "swear", id: "swear", act: { dex: { pose: { limbs: { handR: [0.12, 1.0] }, hands: { R: "open" }, expr: "pleading" }, talk: true } } },
+  // ---- by winter, the refund pile beside the parked van stands taller than it
+  { at: "by#2", id: "winter", place: "street", key: KGREY, music: "build", shot: { size: "full", on: [VAN_X + 1.6, 0.6, VAN_Z - 2.2], h: 5.0, angle: -8, move: "push", amount: 0.1 },
+    act: { dex: { hide: false, at: mk(HOME, "pavement", [0.9, 0, 0.3]), pose: { limbs: { handR: [0.4, 0.4] }, expr: "worried" }, hold: null, face: mk(HOME, "pavement", [-0.6, 0, 0.2]) } },
+    gag: { prop: "refundPile", id: "pile", at: mk(HOME, "pavement", [-0.6, 0, 0.2]), in: "none", until: "monday" } },
+  { at: "taller", id: "taller", shot: { size: "full", on: [VAN_X + 1.6, 1.4, VAN_Z - 2.4], h: 5.4, angle: -2, move: "crane", amount: 0.5 }, act: { dex: { pose: "shock", expr: "mindblown" } }, kick: 0.03, sfx: [{ name: "impact", lu: -7 }] },
+  // ---- one grey Monday: the scanners get a camera
+  { at: "then#2", id: "monday", place: "depot", key: KDEPOTG, music: "calm", shot: { size: "medium", on: "dex", angle: 0, move: "push", amount: 0.26 },
+    act: { dex: { at: mk(DEPOT, "benchFront", [-0.7, 0, 0.5]), pose: { limbs: { handR: [0.3, 0.3] }, expr: "exhausted" }, hold: null, face: mk(DEPOT, "bench") } },
+    gag: { prop: "scannerRack", id: "rack", at: mk(DEPOT, "bench"), in: "none" } },
+  { at: "scanner#2", id: "scannerW", shot: { size: "insert", on: [mk(DEPOT, "bench")[0], 1.2, mk(DEPOT, "bench")[2]], h: 0.8, angle: 0, move: "push", amount: 0.26 }, act: { dex: { pose: scan(0, "confused") } } },
+  { at: "camera", id: "camera", act: { dex: { pose: scan(0.9, "amazed"), face: [0, 0, 30] } }, gag: { fx: "sparkle", on: "dex", size: 0.6, dy: -0.35 }, sfx: [{ name: "shutter", lu: -6, on_word: true }], event: [0, 4, 8, 12] },
+  // ---- the mystery, on his face
+  { at: "why", id: "why", place: "street", key: KDAY, shot: { size: "medium", on: "vexg", angle: 0, move: "push", amount: 0.26 },
+    act: { vexg: { hide: false, at: IN_DOOR, pose: phoneUp("smug"), face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] }, dex: { hide: true } }, gag: { fx: "question", on: "vexg", size: 0.8 } },
+  // ---- the HOW: the scanner screen: photo, time, GPS pin; rings on door, mat, box
+  { at: "you", id: "how", place: "depot", key: KDEPOT, music: "calm", shot: { size: "insert", on: "big", h: 0.82, angle: 0, move: "push", amount: 0.1 },
+    act: { vexg: { hide: true } }, gag: { prop: "photoScanner", id: "big", origin: "center", at: mk(DEPOT, "center", [0.2, 1.6, 1.6]), in: "none", until: "so2" } },
   { at: "photo", id: "photo1", event: [0, 6], sfx: [{ name: "shutter", lu: -8, on_word: true }] },
   { at: "time", id: "time1", sfx: [{ name: "tick", lu: -10 }] },
   { at: "gps", id: "gps", sfx: [{ name: "pop", lu: -9 }] },
-  { at: "receipt", id: "receipt", shot: { size: "insert", on: "big", h: 0.7, angle: 4, move: "push", amount: 0.08 } },
+  { at: "receipt", id: "receipt", shot: { size: "insert", on: "big", h: 0.7, angle: 4, move: "push", amount: 0.26 } },
   { at: "door#2", id: "ydoor", sfx: [{ name: "pop", lu: -12 }] },
   { at: "mat#3", id: "ymat", sfx: [{ name: "pop", lu: -12 }] },
   { at: "box#4", id: "ybox", sfx: [{ name: "pop", lu: -12 }] },
   { at: "214", id: "t214" },
-  // ---- 17 the shop sends one photo
-  { at: "so#2", id: "so2", place: "shop", key: SHOP, music: "build", caption: 0.704, shot: { size: "medium", on: "bigsby", angle: 14, side: 0.2, move: "push", amount: 0.14 },
-    act: { bigsby: { at: BIGSBY, hide: false, pose: onPhone("smug"), ...T3(1) } } },
-  { at: "photo#2", id: "sendPhoto", act: { bigsby: { pose: { limbs: { handR: [0.42, 1.3], handL: [0.85, 1.15] }, hands: { L: "open" }, hold: H("phone"), expr: "mischief" }, ...T3(1) } },
-    gag: { prop: "photoCard", id: "card", origin: "center", at: [-0.42, 1.72, -0.15], in: "pop", until: "his7" } },
-  // ---- 18 the reveal: his box, his own mat, his own gnome
-  { at: "his#7", id: "his7", place: "street", key: DAY, shot: { size: "full", on: [DX - 0.05, PAV, WALL + 1.1], h: 2.2, angle: -8, move: "push", amount: 0.06 }, focus: "box2",
-    act: { vexg: { at: [DX - 0.62, PAV, WALL + 1.5], pose: onPhone("horrified"), ...T3(1) } }, gag: { prop: "parcel", id: "box2", at: MAT, ry: 0.15, in: "none", until: "the19" } },
-  { at: "doormat#3", id: "ownMat", focus: "box2", act: { vexg: { pose: { limbs: { handR: [0.5, 0.5] }, hands: { R: "point" }, expr: "shock" }, hold: null, ...T3(1) } } },
-  { at: "gnome", id: "gnomeW", kick: 0.04, act: { vexg: { pose: { limbs: { handR: [0.45, 1.45] }, hands: { R: "open" }, expr: "mortified" }, ...T3(1) } }, gag: { fx: "sparkle", on: [DX + 0.78, PAV + 0.45, WALL + 1.05], size: 0.45 }, sfx: [{ name: "impact", lu: -3, on_word: true }] },
-  // ---- 19 the red marks vanish
-  { at: "the#19", id: "the19", place: "depot", key: SHOP, music: "full", shot: { size: "full", on: [-0.3, 0, -0.5], h: 2.4, angle: -16, move: "push", amount: 0.12 },
-    act: { vexg: { hide: true }, dex: { hide: false, at: [0.35, 0, 0.0], pose: { limbs: { handR: [0.3, 0.3] }, expr: "relieved" }, hold: null, ...T3(-1) } } },
-  { at: "red#2", id: "red2", focus: "record", act: { dex: { pose: { limbs: { handR: [0.85, 1.35], handL: [0.85, 1.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, ...T3(-1) } }, sfx: [{ name: "pop", lu: -10 }] },
+  // ---- the shop sends one photo
+  { at: "so#2", id: "so2", place: "shop", key: KSHOP, music: "build", shot: { size: "medium", on: "bigsby", angle: 0, move: "push", amount: 0.26 },
+    act: { bigsby: { at: BIGSBY, hide: false, pose: onPhone("smug"), face: [BIGSBY[0], 0, BIGSBY[2] + 5] } } },
+  { at: "just#2", id: "cardIn", shot: { size: "insert", on: "card", h: 0.75, angle: 0, move: "push", amount: 0.26 } },
+  { at: "photo#2", id: "sendPhoto", act: { bigsby: { pose: { limbs: { handR: [0.42, 1.3], handL: [0.85, 1.15] }, hands: { L: "open" }, hold: H("phone"), expr: "mischief" } } },
+    gag: { prop: "photoCard", id: "card", origin: "center", at: [BIGSBY[0] + 0.55, 1.75, BIGSBY[2] + 0.35], in: "pop", until: "his7" } },
+  // ---- the reveal: his box, his own mat, his own gnome
+  { at: "his#7", id: "his7", place: "street", key: KDAY, shot: { size: "full", on: [MAT[0] - 0.3, MAT[1], MAT[2] + 0.1], h: 2.1, angle: 0, move: "push", amount: 0.26 }, focus: "box2",
+    act: { vexg: { at: mk(HOME, "mat", [-0.62, 0, 0.12]), pose: onPhone("horrified"), face: MAT } }, gag: { prop: "parcel", id: "box2", at: MAT, ry: 0.15, in: "none", until: "the19" } },
+  { at: "doormat#3", id: "ownMat", focus: "box2", act: { vexg: { pose: { limbs: { handR: [0.5, 0.5] }, hands: { R: "point" }, expr: "shock" }, hold: null } } },
+  { at: "right", id: "gnomeIn", shot: { size: "insert", on: "gnome2", h: 0.7, angle: -10, move: "push", amount: 0.26 } },
+  { at: "gnome", id: "gnomeW", kick: 0.04, focus: "gnome2", act: { vexg: { pose: { limbs: { handR: [0.45, 1.45] }, hands: { R: "open" }, expr: "mortified" }, face: GNOME } }, gag: [{ prop: "nothing", id: "gnome2", at: GNOME, in: "none" }, { fx: "sparkle", on: [GNOME[0], GNOME[1] + 0.45, GNOME[2]], size: 0.45 }], sfx: [{ name: "impact", lu: -3, on_word: true }] },
+  // ---- the red marks vanish
+  { at: "the#19", id: "the19", place: "depot", key: KDEPOT, music: "full", shot: { size: "two", on: ["dex", "record"], move: "push", amount: 0.26 },
+    act: { vexg: { hide: true }, dex: { hide: false, at: mk(DEPOT, "board", [0.9, 0, 0.9]), pose: { limbs: { handR: [0.3, 0.3] }, expr: "relieved" }, hold: null, face: mk(DEPOT, "board") } } },
+  { at: "red#2", id: "red2", shot: { size: "insert", on: "record", h: 1.2, angle: 0, move: "push", amount: 0.26 }, focus: "record", act: { dex: { pose: { limbs: { handR: [0.85, 1.35], handL: [0.85, 1.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, face: [0, 0, 30] } }, sfx: [{ name: "pop", lu: -10 }] },
   { at: "boxes#2", id: "boxes2", off: 0.1 },
-  // ---- 20 the payoff: the photo of the door, then back into the van
-  { at: "and#8", id: "and8", place: "street", key: DUSK, shot: { size: "full", on: [DX - 0.4, PAV, WALL + 1.2], h: 2.2, angle: 16, side: 0.05, move: "push", amount: 0.12 },
-    act: { dex: { at: BESIDE, pose: scan(0, "focused"), ...T3(1) } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
-  { at: "photographs", id: "photographs", act: { dex: { pose: scan(0.9, "focused"), ...T3(1), lead: 1 } }, gag: { fx: "sparkle", on: "dex", size: 0.5, dy: -0.4 }, sfx: [{ name: "shutter", lu: -4, on_word: true }], event: [0, 4] },
-  { at: "climbing", id: "climbing", act: { dex: { walk: [VANAT - 0.4, PAV, -5.0], speed: 2.2, pose: { limbs: { handR: [0.85, 1.35] }, hands: { R: "open" }, expr: "happy" }, hold: null, ...T3(1) } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
+  // ---- the payoff: the photo of the door, then back into the van
+  { at: "and#8", id: "and8", place: "street", key: KDUSK, shot: { size: "full", on: [MAT[0] - 0.4, MAT[1], MAT[2] + 0.5], h: 2.2, angle: 14, move: "push", amount: 0.26 },
+    act: { dex: { at: BESIDE, pose: scan(0, "focused"), face: DOOR } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
+  { at: "photographs", id: "photographs", act: { dex: { pose: scan(0.9, "focused"), lead: 1 } }, gag: { fx: "sparkle", on: "dex", size: 0.5, dy: -0.4 }, sfx: [{ name: "shutter", lu: -4, on_word: true }], event: [0, 4] },
+  { at: "climbing", id: "climbing", act: { dex: { walk: mk(HOME, "steps", [0, 0, 0.5]), speed: 1.8, pose: { limbs: { handR: [0.85, 1.35] }, hands: { R: "open" }, expr: "happy" }, hold: null } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
 ];
 
+const BRAND = { ...BRANDS.ours, shine: false, torsoShine: false, ink: "#1a1012" }; // this film: no drawn face shine (it split the face), a warm near-black ink (light study)
 const board: Board = {
-  id: "doorphoto", title: "Why Delivery Drivers Started Photographing Your Door", words: WORDS, brand: BRANDS.ours, voOffset: 0, tail: 0.5,
+  id: "doorphoto", title: "Why Delivery Drivers Started Photographing Your Door", words: WORDS, brand: BRAND, voOffset: 0, tail: 0.6, walkRate: 3.6,
   cast: {
     dex: castEntry("courier"),
     vex: castEntry("vex"),
-    vexg: castEntry("vex", { neck: { style: "headphonesNeck", color: "#f5c21b" } }),
+    vexg: castEntry("vex", { hat: { style: "headphones", color: "#f5c21b", accent: "#d9a520" } }),
     bigsby: castEntry("bigsby"),
     hank: castEntry("neighbor"),
     ex1: { spec: extra(7), height: 1.66 }, ex2: { spec: extra(12), height: 1.72 },
   },
   places: {
-    street: { set: "street", opts: { era: "modern" }, dress: STREET_DRESS,
-      vehicles: { van: { kind: "glb", opts: { url: "sets/van/van.glb", ...VAN }, path: [[4.5, 0, -1.8], [VANAT, 0, -1.8]], from: "open", to: "last", ease: "stop",
-        then: [{ path: [[VANAT, 0, -1.8], [34, 0, -1.8]], from: "drove", to: "neverArrived", ease: "start" },
-          { path: [[10.0, 0, -1.8], [10.01, 0, -1.8]], from: "winter", to: "taller" },
-          { path: [[VANAT, 0, -1.8], [VANAT + 0.01, 0, -1.8]], from: "and8", to: "photographs" }] } } },
-    shop: { set: "office", opts: { era: "modern" } },
-    depot: { set: "workshop", opts: { garage: true }, dress: DEPOT_DRESS },
+    street: { set: "baked", baked: { dir: "sets/home", manifest: HOME },
+      vehicles: { van: { kind: "glb", opts: { url: "sets/van/van.glb", ...VAN, look: "pbr" }, path: [[VAN_X - 7, 0, VAN_Z], [VAN_X, 0, VAN_Z]], from: "open", to: "last", ease: "stop",
+        then: [{ path: [[VAN_X, 0, VAN_Z], [VAN_X + 26, 0, VAN_Z]], from: "drove", to: "neverArrived", ease: "start" },
+          { path: [[VAN_X, 0, VAN_Z], [VAN_X + 0.01, 0, VAN_Z]], from: "winter", to: "taller" },
+          { path: [[VAN_X, 0, VAN_Z], [VAN_X + 0.01, 0, VAN_Z]], from: "and8", to: "photographs" }] } } },
+    shop: { set: "baked", baked: { dir: "sets/office", manifest: OFFICE } },
+    depot: { set: "baked", baked: { dir: "sets/depot", manifest: DEPOT } },
   },
-  props: { parcel, tapScanner: (api) => bigScanner(api, "tick"), photoScanner: (api) => bigScanner(api, "photo"), scannerRack, tvBox, blenderBox, phonesBox, streetBoxes, refundPile, recordBoard, monitor, photoCard },
+  props: { parcel, screenTick, tapScanner: (api) => bigScanner(api, "tick"), photoScanner: (api) => bigScanner(api, "photo"), scannerRack, tvBox, blenderBox, phonesBox, streetBoxes: streetBoxes2, refundPile, recordBoard, monitor, photoCard, nothing: () => new THREE.Group() },
   beats,
 };
 export const doorphotoShort = boardProject(board);

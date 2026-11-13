@@ -50,7 +50,7 @@ const board: Board = { id: "bakedtest", title: "baked set test", words, brand: B
       { model: "cardboard_box_01", at: [2.55, 0, -0.55], height: 0.5, ry: 0.3 },
       { model: "cardboard_box_01", at: [2.5, 0.5, -0.5], height: 0.38, ry: -0.2 },
       { model: "planter_box_01", at: [-1.3, 0, -2.95], height: 0.45 } ] },
-    road: { set: "street", opts: { era: "modern" }, vehicles: { van2: { kind: "glb", opts: { url: "sets/van/van.glb", ...VAN }, path: [[-14, 0, -1.8], [0.4, 0, -1.8]], from: "road", to: "roadF", ease: "stop" } } },
+    road: { set: "street", opts: { era: "modern" }, vehicles: { van2: { kind: "glb", opts: { url: "sets/van/van.glb", ...VAN, look: "pbr" }, path: [[-14, 0, -1.8], [0.4, 0, -1.8]], from: "road", to: "roadF", ease: "stop" } } },
     depot: { set: "workshop", opts: { garage: true }, dress: [
       ...shelfOfBoxes(0.9, -3.4, 1), ...shelfOfBoxes(2.1, -3.4, 2), ...shelfOfBoxes(3.3, -3.4, 3),
       { model: "cardboard_box_01", at: [0.6, 0, -2.5], height: 0.55, ry: 0.2 },

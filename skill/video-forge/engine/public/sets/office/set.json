@@ -1,7 +1,7 @@
 {
  "set": "office",
  "glb": "set.glb",
- "lmScale": 10.4112,
+ "lmScale": 3.1548,
  "tonemap": "agx",
  "lightmaps": {
   "FLOOR_S_off_floor": "lm/FLOOR_S_off_floor.png",
@@ -10,34 +10,132 @@
   "S_off_wain": "lm/S_off_wain.png",
   "S_off_trim": "lm/S_off_trim.png",
   "S_off_view": "lm/S_off_view.png",
-  "S_metal_office_desk": "lm/S_metal_office_desk.png",
-  "S_Shelf_01": "lm/S_Shelf_01.png",
-  "S_cardboard_box_01": "lm/S_cardboard_box_01.png",
-  "plant": "lm/plant.png",
-  "S_chair_fabric": "lm/S_chair_fabric.png",
-  "S_chair_metal": "lm/S_chair_metal.png",
-  "S_cab_metal": "lm/S_cab_metal.png",
-  "S_cab_handle": "lm/S_cab_handle.png",
-  "S_lamp_metal": "lm/S_lamp_metal.png",
-  "S_off_lamp_glow": "lm/S_off_lamp_glow.png",
+  "S_slat": "lm/S_slat.png",
+  "S_off_beam": "lm/S_off_beam.png",
+  "S_off_oak": "lm/S_off_oak.png",
+  "S_case_back": "lm/S_case_back.png",
+  "bcAen6": "lm/bcAen6.png",
+  "S_card3": "lm/S_card3.png",
+  "S_plabel": "lm/S_plabel.png",
+  "S_ca83a2a_65": "lm/S_ca83a2a_65.png",
+  "S_c7a2e22_65": "lm/S_c7a2e22_65.png",
+  "S_c3e4a36_65": "lm/S_c3e4a36_65.png",
+  "S_cc99a48_65": "lm/S_cc99a48_65.png",
+  "S_cd8b878_65": "lm/S_cd8b878_65.png",
+  "S_c9a4a28_65": "lm/S_c9a4a28_65.png",
+  "S_ceramic_vase_01": "lm/S_ceramic_vase_01.png",
+  "bcAen24": "lm/bcAen24.png",
+  "S_card1": "lm/S_card1.png",
+  "S_c5c3a26_65": "lm/S_c5c3a26_65.png",
+  "S_ce2d2ac_65": "lm/S_ce2d2ac_65.png",
+  "S_cb8742e_65": "lm/S_cb8742e_65.png",
+  "S_card0": "lm/S_card0.png",
+  "bcAph40": "lm/bcAph40.png",
+  "S_c6e4a2e_65": "lm/S_c6e4a2e_65.png",
+  "S_c8a6a3a_65": "lm/S_c8a6a3a_65.png",
+  "bcAen52": "lm/bcAen52.png",
+  "bcApl53": "lm/bcApl53.png",
+  "S_brass_m": "lm/S_brass_m.png",
+  "S_ca86a3a_65": "lm/S_ca86a3a_65.png",
+  "bcAph78": "lm/bcAph78.png",
+  "S_cefe4cc_80": "lm/S_cefe4cc_80.png",
+  "S_off_art_img": "lm/S_off_art_img.png",
+  "S_frame_gold": "lm/S_frame_gold.png",
+  "off_clock": "lm/off_clock.png",
+  "S_sconce_shade": "lm/S_sconce_shade.png",
+  "S_bulb_m": "lm/S_bulb_m.png",
+  "off_plantR": "lm/off_plantR.png",
+  "off_oval": "lm/off_oval.png",
+  "S_off_darkwood": "lm/S_off_darkwood.png",
+  "S_off_pad": "lm/S_off_pad.png",
+  "S_off_leather": "lm/S_off_leather.png",
+  "S_chrome_m": "lm/S_chrome_m.png",
+  "S_c26221e_50": "lm/S_c26221e_50.png",
+  "S_c2a2624_45": "lm/S_c2a2624_45.png",
+  "S_off_screen": "lm/S_off_screen.png",
+  "S_cd9d0c0_60": "lm/S_cd9d0c0_60.png",
+  "S_cbcb2a2_60": "lm/S_cbcb2a2_60.png",
+  "S_cd9d0c0_50": "lm/S_cd9d0c0_50.png",
+  "S_banker_shade": "lm/S_banker_shade.png",
   "S_phone_m": "lm/S_phone_m.png",
   "S_off_phone_k": "lm/S_off_phone_k.png",
   "S_paper_m": "lm/S_paper_m.png",
-  "S_cooler_m": "lm/S_cooler_m.png",
-  "S_off_cooler_water": "lm/S_off_cooler_water.png",
+  "S_c3a2a1e_50": "lm/S_c3a2a1e_50.png",
+  "S_ce9dcc4_30": "lm/S_ce9dcc4_30.png",
+  "S_c5a3a24_50": "lm/S_c5a3a24_50.png",
+  "S_cc8962e_40": "lm/S_cc8962e_40.png",
+  "S_c2a2420_40": "lm/S_c2a2420_40.png",
+  "S_ca8402a_40": "lm/S_ca8402a_40.png",
+  "S_binder_notebook": "lm/S_binder_notebook.png",
+  "FLOOR_S_off_rug": "lm/FLOOR_S_off_rug.png",
+  "S_bin_m": "lm/S_bin_m.png",
+  "S_cc08a3a_50": "lm/S_cc08a3a_50.png",
+  "S_cefe8d6_70": "lm/S_cefe8d6_70.png",
+  "S_c2a221c_70": "lm/S_c2a221c_70.png",
+  "S_c8a3a2a_50": "lm/S_c8a3a2a_50.png",
+  "S_c5a4030_50": "lm/S_c5a4030_50.png",
+  "bcBpl201": "lm/bcBpl201.png",
+  "bcBpl213": "lm/bcBpl213.png",
+  "bcBpl224": "lm/bcBpl224.png",
+  "S_c3a4a3a_50": "lm/S_c3a4a3a_50.png",
+  "S_coat_fab": "lm/S_coat_fab.png",
+  "S_scarf_fab": "lm/S_scarf_fab.png",
+  "S_hat_m": "lm/S_hat_m.png",
+  "S_c8a3a24_50": "lm/S_c8a3a24_50.png",
+  "S_cushion_fab": "lm/S_cushion_fab.png",
+  "S_cd8a050_50": "lm/S_cd8a050_50.png",
+  "S_ca84a2a_50": "lm/S_ca84a2a_50.png",
+  "S_cefe4cc_50": "lm/S_cefe4cc_50.png",
+  "S_cefe6d6_30": "lm/S_cefe6d6_30.png",
+  "S_cc99a48_60": "lm/S_cc99a48_60.png",
+  "S_c5c3a26_60": "lm/S_c5c3a26_60.png",
+  "S_c9a4a28_60": "lm/S_c9a4a28_60.png",
+  "S_ca86a3a_60": "lm/S_ca86a3a_60.png",
+  "S_bronze_m": "lm/S_bronze_m.png",
+  "S_floor_shade": "lm/S_floor_shade.png",
+  "S_off_artL1_img": "lm/S_off_artL1_img.png",
+  "S_off_artL2_img": "lm/S_off_artL2_img.png",
+  "S_off_butcher": "lm/S_off_butcher.png",
+  "S_pmailer": "lm/S_pmailer.png",
+  "S_ptape": "lm/S_ptape.png",
+  "S_bubble_m": "lm/S_bubble_m.png",
+  "S_cc0602a_50": "lm/S_cc0602a_50.png",
+  "off_laptop": "lm/off_laptop.png",
+  "S_cage_m": "lm/S_cage_m.png",
+  "S_card2": "lm/S_card2.png",
   "S_pin_frame": "lm/S_pin_frame.png",
   "S_cork_m": "lm/S_cork_m.png",
   "S_notef4f0ea": "lm/S_notef4f0ea.png",
-  "S_notef0a0b8": "lm/S_notef0a0b8.png",
-  "S_notef2e86a": "lm/S_notef2e86a.png",
-  "S_note8ad0f0": "lm/S_note8ad0f0.png",
-  "S_slat": "lm/S_slat.png",
-  "S_off_poster": "lm/S_off_poster.png",
-  "S_off_pend_1_shade": "lm/S_off_pend_1_shade.png",
-  "S_off_pend_1_glow": "lm/S_off_pend_1_glow.png",
-  "S_off_pend2_shade": "lm/S_off_pend2_shade.png",
-  "S_off_pend2_glow": "lm/S_off_pend2_glow.png",
-  "plant_001": "lm/plant_001.png"
+  "S_notef2e08a": "lm/S_notef2e08a.png",
+  "S_notee8d0a0": "lm/S_notee8d0a0.png",
+  "S_notef0b878": "lm/S_notef0b878.png",
+  "S_cab_warm": "lm/S_cab_warm.png",
+  "S_cefe6d2_70": "lm/S_cefe6d2_70.png",
+  "off_files_plant321": "lm/off_files_plant321.png",
+  "S_cc08a3a_60": "lm/S_cc08a3a_60.png",
+  "S_c8a3a2a_60": "lm/S_c8a3a2a_60.png",
+  "S_c5a4030_60": "lm/S_c5a4030_60.png",
+  "S_cooler_m": "lm/S_cooler_m.png",
+  "S_off_cooler_water": "lm/S_off_cooler_water.png",
+  "S_Shelf_01": "lm/S_Shelf_01.png",
+  "S_off_cal": "lm/S_off_cal.png",
+  "S_cord_m": "lm/S_cord_m.png",
+  "S_enamel3a2c22": "lm/S_enamel3a2c22.png",
+  "S_shade_in": "lm/S_shade_in.png",
+  "bcAen6_001": "lm/bcAen6_001.png",
+  "bcAen24_001": "lm/bcAen24_001.png",
+  "bcAph40_001": "lm/bcAph40_001.png",
+  "bcAen52_001": "lm/bcAen52_001.png",
+  "bcApl53_001": "lm/bcApl53_001.png",
+  "bcAph78_001": "lm/bcAph78_001.png",
+  "off_plantR_001": "lm/off_plantR_001.png",
+  "off_oval_001": "lm/off_oval_001.png",
+  "off_oval_002": "lm/off_oval_002.png",
+  "bcBpl201_001": "lm/bcBpl201_001.png",
+  "bcBpl213_001": "lm/bcBpl213_001.png",
+  "bcBpl224_001": "lm/bcBpl224_001.png",
+  "off_laptop_001": "lm/off_laptop_001.png",
+  "off_files_plant321_001": "lm/off_files_plant321_001.png"
  },
  "marks": {
   "desk": [
@@ -69,24 +167,45 @@
    -2.3,
    0.0,
    -1.0
+  ],
+  "monitor": [
+   0.2,
+   0.95,
+   -1.77
+  ],
+  "phone": [
+   -0.08,
+   0.8,
+   -1.3
+  ],
+  "sofa": [
+   -1.9,
+   0.0,
+   2.3
+  ],
+  "counter": [
+   2.1,
+   0.0,
+   -1.3
   ]
  },
  "floors": [
-  "FLOOR_S_off_floor"
+  "FLOOR_S_off_floor",
+  "FLOOR_S_off_rug"
  ],
  "realtime": [],
  "wide": {
   "pos": [
-   0.4,
+   0.35,
    1.7,
-   4.8
+   5.3
   ],
   "look": [
-   0.2,
-   1.4,
+   0.25,
+   1.32,
    -1.6
   ],
-  "fov": 46
+  "fov": 48
  },
  "camBox": {
   "min": [
@@ -105,11 +224,101 @@
  "light": "interior",
  "sun": {
   "dir": [
-   0.351,
-   0.621,
-   -0.701
+   0.3,
+   0.55,
+   -0.78
   ],
-  "color": "#ffe6c4",
-  "energy": 4.0
- }
+  "color": "#ffd9a8",
+  "energy": 2.2
+ },
+ "practicals": [
+  {
+   "name": "off_sc0_L",
+   "pos": [
+    -0.45,
+    1.95,
+    -2.43
+   ],
+   "kind": "point",
+   "color": "#ffd2a0",
+   "power": 23.8
+  },
+  {
+   "name": "off_sc1_L",
+   "pos": [
+    0.55,
+    1.95,
+    -2.43
+   ],
+   "kind": "point",
+   "color": "#ffd2a0",
+   "power": 23.8
+  },
+  {
+   "name": "off_lamp_L",
+   "pos": [
+    1.355,
+    1.03,
+    -1.761
+   ],
+   "kind": "spot",
+   "color": "#ffc890",
+   "power": 15.3
+  },
+  {
+   "name": "off_floorlamp_L",
+   "pos": [
+    -2.85,
+    1.46,
+    2.55
+   ],
+   "kind": "point",
+   "color": "#ffd2a0",
+   "power": 68.0
+  },
+  {
+   "name": "off_scR_L",
+   "pos": [
+    3.03,
+    2.08,
+    0.35
+   ],
+   "kind": "point",
+   "color": "#ffd2a0",
+   "power": 27.2
+  },
+  {
+   "name": "off_pendD_L",
+   "pos": [
+    0.85,
+    2.345,
+    -1.7
+   ],
+   "kind": "spot",
+   "color": "#ffd2a0",
+   "power": 161.5
+  },
+  {
+   "name": "off_pendC_L",
+   "pos": [
+    0.3,
+    2.385,
+    0.3
+   ],
+   "kind": "spot",
+   "color": "#ffd2a0",
+   "power": 391.0
+  },
+  {
+   "name": "off_pendF_L",
+   "pos": [
+    0.8,
+    2.345,
+    2.3
+   ],
+   "kind": "spot",
+   "color": "#ffd2a0",
+   "power": 20.4
+  }
+ ]
 }

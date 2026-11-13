@@ -222,16 +222,17 @@ export const CARD_U = {
 export function cardShade(mat: THREE.MeshLambertMaterial) {
   mat.emissive = new THREE.Color(0x000000);
   mat.emissiveIntensity = 0;
-  addPatch(mat, "vfcard-v6", (sh) => {
-    Object.assign(sh.uniforms, CARD_U);
+  const uExpo = (mat.userData.uExpo ??= { value: 1 }); // 1.11.2: per-card exposure (a card takes the local light: 0.4 in a dark corner .. 1 in a pool)
+  addPatch(mat, "vfcard-v7", (sh) => {
+    Object.assign(sh.uniforms, CARD_U); sh.uniforms.uExpo = uExpo;
     sh.fragmentShader = sh.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform vec3 uTint; uniform float uFloor; uniform float uGrad; uniform vec3 uSide; uniform vec3 uRimC; uniform float uRimA; uniform vec3 uShadeC; uniform float uTintMix;")
+      .replace("#include <common>", "#include <common>\nuniform vec3 uTint; uniform float uFloor; uniform float uGrad; uniform vec3 uSide; uniform vec3 uRimC; uniform float uRimA; uniform vec3 uShadeC; uniform float uTintMix; uniform float uExpo;")
       .replace("#include <lights_fragment_begin>", sunVisChunk())
       .replace("#include <opaque_fragment>", `
   {
     vec3 tk = mix(vec3(1.0), uTint, uTintMix);
     tk /= pow(max(dot(tk, vec3(0.2126, 0.7152, 0.0722)), 0.2), 0.7);
-    vec3 cardCol = diffuseColor.rgb * tk * mix(uShadeC, vec3(1.0), smoothstep(0.32, 0.68, sunVis));
+    vec3 cardCol = diffuseColor.rgb * tk * mix(uShadeC, vec3(1.0), smoothstep(0.32, 0.68, sunVis)) * uExpo;
     #if NUM_DIR_LIGHTS > 0
       vec3 sv = directionalLights[0].direction;
       float side = sign(sv.x) * smoothstep(0.0, 0.35, abs(sv.x));

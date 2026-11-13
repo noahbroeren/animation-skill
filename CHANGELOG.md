@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.11.2 - 2026-11-13
+- **Every side of a character.** A continuous turnaround (`KPose.yaw`, `viewOfYaw`): 16+ distinct drawings from front
+  to back, with new `back` and `threeBack` views (hair over the skull, ears at their true positions, a plain garment
+  back with a seam or vent, arms and props behind the back; short hair under a hat so a bald head never reads as a blank
+  face). On a board, `act.face` / `act.yaw` gives a character a heading in the world and the card draws the side the
+  camera sees, every frame, also while walking. Sheet: `--project castsheet` pages 9-12.
+- **A frame-by-frame study of the reference's newest short** (`references/research/newest-reference-short-2026-11.md`):
+  the world is rendered and only the characters are drawn. Applied: Blender sets with practicals, pools and dense
+  dressing (home, office, depot), cards that take the local light (`act.light`), matte cloth and no drawn face shine
+  (brand `torsoShine` / `shine`), bigger and centred heads (`HEAD_FRAMING`), depth of field nearly off, a hard bloom
+  knee, sharpening (`look.softness < 0`), ordered SSAO noise, faster walks (`Board.walkRate`), music ~17 dB under the voice.
+- **The van, premium and plain:** no livery, white clearcoat with a warm vertical gradient, mid-grey seams that follow
+  the body, a sky / horizon / ground environment for paint, chrome and glass (`look: "pbr"`, `horizonEnv`); toon models
+  get a constant-width ink hull (`lib/three/hull.ts`) instead of the screen-space ink that broke into crawling dashes.
+- **Narration no longer clipped:** `audio/tighten.py` finds the real word ends in the audio (TTS aligner ends are
+  ~0.19 s early) and only cuts inside true silence, with tail and attack guards and equal-power fades.
+- **Hands:** a hand that holds something grips it (no open fingers or pointing finger over a phone); a new smartphone
+  drawing held in the hand; Vex loses the scar; headphones sit on the head instead of round the neck.
+- Fixed: coplanar porch canopy and roof in `build_home` (z-fighting flicker); the record board's marks stay on the board.
+- Demo `doorphoto` v3 on the baked sets with the new views, framing and audio.
+
 ## 1.11.1 - 2026-11-13
 - **The mix, as meant: hero objects from Blender, the world in the engine's style.** Blender models are now
   cel-shaded and inked like the world by default, so they carry detail without standing out: `kind: "glb"` vehicles

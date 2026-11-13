@@ -114,7 +114,8 @@ void main(){
   vec3 P = viewPos(vUv), N = normalize(nc.xyz);
   float zm = -perspectiveDepthToViewZ(textureLod(tMainDepth, vUv, 0.0).x, cNear, cFar);
   if (zm < -P.z * 0.985 - 0.03) { gl_FragColor = vec4(0.0); return; }      // a character card is in front
-  float rot = ign(gl_FragCoord.xy) * 6.2831853;
+  vec2 bq = mod(floor(gl_FragCoord.xy), 4.0); float bay = mod(bq.x * 8.0 + bq.y * 4.0 + mod(bq.x + bq.y, 2.0) * 2.0 + floor(bq.y / 2.0), 16.0); // 1.11.2: a 4x4 ordered rotation the 4x4 blur integrates exactly (screen-locked noise read as grain on moving models)
+  float rot = (bay + 0.5) / 16.0 * 6.2831853;
   vec3 T = normalize(cross(N, abs(N.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), B = cross(N, T);
   float rad = radius * clamp(-P.z / 6.0, 0.35, 2.5);                         // grows with distance: stays visible in wide shots
   float occ = 0.0;
@@ -227,7 +228,7 @@ uniform sampler2D tColor; uniform float threshold; varying vec2 vUv;
 void main(){
   vec3 c = texture2D(tColor, vUv).rgb;
   float l = max(c.r, max(c.g, c.b));
-  float knee = threshold * 0.5;
+  float knee = threshold * 0.1; // 1.11.2: a hard knee, white paint and walls no longer feed the bloom (the reference's whites have no halo)
   float soft = clamp(l - threshold + knee, 0.0, 2.0 * knee);
   soft = soft * soft / (4.0 * knee + 1e-4);
   float k = max(soft, l - threshold) / max(l, 1e-4);
@@ -292,11 +293,11 @@ void main(){
   vec2 ca = cdir * r2 * 4.0 * chroma * u * texel;           // corners shift most
   vec3 c;
   c.r = texture2D(tColor, vUv + ca).r; c.g = texture2D(tColor, vUv).g; c.b = texture2D(tColor, vUv - ca).b;
-  if (softness > 0.0) {
+  if (softness != 0.0) { // > 0 softens, < 0 sharpens (unsharp mask, 1.11.2)
     vec2 o = texel * u * 0.9;
     vec3 b = (texture2D(tColor, vUv + vec2(o.x, 0.)).rgb + texture2D(tColor, vUv - vec2(o.x, 0.)).rgb
             + texture2D(tColor, vUv + vec2(0., o.y)).rgb + texture2D(tColor, vUv - vec2(0., o.y)).rgb) * 0.25;
-    c = mix(c, b, softness);
+    c = max(mix(c, b, softness), vec3(0.0));
   }
   vec3 bl = texture2D(tBloom, vUv).rgb;
   c += bl * bloomStrength + bl * halation * vec3(1.0, 0.25, 0.1);

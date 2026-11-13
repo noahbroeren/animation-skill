@@ -31,6 +31,7 @@ export type ModelOpts = {
   castShadow?: boolean; receiveShadow?: boolean;
   recolor?: Record<string, string>; // material name -> colour (Kenney-style palettes)
   groundAlign?: boolean; // put the bottom at y = 0 (default true)
+  onLoad?: (model: THREE.Object3D) => void; // after the model is in the holder (e.g. addHull)
 };
 
 export function loadModel(ctx: StageCtx, url: string, o: ModelOpts = {}): THREE.Group {
@@ -53,7 +54,7 @@ export function loadModel(ctx: StageCtx, url: string, o: ModelOpts = {}): THREE.
     const size = box.getSize(new THREE.Vector3());
     if (o.height && size.y > 0) m.scale.multiplyScalar(o.height / size.y);
     if (o.groundAlign !== false) { const b2 = new THREE.Box3().setFromObject(m); m.position.y -= b2.min.y; }
-    holder.add(m);
+    holder.add(m); o.onLoad?.(m);
   }));
   return holder;
 }

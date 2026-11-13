@@ -66,7 +66,8 @@ const SIZES: Record<ShotSize, { lo: number; hi: number; fill: number; fov: numbe
  *  line from the top, per size (CU 20 % / 37 %, MCU 13 % / 44 %, FS 6 % / 45 %; ECU crops the crown at >= 30 %). Before,
  *  our medium put the head at 22 % with the eyes at 30 % from the top: crowns cut off, faces too big. */
 export const HEAD_FRAMING: Partial<Record<ShotSize, { head: number; eye: number }>> = {
-  xclose: { head: 0.32, eye: 0.47 }, close: { head: 0.2, eye: 0.37 }, medium: { head: 0.13, eye: 0.44 }, full: { head: 0.065, eye: 0.45 }, low: { head: 0.08, eye: 0.42 },
+  /* 1.11.2 (the reference's newest short): bigger heads, eyes higher: medium head 32 % of the width (= 0.18 of the height) with the eyes at 40 %, close-ups 0.45-0.50 */
+  xclose: { head: 0.34, eye: 0.48 }, close: { head: 0.25, eye: 0.46 }, medium: { head: 0.17, eye: 0.40 }, full: { head: 0.075, eye: 0.42 }, low: { head: 0.09, eye: 0.42 },
 };
 const rad = (d: number) => (d * Math.PI) / 180;
 const clampBox = (p: V3, box?: { min: V3; max: V3 }): V3 => (box ? [Math.min(box.max[0], Math.max(box.min[0], p[0])), Math.min(box.max[1], Math.max(box.min[1], p[1])), Math.min(box.max[2], Math.max(box.min[2], p[2]))] : p);

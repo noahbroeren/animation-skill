@@ -1,13 +1,15 @@
 {
  "set": "depot",
  "glb": "set.glb",
- "lmScale": 6.8903,
+ "lmScale": 3.9866,
  "tonemap": "agx",
  "lightmaps": {
   "FLOOR_S_dep_floor": "lm/FLOOR_S_dep_floor.png",
   "S_dep_ceil_m": "lm/S_dep_ceil_m.png",
   "S_dep_wall": "lm/S_dep_wall.png",
   "S_dep_trim": "lm/S_dep_trim.png",
+  "S_dep_dado": "lm/S_dep_dado.png",
+  "S_c7a5a34_60": "lm/S_c7a5a34_60.png",
   "S_dep_yard_m": "lm/S_dep_yard_m.png",
   "S_dep_sky": "lm/S_dep_sky.png",
   "S_dep_tree0_bark": "lm/S_dep_tree0_bark.png",
@@ -19,66 +21,60 @@
   "S_dep_tree3_bark": "lm/S_dep_tree3_bark.png",
   "S_dep_tree3_leaf": "lm/S_dep_tree3_leaf.png",
   "S_dep_fence": "lm/S_dep_fence.png",
-  "S_lens_head_001": "lm/S_lens_head_001.png",
-  "S_lens_tail_001": "lm/S_lens_tail_001.png",
-  "S_van_glass_001": "lm/S_van_glass_001.png",
-  "S_van_logo_m1_001": "lm/S_van_logo_m1_001.png",
-  "S_van_logo_m_1_001": "lm/S_van_logo_m_1_001.png",
-  "S_van_seat_001": "lm/S_van_seat_001.png",
-  "S_van_stripe_001": "lm/S_van_stripe_001.png",
-  "S_van_trim_002": "lm/S_van_trim_002.png",
-  "S_van_trim_001": "lm/S_van_trim_001.png",
-  "S_van_paint_001": "lm/S_van_paint_001.png",
-  "dep_van0_WHEEL_FL": "lm/dep_van0_WHEEL_FL.png",
-  "dep_van0_WHEEL_FR": "lm/dep_van0_WHEEL_FR.png",
-  "dep_van0_WHEEL_RL": "lm/dep_van0_WHEEL_RL.png",
-  "dep_van0_WHEEL_RR": "lm/dep_van0_WHEEL_RR.png",
-  "S_lens_head_002": "lm/S_lens_head_002.png",
-  "S_lens_tail_002": "lm/S_lens_tail_002.png",
-  "S_van_glass_002": "lm/S_van_glass_002.png",
-  "S_van_logo_m1_002": "lm/S_van_logo_m1_002.png",
-  "S_van_logo_m_1_002": "lm/S_van_logo_m_1_002.png",
-  "S_van_seat_002": "lm/S_van_seat_002.png",
-  "S_van_stripe_002": "lm/S_van_stripe_002.png",
-  "S_van_trim_003": "lm/S_van_trim_003.png",
-  "S_van_trim_004": "lm/S_van_trim_004.png",
-  "S_van_paint_002": "lm/S_van_paint_002.png",
-  "dep_van1_WHEEL_FL": "lm/dep_van1_WHEEL_FL.png",
-  "dep_van1_WHEEL_FR": "lm/dep_van1_WHEEL_FR.png",
-  "dep_van1_WHEEL_RL": "lm/dep_van1_WHEEL_RL.png",
-  "dep_van1_WHEEL_RR": "lm/dep_van1_WHEEL_RR.png",
   "S_dep_steel": "lm/S_dep_steel.png",
   "S_dep_yellow": "lm/S_dep_yellow.png",
+  "S_dep_yellow2": "lm/S_dep_yellow2.png",
+  "S_dep_yellow2_001": "lm/S_dep_yellow2_001.png",
   "S_dep_shut": "lm/S_dep_shut.png",
   "FLOOR_S_dep_line": "lm/FLOOR_S_dep_line.png",
-  "S_rack_blue": "lm/S_rack_blue.png",
-  "S_rack_or": "lm/S_rack_or.png",
+  "S_c3a2a1e_60": "lm/S_c3a2a1e_60.png",
+  "S_cecd6a6_50": "lm/S_cecd6a6_50.png",
+  "S_rack_up": "lm/S_rack_up.png",
+  "S_pallet_wood": "lm/S_pallet_wood.png",
+  "S_card0": "lm/S_card0.png",
+  "S_ptape": "lm/S_ptape.png",
+  "S_plabel": "lm/S_plabel.png",
+  "S_pmailer": "lm/S_pmailer.png",
+  "S_card2": "lm/S_card2.png",
+  "S_rack_beam": "lm/S_rack_beam.png",
   "S_rack_deck": "lm/S_rack_deck.png",
-  "S_cardboard_box_01": "lm/S_cardboard_box_01.png",
-  "S_dep_pal0": "lm/S_dep_pal0.png",
-  "S_dep_pal1": "lm/S_dep_pal1.png",
+  "S_card3": "lm/S_card3.png",
+  "S_card1": "lm/S_card1.png",
+  "S_pfragile": "lm/S_pfragile.png",
+  "S_dep_ply": "lm/S_dep_ply.png",
+  "S_cc0602a_50": "lm/S_cc0602a_50.png",
+  "S_cf2ece0_70": "lm/S_cf2ece0_70.png",
+  "S_cd8d0c0_50": "lm/S_cd8d0c0_50.png",
   "S_hand_truck": "lm/S_hand_truck.png",
-  "S_plastic_crate_01": "lm/S_plastic_crate_01.png",
-  "S_dep_strip_3_2_h": "lm/S_dep_strip_3_2_h.png",
-  "S_dep_strip_3_2_t": "lm/S_dep_strip_3_2_t.png",
-  "S_dep_strip_31_h": "lm/S_dep_strip_31_h.png",
-  "S_dep_strip_31_t": "lm/S_dep_strip_31_t.png",
-  "S_dep_strip0_2_h": "lm/S_dep_strip0_2_h.png",
-  "S_dep_strip0_2_t": "lm/S_dep_strip0_2_t.png",
-  "S_dep_strip01_h": "lm/S_dep_strip01_h.png",
-  "S_dep_strip01_t": "lm/S_dep_strip01_t.png",
-  "S_dep_strip3_2_h": "lm/S_dep_strip3_2_h.png",
-  "S_dep_strip3_2_t": "lm/S_dep_strip3_2_t.png",
-  "S_dep_strip31_h": "lm/S_dep_strip31_h.png",
-  "S_dep_strip31_t": "lm/S_dep_strip31_t.png",
-  "dep_van0_WHEEL_FL_001": "lm/dep_van0_WHEEL_FL_001.png",
-  "dep_van0_WHEEL_FR_001": "lm/dep_van0_WHEEL_FR_001.png",
-  "dep_van0_WHEEL_RL_001": "lm/dep_van0_WHEEL_RL_001.png",
-  "dep_van0_WHEEL_RR_001": "lm/dep_van0_WHEEL_RR_001.png",
-  "dep_van1_WHEEL_FL_001": "lm/dep_van1_WHEEL_FL_001.png",
-  "dep_van1_WHEEL_FR_001": "lm/dep_van1_WHEEL_FR_001.png",
-  "dep_van1_WHEEL_RL_001": "lm/dep_van1_WHEEL_RL_001.png",
-  "dep_van1_WHEEL_RR_001": "lm/dep_van1_WHEEL_RR_001.png"
+  "S_galv": "lm/S_galv.png",
+  "S_c26221e_60": "lm/S_c26221e_60.png",
+  "S_cc8662a_60": "lm/S_cc8662a_60.png",
+  "S_plastic_crate_02": "lm/S_plastic_crate_02.png",
+  "S_wooden_crate_01": "lm/S_wooden_crate_01.png",
+  "S_trashbag": "lm/S_trashbag.png",
+  "S_metal_tool_chest": "lm/S_metal_tool_chest.png",
+  "S_dep_part": "lm/S_dep_part.png",
+  "S_dep_parttrim": "lm/S_dep_parttrim.png",
+  "S_ccbb894_75": "lm/S_ccbb894_75.png",
+  "dep_clock": "lm/dep_clock.png",
+  "S_cage_m": "lm/S_cage_m.png",
+  "S_cage_glass": "lm/S_cage_glass.png",
+  "S_c24201c_50": "lm/S_c24201c_50.png",
+  "S_ext_red": "lm/S_ext_red.png",
+  "S_cefe6d0_60": "lm/S_cefe6d0_60.png",
+  "S_dep_glow": "lm/S_dep_glow.png",
+  "S_dep_benchtop": "lm/S_dep_benchtop.png",
+  "S_c2a2622_50": "lm/S_c2a2622_50.png",
+  "S_power_box_01": "lm/S_power_box_01.png",
+  "S_WetFloorSign_01": "lm/S_WetFloorSign_01.png",
+  "dep_broom": "lm/dep_broom.png",
+  "S_industrial_storage_cart": "lm/S_industrial_storage_cart.png",
+  "S_cord_m": "lm/S_cord_m.png",
+  "S_brass_m": "lm/S_brass_m.png",
+  "S_enamel3b342e": "lm/S_enamel3b342e.png",
+  "S_shade_in": "lm/S_shade_in.png",
+  "S_bulb_m": "lm/S_bulb_m.png",
+  "dep_broom_001": "lm/dep_broom_001.png"
  },
  "marks": {
   "rack": [
@@ -105,13 +101,64 @@
    0.0,
    0.0,
    1.0
+  ],
+  "boardWall": [
+   1.6,
+   0.0,
+   -1.24
+  ],
+  "bench": [
+   3.4,
+   0.0,
+   -0.93
+  ],
+  "benchTop": [
+   3.4,
+   0.96,
+   -0.93
+  ],
+  "benchFront": [
+   3.4,
+   0.0,
+   -0.15
+  ],
+  "sorting": [
+   -1.6,
+   0.0,
+   -1.4
+  ],
+  "cages": [
+   -1.0,
+   0.0,
+   1.15
   ]
  },
  "floors": [
   "FLOOR_S_dep_floor",
   "FLOOR_S_dep_line"
  ],
- "realtime": [],
+ "realtime": [
+  "RT_dep_van0_S_lens_head",
+  "RT_dep_van0_S_lens_tail",
+  "RT_dep_van0_S_van_amber",
+  "RT_dep_van0_S_van_cab",
+  "RT_dep_van0_S_van_chrome",
+  "RT_dep_van0_S_van_glass",
+  "RT_dep_van0_S_van_glass_dark",
+  "RT_dep_van0_S_van_plate",
+  "RT_dep_van0_S_van_platetext",
+  "RT_dep_van0_S_van_rubber",
+  "RT_dep_van0_S_van_seam",
+  "RT_dep_van0_S_van_seat",
+  "RT_dep_van0_S_van_trim",
+  "RT_dep_van0_WHEEL_FL",
+  "RT_dep_van0_WHEEL_FR",
+  "RT_dep_van0_WHEEL_RL",
+  "RT_dep_van0_WHEEL_RR",
+  "RT_dep_van0_van_body",
+  "RT_dep_van0_van_body_001",
+  "RT_dep_van0_van_body_002"
+ ],
  "wide": {
   "pos": [
    0.6,
@@ -120,7 +167,7 @@
   ],
   "look": [
    0.0,
-   1.8,
+   1.6,
    -2.0
   ],
   "fov": 48
@@ -142,11 +189,134 @@
  "light": "interior",
  "sun": {
   "dir": [
-   0.351,
-   0.621,
-   -0.701
+   0.3,
+   0.601,
+   -0.741
   ],
-  "color": "#ffe6c4",
-  "energy": 4.0
- }
+  "color": "#ffe2bc",
+  "energy": 2.0
+ },
+ "practicals": [
+  {
+   "name": "dep_cageP_L",
+   "pos": [
+    2.45,
+    2.45,
+    -1.07
+   ],
+   "kind": "point",
+   "color": "#ffc890",
+   "power": 13.0
+  },
+  {
+   "name": "dep_domeC_L",
+   "pos": [
+    0.25,
+    3.165,
+    0.85
+   ],
+   "kind": "spot",
+   "color": "#ffcc98",
+   "power": 832.0
+  },
+  {
+   "name": "dep_domeB_L",
+   "pos": [
+    1.7,
+    3.315,
+    -0.55
+   ],
+   "kind": "spot",
+   "color": "#ffcc98",
+   "power": 247.0
+  },
+  {
+   "name": "dep_domeS_L",
+   "pos": [
+    3.4,
+    3.315,
+    -0.6
+   ],
+   "kind": "spot",
+   "color": "#ffcc98",
+   "power": 247.0
+  },
+  {
+   "name": "dep_domeT_L",
+   "pos": [
+    -2.4,
+    3.265,
+    -1.4
+   ],
+   "kind": "spot",
+   "color": "#ffcc98",
+   "power": 273.0
+  },
+  {
+   "name": "dep_domeD_L",
+   "pos": [
+    1.2,
+    3.665,
+    -3.1
+   ],
+   "kind": "spot",
+   "color": "#ffcc98",
+   "power": 169.0
+  },
+  {
+   "name": "dep_cageHi0_L",
+   "pos": [
+    -3.55,
+    4.75,
+    -4.33
+   ],
+   "kind": "point",
+   "color": "#ffc890",
+   "power": 39.0
+  },
+  {
+   "name": "dep_cageHi1_L",
+   "pos": [
+    -4.83,
+    4.2,
+    0.2
+   ],
+   "kind": "point",
+   "color": "#ffc890",
+   "power": 39.0
+  },
+  {
+   "name": "dep_cageHi2_L",
+   "pos": [
+    4.83,
+    4.2,
+    0.6
+   ],
+   "kind": "point",
+   "color": "#ffc890",
+   "power": 39.0
+  },
+  {
+   "name": "dep_cageL_L",
+   "pos": [
+    -4.83,
+    2.6,
+    3.2
+   ],
+   "kind": "point",
+   "color": "#ffc890",
+   "power": 26.0
+  },
+  {
+   "name": "dep_cageBk_L",
+   "pos": [
+    3.35,
+    4.75,
+    -4.33
+   ],
+   "kind": "point",
+   "color": "#ffc890",
+   "power": 32.5
+  }
+ ]
 }

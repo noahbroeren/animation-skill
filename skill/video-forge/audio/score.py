@@ -23,7 +23,7 @@ track the procedural bed (music.py) is arranged from the same marks.
 AMBIENCE. One bed is rendered from `places` and `rain`: room tone inside, a street bed outside, rain where it rains.
 
 Levels follow references/craft/general.md "Sound": everything is set by loudness relative to the voice; hits -4..-8 LU,
-details -12..-18, beds -24..-34, music about 20 LU under the voice the whole way.
+details -12..-18, beds -24..-34, music about 17 LU under the voice the whole way (1.11.2).
 """
 from __future__ import annotations
 
@@ -102,7 +102,7 @@ def main():
     ap.add_argument("--vo-offset", type=float, default=0.0)
     ap.add_argument("--sounds")
     ap.add_argument("--no-real", action="store_true", help="synthesized sounds only (what the repository can reproduce)")
-    ap.add_argument("--music-lu", type=float, default=-19.0)
+    ap.add_argument("--music-lu", type=float, default=-17.0)  # 1.11.2: the reference keeps its music ~17 dB under the voice, to the last frame
     ap.add_argument("--out", default="master.wav")
     a = ap.parse_args()
     tl = json.load(open(a.timeline, encoding="utf-8"))

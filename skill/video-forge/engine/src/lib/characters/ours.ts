@@ -53,7 +53,7 @@ export const OUR_CAST: Record<string, CastMember> = Object.fromEntries([
   M("bigsby", "Mr. Bigsby", "core", "the rich boss: owns the factory, the bank or the kingdom", "greedy, loud, vain", "smug", 1.7, "older male, booming, pompous",
     { hat: { style: "top", color: "#22252e", accent: "#8e2b3d" }, stache: "#e9e6ee", top: { color: "#8e2b3d", style: "suit" }, neck: { style: "tie", color: "#e0b33a" }, build: "stout" }, "hips", { item: "money" }),
   M("vex", "Vex", "core", "the schemer: con artist, cheat, the one who games the system", "sly, charming, sneaky", "mischief", 1.82, "adult male, smooth, whispery",
-    { hair: { style: "slick", color: H.black }, shades: "#14121a", top: { color: "#5b3f8c", style: "trench" }, build: "slim", marks: ["scar"] }, "shrug", { item: "briefcase" }),
+    { hair: { style: "slick", color: H.black }, shades: "#14121a", top: { color: "#5b3f8c", style: "trench" }, build: "slim" }, "shrug", { item: "briefcase" }),
   M("gus", "Gus", "core", "the builder: fixes, builds and breaks things with his hands", "practical, calm, strong", "neutral", 1.78, "adult male, low, slow, friendly",
     { hat: { style: "hardhat", color: "#f5c21b" }, beard: "#5a3a26", top: { color: "#e8862e", style: "overall", accent: "#3f6fb5" }, build: "stout" }, "carry", { item: "wrench" }),
   M("pip", "Pip", "core", "the kid: little brother, asks why, gets into everything", "curious, cheeky, fast", "happy", 1.16, "child, high, excited",

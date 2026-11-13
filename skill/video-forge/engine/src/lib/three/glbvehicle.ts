@@ -6,12 +6,12 @@
  */
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { NOINK } from "./post";
 import { staticFile } from "remotion";
 import type { StageCtx } from "./Stage3D";
 import type { Seat, Vehicle } from "./vehicles";
 import { toonifyMaterial, ToonUniforms } from "./shaders";
+import { addHull } from "./hull";
 
 export type GlbVehicleSpec = {
   /** public-relative path of the GLB */
@@ -24,9 +24,25 @@ export type GlbVehicleSpec = {
   look?: "toon" | "pbr";
   /** filled by the board with the light plan's toon uniforms once the world is built */
   toonRef?: { toon?: ToonUniforms };
+  /** toon look: outline width in output px at 1440 wide (an ink hull; 0 = none). Default 2.4 */
+  outline?: number;
 };
 let envTex: THREE.Texture | null = null;
-const envOf = (r: THREE.WebGLRenderer) => { if (!envTex) { const pm = new THREE.PMREMGenerator(r); envTex = pm.fromScene(new RoomEnvironment(), 0.04).texture; } return envTex; };
+/** 1.11.2: a sky / horizon / ground environment (measured on the reference: metals and clearcoat show a blue sky band
+ *  over a warm ground line), so paint, chrome and glass read as real materials without any outline */
+function horizonScene() {
+  const sc = new THREE.Scene(), m = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false,
+    vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: `varying vec3 vP; void main(){ float y = vP.y;
+      vec3 sky = mix(vec3(0.93, 0.95, 0.97), vec3(0.36, 0.52, 0.80), smoothstep(0.02, 0.6, y));
+      vec3 gnd = mix(vec3(0.62, 0.45, 0.32), vec3(0.30, 0.22, 0.17), smoothstep(-0.02, -0.5, y));
+      vec3 c = y >= 0.0 ? sky : gnd; c = mix(c, vec3(1.0, 0.98, 0.94), exp(-abs(y) * 40.0) * 0.6); gl_FragColor = vec4(c, 1.0); }` });
+  sc.add(new THREE.Mesh(new THREE.SphereGeometry(10, 48, 24), m));
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 5.6, 5) })); sun.position.set(5, 6, 4); sc.add(sun);
+  return sc;
+}
+const envOf = (r: THREE.WebGLRenderer) => { if (!envTex) { const pm = new THREE.PMREMGenerator(r); envTex = pm.fromScene(horizonScene(), 0.02).texture; } return envTex; };
+export const horizonEnv = envOf;
 const texLoader = new THREE.TextureLoader();
 const loader = new GLTFLoader(), cache = new Map<string, Promise<THREE.Group>>();
 const load = (u: string) => { let p = cache.get(u); if (!p) { p = new Promise<THREE.Group>((res, rej) => loader.load(u, (g) => res(g.scene as unknown as THREE.Group), undefined, rej)); cache.set(u, p); } return p; };
@@ -48,12 +64,13 @@ export function glbVehicle(ctx: StageCtx, s: GlbVehicleSpec): Vehicle {
       mesh.castShadow = true; mesh.receiveShadow = true;
       const mt0 = mesh.material as THREE.MeshStandardMaterial, mt = mt0.clone(); mesh.material = mt;
       if (toon) { mt.metalness = 0; mt.roughness = 1; if (s.toonRef?.toon) toonifyMaterial(mt, s.toonRef.toon); }
-      else { mesh.layers.set(NOINK); mt.envMap = env; mt.envMapIntensity = 0.55; } /* pbr: modelled like the baked sets, no screen-space ink */
+      else { mesh.layers.set(NOINK); mt.envMap = env; mt.envMapIntensity = /glass/i.test(mt.name) ? 1.2 : 0.9; } /* pbr: real materials, no outline (the reference's vehicles have none) */
       const a = ao.get(c.name) ?? ao.get(c.parent?.name ?? ""); if (a) { mt.aoMap = a; mt.aoMapIntensity = 1; }
       if (mt && /lens|lamp|light/i.test(mt.name)) { /* cloned from the untouched material: a clone of a patched one loses its shader patch */
         const k = mt0.clone(); if (toon) { k.metalness = 0; k.roughness = 1; } else { k.envMap = env; k.envMapIntensity = 0.55; } k.aoMap = mt.aoMap;
         k.emissive = k.color.clone(); k.emissiveIntensity = 0; if (toon && s.toonRef?.toon) toonifyMaterial(k, s.toonRef.toon); mesh.material = k; lenses.push(k); }
     });
+    if (toon && (s.outline ?? 3.4) > 0) addHull(m, { px: s.outline ?? 3.4, skip: /glass|seam/i }); /* clean lines: the ink pass breaks fine geometry into dashes */
     body.add(m); pose();
   }));
   return {

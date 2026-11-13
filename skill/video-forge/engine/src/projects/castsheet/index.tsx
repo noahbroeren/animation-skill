@@ -45,6 +45,18 @@ function extras(): SheetPage {
     rows: chunk(seeds, 15).map((part, i) => ({ title: i ? "" : "extras", cells: part.map((n) => ({ spec: extra(n) as KindSpec, pose: {}, label: "extra(" + n + ")", w: 150 })) })) };
 }
 
+/** 1.11.2: eight views round each core character (the camera can stand anywhere: a card must read from every side) */
+const VIEWS8: [string, KPose][] = [["front", {}], ["3/4 R", { view: "three", facing: 1 }], ["side R", { view: "side", facing: 1 }], ["back 3/4 R", { view: "threeBack", facing: 1 }],
+  ["back", { view: "back" }], ["back 3/4 L", { view: "threeBack", facing: -1 }], ["side L", { view: "side", facing: -1 }], ["3/4 L", { view: "three", facing: -1 }]];
+function turnaround8(ids: string[], title: string): SheetPage {
+  return { title, h: 330, rows: ids.map((id) => ({ title: OUR_CAST[id].name, cells: VIEWS8.map(([lab, v]) => ({ spec: spec(id), pose: { ...v, expr: OUR_CAST[id].rest } as KPose, label: lab, w: 132 })) })) };
+}
+/** continuous turnaround: 16 headings every 22.5 degrees (`yaw`), the board picks any angle in between */
+function turnaround16(ids: string[], title: string): SheetPage {
+  return { title, h: 300, rows: ids.map((id) => ({ title: OUR_CAST[id].name, cells: Array.from({ length: 16 }, (_, i) => { const y = i * 22.5 > 180 ? i * 22.5 - 360 : i * 22.5;
+    return { spec: spec(id), pose: { yaw: y, expr: OUR_CAST[id].rest } as KPose, label: `${Math.round(y)}`, w: 92 }; }) })) };
+}
+
 function pages(): SheetPage[] {
   const core = CORE_IDS, rest = ALL.filter((id) => !core.includes(id));
   return [
@@ -54,10 +66,11 @@ function pages(): SheetPage[] {
     ...chunk(core, 4).map((part, i) => ({ title: "core turnarounds " + (i + 1), h: 300, rows: part.map(turnRow) })),
     silhouettes(),
     extras(),
+    ...chunk(core, 4).map((part, i) => turnaround16(part, "16-way turnarounds " + (i + 1) + " (yaw every 22.5 deg; any angle in between is drawn too)")),
   ];
 }
 
-const N_PAGES = 9;
+const N_PAGES = 13;
 export const castsheet: ProjectDef = {
   id: "castsheet", title: "OUR CAST sheet", defaultFormat: "long", fps: 30,
   scenes: ({ fps }) => [{ id: "sheet", frames: N_PAGES * 30 * (fps / 30), render: () => <SheetGrid name="OUR CAST" pages={pages} /> }],

@@ -645,3 +645,35 @@ Targets and reasons: `references/craft/` (one sheet per area). What changed in t
   Example: `src/projects/doorphoto` (engine street, shop and depot; Blender van, porch, parcel, scanner; Poly Haven
   gnome, shelving, hand truck); look-dev: `src/projects/bakedtest`.
 
+## Added in 1.11.2 (after the frame-by-frame study of the reference's newest short)
+
+See `references/research/newest-reference-short-2026-11.md` for the measurements behind these.
+- **Every side of a character.** `KPose.yaw` (degrees from facing the camera, sign = the screen side the face turns to)
+  draws a continuous turnaround: front with the face sliding and the far ear hiding, three-quarter from open to nearly
+  profile, profile, three-quarter-back with the cheek crescent narrowing, back (`viewOfYaw` in `kinds.ts`). New views
+  `view: "back"` and `"threeBack"`: hair covers the skull down to the nape, ears at the true positions, a plain garment
+  back with a centre seam (vent on coats, crossed straps on overalls), arms and held props behind the back. Sheet:
+  `--project castsheet` pages 9-12 (16 headings every 22.5 degrees).
+- **The world picks the view.** On a board, `act.face` (an actor id, a mark or a point) or `act.yaw` (world degrees,
+  0 = +z) gives a character a heading in the world; every frame the card compares it with the camera and draws the
+  matching side (walking characters face their walk direction). `face: null` hands the view back to `view` / `facing`.
+- **Cards take the local light:** `act.light` 0.4 (a dark corner) .. 1 (in a pool), eased over ~8 frames
+  (`CharacterCard.setExposure`).
+- **Matte cloth / no face shine:** brand fields `torsoShine: false` and `shine: false` (per film:
+  `brand: { ...BRANDS.ours, torsoShine: false, shine: false }`).
+- **Premium Blender models:** `kind: "glb"` vehicles with `look: "pbr"` use a sky / horizon / ground environment
+  (`horizonEnv`) so clearcoat paint, chrome and glass reflect like the reference's, with no outline. The toon look draws a
+  constant-width ink hull instead of the screen-space ink (`lib/three/hull.ts`, `addHull`), which broke fine geometry into
+  crawling dashes. `dress` / `api.model` models get a hull too (`outline: 0` turns it off). Model rule for hero objects:
+  no relief step under ~15 mm, seams as mid-grey grooves, never near-black strips.
+- **The van** (`--set van`): no livery; white clearcoat with a warm vertical gradient (vertex colours, `van_gradient`),
+  seams that follow the curved sides, the gradient applied before the look-dev preview.
+- **Framing:** `HEAD_FRAMING` medium = head 0.17 of the height with the eyes at 40 %, close 0.25 / 0.46, xclose
+  0.34 / 0.48; solo shots centre the actor (frame `on: "actor"`, no `side`).
+- **Post:** `DOF_BY_SIZE` nearly off (close 2, xclose 3, insert 4); bloom knee 0.1 (white paint no longer glows);
+  `look.softness < 0` sharpens (unsharp mask); SSAO rotates with a 4x4 ordered pattern the 4x4 blur integrates.
+- **Walk cadence:** `Board.walkRate` (steps per second, default 2.7).
+- **BoardVehicle.then** (1.11.1) and the tail-safe `audio/tighten.py` (word ends found in the audio, cuts only inside
+  real silence with 50 ms tail and 40 ms attack guards, 25 ms equal-power fades; defaults 0.08 / 0.05 / 0.04 s kept
+  after sentences / commas / words). `audio/score.py --music-lu` default -17.
+
