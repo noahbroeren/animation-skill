@@ -14,7 +14,7 @@
  * Start one with `node tools/make.mjs --project <id>` (it drafts the board from the script); guide: references/pipeline/board.md.
  */
 import React from "react";
-import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, getInputProps, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
 import { cameraRig, CameraRig, CamKey, CamState, V3 } from "./camera";
 import { blinkAt, idlePose, walkPose } from "./characters/toon";
@@ -149,6 +149,8 @@ export type Board = {
   rig?: { handheld?: number; push?: number };
   /** 1.11.2: walk cadence in steps per second (default 2.7; the reference's newest short steps about every 4-5 frames at 30 fps) */
   walkRate?: number;
+  /** 1.11.3: how much a walking card leans into the step (1 = the cycle's lean, 0 = upright) */
+  walkLean?: number;
   /** frames of cross-dissolve on every `via: "cut"` (default 4: a soft cut; 0 = hard cuts) */
   softCut?: number;
 };
@@ -403,7 +405,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   const mustSee: { f0: number; f1: number; name: string; place: string }[] = [];
   P.beats.forEach((x) => { const nxt = P.shotBeats.find((y) => y.f > x.f)?.f ?? P.total, f1 = Math.min(nxt - 2, x.f + 26);
     for (const n of [x.focus, ...Object.entries(x.act ?? {}).filter(([, a]) => a.talk).map(([k]) => k)]) if (n && f1 > x.f + 8) mustSee.push({ f0: x.f + 8, f1, name: n, place: x.placeNow }); });
-  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv, mustSee, walkRate: b.walkRate ?? 2.7 };
+  return { LP, L, sets, cast, rig, props, crowds, dust, wet, wetIds, R, rainAt, fx, vehicles, placeVehicle, actorState, povHide, audit, placeAt, origin, api, mark, subjectOf, follows, focusEv, mustSee, walkRate: b.walkRate ?? 2.7, walkLean: b.walkLean ?? 1 };
 }
 type BoardWorld = ReturnType<typeof makeWorld>;
 
@@ -440,7 +442,7 @@ function updateWorld(w: BoardWorld, P: BoardPlan, f: number, fps: number): CamSt
       return { yaw: fs * A2, facing: fs }; // continuous: the card draws its own in-between (kinds.ts viewOfYaw)
     };
     const av = autoView();
-    if (st.walking) { const wp = walkPose(f + seed * 3, fps, w.walkRate) as KPose; pose = { ...pose, ...wp, view: av ? undefined : "side", yaw: av?.yaw, facing: av ? av.facing : side([0, 0, 0], st.dir) as 1 | -1, limbs: undefined, turn: 0, hold: pose.hold }; }
+    if (st.walking) { const wp = walkPose(f + seed * 3, fps, w.walkRate) as KPose; wp.lean = (wp.lean ?? 0) * w.walkLean; pose = { ...pose, ...wp, view: av ? undefined : "side", yaw: av?.yaw, facing: av ? av.facing : side([0, 0, 0], st.dir) as 1 | -1, limbs: undefined, turn: 0, hold: pose.hold }; }
     else if (av) pose = { ...pose, yaw: av.yaw, facing: av.facing };
     if (st.seg.seat) pose = { ...pose, ...seatPose(w.vehicles[st.seg.seat.vehicle].v, st.seg.seat.seat, cam.pos, { expr: pose.expr }) };
     const tk = A.talk.find((t) => f >= t[0] && f < t[1]);
@@ -540,7 +542,7 @@ export function boardProject(b: Board): ProjectDef {
         events: [...new Set([...P.beats.flatMap((x) => [...(gagsOf(x).length || x.crowd || x.kick ? [x.f, x.f + 2] : []), ...(x.event ?? []).map((d) => x.f + d), ...(P.viaOf(x) === "whip" && x.shot ? [x.f, x.f + 3, x.f + 6] : []), ...(P.viaOf(x) === "dissolve" && (x.shot || x.newPlace) ? [x.f - 7, x.f, x.f + 7] : [])])])].filter((x) => x > 0 && x < P.total).sort((a, c) => a - c),
         sounds: S.sounds, music: S.music, rain: S.rain, places: S.places, travels: P.travels, lint: lintBoard(b, fps), voOffset: b.voOffset ?? 0,
         render: () => { let y: number | undefined; const ys = P.beats.filter((x) => x.caption !== undefined).map((x) => [x.f, x.caption!] as [number, number]);
-          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}<WordCaptions words={P.words} size={75} outline={0.17} lead={0.03} minFrames={6} center yAt={(fr) => { y = 0.704; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} /></>); },
+          return (<><World /><Overlays P={P} />{b.overlay?.(P.T, fps)}{(getInputProps() as { clean?: boolean }).clean ? null : <WordCaptions words={P.words} size={75} outline={0.17} lead={0.03} minFrames={6} center yAt={(fr) => { y = 0.704; for (const [f0, v] of ys) if (f0 <= fr) y = v; return y; }} />}</>); },
       };
       return [scene];
     },

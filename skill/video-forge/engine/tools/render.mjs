@@ -56,7 +56,7 @@ const conc = Number(A.concurrency ?? Math.max(2, Math.min(4, Math.floor(os.cpus(
 const t0 = Date.now();
 console.log(`[render] bundling ${ROOT}/src ...`);
 const serveUrl = await bundle({ entryPoint: path.join(ROOT, "src", "index.ts"), publicDir: path.join(ROOT, "public"), onProgress: () => {} });
-const inputProps = { project: A.project, fps, preview: false, ...(format ? { format } : {}) };
+const inputProps = { project: A.project, fps, preview: false, ...(format ? { format } : {}), ...(A.clean ? { clean: true } : {}) }; // --clean: no burned-in captions (thumbnails, covers)
 const chromiumOptions = { gl: A.gl ?? "angle", enableMultiProcessOnLinux: true };
 const comp = await selectComposition({ serveUrl, id: A.project, inputProps, chromiumOptions });
 const planFile = path.join(out, "timeline.json");

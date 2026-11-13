@@ -19,6 +19,8 @@ import { BRANDS, KPose, StickHold } from "../../lib/characters/kinds";
 import { castEntry, extra } from "../../lib/characters/ours";
 import { LightKey, tweak } from "../../lib/three/lightplan";
 import { canvasTexture } from "../../lib/three/textures";
+import { NOINK } from "../../lib/three/post";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { clamp, ease } from "../../lib/time";
 import type { BakedManifest } from "../../lib/three/baked";
 import HOME0 from "../../../public/sets/home/set.json";
@@ -69,18 +71,28 @@ const tickTex = () => canvasTexture("scantick2", 512, 512, (c) => { c.fillStyle 
   c.fillStyle = "#2f9a5a"; c.font = "900 62px Arial Black, sans-serif"; c.fillText("DELIVERED", 256, 440); });
 
 /** a cardboard box, base at y = 0; `icon` prints what is inside on the front */
+const std = (o: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0, ...o });
+/** keep a prop out of the screen-space ink and the toon pass: it sits in a baked, ink-free world (1.11.3) */
+const clean = <T extends THREE.Object3D>(o: T) => { o.traverse((m) => { m.layers.set(NOINK); (m as THREE.Mesh).castShadow = true; (m as THREE.Mesh).receiveShadow = true; }); return o; };
+/** a cardboard box, base at y = 0, rounded edges; `icon` prints what is inside on the front (1024 px: sharp in close-ups) */
 function cardboard(w: number, h: number, d: number, o: { color?: string; icon?: "tv" | "blender" | "headphones" | "none" } = {}) {
-  const col = o.color ?? CARD, ic = o.icon ?? "none";
-  const front = canvasTexture(`cbox2|${ic}|${col}`, 256, 256, (g) => {
-    g.fillStyle = col; g.fillRect(0, 0, 256, 256); g.fillStyle = TAPE; g.fillRect(108, 0, 40, 26);
-    g.strokeStyle = INK; g.lineWidth = 9; g.lineJoin = "round"; g.fillStyle = "#2b2f3a";
-    if (ic === "tv") { g.beginPath(); g.roundRect(48, 62, 160, 108, 12); g.fill(); g.stroke(); g.fillStyle = "#9fd8ff"; g.fillRect(64, 78, 128, 76); g.fillStyle = "#2b2f3a"; g.fillRect(118, 170, 20, 26); g.fillRect(90, 192, 76, 12); }
-    if (ic === "blender") { g.fillStyle = "#cfe8f7"; g.beginPath(); g.moveTo(86, 48); g.lineTo(170, 48); g.lineTo(156, 160); g.lineTo(100, 160); g.closePath(); g.fill(); g.stroke(); g.fillStyle = "#e2483a"; g.beginPath(); g.roundRect(82, 160, 92, 50, 10); g.fill(); g.stroke(); g.fillStyle = "#2b2f3a"; g.fillRect(84, 36, 88, 16); }
-    if (ic === "headphones") { g.strokeStyle = "#d9a520"; g.lineWidth = 18; g.beginPath(); g.arc(128, 130, 62, Math.PI, 0); g.stroke(); g.fillStyle = "#f5c21b"; g.strokeStyle = INK; g.lineWidth = 8; for (const x of [66, 190]) { g.beginPath(); g.roundRect(x - 22, 120, 44, 70, 14); g.fill(); g.stroke(); } }
+  const col = o.color ?? CARD, ic = o.icon ?? "none", S = 4; // drawn at 4x the old 256 px
+  const front = canvasTexture(`cbox3|${ic}|${col}`, 256 * S, 256 * S, (g) => {
+    g.scale(S, S);
+    g.fillStyle = col; g.fillRect(0, 0, 256, 256);
+    g.fillStyle = "rgba(90,55,25,0.08)"; for (let i = 0; i < 18; i++) g.fillRect(0, 8 + i * 14, 256, 2); // corrugation hint
+    g.fillStyle = TAPE; g.fillRect(108, 0, 40, 34);
+    g.strokeStyle = INK; g.lineWidth = 7; g.lineJoin = "round"; g.lineCap = "round"; g.fillStyle = "#2b2f3a";
+    if (ic === "tv") { g.beginPath(); g.roundRect(48, 66, 160, 104, 12); g.fill(); g.stroke(); g.fillStyle = "#9fd8ff"; g.beginPath(); g.roundRect(62, 80, 132, 76, 6); g.fill(); g.fillStyle = "#2b2f3a"; g.fillRect(118, 170, 20, 22); g.beginPath(); g.roundRect(88, 190, 80, 12, 6); g.fill(); }
+    if (ic === "blender") { g.fillStyle = "#cfe8f7"; g.beginPath(); g.moveTo(88, 52); g.lineTo(168, 52); g.lineTo(154, 160); g.lineTo(102, 160); g.closePath(); g.fill(); g.stroke(); g.fillStyle = "#e2483a"; g.beginPath(); g.roundRect(84, 160, 88, 48, 10); g.fill(); g.stroke(); g.fillStyle = "#2b2f3a"; g.beginPath(); g.roundRect(86, 40, 84, 16, 5); g.fill(); }
+    if (ic === "headphones") { g.strokeStyle = "#d9a520"; g.lineWidth = 16; g.beginPath(); g.arc(128, 130, 60, Math.PI, 0); g.stroke(); g.fillStyle = "#f5c21b"; g.strokeStyle = INK; g.lineWidth = 7; for (const x of [68, 188]) { g.beginPath(); g.roundRect(x - 22, 120, 44, 70, 14); g.fill(); g.stroke(); } }
+    g.fillStyle = "#f7f5ef"; g.fillRect(16, 214, 70, 30); g.fillStyle = "#2b2f3a"; for (let i = 0; i < 9; i++) g.fillRect(20 + i * 7, 220, 2 + (i % 3), 18); // shipping label
   });
-  const side = lam({ color: col }), top = lam({ map: canvasTexture(`cboxtop2|${col}`, 128, 128, (g) => { g.fillStyle = col; g.fillRect(0, 0, 128, 128); g.fillStyle = TAPE; g.fillRect(50, 0, 28, 128); g.strokeStyle = "rgba(60,40,20,0.35)"; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 64); g.lineTo(128, 64); g.stroke(); }) });
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), [side, side, top, side, lam({ map: front }), side]); m.position.y = h / 2;
-  const grp = new THREE.Group(); grp.add(m); return shadowed(grp);
+  front.anisotropy = 8;
+  const topT = canvasTexture(`cboxtop3|${col}`, 512, 512, (g) => { g.fillStyle = col; g.fillRect(0, 0, 512, 512); g.fillStyle = TAPE; g.fillRect(200, 0, 112, 512); g.strokeStyle = "rgba(60,40,20,0.3)"; g.lineWidth = 6; g.beginPath(); g.moveTo(0, 256); g.lineTo(512, 256); g.stroke(); });
+  const side = std({ color: col }), top = std({ map: topT });
+  const m = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 3, Math.min(w, h, d) * 0.06), [side, side, top, side, std({ map: front }), side]); m.position.y = h / 2;
+  const grp = new THREE.Group(); grp.add(m); return clean(grp);
 }
 
 // ------------------------------------------------------------------------------------------------ hero objects (Blender, cel-shaded on load)
@@ -98,7 +110,8 @@ const bigScanner = (api: BoardApi, screen: "tick" | "photo") => {
   map.position.set(-0.15, -0.06, 0.046); g.add(map); pin.position.set(-0.15, -0.09, 0.06); g.add(pin);
   const ringM = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.3, 0.2) });
   const ring = (x: number, y: number, r: number) => { const m = new THREE.Mesh(new THREE.TorusGeometry(r, 0.008, 6, 40), ringM); m.position.set(x, y, 0.05); g.add(m); return m; };
-  const rDoor = ring(0, 0.27, 0.13), rMat = ring(0, -0.0, 0.14), rBox = ring(0, 0.03, 0.07);
+  const P = (u: number, v: number): [number, number] => [(u - 0.5) * 0.54, 0.11 + (0.5 - v) * 0.54]; // canvas fraction -> screen plane
+  const rDoor = ring(...P(0.5, 0.43), 0.14), rMat = ring(...P(0.5, 0.815), 0.13), rBox = ring(...P(0.5, 0.745), 0.065);
   const flash = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true })); flash.position.set(0, 0.11, 0.05); g.add(flash);
   const tap = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.045, 32), new THREE.MeshBasicMaterial({ color: "#2f9a5a", transparent: true })); tap.position.set(0, 0.06, 0.05); g.add(tap);
   let cam: THREE.Object3D | null = null;
@@ -112,8 +125,8 @@ const bigScanner = (api: BoardApi, screen: "tick" | "photo") => {
     const fu = (f - T.photo1) / fps; (flash.material as THREE.MeshBasicMaterial).opacity = fu >= 0 && fu < 0.3 ? 0.9 * (1 - fu / 0.3) : 0; flash.visible = fu >= 0 && fu < 0.3;
     clock.visible = f >= T.time1; clock.scale.setScalar(f >= T.time1 ? Math.min(1, 0.6 + (f - T.time1) / 8) * (f >= T.t214 && f < T.t214 + 10 ? 1.15 : 1) : 1);
     map.visible = f >= T.gps; const pu = (f - T.gps) / fps; pin.visible = pu >= 0.05; pin.position.y = -0.09 + (pu < 0.3 ? 0.25 * (1 - pu / 0.3) ** 2 : 0);
-    const on = (m: THREE.Mesh, a: number, b: number, sy = 1) => { m.visible = f >= a && f < b; if (m.visible) { const s = Math.min(1, 0.4 + (f - a) / 6); m.scale.set(s, s * sy, 1); } };
-    on(rDoor, T.ydoor, T.ymat); on(rMat, T.ymat, T.ybox, 0.42); on(rBox, T.ybox, T.total); } };
+    const on = (m: THREE.Mesh, a: number, b: number, sy = 1) => { m.visible = f >= a && f < b; if (m.visible) { const s = Math.min(1, 0.4 + (f - a) / 6); m.scale.set(s * (sy > 1 ? 0.62 : 1), s * (sy > 1 ? 1 : sy), 1); } };
+    on(rDoor, T.ydoor, T.ymat, 1.6); on(rMat, T.ymat, T.ybox, 0.45); on(rBox, T.ybox, T.total); } };
 };
 /** the depot's charging rack: six Blender scanners; on "camera" each one gets its camera module and flashes */
 const scannerRack = (api: BoardApi) => { const g = new THREE.Group(); /* stands on the depot's bench (top at y 0.96): no desk of its own */
@@ -134,17 +147,29 @@ const refundPile = (api: BoardApi) => { const g = new THREE.Group(), boxes: THRE
   for (let i = 0; i < 17; i++) { const w = 0.9 - (i % 3) * 0.12, h = 0.24 + (i % 4) * 0.03, b = cardboard(w, h, 0.7 - (i % 2) * 0.1, { color: i % 3 ? CARD : "#b98250", icon: i % 5 === 2 ? "tv" : i % 7 === 3 ? "blender" : "none" }); b.position.set(0.08 * Math.sin(i * 1.7), y, 0.06 * Math.cos(i * 2.1)); b.rotation.y = 0.25 * Math.sin(i * 1.3); y += h; g.add(b); boxes.push(b); }
   return { group: g, update(f: number) { const T = api.T, k = ease.outCubic(clamp((f - T.winter + 6) / Math.max(1, T.taller - T.winter + 12))), n = Math.round(4 + 13 * k); boxes.forEach((b, i) => { b.visible = i < n; }); } }; };
 /** the driver's record: red crosses appear one at a time between "every" and "name", and vanish between "red#2" and "boxes#2" */
-const recordBoard = (api: BoardApi) => { const g = new THREE.Group(), steel = lam({ color: "#8d96a6" });
-  const face = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.05, 0.05), [steel, steel, steel, steel, lam({ map: canvasTexture("record5", 512, 360, (c) => { c.fillStyle = "#f6f4ee"; c.fillRect(0, 0, 512, 360); c.strokeStyle = "#8d96a6"; c.lineWidth = 10; c.strokeRect(5, 5, 502, 350);
-    c.fillStyle = "#f5a524"; c.beginPath(); c.arc(70, 64, 34, Math.PI, 0); c.fill(); c.fillStyle = "#fcf8f3"; c.beginPath(); c.arc(70, 78, 30, 0, 7); c.fill(); c.strokeStyle = INK; c.lineWidth = 6; c.stroke(); c.fillStyle = INK; c.fillRect(56, 74, 8, 10); c.fillRect(78, 74, 8, 10);
-    c.fillStyle = "#1f3a5f"; c.font = "900 56px Arial Black, sans-serif"; c.textBaseline = "middle"; c.fillText("DEX", 128, 66); c.fillStyle = "#8d96a6"; c.font = "700 26px Arial, sans-serif"; c.fillText("DRIVER  #214", 300, 70);
-    c.strokeStyle = "#c9ced8"; c.lineWidth = 4; for (let r = 0; r < 4; r++) { c.beginPath(); c.moveTo(30, 150 + r * 52); c.lineTo(482, 150 + r * 52); c.stroke(); } }) }), steel]);
+const recordBoard = (api: BoardApi) => { const g = new THREE.Group(), steel = std({ color: "#8d96a6", roughness: 0.5, metalness: 0.4 });
+  const W = 1024, H = 720, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d")!;
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const cell = (i: number): [number, number] => [150 + (i % 6) * 150, 330 + Math.floor(i / 6) * 104]; // 3 rows of 6 between the ruled lines
+  let drawn = -1;
+  const paint = (n: number, pop: number) => {
+    c.fillStyle = "#f6f4ee"; c.fillRect(0, 0, W, H); c.strokeStyle = "#8d96a6"; c.lineWidth = 16; c.strokeRect(8, 8, W - 16, H - 16);
+    c.fillStyle = "#f5a524"; c.beginPath(); c.arc(130, 120, 64, Math.PI, 0); c.fill(); c.fillStyle = "#fcf8f3"; c.beginPath(); c.arc(130, 146, 56, 0, 7); c.fill(); c.strokeStyle = INK; c.lineWidth = 10; c.stroke();
+    c.fillStyle = INK; c.fillRect(104, 136, 14, 18); c.fillRect(142, 136, 14, 18);
+    c.fillStyle = "#1f3a5f"; c.font = "900 112px Arial Black, sans-serif"; c.textBaseline = "middle"; c.fillText("DEX", 240, 126); c.fillStyle = "#8d96a6"; c.font = "700 52px Arial, sans-serif"; c.fillText("DRIVER  #214", 600, 132);
+    c.strokeStyle = "#c9ced8"; c.lineWidth = 6; for (let r = 0; r < 4; r++) { c.beginPath(); c.moveTo(60, 278 + r * 104); c.lineTo(W - 60, 278 + r * 104); c.stroke(); }
+    c.lineCap = "round"; c.lineJoin = "round";
+    for (let i = 0; i < n; i++) { const [x, y] = cell(i), k = 30 * (i === n - 1 ? pop : 1), j = (i * 37) % 7 - 3; // a marker cross, a little hand-drawn
+      for (const [w, col] of [[22, "rgba(120,10,10,0.35)"], [16, "#e23b3b"]] as [number, string][]) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x - k, y - k + j); c.lineTo(x + k, y + k); c.moveTo(x + k + j, y - k); c.lineTo(x - k, y + k - j); c.stroke(); } }
+    tex.needsUpdate = true; };
+  paint(0, 1);
+  const face = new THREE.Mesh(new RoundedBoxGeometry(1.5, 1.05, 0.05, 2, 0.012), [steel, steel, steel, steel, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55 }), steel]);
   face.position.y = 1.55; g.add(face);
-  for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.1, 8), steel); leg.position.set(sx * 0.6, 0.55, 0); g.add(leg); }
-  const red = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.18, 0.16) }), X: THREE.Group[] = [];
-  for (let i = 0; i < 18; i++) { const x = new THREE.Group(); for (const s of [1, -1]) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.028, 0.01), red); bar.rotation.z = s * 0.8; x.add(bar); } x.position.set(-0.55 + (i % 6) * 0.22, 1.56 - Math.floor(i / 6) * 0.15, 0.035); g.add(x); X.push(x); } // 3 rows of 6 between the ruled lines, inside the board
-  return { group: shadowed(g), update(f: number) { const T = api.T, up = clamp((f - T.every) / Math.max(1, T.name - T.every)), down = clamp((f - T.red2) / Math.max(1, T.boxes2 - T.red2));
-    const n = Math.floor(up * 18 * (1 - down) + 0.0001); X.forEach((x, i) => { x.visible = i < n; x.scale.setScalar(n - i === 1 && down === 0 ? 1.25 : 1); }); } }; };
+  for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 1.02, 12), steel); leg.position.set(sx * 0.6, 0.51, -0.045); g.add(leg); } // the stand ends under the board, behind it
+  return { group: clean(g), update(f: number) { const T = api.T, up = clamp((f - T.every) / Math.max(1, T.name - T.every)), down = clamp((f - T.red2) / Math.max(1, T.fast - T.red2)); /* gone by "faster", while the board is still in close-up */
+    const v = up * 18 * (1 - down), n = Math.floor(v + 0.0001), pop = down > 0 ? 1 : Math.min(1.25, 0.4 + (v - n) * 3);
+    const key = n * 100 + Math.round(pop * 20); if (key !== drawn) { drawn = key; paint(n, pop); } } }; };
+
 /** the computer on the shop's desk: one green tick (the tap that said "delivered") and a little van */
 /** the green tick on the office's own monitor (a screen-sized plane in front of its screen) */
 const screenTick = () => { const g = new THREE.Group(); const m = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.28), new THREE.MeshBasicMaterial({ map: canvasTexture("tickscreen3", 320, 200, (c) => { c.fillStyle = "#e8f2fb"; c.fillRect(0, 0, 320, 200); c.strokeStyle = "#2f9a5a"; c.lineWidth = 26; c.lineCap = "round"; c.lineJoin = "round"; c.beginPath(); c.moveTo(80, 104); c.lineTo(138, 156); c.lineTo(250, 46); c.stroke(); }) }));
@@ -192,6 +217,27 @@ const VAN_Z = mk(HOME, "vanStop")[2] + 0.2, VAN_X = mk(HOME, "vanStop")[0];
 const DESK = mk(OFFICE, "desk"), DESKTOP = mk(OFFICE, "deskTop");
 const BIGSBY = mk(OFFICE, "desk", [-0.55, 0, 0.45]); // beside the desk, facing the room
 
+/** a sky with soft clouds all round the street (equirectangular canvas on an inside-out sphere, unlit, no ink) */
+const skyDome = (api: BoardApi) => {
+  const W = 4096, H = 2048, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d")!;
+  const gr = c.createLinearGradient(0, 0, 0, H * 0.5); gr.addColorStop(0, "#2a63a8"); gr.addColorStop(0.7, "#5b9ad6"); gr.addColorStop(1, "#93c3ea");
+  c.fillStyle = gr; c.fillRect(0, 0, W, H * 0.5); c.fillStyle = "#c4dbea"; c.fillRect(0, H * 0.5, W, H * 0.5);
+  let sd = 11; const rnd = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+  const puff = (x: number, y: number, r: number) => { for (const dx of [0, W, -W]) {
+    const sh = c.createRadialGradient(x + dx, y + r * 0.28, r * 0.15, x + dx, y + r * 0.28, r); sh.addColorStop(0, "rgba(128,150,186,0.75)"); sh.addColorStop(0.75, "rgba(128,150,186,0.35)"); sh.addColorStop(1, "rgba(128,150,186,0)");
+    c.fillStyle = sh; c.beginPath(); c.arc(x + dx, y + r * 0.28, r, 0, 7); c.fill();
+    const wh = c.createRadialGradient(x + dx - r * 0.12, y - r * 0.12, r * 0.05, x + dx, y, r * 0.92); wh.addColorStop(0, "rgba(255,255,255,1)"); wh.addColorStop(0.7, "rgba(250,252,255,0.92)"); wh.addColorStop(1, "rgba(240,246,252,0)");
+    c.fillStyle = wh; c.beginPath(); c.arc(x + dx, y, r * 0.92, 0, 7); c.fill(); } };
+  for (let k = 0; k < 34; k++) { // separate cumulus with blue between them, in the band a street camera sees (5-25 degrees up)
+    const cy = H * (0.355 + rnd() * 0.11), sz = 26 + rnd() * 38 + (cy / H - 0.355) * 260, cx = rnd() * W, n = 5 + Math.floor(rnd() * 5);
+    for (let i = 0; i < n; i++) puff(cx + (rnd() - 0.5) * sz * 3.0, cy - Math.abs(rnd() - 0.5) * sz * 0.8, sz * (0.5 + rnd() * 0.5)); }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: true, fog: false, toneMapped: false }); /* writes depth: the haze pass treats an empty depth buffer as infinitely far and washed the clouds out */
+  const m = new THREE.Mesh(new THREE.SphereGeometry(150, 64, 32), mat); m.renderOrder = -9; m.frustumCulled = false; /* after the engine's sky (-10), before the world */
+  const g = clean(new THREE.Group()); g.add(m); m.layers.set(NOINK); m.castShadow = false; m.receiveShadow = false;
+  return { group: g, update(f: number) { const T = api.T, winter = f >= T.winter - 8 && f < T.monday, dusk = f >= T.and8 - 8;
+    mat.color.set(winter ? "#b4bcc6" : dusk ? "#ffd2b0" : "#ffffff"); } };
+};
 /** the neighbours' parcels on their porches and on the pavement: they vanish one after another from "vanishing" */
 const streetBoxes2 = (api: BoardApi) => { const g = new THREE.Group(), boxes: THREE.Object3D[] = [];
   const spots: [number, number, number][] = [mk(HOME, "porch1", [0.3, 0, -0.35]), mk(HOME, "porch1", [-0.4, 0, -0.3]), mk(HOME, "porch2", [0.2, 0, -0.35]), mk(HOME, "porch2", [-0.5, 0, -0.2]), mk(HOME, "pavement", [3.2, 0, -0.2]), mk(HOME, "pavement", [-4.6, 0, -0.1]), mk(HOME, "pavement", [5.8, 0, 0])];
@@ -205,7 +251,7 @@ const beats: Beat[] = [
   // ---- 1 the van pulls up at the blue door
   { at: 0, id: "open", place: "street", key: KDAY, music: "build", shot: { size: "wide", move: "push", amount: 0.1 },
     act: { dex: { seat: { vehicle: "van", seat: "driver" }, light: 1 }, vex: { hide: true }, vexg: { hide: true }, bigsby: { hide: true }, hank: { hide: true } },
-    sfx: [{ name: "car", lu: -10 }] },
+    gag: { prop: "skyDome", id: "sky", at: [0, 0, 0], in: "none" }, sfx: [{ name: "car", lu: -10 }] },
   // ---- his last box: we follow him up the path (his back to us, the blue door ahead)
   { at: "blue", id: "last", via: "dissolve", shot: { size: "medium", on: "dex", angle: 22, move: "push", amount: 0.26 },
     act: { dex: { seat: null, at: mk(HOME, "gate", [0, 0, 0.6]), pose: carry("focused"), face: DOOR } } },
@@ -225,7 +271,7 @@ const beats: Beat[] = [
     act: { vex: { hide: false, at: IN_DOOR, pose: onPhone("sneaky"), face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] } } },
   { at: "the#4", id: "neverArrived", place: "shop", key: KSHOP, shot: { size: "medium", on: "bigsby", angle: 0, move: "push", amount: 0.26 },
     act: { bigsby: { hide: false, at: BIGSBY, pose: onPhone("confused"), face: [BIGSBY[0] + 0.6, 0, BIGSBY[2] + 4] } },
-    gag: { prop: "screenTick", id: "monitor", origin: "center", at: mk(OFFICE, "monitor", [0, 0.06, 0.035]), in: "none" } },
+    gag: { prop: "nothing", id: "monitor", origin: "center", at: mk(OFFICE, "monitor", [0, 0.06, 0.035]), in: "none" } },
   // ---- the customer: "Nothing on my mat. Nothing at all."
   { at: "nothing", id: "nothing", place: "street", key: KDAY, shot: { size: "close", on: "vex", angle: 0, move: "push", amount: 0.1 },
     act: { vex: { at: IN_DOOR, pose: point(0.55, 0.25, "innocent"), hold: H("phone", { hand: "L" }), talk: true, face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] } } },
@@ -306,20 +352,21 @@ const beats: Beat[] = [
   { at: "right", id: "gnomeIn", shot: { size: "insert", on: "gnome2", h: 0.7, angle: -10, move: "push", amount: 0.26 } },
   { at: "gnome", id: "gnomeW", kick: 0.04, focus: "gnome2", act: { vexg: { pose: { limbs: { handR: [0.45, 1.45] }, hands: { R: "open" }, expr: "mortified" }, face: GNOME } }, gag: [{ prop: "nothing", id: "gnome2", at: GNOME, in: "none" }, { fx: "sparkle", on: [GNOME[0], GNOME[1] + 0.45, GNOME[2]], size: 0.45 }], sfx: [{ name: "impact", lu: -3, on_word: true }] },
   // ---- the red marks vanish
-  { at: "the#19", id: "the19", place: "depot", key: KDEPOT, music: "full", shot: { size: "two", on: ["dex", "record"], move: "push", amount: 0.26 },
+  { at: "the#19", id: "the19", place: "depot", key: KDEPOT, music: "full", shot: { size: "insert", on: "record", h: 1.2, angle: 0, move: "push", amount: 0.26 },
     act: { vexg: { hide: true }, dex: { hide: false, at: mk(DEPOT, "board", [0.9, 0, 0.9]), pose: { limbs: { handR: [0.3, 0.3] }, expr: "relieved" }, hold: null, face: mk(DEPOT, "board") } } },
-  { at: "red#2", id: "red2", shot: { size: "insert", on: "record", h: 1.2, angle: 0, move: "push", amount: 0.26 }, focus: "record", act: { dex: { pose: { limbs: { handR: [0.85, 1.35], handL: [0.85, 1.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, face: [0, 0, 30] } }, sfx: [{ name: "pop", lu: -10 }] },
+  { at: "red#2", id: "red2", focus: "record", act: { dex: { pose: { limbs: { handR: [0.85, 1.35], handL: [0.85, 1.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, face: [0, 0, 30] } }, sfx: [{ name: "pop", lu: -10 }] },
+  { at: "faster", id: "fast", shot: { size: "medium", on: "dex", angle: 0, move: "push", amount: 0.26 }, act: { dex: { pose: { limbs: { handR: [0.85, 1.35], handL: [0.85, 1.35] }, hands: { R: "open", L: "open" }, expr: "happy" }, face: [0, 0, 30] } } },
   { at: "boxes#2", id: "boxes2", off: 0.1 },
   // ---- the payoff: the photo of the door, then back into the van
   { at: "and#8", id: "and8", place: "street", key: KDUSK, shot: { size: "full", on: [MAT[0] - 0.4, MAT[1], MAT[2] + 0.5], h: 2.2, angle: 14, move: "push", amount: 0.26 },
     act: { dex: { at: BESIDE, pose: scan(0, "focused"), face: DOOR } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
   { at: "photographs", id: "photographs", act: { dex: { pose: scan(0.9, "focused"), lead: 1 } }, gag: { fx: "sparkle", on: "dex", size: 0.5, dy: -0.4 }, sfx: [{ name: "shutter", lu: -4, on_word: true }], event: [0, 4] },
-  { at: "climbing", id: "climbing", act: { dex: { walk: mk(HOME, "steps", [0, 0, 0.5]), speed: 1.8, pose: { limbs: { handR: [0.85, 1.35] }, hands: { R: "open" }, expr: "happy" }, hold: null } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
+  { at: "climbing", id: "climbing", act: { dex: { walk: mk(HOME, "porchL", [-3.6, 0, 0.5]), speed: 2.6, pose: { limbs: { handR: [0.85, 1.35] }, hands: { R: "open" }, expr: "happy" }, hold: null } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
 ];
 
 const BRAND = { ...BRANDS.ours, shine: false, torsoShine: false, ink: "#1a1012" }; // this film: no drawn face shine (it split the face), a warm near-black ink (light study)
 const board: Board = {
-  id: "doorphoto", title: "Why Delivery Drivers Started Photographing Your Door", words: WORDS, brand: BRAND, voOffset: 0, tail: 0.6, walkRate: 3.6,
+  id: "doorphoto", title: "Why Delivery Drivers Started Photographing Your Door", words: WORDS, brand: BRAND, voOffset: 0, tail: 0.6, walkRate: 3.6, walkLean: 0.2,
   cast: {
     dex: castEntry("courier"),
     vex: castEntry("vex"),
@@ -337,7 +384,7 @@ const board: Board = {
     shop: { set: "baked", baked: { dir: "sets/office", manifest: OFFICE } },
     depot: { set: "baked", baked: { dir: "sets/depot", manifest: DEPOT } },
   },
-  props: { parcel, screenTick, tapScanner: (api) => bigScanner(api, "tick"), photoScanner: (api) => bigScanner(api, "photo"), scannerRack, tvBox, blenderBox, phonesBox, streetBoxes: streetBoxes2, refundPile, recordBoard, monitor, photoCard, nothing: () => new THREE.Group() },
+  props: { parcel, skyDome, tapScanner: (api) => bigScanner(api, "tick"), photoScanner: (api) => bigScanner(api, "photo"), scannerRack, tvBox, blenderBox, phonesBox, streetBoxes: streetBoxes2, refundPile, recordBoard, monitor, photoCard, nothing: () => new THREE.Group() },
   beats,
 };
 export const doorphotoShort = boardProject(board);

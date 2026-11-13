@@ -317,7 +317,7 @@ def house(prefix, x, door_col, wall_tint, flip=False, z_face=-6.0, detail=True, 
     """A two-storey house front facing +z (or -z with flip) centred on x. Returns the door's engine x."""
     s = -1 if flip else 1
     zf = z_face
-    W, H1 = 8.0, 6.2
+    W, H1 = 8.85, 6.2  # 1.11.3: 9 m apart, the fronts nearly touch (a terrace): no sky between the houses
     wall = tex_mat(f"{prefix}_wall", wall_tex, 2.2 if wall_tex.startswith("exterior") else 1.8, tint=None if paint else wall_tint, paint=paint)
     trim = col_mat(f"{prefix}_trim", srgb("#f1ece2"), 0.55)
     conc = tex_mat(f"{prefix}_found", "brushed_concrete", 2.0, tint=srgb("#b9b3a8"))
@@ -328,9 +328,12 @@ def house(prefix, x, door_col, wall_tint, flip=False, z_face=-6.0, detail=True, 
     box(f"{prefix}_found", W + 0.1, 0.42, 0.36, (x, 0, zf - s * 0.12), conc, rot_y=ry)
     for sx in (-1, 1): box(f"{prefix}_corner{sx}", 0.18, H1, 0.36, (x + sx * (W / 2 - 0.05), 0, zf - s * 0.13), trim, rot_y=ry)
     box(f"{prefix}_belt", W + 0.1, 0.16, 0.36, (x, 3.05, zf - s * 0.13), trim, rot_y=ry)
-    gable(f"{prefix}_gable", W, 2.6, (x, H1, zf), wall)
-    if flip: bpy.data.objects[f"{prefix}_gable"].rotation_euler = (0, 0, math.pi)
+    # 1.11.3: no gable triangle on the front (it stuck up above the roof); the roof's ends are closed by side gables,
+    # and side walls close the house so the narrow gap to the neighbour reads as a dark alley, not sky
     prism_roof(f"{prefix}_roof", W, 7.0, 2.7, (x, H1, zf - s * 3.5), roof)
+    for sx in (-1, 1):
+        g = gable(f"{prefix}_sgable{sx}", 7.0, 2.7, (x + sx * (W / 2 - 0.15), H1, zf - s * 3.5), wall); g.rotation_euler = (0, 0, math.pi / 2)
+        box(f"{prefix}_side{sx}", 0.3, H1, 7.0, (x + sx * (W / 2 - 0.15), 0, zf - s * 3.5), wall, bevel=0.0)
     # door, frame, porch
     dx = x - s * 1.6
     dc = col_mat(f"{prefix}_door", srgb(door_col), 0.42)
@@ -484,6 +487,10 @@ def build_home():
             z = -5.6 + k * 0.38
             blob(f"hedge{x:.0f}_{k}", 0.42 + 0.06 * math.sin(k * 1.7), (x + 0.05 * math.sin(k * 2.3), 0.35 + 0.05 * math.cos(k), z), hedge, k=1.15, seed=k + (7 if x > 0 else 0), sub=3)
     street()
+    # 1.11.3: the terrace continues past the frame (no open ends)
+    for k, x in enumerate((-18.0, 18.0, -27.0, 27.0)):
+        house(f"hx{k}", x, ["#6a8f5a", "#8a5a7a", "#c9822e", "#3f6a8f"][k], srgb("#e4d6cc"), detail=False, wall_tex="exterior_wall_cladding_02" if k % 2 else "weathered_plank_siding",
+              curtain=["#e2a35a", "#7fa0c8", "#e88a8a", "#8ac0a0"][k], paint=["#e8d8c0", None, "#d8c4b4", None][k])
     # across the road: three house fronts facing the camera's back (reverse shots)
     for k, x in enumerate((-9.0, 0.0, 9.0)):
         house(f"hb{k}", x, ["#7a4f8a", "#c9822e", "#2f6f8a"][k], srgb("#e4d6cc"), flip=True, z_face=19.5, detail=False,
@@ -1072,6 +1079,16 @@ def screen_fn(u, v, np):
         out[(u > 0.22) & (u < 0.5) & (np.abs(v - y) < 0.008)] = hx("#6a5a4a")
         out[(u > 0.84) & (u < 0.92) & (np.abs(v - y) < 0.016)] = hx("#5f9a4e" if k != 1 else "#e08a3a")
     out[(u > 0.73) & (u < 0.94) & (v > 0.86)] = hx("#f6c08a")
+    # 1.11.3: a "delivered" card over the order list: white panel, green rim and a big green tick
+    ax, ay = 0.6, 0.36  # screen aspect (m): distances in metres so the strokes stay round
+    pm = (u > 0.34) & (u < 0.9) & (v > 0.12) & (v < 0.8); out[pm] = hx("#ffffff")
+    rim = pm & ~((u > 0.35) & (u < 0.89) & (v > 0.135) & (v < 0.785)); out[rim] = hx("#2f9a5a")
+    def seg(x0, y0, x1, y1):
+        px, py = (u - x0) * ax, (v - y0) * ay; dx, dy = (x1 - x0) * ax, (y1 - y0) * ay
+        t = np.clip((px * dx + py * dy) / (dx * dx + dy * dy), 0, 1)
+        return np.hypot(px - t * dx, py - t * dy)
+    tick = np.minimum(seg(0.45, 0.47, 0.56, 0.3), seg(0.56, 0.3, 0.79, 0.66)) < 0.022
+    out[tick] = hx("#2f9a5a")
     return out
 
 

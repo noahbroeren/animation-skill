@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.11.3 - 2026-11-14
+- Street set: the houses form a terrace (no sky between them), the front gable triangles are gone (side gables and side
+  walls close each house), two more houses each side.
+- Office set: the monitor itself shows the order marked delivered (no floating screen plane in front of it).
+- doorphoto final: a deeper blue sky with separate cumulus all round the street (tinted grey in winter, warm at dusk);
+  rounded, matte, high-resolution story boxes on the no-ink layer; a 1024 px record board with hand-drawn marker
+  crosses and the stand under the board; scanner rings placed exactly on the drawn door, mat and box; the driver walks
+  out of frame upright at the end (`Board.walkLean`).
+- `render.mjs --clean`: stills without burned-in captions (covers and thumbnails).
+
 ## 1.11.2 - 2026-11-13
 - **Every side of a character.** A continuous turnaround (`KPose.yaw`, `viewOfYaw`): 16+ distinct drawings from front
   to back, with new `back` and `threeBack` views (hair over the skull, ears at their true positions, a plain garment
