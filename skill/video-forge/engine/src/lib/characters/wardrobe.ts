@@ -37,7 +37,7 @@ export const PROP_X = [
   "gavel", "medkit", "calculator", "tablet", "remote", "gift", "lantern", "oar", "spatula", "rollingpin", "pan", "ladle",
   "whisk", "mug", "sign", "letter", "key", "candle", "hourglass", "lightbulb", "magnet", "flask", "testtube", "globe",
   "telescope", "binoculars", "suitcase", "toolbox", "racket", "lollipop", "rose", "tray", "bell", "net", "stopwatch",
-  "banana", "donut", "teddy", "basket", "wateringcan", "plant", "ticket",
+  "banana", "donut", "teddy", "basket", "wateringcan", "plant", "ticket", "parcel", "scanner",
 ] as const;
 export type PropX = (typeof PROP_X)[number];
 
@@ -1344,6 +1344,14 @@ const PROPS: Record<PropX, (e: PE) => void> = {
   wateringcan: (e) => { e.up(); const { Q, R, pt, k, u, c } = e, col = c ?? "#5f9e4a"; inkStroke(k, P([[-0.14, 0.1], [-0.12, -0.04, 0.08, -0.04], [0.16, -0.02, 0.16, 0.1]], u, { close: false }), u * 0.035, k.shade(col, 0.2), 0.5); pt(Q([[0.14, 0.24], [0.48, 0.02], [0.52, 0.06], [0.2, 0.34]]), col, 0); pt(R(-0.2, 0.08, 0.38, 0.34, 0.06), col, 0.6, true); pt(R(0.46, -0.01, 0.06, 0.1, 0.02), k.shade(col, 0.2), 0); },
   plant: (e) => { e.up(); const { Q, pt } = e, pot = e.c ?? "#c9673a"; for (const a of [-0.9, -0.35, 0.2, 0.75]) pt(xf(P([[0, 0], [0.12, -0.08, 0, -0.32], [-0.12, -0.08, 0, 0]], e.u), 0, -0.18 * e.u, 1, a), "#5f9e4a", 0); pt(Q([[-0.16, -0.2], [0.16, -0.2], [0.12, 0.04], [-0.12, 0.04]]), pot, 0.4); pt(e.R(-0.18, -0.24, 0.36, 0.06, 0.02), e.k.shade(pot, 0.1), 0); },
   ticket: (e) => { e.up(); const { R, pt, k, u, c } = e, col = c ?? "#f2c94c"; pt(R(-0.24, -0.24, 0.48, 0.2, 0.02), col, 0.2); k.g.save(); k.g.setLineDash([u * 0.02, u * 0.02]); stroke(k, P([[0.1, -0.24], [0.1, -0.04]], u, { close: false }), k.shade(col, 0.45), k.lw * 0.7); k.g.restore(); e.ln([[-0.18, -0.17], [0.04, -0.17]], k.shade(col, 0.45), 1.0); e.ln([[-0.18, -0.11], [0.0, -0.11]], k.shade(col, 0.45), 1.0); },
+  /** a cardboard parcel held from below: tape across the top, a white label (color = the cardboard) */
+  parcel: (e) => { e.up(); const { R, pt, fs, k, ln, c } = e, col = c ?? "#c8935a"; pt(R(-0.34, -0.5, 0.68, 0.5, 0.03), col, 0.6, true); fs(R(-0.34, -0.5, 0.68, 0.07, 0.01), k.tint(col, 0.35), 0.4); fs(R(-0.06, -0.5, 0.12, 0.5, 0.01), "#e9cf96", 0.5);
+    fs(R(0.1, -0.36, 0.18, 0.12, 0.01), "#f6f4ee", 0.3); ln([[0.13, -0.32], [0.25, -0.32]], k.shade("#f6f4ee", 0.5), 0.6); ln([[0.13, -0.28], [0.22, -0.28]], k.shade("#f6f4ee", 0.5), 0.6); },
+  /** a handheld delivery scanner: grip, screen, camera lens; open >= 0.5 fires the flash */
+  scanner: (e) => { e.up(); const { R, E, pt, fs, k, dot, u, open, c } = e, col = c ?? "#2b2f3a"; pt(R(-0.07, -0.18, 0.14, 0.3, 0.05), k.shade(col, 0.1), 0.3); pt(R(-0.16, -0.66, 0.32, 0.5, 0.06), col, 0.5, true);
+    fs(R(-0.12, -0.61, 0.24, 0.26, 0.03), "#9fd8ff", 0.4); fs(R(-0.12, -0.61, 0.24, 0.05, 0.01), "#e8833a", 0.2); dot(0, -0.27, 0.045, "#e8833a"); dot(-0.08, -0.27, 0.025, k.tint(col, 0.4)); dot(0.08, -0.27, 0.025, k.tint(col, 0.4));
+    pt(E(0.1, -0.7, 0.07, 0.05), "#1b1d24", 0.2); dot(0.1, -0.7, 0.025, "#9fd8ff");
+    if ((open ?? 0) >= 0.5) { const g = k.g; g.save(); g.globalAlpha = 0.9; g.fillStyle = "#fffbe6"; g.beginPath(); for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, r = (i % 2 ? 0.12 : 0.34) * u; const x = 0.1 * u + Math.cos(a) * r, y = -0.7 * u + Math.sin(a) * r; if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.closePath(); g.fill(); g.restore(); } },
 };
 
 /** Hand props drawn larger than life so they read next to the big head (x the prop unit). */

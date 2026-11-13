@@ -47,7 +47,7 @@ const format = A.format ?? undefined;
 const out = path.resolve(A.out ?? path.join(ROOT, "out", A.project, `${format ?? "default"}_${fps}`));
 fs.mkdirSync(out, { recursive: true });
 const codec = A.codec ?? "h264";
-const crf = Number(A.crf ?? (codec === "h265" ? 16 : 14)); // 14: ~YouTube-recommended upload bitrate for 1440p (crf 16 gave ~10 Mbps)
+const crf = Number(A.crf ?? (codec === "h265" ? 16 : Number(A.fps ?? 30) >= 50 ? 12 : 14)); // 14: ~YouTube-recommended upload bitrate for 1440p (crf 16 gave ~10 Mbps); 60 fps needs 12 (crf 14 measured 16 Mbps against the recommended ~24)
 const imageFormat = A["image-format"] ?? "jpeg";
 const scale = Number(A.scale ?? 1);
 // one GPU: more Chromium tabs contend for WebGL. tools/bench.mjs on a Ryzen 9800X3D + RTX 5070: 4 tabs 1.2-1.4x faster than 8

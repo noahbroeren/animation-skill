@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.1 - 2026-11-13
+- **60 fps storyboards fixed.** Join and camera timings were frame counts tuned at 30 fps, and the camera rig scaled
+  key glides by fps / 30 a second time: at 60 fps every travel and every push started half way (QA: two unplanned
+  cuts, 15 camera snaps). Travels, dissolves, soft cuts, light fades, the pose lead and the creep now follow the frame
+  rate (`planBoard`, `shotKeys` `R`, `RigOptions.glideInFrames`); 30 fps renders are unchanged (visual tests match).
+- 60 fps renders default to crf 12 (crf 14 gave 16 Mbps; YouTube asks ~24 Mbps for 1440p60).
+- Held props `parcel` and `scanner` (with a flash at `open >= 0.5`).
+- Demo project `doorphoto` ("Why Delivery Drivers Started Photographing Your Door"): our cast (Vex, Dex, Mr. Bigsby,
+  Hank), ElevenLabs narration, 14 custom props, 2K 60 fps, QA PASS with 0 WARN.
+
 ## 1.10.0 - 2026-11-13
 - **Our complete cast (brand ours-v1): 111 characters.** `lib/characters/ours.ts`: a core ensemble of 14 recurring
   characters (Milo, Juno, Dr. Ada Vale, Mr. Bigsby, Vex, Gus, Pip, Nana Rose, Officer Dee, Chef Sal, Kai, Professor

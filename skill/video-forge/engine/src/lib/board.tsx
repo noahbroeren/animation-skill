@@ -140,6 +140,8 @@ export function planBoard(b: Board, fps: number) {
     throw new Error(`board "${b.id}": beat anchor "${a}" not found in the narration`);
   };
   const F = (s: number) => Math.max(0, Math.round(s * fps));
+  /* every frame count below was measured / tuned at 30 fps: scale it so a 60 fps render keeps the same timing in seconds */
+  const R = fps / 30, rf = (n: number) => Math.round(n * R);
   const total = F(words[words.length - 1].end + (b.tail ?? 0.9));
   const seen: Record<string, number> = {};
   let place = "", key: string | LightKey = "day";
@@ -166,12 +168,12 @@ export function planBoard(b: Board, fps: number) {
   // 1.9 (frame study): 81 % of the reference's joins are 7-9 f dissolves that start on the first word of a new sentence;
   // inside a sentence the camera travels to the next subject (accent moves of ~16 f); hard cuts are 0-2 per film.
   const sentenceStart = (wi: number) => wi <= 0 || /[.?!]["')]?$/.test(words[wi - 1]?.word ?? "");
-  const viaOf = (x: (typeof beats)[number]): Via => x.via ?? (x.newPlace || (x.shot && typeof x.at === "string" && sentenceStart(x.wi)) ? "dissolve" : (prevLen.get(x.i) ?? 99) < 20 ? "cut" : "glide");
-  const cuts = shotBeats.filter((x) => x.i > 0 && viaOf(x) === "cut").map((x) => x.f), soft = shotBeats.filter((x) => x.i > 0 && ["dissolve", "whip", "through", "flash", "iris"].includes(viaOf(x))).map((x) => (viaOf(x) === "whip" ? x.f - 3 : x.f + (viaOf(x) === "iris" ? 3 : 4))); // a whip is a planned soft transition (it starts 3 frames before its cue)
+  const viaOf = (x: (typeof beats)[number]): Via => x.via ?? (x.newPlace || (x.shot && typeof x.at === "string" && sentenceStart(x.wi)) ? "dissolve" : (prevLen.get(x.i) ?? 99) < rf(20) ? "cut" : "glide");
+  const cuts = shotBeats.filter((x) => x.i > 0 && viaOf(x) === "cut").map((x) => x.f), soft = shotBeats.filter((x) => x.i > 0 && ["dissolve", "whip", "through", "flash", "iris"].includes(viaOf(x))).map((x) => (viaOf(x) === "whip" ? x.f - rf(3) : x.f + (viaOf(x) === "iris" ? rf(3) : rf(4)))); // a whip is a planned soft transition (it starts 3 frames before its cue)
   // travel windows (pure: the same arithmetic the camera uses): length follows the shot before, 12-28 frames, 60 % before the cue
   // 1.8: 20-40 frames. Reviewers called the 12-28 frame re-framings "teleports between keyframes" (reference glide: 44 f)
   // accent travel (reference: median 16 f, 7 f ease in and out, peak ~0.9 frame widths/s); long slow moves are `move`s
-  const glideLen = (k: number) => { if (k <= 0) return 0; const len = shotBeats[k].f - shotBeats[k - 1].f; return Math.max(10, Math.min(len - 2, Math.max(14, Math.min(26, Math.round(len * 0.35))))); };
+  const glideLen = (k: number) => { if (k <= 0) return 0; const len = shotBeats[k].f - shotBeats[k - 1].f; return Math.max(rf(10), Math.min(len - 2, Math.max(rf(14), Math.min(rf(26), Math.round(len * 0.35))))); };
   const travels = shotBeats.map((x, k) => (k > 0 && viaOf(x) === "glide" ? ([x.f + Math.round(glideLen(k) * 0.4) - glideLen(k), x.f + Math.round(glideLen(k) * 0.4)] as [number, number]) : null)).filter((t): t is [number, number] => !!t);
   return { words, beats, T, total, end, viaOf, shotBeats, cuts, soft, F, travels, glideLen };
 }
@@ -224,9 +226,9 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // light plan from the beats' keys
   // a key change is an edit: on a cut it switches on the frame, on a dissolve it fades with the dissolve, inside a shot it fades over 14 frames
   const lpKeys: [number, string | LightKey, number][] = []; { let last: unknown; for (const bt of P.beats) if (bt.i === 0 || (bt.key && bt.key !== last)) { const sh = bt.i > 0 && (bt.shot || bt.newPlace), via = P.viaOf(bt);
-    const sc = b.softCut ?? 6;
-    lpKeys.push(!sh ? [bt.f, bt.keyNow, 14] : via === "dissolve" ? [bt.f + 5, bt.keyNow, 10] : via === "whip" ? [bt.f + 3, bt.keyNow, 0] : via === "glide" ? [bt.f + 6, bt.keyNow, 14] : [bt.f + Math.ceil(sc / 2), bt.keyNow, sc]); last = bt.keyNow; } }
-  const LP = lightPlan(lpKeys, { fade: 14 });
+    const r3 = (n: number) => Math.round(n * fps / 30), sc = r3(b.softCut ?? 6);
+    lpKeys.push(!sh ? [bt.f, bt.keyNow, r3(14)] : via === "dissolve" ? [bt.f + r3(5), bt.keyNow, r3(10)] : via === "whip" ? [bt.f + r3(3), bt.keyNow, 0] : via === "glide" ? [bt.f + r3(6), bt.keyNow, r3(14)] : [bt.f + Math.ceil(sc / 2), bt.keyNow, sc]); last = bt.keyNow; } }
+  const LP = lightPlan(lpKeys, { fade: Math.round(14 * fps / 30) });
   const L = LP.build(scene, { shadowSize: 46, target: origin(P.beats[0].placeNow) });
   const sets: Record<string, SetInstance> = {};
   for (const id of placeIds) { sets[id] = buildSet(b.places[id].set, { seed: `${b.id}-${id}`, ...b.places[id].opts }, origin(id)); scene.add(sets[id].group); }
@@ -264,7 +266,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
       if (a.hold !== undefined) pose.hold = a.hold ?? undefined; else if (a.pose !== undefined && prevPose.hold && !pose.hold) pose.hold = prevPose.hold; // a prop stays in the hand until put down
       if (a.hold2 !== undefined) pose.hold2 = a.hold2 ?? undefined; else if (a.pose !== undefined && prevPose.hold2 && !pose.hold2) pose.hold2 = prevPose.hold2;
       const hard = bt.newPlace || (!!bt.shot && P.viaOf(bt) !== "glide"); // on a cut the new pose starts ON the cut frame, not 3 frames before it
-      A.keys.push({ f: Math.max(0, bt.f - (a.lead ?? (hard ? 0 : 3))), pose, blend: bt.i === 0 || hard ? 1 : 5 });
+      A.keys.push({ f: Math.max(0, bt.f - (a.lead ?? (hard ? 0 : Math.round(3 * fps / 30)))), pose, blend: bt.i === 0 || hard ? 1 : Math.round(5 * fps / 30) });
     }
     if (a.talk) A.talk.push([bt.f, P.end(bt.i), bt.wi, P.beats[bt.i + 1]?.wi ?? P.words.length]);
     if (a.look !== undefined) A.looks.push({ f: bt.f, look: a.look || undefined });
@@ -299,9 +301,9 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // A travel (glide) starts BEFORE its cue and lands just after it, so the shot before it must END where the travel starts.
   // 1.7.0 ended every shot 2 frames before the next cue: the two moves overlapped, the rig handed over mid-travel and the
   // picture jumped half the way in one frame (12 of 23 detected cuts in the first board were these jumps).
-  const soft = b.softCut ?? 6, GL = 28;
+  const R30 = fps / 30, soft = Math.round((b.softCut ?? 6) * R30), GL = 28;
   const glideOf = (k: number) => P.glideLen(k); void GL;
-  const leadOf = (k: number) => { const x = P.shotBeats[k]; if (!x) return 0; const v = P.viaOf(x); if (v === "glide") { const g = glideOf(k); return g - Math.round(g * 0.4) + 2; } return v === "whip" ? 5 : 0; };
+  const leadOf = (k: number) => { const x = P.shotBeats[k]; if (!x) return 0; const v = P.viaOf(x); if (v === "glide") { const g = glideOf(k); return g - Math.round(g * 0.4) + 2; } return v === "whip" ? Math.round(5 * R30) : 0; };
   let lastSide = 0;
   P.shotBeats.forEach((bt, k) => {
     const ld = leadOf(k + 1), f1 = (P.shotBeats[k + 1]?.f ?? P.total + 12) - ld + (ld ? 4 : 0), // the shot's last key sits exactly where the next travel starts
@@ -312,12 +314,12 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     if (sh.on !== undefined && typeof sh.side === "number") lastSide = sh.side;
     const names = sh.on === undefined ? [] : Array.isArray(sh.on) && typeof sh.on[0] === "string" ? (sh.on as string[]) : [sh.on as string | V3];
     let ks: CamKey[];
-    if (!names.length) { const w = set.wide; ks = shotKeys({ ...sh, size: sh.size, on: { at: w.look, h: 0 } } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 26, settle: 0, soft, dissolve: 9 });
+    if (!names.length) { const w = set.wide; ks = shotKeys({ ...sh, size: sh.size, on: { at: w.look, h: 0 } } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || Math.round(26 * R30), settle: 0, soft, dissolve: Math.round(9 * R30), creep: 0.0022 / R30, R: R30 });
       const d: V3 = [w.pos[0] - w.look[0], w.pos[1] - w.look[1], w.pos[2] - w.look[2]]; // re-base the framing on the set's own establishing camera
       const p0 = ks[0].pos, l0 = ks[0].look; ks = ks.map((q) => ({ ...q, pos: [w.look[0] + d[0] + (q.pos[0] - p0[0]), w.look[1] + d[1] + (q.pos[1] - p0[1]), w.look[2] + d[2] + (q.pos[2] - p0[2])] as V3,
         look: [w.look[0] + (q.look[0] - l0[0]), w.look[1] + (q.look[1] - l0[1]), w.look[2] + (q.look[2] - l0[2])] as V3, fov: sh.fov ?? w.fov, via: undefined, focus: undefined })); }
     else { const subs = names.map((n) => subjectOf(n, fAct, bt.placeNow, sh.h)), from = sh.from ? subjectOf(sh.from, fAct, bt.placeNow) : undefined;
-      ks = shotKeys({ ...sh, on: subs, from } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || 24, soft, dissolve: 9 });
+      ks = shotKeys({ ...sh, on: subs, from } as ShotSpec, { f0: bt.f, f1, aspect, via, box: set.camBox, first: bt.i === 0, glide: glideOf(k) || Math.round(24 * R30), soft, dissolve: Math.round(9 * R30), creep: 0.0022 / R30, R: R30 });
       if (sh.from && sh.size === "pov") povHide.push({ f0: bt.f, f1, id: sh.from });
       audit.push({ f0: ks[0].f + 2, f1, subs: names.filter((n): n is string => typeof n === "string" && !!cast[n]), place: bt.placeNow });
       if (sh.follow) { const s0 = subjectOf(sh.follow, fAct, bt.placeNow), a = frameShot({ ...sh, on: subs, from } as ShotSpec, aspect, set.camBox), id = sh.follow, hh = s0.h * 0.6;
@@ -330,7 +332,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
         follows.push({ f0: bt.f + 1, f1: f1 - 2, blend: 6, blendOut: 4, lookAhead: 0, target: (f) => { const s = subjectOf(id, f, bt.placeNow); return [s.at[0], s.at[1] + hh, s.at[2]]; }, offset: [a.pos[0] - s0.at[0], a.pos[1] - s0.at[1] - hh, a.pos[2] - s0.at[2]] }); } }
     keys.push(...ks);
   });
-  const rig = cameraRig(keys, { refFps: 30, handheld: b.rig?.handheld ?? 0.012, handheldSpeed: 0.4, follow: follows,
+  const rig = cameraRig(keys, { refFps: 30, glideInFrames: true, handheld: b.rig?.handheld ?? 0.012, handheldSpeed: 0.4, follow: follows,
     push: { rate: b.rig?.push ?? 0.0024, punches: P.beats.filter((x) => x.punch).map((x) => ({ f: x.f - 2, rate: 0.0065, n: 28 })) },
     kicks: P.beats.filter((x) => x.kick).map((x) => ({ f: x.f, amp: x.kick! })) });
   // crowds, walkers, dust

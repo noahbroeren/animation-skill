@@ -18,10 +18,18 @@
   {"name": "crowd_laugh", "seconds": 2, "synth": null, "prompt": "A small group of people laughing briefly, warm, indoors"},
   {"name": "whoosh", "seconds": 0.7, "synth": "whoosh", "prompt": "A fast cartoon whoosh, air swish passing by, short, dry"},
   {"name": "impact", "seconds": 0.9, "synth": "impact", "prompt": "A punchy low thud impact hit, cartoon, short, dry"},
-  {"name": "street_day", "seconds": 10, "loop": true, "synth": "wind", "prompt": "Quiet old market street ambience, distant chatter and footsteps, a few birds, no music"}
+  {"name": "street_day", "seconds": 10, "loop": true, "synth": "wind", "prompt": "Quiet old market street ambience, distant chatter and footsteps, a few birds, no music"},
+  {"name": "shutter", "seconds": 0.8, "prompt": "A single crisp digital camera shutter click with a short soft flash charge, close up, clean, no music", "synth": "click"},
+  {"name": "rustle", "seconds": 1.2, "prompt": "Cardboard box being opened: tape ripping and a quick cardboard flap rustle, close up, dry, no music", "synth": "swish"},
+  {"name": "error", "seconds": 0.7, "prompt": "Short cartoon error buzzer, two low beeps, comedic, clean, no music", "synth": "boing"},
+  {"name": "sad_trombone", "seconds": 1.8, "prompt": "Short sad trombone wah wah wah, comedic failure sting, solo trombone, no other music", "synth": null}
  ],
  "music": [
-  {"name": "music_sneaky", "seconds": 62, "prompt": "Playful, sneaky orchestral underscore for a cartoon history short about a heist: pizzicato strings, bassoon, clarinet, light percussion and a soft harpsichord, mischievous and steadily building, around 104 bpm, a calmer middle section, then a bright confident ending with a final button hit. Instrumental only, no vocals."}
+  {
+   "name": "music_sneaky",
+   "seconds": 62,
+   "prompt": "Playful, sneaky orchestral underscore for a cartoon history short about a heist: pizzicato strings, bassoon, clarinet, light percussion and a soft harpsichord, mischievous and steadily building, around 104 bpm, a calmer middle section, then a bright confident ending with a final button hit. Instrumental only, no vocals."
+  }
  ],
  "licence_note": "Check the terms of whatever produced a file before you publish with it. Generated effects and music are tied to the generating account's plan; recorded or bought sounds to their own licence. Keep a line per file in ~/.video-forge/sounds/LICENCES.md."
 }

@@ -42,6 +42,9 @@ export type RigOptions = {
   /** frame-unit parameters (glide, kick frames, push rate, punch n, follow blend) are authored at this fps and
    *  rescaled at render time -> the same project renders identically at 30 and 60 fps. */
   refFps?: number;
+  /** key `glide`s are real frames of this render (a storyboard computes them at the render's fps): do not scale them by
+   *  fps / refFps (pushes, punches, kicks and follow blends still scale). Without it a 60 fps board travel started half way. */
+  glideInFrames?: boolean;
   glide?: number;
   creep?: number; // fraction of distance-to-target per second pushed in during holds (0.01 = 1%/s)
   handheld?: number; // amplitude in metres
@@ -88,7 +91,7 @@ export function cameraRig(keys: CamKey[], opts: RigOptions = {}) {
     let holdFrames = Math.max(0, f - k0.f);
     let glide: Glide | undefined;
     if (k1 && !k1.cut && !k1.dissolve) {
-      const g = (k1.glide ?? G) * K;
+      const g = (k1.glide ?? G) * (opts.glideInFrames ? 1 : K);
       const s = k1.f - g;
       if (f >= s) {
         const u = (E[k1.ease ?? "smoother"] ?? E.smoother)(clamp((f - s) / g));

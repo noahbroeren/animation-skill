@@ -126,7 +126,7 @@ export function moveEnd(spec: ShotSpec, a: Framed, aspect: number, box?: { min: 
 /** How a shot arrives. 1.9: `through` (push into the old picture, out of the new one), `flash` (through white), `iris`. */
 export type Via = "cut" | "soft" | "dissolve" | "glide" | "whip" | "through" | "flash" | "iris";
 /** Camera keys for one beat: arrive at f0 by `via`, then run the move until just before f1. */
-export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number; soft?: number; /** default push-in per frame for shots without a move (0 = locked) */ creep?: number }): CamKey[] {
+export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: number; via?: Via; box?: { min: V3; max: V3 }; glide?: number; dissolve?: number; first?: boolean; settle?: number; soft?: number; /** default push-in per frame for shots without a move (0 = locked) */ creep?: number; /** fps / 30: the frame counts here were tuned at 30 fps */ R?: number }): CamKey[] {
   const a = frameShot(spec, o.aspect, o.box), via = o.via ?? "cut";
   const k0: CamKey = { f: o.f0, pos: a.pos, look: a.look, fov: a.fov, focus: a.focus };
   // SETTLE: a shot that arrives by a cut starts a little wide and off to one side and lands on its framing in 11 frames
@@ -138,8 +138,8 @@ export function shotKeys(spec: ShotSpec, o: { f0: number; f1: number; aspect: nu
   if (settle) { const v: V3 = [a.pos[0] - a.look[0], a.pos[1] - a.look[1], a.pos[2] - a.look[2]], L = Math.hypot(v[0], v[2]) || 1, sg = o.f0 % 2 ? 1 : -1, r: V3 = [(v[2] / L) * sg, 0, (-v[0] / L) * sg], d = Math.hypot(...v) * st * 0.55;
     const p = clampBox([a.look[0] + v[0] * (1 + st) + r[0] * d, a.look[1] + v[1] * (1 + st * 0.6), a.look[2] + v[2] * (1 + st) + r[2] * d], o.box);
     pre = { f: o.f0, pos: p, look: a.look, fov: a.fov, focus: a.focus, cut: !o.first }; }
-  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 9; else if (via === "through" || via === "flash" || via === "iris") { k0.dissolve = via === "iris" ? 6 : via === "flash" ? 10 : 9; k0.join = via; } else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); k0.ease = "inOutSine"; } } // a travel starts before the word and lands just after it
-  if (pre) { k0.cut = undefined; k0.f = o.f0 + 16; k0.glide = 16; k0.ease = "outCubic"; }
+  if (!o.first) { if (via === "cut") k0.cut = true; else if (via === "soft") k0.dissolve = o.soft ?? 4; else if (via === "dissolve") k0.dissolve = o.dissolve ?? 9; else if (via === "through" || via === "flash" || via === "iris") { k0.dissolve = Math.round((via === "iris" ? 6 : via === "flash" ? 10 : 9) * (o.R ?? 1)); k0.join = via; } else if (via === "whip") { k0.glide = 6; k0.f = o.f0 + 3; } else { k0.glide = o.glide ?? 30; k0.f = o.f0 + Math.round((o.glide ?? 30) * 0.4); k0.ease = "inOutSine"; } } // a travel starts before the word and lands just after it
+  if (pre) { const g16 = Math.round(16 * (o.R ?? 1)); k0.cut = undefined; k0.f = o.f0 + g16; k0.glide = g16; k0.ease = "outCubic"; }
   const keys = pre ? [pre, k0] : [k0], end = o.f1 - 2, len = end - k0.f;
   // 1.9: a shot without a move still creeps in (measured base push 0.1-0.4 % per frame; the camera is still on < 4 % of
   // frames). Before, a board shot without `move` was locked: the rig's push only acts on holds and a board shot is one glide.

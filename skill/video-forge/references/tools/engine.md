@@ -590,4 +590,5 @@ Targets and reasons: `references/craft/` (one sheet per area). What changed in t
   `references/cast/ours-v1.md` and `.json` from the data.
 - **Sheets** (`lib/sheetgrid.tsx`, a shared grid; page N at frame N*30+10; `SheetCell.scale` for true heights):
   `castsheet` (line-ups, heights, core turnarounds, silhouettes, extras), `hairsheet`, `facesheet`, `wardrobesheet`.
-
+- **Frame rate (1.10.1).** Boards keep their timing in seconds at any fps: render a short at 60 fps with
+  `make.mjs --fps 60` (`render.mjs --fps 60`); demo `doorphoto` is one.
