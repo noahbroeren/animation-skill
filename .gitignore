@@ -40,3 +40,11 @@ skill/video-forge/engine/public/*/sections.json
 skill/video-forge/engine/public/*/audio_plan.json
 skill/video-forge/engine/public/*/sound_report.md
 skill/video-forge/engine/public/*/master_mixreport.json
+
+# Blender-built sets (tools/blender/build_set.py rebuilds them in minutes): keep the small set.json manifests only
+skill/video-forge/engine/public/sets/*/*.glb
+skill/video-forge/engine/public/sets/*/lm/
+skill/video-forge/engine/public/sets/*/tex/
+skill/video-forge/engine/public/sets/*/preview.png
+skill/video-forge/engine/public/sets/*_test/
+skill/video-forge/engine/public/sets/*.jpg

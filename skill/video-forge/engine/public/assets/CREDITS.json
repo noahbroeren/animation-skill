@@ -31,5 +31,305 @@
   "license": "CC0",
   "source": "https://polyhaven.com/a/rock_moss_set_01",
   "project": null
+ },
+ {
+  "id": "exterior_wall_cladding_02",
+  "type": "textures",
+  "name": "Exterior Wall Cladding 02",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/exterior_wall_cladding_02",
+  "project": "doorphoto"
+ },
+ {
+  "id": "wood_floor_deck",
+  "type": "textures",
+  "name": "Wood Floor Deck",
+  "authors": [
+   "Dimitrios Savva"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/wood_floor_deck",
+  "project": "doorphoto"
+ },
+ {
+  "id": "brushed_concrete",
+  "type": "textures",
+  "name": "Brushed Concrete ",
+  "authors": [
+   "Dario Barresi",
+   "Dimitrios Savva"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/brushed_concrete",
+  "project": "doorphoto"
+ },
+ {
+  "id": "grass_concrete_pavement",
+  "type": "textures",
+  "name": "Grass Concrete Pavement",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/grass_concrete_pavement",
+  "project": "doorphoto"
+ },
+ {
+  "id": "asphalt_02",
+  "type": "textures",
+  "name": "Asphalt 02",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/asphalt_02",
+  "project": "doorphoto"
+ },
+ {
+  "id": "clay_roof_tiles_02",
+  "type": "textures",
+  "name": "Clay Roof Tiles 02",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/clay_roof_tiles_02",
+  "project": "doorphoto"
+ },
+ {
+  "id": "blue_painted_planks",
+  "type": "textures",
+  "name": "Blue Painted Planks",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/blue_painted_planks",
+  "project": "doorphoto"
+ },
+ {
+  "id": "forrest_ground_01",
+  "type": "textures",
+  "name": "Forest Ground 01",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/forrest_ground_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "leafy_grass",
+  "type": "textures",
+  "name": "Leafy Grass",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/leafy_grass",
+  "project": "doorphoto"
+ },
+ {
+  "id": "garden_gnome",
+  "type": "models",
+  "name": "Garden Gnome",
+  "authors": [
+   "Bhargav Kubal"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/garden_gnome",
+  "project": "doorphoto"
+ },
+ {
+  "id": "cardboard_box_01",
+  "type": "models",
+  "name": "Cardboard Box 01",
+  "authors": [
+   "Rahul Chaudhary"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/cardboard_box_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "potted_plant_01",
+  "type": "models",
+  "name": "Potted Plant 01",
+  "authors": [
+   "Rico Cilliers"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/potted_plant_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "potted_plant_02",
+  "type": "models",
+  "name": "Potted Plant 02",
+  "authors": [
+   "Rico Cilliers"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/potted_plant_02",
+  "project": "doorphoto"
+ },
+ {
+  "id": "planter_box_01",
+  "type": "models",
+  "name": "Planter Box 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/planter_box_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "industrial_wall_sconce",
+  "type": "models",
+  "name": "Industrial Wall Sconce",
+  "authors": [
+   "Ulan Cabanilla"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/industrial_wall_sconce",
+  "project": "doorphoto"
+ },
+ {
+  "id": "grass_medium_01",
+  "type": "models",
+  "name": "Grass Medium 01",
+  "authors": [
+   "Rob Tuytel",
+   "Rico Cilliers"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/grass_medium_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "metal_trash_can",
+  "type": "models",
+  "name": "Metal Trash Can",
+  "authors": [
+   "GurJas Studios"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/metal_trash_can",
+  "project": "doorphoto"
+ },
+ {
+  "id": "weathered_plank_siding",
+  "type": "textures",
+  "name": "Weathered Plank Siding",
+  "authors": [
+   "Dimitrios Savva"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/weathered_plank_siding",
+  "project": "doorphoto"
+ },
+ {
+  "id": "corrugated_iron",
+  "type": "textures",
+  "name": "Corrugated Iron",
+  "authors": [
+   "Jenelle van Heerden",
+   "Dimitrios Savva"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/corrugated_iron",
+  "project": "doorphoto"
+ },
+ {
+  "id": "clay_plaster",
+  "type": "textures",
+  "name": "Clay Plaster",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/clay_plaster",
+  "project": "doorphoto"
+ },
+ {
+  "id": "wood_floor",
+  "type": "textures",
+  "name": "Wood Floor",
+  "authors": [
+   "Dimitrios Savva"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/wood_floor",
+  "project": "doorphoto"
+ },
+ {
+  "id": "brown_planks_05",
+  "type": "textures",
+  "name": "Brown Planks 05",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/brown_planks_05",
+  "project": "doorphoto"
+ },
+ {
+  "id": "Shelf_01",
+  "type": "models",
+  "name": "Shelf 01",
+  "authors": [
+   "Gabriel Radić"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/Shelf_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "metal_office_desk",
+  "type": "models",
+  "name": "Metal Office Desk",
+  "authors": [
+   "Ulan Cabanilla"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/metal_office_desk",
+  "project": "doorphoto"
+ },
+ {
+  "id": "hand_truck",
+  "type": "models",
+  "name": "Hand Truck",
+  "authors": [
+   "Mutanzom3D"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/hand_truck",
+  "project": "doorphoto"
+ },
+ {
+  "id": "plastic_crate_01",
+  "type": "models",
+  "name": "Plastic Crate 01",
+  "authors": [
+   "PierreB3D"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/plastic_crate_01",
+  "project": "doorphoto"
+ },
+ {
+  "id": "vintage_telephone_wall_clock",
+  "type": "models",
+  "name": "Vintage Telephone Wall Clock",
+  "authors": [
+   "Adrian C"
+  ],
+  "license": "CC0",
+  "source": "https://polyhaven.com/a/vintage_telephone_wall_clock",
+  "project": "doorphoto"
  }
 ]

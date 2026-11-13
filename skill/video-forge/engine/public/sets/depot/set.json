@@ -1,0 +1,152 @@
+{
+ "set": "depot",
+ "glb": "set.glb",
+ "lmScale": 6.8903,
+ "tonemap": "agx",
+ "lightmaps": {
+  "FLOOR_S_dep_floor": "lm/FLOOR_S_dep_floor.png",
+  "S_dep_ceil_m": "lm/S_dep_ceil_m.png",
+  "S_dep_wall": "lm/S_dep_wall.png",
+  "S_dep_trim": "lm/S_dep_trim.png",
+  "S_dep_yard_m": "lm/S_dep_yard_m.png",
+  "S_dep_sky": "lm/S_dep_sky.png",
+  "S_dep_tree0_bark": "lm/S_dep_tree0_bark.png",
+  "S_dep_tree0_leaf": "lm/S_dep_tree0_leaf.png",
+  "S_dep_tree1_bark": "lm/S_dep_tree1_bark.png",
+  "S_dep_tree1_leaf": "lm/S_dep_tree1_leaf.png",
+  "S_dep_tree2_bark": "lm/S_dep_tree2_bark.png",
+  "S_dep_tree2_leaf": "lm/S_dep_tree2_leaf.png",
+  "S_dep_tree3_bark": "lm/S_dep_tree3_bark.png",
+  "S_dep_tree3_leaf": "lm/S_dep_tree3_leaf.png",
+  "S_dep_fence": "lm/S_dep_fence.png",
+  "S_lens_head_001": "lm/S_lens_head_001.png",
+  "S_lens_tail_001": "lm/S_lens_tail_001.png",
+  "S_van_glass_001": "lm/S_van_glass_001.png",
+  "S_van_logo_m1_001": "lm/S_van_logo_m1_001.png",
+  "S_van_logo_m_1_001": "lm/S_van_logo_m_1_001.png",
+  "S_van_seat_001": "lm/S_van_seat_001.png",
+  "S_van_stripe_001": "lm/S_van_stripe_001.png",
+  "S_van_trim_002": "lm/S_van_trim_002.png",
+  "S_van_trim_001": "lm/S_van_trim_001.png",
+  "S_van_paint_001": "lm/S_van_paint_001.png",
+  "dep_van0_WHEEL_FL": "lm/dep_van0_WHEEL_FL.png",
+  "dep_van0_WHEEL_FR": "lm/dep_van0_WHEEL_FR.png",
+  "dep_van0_WHEEL_RL": "lm/dep_van0_WHEEL_RL.png",
+  "dep_van0_WHEEL_RR": "lm/dep_van0_WHEEL_RR.png",
+  "S_lens_head_002": "lm/S_lens_head_002.png",
+  "S_lens_tail_002": "lm/S_lens_tail_002.png",
+  "S_van_glass_002": "lm/S_van_glass_002.png",
+  "S_van_logo_m1_002": "lm/S_van_logo_m1_002.png",
+  "S_van_logo_m_1_002": "lm/S_van_logo_m_1_002.png",
+  "S_van_seat_002": "lm/S_van_seat_002.png",
+  "S_van_stripe_002": "lm/S_van_stripe_002.png",
+  "S_van_trim_003": "lm/S_van_trim_003.png",
+  "S_van_trim_004": "lm/S_van_trim_004.png",
+  "S_van_paint_002": "lm/S_van_paint_002.png",
+  "dep_van1_WHEEL_FL": "lm/dep_van1_WHEEL_FL.png",
+  "dep_van1_WHEEL_FR": "lm/dep_van1_WHEEL_FR.png",
+  "dep_van1_WHEEL_RL": "lm/dep_van1_WHEEL_RL.png",
+  "dep_van1_WHEEL_RR": "lm/dep_van1_WHEEL_RR.png",
+  "S_dep_steel": "lm/S_dep_steel.png",
+  "S_dep_yellow": "lm/S_dep_yellow.png",
+  "S_dep_shut": "lm/S_dep_shut.png",
+  "FLOOR_S_dep_line": "lm/FLOOR_S_dep_line.png",
+  "S_rack_blue": "lm/S_rack_blue.png",
+  "S_rack_or": "lm/S_rack_or.png",
+  "S_rack_deck": "lm/S_rack_deck.png",
+  "S_cardboard_box_01": "lm/S_cardboard_box_01.png",
+  "S_dep_pal0": "lm/S_dep_pal0.png",
+  "S_dep_pal1": "lm/S_dep_pal1.png",
+  "S_hand_truck": "lm/S_hand_truck.png",
+  "S_plastic_crate_01": "lm/S_plastic_crate_01.png",
+  "S_dep_strip_3_2_h": "lm/S_dep_strip_3_2_h.png",
+  "S_dep_strip_3_2_t": "lm/S_dep_strip_3_2_t.png",
+  "S_dep_strip_31_h": "lm/S_dep_strip_31_h.png",
+  "S_dep_strip_31_t": "lm/S_dep_strip_31_t.png",
+  "S_dep_strip0_2_h": "lm/S_dep_strip0_2_h.png",
+  "S_dep_strip0_2_t": "lm/S_dep_strip0_2_t.png",
+  "S_dep_strip01_h": "lm/S_dep_strip01_h.png",
+  "S_dep_strip01_t": "lm/S_dep_strip01_t.png",
+  "S_dep_strip3_2_h": "lm/S_dep_strip3_2_h.png",
+  "S_dep_strip3_2_t": "lm/S_dep_strip3_2_t.png",
+  "S_dep_strip31_h": "lm/S_dep_strip31_h.png",
+  "S_dep_strip31_t": "lm/S_dep_strip31_t.png",
+  "dep_van0_WHEEL_FL_001": "lm/dep_van0_WHEEL_FL_001.png",
+  "dep_van0_WHEEL_FR_001": "lm/dep_van0_WHEEL_FR_001.png",
+  "dep_van0_WHEEL_RL_001": "lm/dep_van0_WHEEL_RL_001.png",
+  "dep_van0_WHEEL_RR_001": "lm/dep_van0_WHEEL_RR_001.png",
+  "dep_van1_WHEEL_FL_001": "lm/dep_van1_WHEEL_FL_001.png",
+  "dep_van1_WHEEL_FR_001": "lm/dep_van1_WHEEL_FR_001.png",
+  "dep_van1_WHEEL_RL_001": "lm/dep_van1_WHEEL_RL_001.png",
+  "dep_van1_WHEEL_RR_001": "lm/dep_van1_WHEEL_RR_001.png"
+ },
+ "marks": {
+  "rack": [
+   -0.4,
+   0.0,
+   0.3
+  ],
+  "board": [
+   1.6,
+   0.0,
+   -0.4
+  ],
+  "dex": [
+   0.6,
+   0.0,
+   1.2
+  ],
+  "door": [
+   -0.2,
+   0.0,
+   -3.8
+  ],
+  "center": [
+   0.0,
+   0.0,
+   1.0
+  ]
+ },
+ "floors": [
+  "FLOOR_S_dep_floor",
+  "FLOOR_S_dep_line"
+ ],
+ "realtime": [],
+ "wide": {
+  "pos": [
+   0.6,
+   2.2,
+   7.5
+  ],
+  "look": [
+   0.0,
+   1.8,
+   -2.0
+  ],
+  "fov": 48
+ },
+ "camBox": {
+  "min": [
+   -4.5,
+   0.3,
+   -3.7
+  ],
+  "max": [
+   4.5,
+   5.0,
+   7.5
+  ]
+ },
+ "interior": true,
+ "radius": 16,
+ "light": "interior",
+ "sun": {
+  "dir": [
+   0.351,
+   0.621,
+   -0.701
+  ],
+  "color": "#ffe6c4",
+  "energy": 4.0
+ }
+}

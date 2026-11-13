@@ -592,3 +592,43 @@ Targets and reasons: `references/craft/` (one sheet per area). What changed in t
   `castsheet` (line-ups, heights, core turnarounds, silhouettes, extras), `hairsheet`, `facesheet`, `wardrobesheet`.
 - **Frame rate (1.10.1).** Boards keep their timing in seconds at any fps: render a short at 60 fps with
   `make.mjs --fps 60` (`render.mjs --fps 60`); demo `doorphoto` is one.
+
+## Added in 1.11 (worlds built in Blender, light baked with Cycles)
+
+- **Baked sets** (`tools/blender/build_set.py`, `lib/three/baked.ts`): a set is modelled in Blender from code (houses,
+  porches, gardens, rooms, furniture, Poly Haven CC0 textures and models), lit with a sun + HDRI sky (exteriors) or a
+  window sun + area lights + practicals (interiors), and its light is baked per object with Cycles (direct + indirect
+  diffuse: soft shadows, bounce light, contact AO) into lightmaps on UV1. The engine draws every baked mesh as
+  albedo x lightmap with Blender's AgX view transform in the material, so the world matches the Cycles preview while
+  the cards keep their flat colours. `RT_*` meshes (grass clumps) stay real-time, `FLOOR_*` meshes get a shadow
+  catcher for the cards' shadows, baked meshes are not inked (NOINK).
+  ```
+  blender -b --factory-startup -P engine/tools/blender/build_set.py -- --set home --out engine/public/sets/home [--preview] [--fast]
+  ```
+  Sets: `home` (a street of three houses with porches, gardens, a picket fence, the road and a row across it),
+  `office` (shop office: desk, chair, filing cabinets, blinds, city view), `depot` (warehouse: racking with parcels,
+  roll-up door onto a yard with parked vans). A full bake takes 3-5 minutes on an RTX 5070. `--preview` writes a
+  Cycles still of the set's wide camera (`preview.png`): the look the engine must match.
+- **On a board:** `places: { home: { set: "baked", baked: { dir: "sets/home", manifest: HOME } } }` with
+  `import HOME from "../../../public/sets/home/set.json"`. Marks, the wide camera and the camera box come from the
+  manifest. Give the place's light key the baked sun: `key: { ...LIGHT_KEYS.day, sunDir: HOME.sun.dir, cookie: 0 }`
+  (`LightKey.sunDir`), so the cards' shading and shadows agree with the bake.
+- **Blender vehicles** (`--set van`, `lib/three/glbvehicle.ts`): a GLB with WHEEL_* objects, a hollow cab (the driver
+  shows through the side window), baked AO on UV1, a room-environment reflection; on a board
+  `vehicles: { van: { kind: "glb", opts: { url: "sets/van/van.glb", ...VAN }, path, from, to } }`
+  (`from` / `to` are beat ids).
+- `fetch-assets.mjs get --type textures --id <id> --res 2k` downloads a Poly Haven texture's colour, normal and
+  roughness maps for the builder.
+- The GLBs, lightmaps and textures are not in the repository (`.gitignore`); the `set.json` manifests are. Rebuild a
+  set with the command above after a fresh clone.
+- **The mix (default): bake the hero exterior, dress the rooms.** A baked set is not inked and reads as a real place;
+  the engine's own sets are inked and cel-shaded like the cast. Bake the one place the story keeps returning to (the
+  street, the hero vehicle) and keep the other rooms as engine sets dressed with real models:
+  `places: { depot: { set: "workshop", opts: { garage: true }, dress: [{ model: "Shelf_01", at: [0.9, 0, -3.4], height: 2.3 }, ...] } }`
+  (`BoardPlace.dress`, `BoardDress`). `model` is a Poly Haven id (fetched with `fetch-assets.mjs get --type models --id
+  <id>`, loaded as `assets/polyhaven/models/<id>/<id>_1k.gltf`) or a public-relative glTF/GLB; `height` normalises its
+  size, `at` is a mark or a place-relative point (y lifts it onto a shelf), `ry` turns it, `toon: false` keeps the PBR
+  look. Dressed models take the light plan's cel shading and the ink like the set around them. Board props can load
+  models the same way with `api.model(url, { height })`. Example: `src/projects/bakedtest` (baked street + van, dressed
+  office and depot).
+

@@ -1,0 +1,115 @@
+{
+ "set": "office",
+ "glb": "set.glb",
+ "lmScale": 10.4112,
+ "tonemap": "agx",
+ "lightmaps": {
+  "FLOOR_S_off_floor": "lm/FLOOR_S_off_floor.png",
+  "S_off_ceil_m": "lm/S_off_ceil_m.png",
+  "S_off_wall": "lm/S_off_wall.png",
+  "S_off_wain": "lm/S_off_wain.png",
+  "S_off_trim": "lm/S_off_trim.png",
+  "S_off_view": "lm/S_off_view.png",
+  "S_metal_office_desk": "lm/S_metal_office_desk.png",
+  "S_Shelf_01": "lm/S_Shelf_01.png",
+  "S_cardboard_box_01": "lm/S_cardboard_box_01.png",
+  "plant": "lm/plant.png",
+  "S_chair_fabric": "lm/S_chair_fabric.png",
+  "S_chair_metal": "lm/S_chair_metal.png",
+  "S_cab_metal": "lm/S_cab_metal.png",
+  "S_cab_handle": "lm/S_cab_handle.png",
+  "S_lamp_metal": "lm/S_lamp_metal.png",
+  "S_off_lamp_glow": "lm/S_off_lamp_glow.png",
+  "S_phone_m": "lm/S_phone_m.png",
+  "S_off_phone_k": "lm/S_off_phone_k.png",
+  "S_paper_m": "lm/S_paper_m.png",
+  "S_cooler_m": "lm/S_cooler_m.png",
+  "S_off_cooler_water": "lm/S_off_cooler_water.png",
+  "S_pin_frame": "lm/S_pin_frame.png",
+  "S_cork_m": "lm/S_cork_m.png",
+  "S_notef4f0ea": "lm/S_notef4f0ea.png",
+  "S_notef0a0b8": "lm/S_notef0a0b8.png",
+  "S_notef2e86a": "lm/S_notef2e86a.png",
+  "S_note8ad0f0": "lm/S_note8ad0f0.png",
+  "S_slat": "lm/S_slat.png",
+  "S_off_poster": "lm/S_off_poster.png",
+  "S_off_pend_1_shade": "lm/S_off_pend_1_shade.png",
+  "S_off_pend_1_glow": "lm/S_off_pend_1_glow.png",
+  "S_off_pend2_shade": "lm/S_off_pend2_shade.png",
+  "S_off_pend2_glow": "lm/S_off_pend2_glow.png",
+  "plant_001": "lm/plant_001.png"
+ },
+ "marks": {
+  "desk": [
+   -0.35,
+   0.0,
+   -1.0
+  ],
+  "deskTop": [
+   0.75,
+   0.76,
+   -1.6
+  ],
+  "window": [
+   0.9,
+   0.0,
+   -2.1
+  ],
+  "center": [
+   0.0,
+   0.0,
+   0.3
+  ],
+  "guest": [
+   1.3,
+   0.0,
+   0.4
+  ],
+  "shelf": [
+   -2.3,
+   0.0,
+   -1.0
+  ]
+ },
+ "floors": [
+  "FLOOR_S_off_floor"
+ ],
+ "realtime": [],
+ "wide": {
+  "pos": [
+   0.4,
+   1.7,
+   4.8
+  ],
+  "look": [
+   0.2,
+   1.4,
+   -1.6
+  ],
+  "fov": 46
+ },
+ "camBox": {
+  "min": [
+   -2.8000000000000003,
+   0.3,
+   -2.0
+  ],
+  "max": [
+   2.8000000000000003,
+   3.0,
+   6.5
+  ]
+ },
+ "interior": true,
+ "radius": 12,
+ "light": "interior",
+ "sun": {
+  "dir": [
+   0.351,
+   0.621,
+   -0.701
+  ],
+  "color": "#ffe6c4",
+  "energy": 4.0
+ }
+}

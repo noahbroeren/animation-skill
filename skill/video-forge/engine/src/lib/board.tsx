@@ -14,7 +14,7 @@
  * Start one with `node tools/make.mjs --project <id>` (it drafts the board from the script); guide: references/pipeline/board.md.
  */
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import * as THREE from "three";
 import { cameraRig, CameraRig, CamKey, CamState, V3 } from "./camera";
 import { blinkAt, idlePose, walkPose } from "./characters/toon";
@@ -25,6 +25,9 @@ import type { ShotSubject } from "./three/audit";
 import { CharacterCard, CrowdEvent, CrowdPool } from "./three/cast";
 import { FxKind, FxLayer } from "./three/fx";
 import { LightKey, lightPlan } from "./three/lightplan";
+import { loadModel, ModelOpts } from "./three/assets";
+import { bakedSet, BakedOpts } from "./three/baked";
+import { glbVehicle, GlbVehicleSpec } from "./three/glbvehicle";
 import { buildSet, PROPS, SetInstance, SetName, SetOpts } from "./three/sets";
 import { Stage3D, StageCtx } from "./three/Stage3D";
 import { bicycle, bus, car, carriage, drive, seatPose, seatWorld, truck, Vehicle } from "./three/vehicles";
@@ -100,13 +103,22 @@ export type Beat = {
   /** caption height (fraction of the frame) from this beat on */
   caption?: number;
 };
-export type BoardVehicle = { kind: "car" | "bus" | "truck" | "carriage" | "bicycle"; opts?: Record<string, unknown>; path: Mark[]; from?: string; to?: string; ease?: "linear" | "stop" | "start"; lights?: boolean };
-export type BoardPlace = { set: SetName; opts?: SetOpts; crowd?: number; walkers?: number; wet?: boolean; dust?: boolean; vehicles?: Record<string, BoardVehicle>;
+export type BoardVehicle = { kind: "car" | "bus" | "truck" | "carriage" | "bicycle" | "glb"; opts?: Record<string, unknown>; path: Mark[]; from?: string; to?: string; ease?: "linear" | "stop" | "start"; lights?: boolean };
+export type BoardPlace = { set: SetName | "baked"; opts?: SetOpts;
+  /** set: "baked": a set built and lit in Blender (tools/blender/build_set.py, lib/three/baked.ts) */
+  baked?: BakedOpts;
+  /** 1.11: real models standing in the set (Poly Haven ids or public-relative .gltf/.glb), cel-shaded and inked like the set itself */
+  dress?: BoardDress[]; crowd?: number; walkers?: number; wet?: boolean; dust?: boolean; vehicles?: Record<string, BoardVehicle>;
   /** look tweak while the story is in this place, e.g. { exposure: 1.1, grade: { gamma: 1.2 } }. Interiors get INTERIOR_LIFT unless this is set. */
   look?: Record<string, unknown>;
   /** who fills the background (presets or specs); default: period dress for `era: "old"` sets, modern otherwise */
   extras?: (BobbleSpec | keyof typeof KIND_PRESETS)[] };
-export type BoardApi = { T: Record<string, number>; fps: number; /** width / height of the frame: a prop laid out for 9:16 can re-arrange itself for 16:9 */ aspect: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene };
+/** a model in a set: `model` is a Poly Haven id ("garden_gnome" -> assets/polyhaven/models/garden_gnome/garden_gnome_1k.gltf)
+ *  or a public-relative path; `height` normalises its bounding box (m); `toon: false` keeps its PBR look (default: cel-shaded) */
+export type BoardDress = { model: string; at: Mark; ry?: number; height?: number; scale?: number; dy?: number; recolor?: Record<string, string>; toon?: boolean };
+export type BoardApi = { T: Record<string, number>; fps: number; /** width / height of the frame: a prop laid out for 9:16 can re-arrange itself for 16:9 */ aspect: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene;
+  /** load a model (Poly Haven id or public path) for a prop; it is cel-shaded with the world's light plan once loaded */
+  model: (url: string, o?: Omit<ModelOpts, "toon"> & { toon?: boolean }) => THREE.Group };
 export type BoardProp = THREE.Object3D | { group: THREE.Object3D; update?: (f: number, fps: number, api: BoardApi) => void };
 export type Board = {
   id: string; title: string; fps?: number;
@@ -186,7 +198,7 @@ export function boardSounds(b: Board, fps: number): { sounds: SoundCue[]; music:
   const INTERIOR = new Set(["shop", "workshop", "office", "hall"]);
   for (const bt of P.beats) {
     const via = P.viaOf(bt), isShot = bt.i > 0 && (bt.shot || bt.newPlace);
-    if (bt.i === 0 || bt.newPlace) places.push({ f: bt.f, set: b.places[bt.placeNow].set, interior: INTERIOR.has(b.places[bt.placeNow].set) });
+    if (bt.i === 0 || bt.newPlace) { const pl = b.places[bt.placeNow]; places.push({ f: bt.f, set: pl.set === "baked" ? pl.baked!.manifest.set : pl.set, interior: pl.set === "baked" ? pl.baked!.manifest.interior : INTERIOR.has(pl.set) }); }
     // 1.9: no swish on dissolves or travels (the reference puts a sound on a transition only at chance level); sound
     // comes from what moves: contacts, landings, pop-ins
     if (isShot && via === "whip") sounds.push({ f: bt.f + 3, name: "whoosh", lu: -12, anchor: 0.27 });
@@ -231,16 +243,25 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   const LP = lightPlan(lpKeys, { fade: Math.round(14 * fps / 30) });
   const L = LP.build(scene, { shadowSize: 46, target: origin(P.beats[0].placeNow) });
   const sets: Record<string, SetInstance> = {};
-  for (const id of placeIds) { sets[id] = buildSet(b.places[id].set, { seed: `${b.id}-${id}`, ...b.places[id].opts }, origin(id)); scene.add(sets[id].group); }
+  for (const id of placeIds) { const pl = b.places[id];
+    sets[id] = pl.set === "baked" ? bakedSet(ctx, pl.baked!, origin(id)) : buildSet(pl.set, { seed: `${b.id}-${id}`, ...pl.opts }, origin(id)); scene.add(sets[id].group); }
+  // 1.11 models: the light plan's toon uniforms only exist after the world is built, so each model's options are kept
+  // and handed the uniforms right after LP.toonify (a model finishes loading after build, so it is shaded on load)
+  const lateToon: ModelOpts[] = [];
+  const model = (u: string, o: Omit<ModelOpts, "toon"> & { toon?: boolean } = {}) => { const { toon, ...rest } = o; const mo: ModelOpts = { ...rest }; if (toon !== false) lateToon.push(mo);
+    return loadModel(ctx, staticFile(/[./]/.test(u) ? u : `assets/polyhaven/models/${u}/${u}_1k.gltf`), mo); };
   const mark = (m: Mark, place?: string): V3 => {
     if (Array.isArray(m)) { const o = origin(place ?? placeIds[0]); return [m[0] + o[0], m[1] + o[1], m[2] + o[2]]; }
     const [a, c] = m.includes(":") ? m.split(":") : [place ?? placeIds[0], m];
     const v = sets[a]?.marks[c]; if (!v) throw new Error(`board "${b.id}": no mark "${c}" in place "${a}" (${Object.keys(sets[a]?.marks ?? {}).join(", ")})`);
     return v;
   };
+  for (const id of placeIds) for (const d of b.places[id].dress ?? []) {
+    const g = model(d.model, { height: d.height, recolor: d.recolor, toon: d.toon }), w = mark(d.at, id), o = sets[id].group.position;
+    g.position.set(w[0] - o.x, w[1] - o.y + (d.dy ?? 0), w[2] - o.z); if (d.ry) g.rotation.y = d.ry; if (d.scale) g.scale.setScalar(d.scale); sets[id].group.add(g); }
   // vehicles
   const vehicles: Record<string, { v: Vehicle; def: BoardVehicle; place: string; path: V3[] }> = {};
-  for (const pid of placeIds) for (const [vid, def] of Object.entries(b.places[pid].vehicles ?? {})) { const v = VEH[def.kind](def.opts); scene.add(v.group); vehicles[vid] = { v, def, place: pid, path: def.path.map((m) => mark(m, pid)) }; }
+  for (const pid of placeIds) for (const [vid, def] of Object.entries(b.places[pid].vehicles ?? {})) { const v = def.kind === "glb" ? glbVehicle(ctx, def.opts as unknown as GlbVehicleSpec) : VEH[def.kind](def.opts); scene.add(v.group); vehicles[vid] = { v, def, place: pid, path: def.path.map((m) => mark(m, pid)) }; }
   const vehU = (vid: string, f: number) => { const { def } = vehicles[vid], f0 = def.from ? P.T[def.from] : 0, f1 = def.to ? P.T[def.to] : P.total, u = clamp((f - f0) / Math.max(1, f1 - f0));
     return def.ease === "stop" ? ease.outCubic(u) : def.ease === "start" ? ease.inCubic(u) : u; };
   const placeVehicle = (vid: string, f: number) => { const x = vehicles[vid]; drive(x.v, x.path, vehU(vid, f)); x.v.group.updateMatrixWorld(true); };
@@ -281,7 +302,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   };
   const actorPos = (id: string, f: number) => actorState(id, f)?.pos ?? null;
   // props (gags)
-  const api: BoardApi = { T: P.T, fps, aspect, sets, mark, actorPos, scene };
+  const api: BoardApi = { T: P.T, fps, aspect, sets, mark, actorPos, scene, model };
   const props: { id: string; obj: THREE.Object3D; upd?: (f: number, fps: number, api: BoardApi) => void; f0: number; f1: number; mode: string; scale: number; at: V3; center: boolean }[] = [];
   for (const bt of P.beats) for (const g of gagsOf(bt)) if ("prop" in g) {
     const made: BoardProp = b.props?.[g.prop] ? b.props[g.prop](api) : PROPS[g.prop] ? PROPS[g.prop](g.opts) : (() => { throw new Error(`board "${b.id}": unknown prop "${g.prop}" (${[...Object.keys(b.props ?? {}), ...Object.keys(PROPS)].join(", ")})`); })();
@@ -340,7 +361,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   const marksUsed = (pid: string) => Object.values(cast).flatMap((A) => A.segs.filter((s) => s.place === pid).map((s) => s.to));
   for (const pid of placeIds) { const pl = b.places[pid], set = sets[pid]; if (!pl.crowd && !pl.walkers) continue;
     const pool = (crowds[pid] = new CrowdPool(scene, L.sun)), used = marksUsed(pid), camKeys = rig.keys;
-    const old = (pl.opts?.era ?? (MODERN_SETS.has(pl.set) ? "modern" : "old")) === "old", ex = (pl.extras ?? (old ? EXTRAS_OLD : EXTRAS)).map(specOf), extra = (k: number) => ex[k % ex.length];
+    const old = (pl.opts?.era ?? (pl.set === "baked" || MODERN_SETS.has(pl.set as SetName) ? "modern" : "old")) === "old", ex = (pl.extras ?? (old ? EXTRAS_OLD : EXTRAS)).map(specOf), extra = (k: number) => ex[k % ex.length];
     set.crowdSpots.filter((s) => !used.some((u) => Math.hypot(u[0] - s[0], u[2] - s[2]) < 1.0) && !blocksShot([s[0], s[1], s[2]], 0.6, camKeys)).slice(0, pl.crowd ?? 0)
       .forEach((s, i) => { const spec = { ...extra(i * 3 + (hash32(pid) % 7)), id: `${pid}c${i}` }; pool.add({ spec, heightM: 1.68 * bobbleScale(spec), pos: s, expr: i % 3 ? "neutral" : "happy", seed: i + 1 + (hash32(pid) % 50) }, 8); });
     // walkers keep to the far pavement: one on the camera side fills a 9:16 frame
@@ -355,7 +376,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   // effects
   const fx = new FxLayer(scene);
   for (const bt of P.beats) for (const g of gagsOf(bt)) if ("fx" in g) { const s = subjectOf(g.on, bt.f + 1, bt.placeNow); fx.add(g.fx, { at: [s.at[0], s.at[1] + s.h + (g.dy ?? 0.3), s.at[2] + 0.1], f0: bt.f, size: g.size ?? 0.55, color: g.color ?? "#ffd23f" }); }
-  LP.toonify(scene);
+  { const TU = LP.toonify(scene); for (const mo of lateToon) mo.toon = TU; }
   const placeAt = (f: number) => { let p = P.beats[0].placeNow; for (const x of P.beats) if (x.f <= f) p = x.placeNow; else break; return p; };
   const focusEv = P.beats.filter((x) => x.focus || x.i === 0 || x.shot || x.newPlace).map((x) => ({ f: x.f, name: x.focus ?? null }));
   // 1.8: the shot audit also checks what a beat points at (`focus`) and who speaks (`talk`): a shot framed on a point has no

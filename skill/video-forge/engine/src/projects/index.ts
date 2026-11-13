@@ -15,5 +15,6 @@ import { facesheet } from "./facesheet";
 import { wardrobesheet } from "./wardrobesheet";
 import { castsheet } from "./castsheet";
 import { doorphotoShort } from "./doorphoto";
+import { bakedtest } from "./bakedtest";
 
-export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet, elevatorShort, setsheet, propsheet, coinShort, hairsheet, facesheet, wardrobesheet, castsheet, doorphotoShort];
+export const PROJECTS: ProjectDef[] = [manholeShort, modelsheet, smoke, lighthouseShort, pendulumLong, charsheet, elevatorShort, setsheet, propsheet, coinShort, hairsheet, facesheet, wardrobesheet, castsheet, doorphotoShort, bakedtest];

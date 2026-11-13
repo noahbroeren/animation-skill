@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.11.0 - 2026-11-13
+- **Worlds built in Blender, light baked with Cycles.** `tools/blender/build_set.py` models a set from code (houses,
+  porches, gardens, rooms, furniture, Poly Haven CC0 textures and models), lights it and bakes direct + indirect
+  diffuse light per object into lightmaps; `lib/three/baked.ts` draws it as albedo x lightmap with Blender's AgX in
+  the material, so the engine matches the Cycles preview. Sets `home`, `office`, `depot`; `set: "baked"` on a board.
+- **Blender vehicles** (`--set van`, `lib/three/glbvehicle.ts`, `kind: "glb"`): turning wheels, a hollow cab the
+  driver shows through, baked AO.
+- **Dressed engine sets** (`BoardPlace.dress`, `api.model`): real Poly Haven / Blender models placed in the engine's
+  inked rooms, cel-shaded and inked like the set. The default is a mix: bake the hero exterior, dress the rooms.
+- `LightKey.sunDir` (match the cards' sun to a bake); `fetch-assets.mjs get --type textures --res 2k`.
+- Look-dev project `bakedtest` (baked street + van, dressed office and depot).
+
 ## 1.10.1 - 2026-11-13
 - **60 fps storyboards fixed.** Join and camera timings were frame counts tuned at 30 fps, and the camera rig scaled
   key glides by fps / 30 a second time: at 60 fps every travel and every push started half way (QA: two unplanned

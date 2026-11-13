@@ -1,0 +1,41 @@
+{
+ "length": 5.4,
+ "width": 2.0,
+ "height": 2.62,
+ "wheelR": 0.38,
+ "wheelBase": 3.45,
+ "seats": {
+  "driver": {
+   "pos": [
+    0.95,
+    0.42,
+    -0.45
+   ],
+   "pose": "sit"
+  },
+  "passenger": {
+   "pos": [
+    0.95,
+    0.42,
+    0.45
+   ],
+   "pose": "sit"
+  }
+ },
+ "ao": {
+  "van_body": "lm/van_body.png",
+  "S_van_seat": "lm/S_van_seat.png",
+  "S_van_trim": "lm/S_van_trim.png",
+  "S_van_stripe": "lm/S_van_stripe.png",
+  "S_lens_head": "lm/S_lens_head.png",
+  "S_lens_tail": "lm/S_lens_tail.png",
+  "S_van_glass": "lm/S_van_glass.png",
+  "S_van_logo_m_1": "lm/S_van_logo_m_1.png",
+  "S_van_logo_m1": "lm/S_van_logo_m1.png",
+  "WHEEL_FL": "lm/WHEEL_FL.png",
+  "WHEEL_FR": "lm/WHEEL_FR.png",
+  "WHEEL_RL": "lm/WHEEL_RL.png",
+  "WHEEL_RR": "lm/WHEEL_RR.png",
+  "van_body_001": "lm/van_body_001.png"
+ }
+}

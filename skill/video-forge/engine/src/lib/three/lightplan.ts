@@ -33,6 +33,8 @@ export type LightKey = {
   cookie?: number;
   /** linear fog override [near, far] */
   fog?: [number, number];
+  /** where the sun comes FROM (overrides the preset; a baked set passes the direction it was baked with) */
+  sunDir?: [number, number, number];
   /** multiply the preset's sun strength (e.g. 0.8 for a softer key) */
   sunGain?: number;
   /** how far practical lamps and lit windows are on, 0..1 (sets follow it: `set.setNight(u.practicals)`) */
@@ -111,7 +113,7 @@ export function lightPlan(keys: ([number, string | LightKey] | [number, string |
       const { a, b, t } = at(frame), A = LIGHTS[a.lights], B = LIGHTS[b.lights];
       const sunI = mixN(A.sunI * (a.sunGain ?? 1), B.sunI * (b.sunGain ?? 1), t);
       mixC(A.sun, B.sun, t, H.sun.color); H.sun.intensity = sunI;
-      const d = new THREE.Vector3(...A.dir).normalize().lerp(new THREE.Vector3(...B.dir).normalize(), t).normalize();
+      const d = new THREE.Vector3(...(a.sunDir ?? A.dir)).normalize().lerp(new THREE.Vector3(...(b.sunDir ?? B.dir)).normalize(), t).normalize();
       const tg = u.target ? new THREE.Vector3(...u.target) : H.sun.target.position.clone();
       H.sun.target.position.copy(tg); H.sun.target.updateMatrixWorld();
       H.sun.position.copy(tg).addScaledVector(d, 80);

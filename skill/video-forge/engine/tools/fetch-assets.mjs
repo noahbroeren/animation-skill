@@ -3,7 +3,8 @@
  * Real assets: "if a real one exists, download it" (reference-study rule). Poly Haven (CC0) via its public API.
  *
  *   node tools/fetch-assets.mjs search  --type models|hdris|textures --q barrel
- *   node tools/fetch-assets.mjs get     --type models --id <asset_id> [--res 1k] [--project ID]
+ *   node tools/fetch-assets.mjs get     --type models|hdris|textures --id <asset_id> [--res 1k] [--project ID]
+ *     (textures: <id>_diff / _nor_gl / _rough jpgs, used by tools/blender/build_set.py)
  *   node tools/fetch-assets.mjs kenney  --zip <downloaded kenney_*.zip> [--name pack] [--project ID]
  *
  * Kenney (kenney.nl, CC0) has no download API: the user downloads a pack zip in the browser (e.g. "City Kit
@@ -61,8 +62,14 @@ if (cmd === "search") {
     main = path.join(dir, path.basename(new URL(h.url).pathname));
     bytes += await download(h.url, main);
   } else {
-    const blend = files.gltf?.[res]?.gltf ?? null;
-    if (!blend) throw new Error("textures: use the per-map files from the API (Diffuse/nor_gl/arm) manually");
+    // textures: the colour, OpenGL normal and roughness maps as jpg (what the Blender set builder and loadModel use)
+    for (const [map, key] of [["diff", "Diffuse"], ["nor_gl", "nor_gl"], ["rough", "Rough"]]) {
+      const f = files[key]?.[res]?.jpg ?? files[key]?.[res]?.png;
+      if (!f) { if (map === "diff") throw new Error(`no ${key} at ${res}; available: ${Object.keys(files[key] ?? {})}`); continue; }
+      const dest = path.join(dir, `${id}_${map}_${res}.${f.url.endsWith(".png") ? "png" : "jpg"}`);
+      if (map === "diff") main = dest;
+      bytes += await download(f.url, dest);
+    }
   }
   const credPath = path.join(ENGINE, "public", "assets", "CREDITS.json");
   const cred = fs.existsSync(credPath) ? JSON.parse(fs.readFileSync(credPath, "utf8")) : [];
