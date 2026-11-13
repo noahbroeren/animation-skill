@@ -167,7 +167,8 @@ const recordBoard = (api: BoardApi) => { const g = new THREE.Group(), steel = st
   face.position.y = 1.55; g.add(face);
   for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 1.02, 12), steel); leg.position.set(sx * 0.6, 0.51, -0.045); g.add(leg); } // the stand ends under the board, behind it
   return { group: clean(g), update(f: number) { const T = api.T, up = clamp((f - T.every) / Math.max(1, T.name - T.every)), down = clamp((f - T.red2) / Math.max(1, T.fast - T.red2)); /* gone by "faster", while the board is still in close-up */
-    const v = up * 18 * (1 - down), n = Math.floor(v + 0.0001), pop = down > 0 ? 1 : Math.min(1.25, 0.4 + (v - n) * 3);
+    const v = up * 18 * (1 - down), n = Math.floor(v + 0.0001), fn = T.every + (n / 18) * (T.name - T.every), tp = clamp((f - fn) / 5);
+    const pop = down > 0 || n === 0 ? 1 : 0.5 + 0.5 * tp + 0.18 * Math.sin(Math.PI * tp); /* the newest cross pops in, then matches the others */
     const key = n * 100 + Math.round(pop * 20); if (key !== drawn) { drawn = key; paint(n, pop); } } }; };
 
 /** the computer on the shop's desk: one green tick (the tap that said "delivered") and a little van */
@@ -359,9 +360,9 @@ const beats: Beat[] = [
   { at: "boxes#2", id: "boxes2", off: 0.1 },
   // ---- the payoff: the photo of the door, then back into the van
   { at: "and#8", id: "and8", place: "street", key: KDUSK, shot: { size: "full", on: [MAT[0] - 0.4, MAT[1], MAT[2] + 0.5], h: 2.2, angle: 14, move: "push", amount: 0.26 },
-    act: { dex: { at: BESIDE, pose: scan(0, "focused"), face: DOOR } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
+    act: { dex: { at: mk(HOME, "porchL", [0.25, 0, 0.42]), pose: scan(0, "focused"), face: DOOR } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
   { at: "photographs", id: "photographs", act: { dex: { pose: scan(0.9, "focused"), lead: 1 } }, gag: { fx: "sparkle", on: "dex", size: 0.5, dy: -0.4 }, sfx: [{ name: "shutter", lu: -4, on_word: true }], event: [0, 4] },
-  { at: "climbing", id: "climbing", act: { dex: { walk: mk(HOME, "porchL", [-3.6, 0, 0.5]), speed: 2.6, pose: { limbs: { handR: [0.85, 1.35] }, hands: { R: "open" }, expr: "happy" }, hold: null } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
+  { at: "climbing", id: "climbing", act: { dex: { walk: mk(HOME, "porchL", [-2.0, 0, 0.42]), speed: 2.4, pose: { expr: "happy" }, hold: null, lead: 0 } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
 ];
 
 const BRAND = { ...BRANDS.ours, shine: false, torsoShine: false, ink: "#1a1012" }; // this film: no drawn face shine (it split the face), a warm near-black ink (light study)
@@ -389,3 +390,15 @@ const board: Board = {
 };
 export const doorphotoShort = boardProject(board);
 export const doorphotoBoard = board;
+
+/** The cover / thumbnail (no text): the driver photographs the parcel at the blue door, the flash going off. One beat,
+ *  rendered as a clean still: `node tools/render.mjs --project doorphotothumb --stills 20 --scale 1 --clean`. */
+const THUMB_DEX = mk(HOME, "porchL", [0.05, 0, 0.42]);
+export const doorphotoThumbBoard: Board = { ...board, id: "doorphotothumb", title: "doorphoto cover",
+  words: [{ word: "cover", start: 0, end: 0.4 }, { word: "end", start: 1.2, end: 1.6 }], tail: 0.4,
+  places: { street: { set: "baked", baked: { dir: "sets/home", manifest: HOME } } },
+  beats: [{ at: 0, id: "cover", place: "street", key: KDAY, shot: { size: "full", on: [(THUMB_DEX[0] + MAT[0]) / 2, MAT[1], MAT[2] + 0.45], h: 2.05, angle: -12, move: "push", amount: 0.02 },
+    act: { dex: { at: THUMB_DEX, pose: { limbs: { handR: [0.98, 0.95] }, hold: H("scanner", { open: 0.9, len: 1.05, aim: -38 }), expr: "happy" }, face: [MAT[0] + 0.2, 0, MAT[2] + 1.6] } },
+    gag: [{ prop: "skyDome", id: "sky", at: [0, 0, 0], in: "none" }, { prop: "parcel", id: "box", at: MAT, ry: 0.15, in: "none" }] }],
+};
+export const doorphotoThumb = boardProject(doorphotoThumbBoard);

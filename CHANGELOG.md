@@ -9,6 +9,9 @@
   crosses and the stand under the board; scanner rings placed exactly on the drawn door, mat and box; the driver walks
   out of frame upright at the end (`Board.walkLean`).
 - `render.mjs --clean`: stills without burned-in captions (covers and thumbnails).
+- Last notes: every record-board cross pops in and ends at full size; the driver steps forward, turns (the scanner goes
+  on the same frame, `lead: 0`) and walks out of frame in front of the plant; a text-free cover project
+  `doorphotothumb` (the driver photographing the parcel at the door).
 
 ## 1.11.2 - 2026-11-13
 - **Every side of a character.** A continuous turnaround (`KPose.yaw`, `viewOfYaw`): 16+ distinct drawings from front
