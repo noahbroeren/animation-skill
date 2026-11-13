@@ -1,8 +1,8 @@
 {
- "length": 5.4,
+ "length": 5.55,
  "width": 2.0,
  "height": 2.62,
- "wheelR": 0.38,
+ "wheelR": 0.382,
  "wheelBase": 3.45,
  "seats": {
   "driver": {
@@ -24,18 +24,28 @@
  },
  "ao": {
   "van_body": "lm/van_body.png",
-  "S_van_seat": "lm/S_van_seat.png",
-  "S_van_trim": "lm/S_van_trim.png",
-  "S_van_stripe": "lm/S_van_stripe.png",
-  "S_lens_head": "lm/S_lens_head.png",
-  "S_lens_tail": "lm/S_lens_tail.png",
   "S_van_glass": "lm/S_van_glass.png",
-  "S_van_logo_m_1": "lm/S_van_logo_m_1.png",
-  "S_van_logo_m1": "lm/S_van_logo_m1.png",
+  "S_van_rubber": "lm/S_van_rubber.png",
+  "S_van_trim": "lm/S_van_trim.png",
+  "S_lens_head": "lm/S_lens_head.png",
+  "S_van_chrome": "lm/S_van_chrome.png",
+  "S_van_plate": "lm/S_van_plate.png",
+  "S_van_cab": "lm/S_van_cab.png",
+  "S_van_badge": "lm/S_van_badge.png",
+  "S_van_platetext": "lm/S_van_platetext.png",
+  "S_van_glass_dark": "lm/S_van_glass_dark.png",
+  "S_van_amber": "lm/S_van_amber.png",
+  "S_van_stripe": "lm/S_van_stripe.png",
+  "S_van_logo": "lm/S_van_logo.png",
+  "S_van_stripe3": "lm/S_van_stripe3.png",
+  "S_van_stripe2": "lm/S_van_stripe2.png",
+  "S_lens_tail": "lm/S_lens_tail.png",
+  "S_van_seat": "lm/S_van_seat.png",
   "WHEEL_FL": "lm/WHEEL_FL.png",
   "WHEEL_FR": "lm/WHEEL_FR.png",
   "WHEEL_RL": "lm/WHEEL_RL.png",
   "WHEEL_RR": "lm/WHEEL_RR.png",
-  "van_body_001": "lm/van_body_001.png"
+  "van_body_001": "lm/van_body_001.png",
+  "van_body_002": "lm/van_body_002.png"
  }
 }

@@ -48,3 +48,8 @@ skill/video-forge/engine/public/sets/*/tex/
 skill/video-forge/engine/public/sets/*/preview.png
 skill/video-forge/engine/public/sets/*_test/
 skill/video-forge/engine/public/sets/*.jpg
+# a remade demo's earlier take, the tightening intermediates, Blender look-dev stills
+skill/video-forge/engine/public/*/v1/
+skill/video-forge/engine/public/*/vo_t.wav
+skill/video-forge/engine/public/*/words_t.json
+skill/video-forge/engine/public/sets/*/*.png

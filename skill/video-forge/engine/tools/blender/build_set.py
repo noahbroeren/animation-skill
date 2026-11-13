@@ -870,66 +870,701 @@ def wheel(name, at, r=0.38, wdt=0.27):
     return ob
 
 
+# A delivery van modelled for close-ups: a lofted body (rounded roof, raked fascia, plan-view rounded corners), real
+# window openings with rubber seals and a hollow cab, wheel arches with flares, lathe-turned tyres and hubcaps,
+# wrap-around bumpers, headlights, grille, mirrors, wipers, seams, handles and the Swift Parcel livery.
+# Engine axes: x forward, y up, z to the van's right (toward the default camera). Coordinates in metres.
+
+def rrect_ring(y0, y1, hw, rt, rb, tb, yb, counts=(3, 5, 5, 6, 6, 4)):
+    """a cross-section (engine z, y), counter-clockwise from the bottom centre: rounded bottom corners (rb), a vertical
+    side up to the belt line yb, a side leaning in by tb above it, rounded roof corners (rt)"""
+    nb, nc, ns1, ns2, nr, nt = counts
+    yb = max(y0 + rb + 0.01, min(yb, y1 - rt - 0.01))
+    right = []
+    def seg(p, q, n):
+        for k in range(n):
+            t = k / n; right.append((p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t))
+    def arc(c, r, a0, a1, n):
+        for k in range(n):
+            a = a0 + (a1 - a0) * k / n; right.append((c[0] + r * math.cos(a), c[1] + r * math.sin(a)))
+    seg((0.0, y0), (hw - rb, y0), nb)
+    arc((hw - rb, y0 + rb), rb, -math.pi / 2, 0.0, nc)
+    seg((hw, y0 + rb), (hw, yb), ns1)
+    seg((hw, yb), (hw - tb, y1 - rt), ns2)
+    arc((hw - tb - rt, y1 - rt), rt, 0.0, math.pi / 2, nr)
+    seg((hw - tb - rt, y1), (0.0, y1), nt)
+    return right + [(0.0, y1)] + [(-z, y) for (z, y) in reversed(right[1:])]
+
+
+def mesh_obj(name, bm, mats, smooth=True, sharp=35):
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    ob = link(bpy.data.objects.new(name, me))
+    for m in mats: me.materials.append(m)
+    if smooth:
+        for p in me.polygons: p.use_smooth = True
+        try: me.set_sharp_from_angle(angle=math.radians(sharp))
+        except Exception: pass
+    return ob
+
+
+def loft(name, stations, mat, counts=(3, 5, 5, 6, 6, 4)):
+    """a closed body through cross-sections: stations = [(x, y0, y1, hw, rt, rb, tb, yb)] (see rrect_ring)"""
+    bm = bmesh.new(); rings = []
+    for (x, y0, y1, hw, rt, rb, tb, yb) in stations:
+        rings.append([bm.verts.new(E(x, y, z)) for (z, y) in rrect_ring(y0, y1, hw, rt, rb, tb, yb, counts)])
+    n = len(rings[0])
+    for a, b in zip(rings, rings[1:]):
+        for i in range(n):
+            j = (i + 1) % n; bm.faces.new([a[i], a[j], b[j], b[i]])
+    bm.faces.new(rings[0][::-1]); bm.faces.new(rings[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return mesh_obj(name, bm, [mat])
+
+
+def sweep(name, prof, frames, mat, closed=False, cap=True, smooth=True):
+    """a profile [(a, b)] swept along frames [(P, A, B)] (Blender vectors): vertex = P + a*A + b*B"""
+    bm = bmesh.new()
+    rings = [[bm.verts.new(P + A * a + B * b) for (a, b) in prof] for (P, A, B) in frames]
+    m = len(prof)
+    pairs = list(zip(rings, rings[1:])) + ([(rings[-1], rings[0])] if closed else [])
+    for r0, r1 in pairs:
+        for i in range(m):
+            j = (i + 1) % m; bm.faces.new([r0[i], r0[j], r1[j], r1[i]])
+    if cap and not closed:
+        bm.faces.new(rings[0][::-1]); bm.faces.new(rings[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return mesh_obj(name, bm, [mat], smooth=smooth)
+
+
+def edir(x, y, z):
+    """an engine-space direction as a Blender vector"""
+    return Vector((x, -z, y))
+
+
+def slab(name, c, size, mat, bevel=0.01, tilt=0.0, yaw=0.0):
+    """a box of engine size (sx, sy, sz) centred at engine point c, tilted about the lateral axis (top back by `tilt`
+    radians) and turned about the vertical by `yaw`"""
+    me = bpy.data.meshes.new(name); bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.scale(bm, vec=Vector((size[0], size[2], size[1])), verts=bm.verts)
+    bm.to_mesh(me); bm.free()
+    ob = link(bpy.data.objects.new(name, me)); me.materials.append(mat)
+    ob.location = E(*c); ob.rotation_euler = (0.0, -tilt, -yaw)
+    if bevel:
+        md = ob.modifiers.new("bev", "BEVEL"); md.width = bevel; md.segments = 3; md.limit_method = "ANGLE"
+    return ob
+
+
+def disc(name, c, r, depth, mat, axis="x", seg=24, r2=None):
+    """a short cylinder centred at engine point c with its axis along engine x / y / z"""
+    me = bpy.data.meshes.new(name); bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r, radius2=r if r2 is None else r2, depth=depth)
+    bm.to_mesh(me); bm.free()
+    ob = link(bpy.data.objects.new(name, me)); me.materials.append(mat)
+    ob.location = E(*c)
+    ob.rotation_euler = {"x": (0, math.pi / 2, 0), "y": (0, 0, 0), "z": (math.pi / 2, 0, 0)}[axis]
+    for p in me.polygons: p.use_smooth = True
+    try: me.set_sharp_from_angle(angle=math.radians(40))
+    except Exception: pass
+    return ob
+
+
+VAN_ST = [  # (x, y0, y1, hw, rt, rb, tb, yb)
+    (-2.66, 0.52, 2.48, 0.90, 0.10, 0.06, 0.03, 1.35),
+    (-2.64, 0.46, 2.56, 0.96, 0.13, 0.06, 0.03, 1.35),
+    (-2.60, 0.43, 2.60, 0.99, 0.15, 0.06, 0.03, 1.35),
+    (-2.50, 0.42, 2.62, 1.00, 0.16, 0.06, 0.03, 1.35),
+    (0.80, 0.42, 2.62, 1.00, 0.16, 0.06, 0.03, 1.35),
+    (1.00, 0.42, 2.60, 1.00, 0.17, 0.06, 0.04, 1.35),
+    (1.15, 0.42, 2.54, 1.00, 0.18, 0.06, 0.05, 1.35),
+    (1.30, 0.42, 2.40, 1.00, 0.20, 0.06, 0.07, 1.35),
+    (1.60, 0.42, 1.98, 1.00, 0.20, 0.06, 0.08, 1.35),
+    (1.90, 0.42, 1.56, 1.00, 0.20, 0.06, 0.08, 1.35),
+    (2.05, 0.42, 1.47, 0.995, 0.19, 0.06, 0.07, 1.30),
+    (2.40, 0.42, 1.38, 0.985, 0.18, 0.06, 0.06, 1.20),
+    (2.56, 0.43, 1.33, 0.97, 0.17, 0.07, 0.05, 1.10),
+    (2.64, 0.45, 1.27, 0.95, 0.16, 0.08, 0.04, 1.00),
+    (2.69, 0.47, 1.18, 0.93, 0.15, 0.09, 0.03, 0.95),
+    (2.72, 0.49, 1.02, 0.91, 0.14, 0.09, 0.02, 0.85),
+    (2.745, 0.50, 0.82, 0.89, 0.12, 0.08, 0.01, 0.70),
+    (2.76, 0.52, 0.64, 0.87, 0.06, 0.05, 0.0, 0.60),
+]
+
+
+def van_station(x):
+    st = VAN_ST
+    if x <= st[0][0]: return st[0]
+    for a, b in zip(st, st[1:]):
+        if a[0] <= x <= b[0]:
+            t = (x - a[0]) / max(1e-9, b[0] - a[0]); return tuple(a[k] + (b[k] - a[k]) * t for k in range(8))
+    return st[-1]
+
+
+def van_side_z(x, y):
+    """the body side's z (> 0) at engine (x, y), for points on the side below the roof corner"""
+    _, y0, y1, hw, rt, rb, tb, yb = van_station(x)
+    yb = max(y0 + rb + 0.01, min(yb, y1 - rt - 0.01))
+    if y <= yb: return hw
+    return hw - tb * min(1.0, (y - yb) / max(1e-6, (y1 - rt) - yb))
+
+
+def van_top_y(x, z):
+    """the body top's y at engine (x, z) for |z| inside the roof (incl. the rounded corner)"""
+    _, y0, y1, hw, rt, rb, tb, yb = van_station(x)
+    flat = hw - tb - rt; az = abs(z)
+    if az <= flat: return y1
+    d = min(rt, az - flat)
+    return y1 - rt + math.sqrt(max(0.0, rt * rt - d * d))
+
+
+def van_wheel(name, at, side, mats):
+    """a lathe-turned tyre on a steel rim with a dished hubcap (outer face toward engine z * side); origin at the hub,
+    axle along engine z"""
+    tyre, steel, cap, slot, badge = mats
+    R = 0.382
+    tyre_p = [(0.262, -0.105), (0.30, -0.118), (0.345, -0.12), (0.368, -0.11), (0.38, -0.088), (0.382, -0.062), (0.375, -0.056),
+              (0.375, -0.042), (0.382, -0.036), (0.382, -0.012), (0.375, -0.007), (0.375, 0.007), (0.382, 0.012), (0.382, 0.036),
+              (0.375, 0.042), (0.375, 0.056), (0.382, 0.062), (0.38, 0.088), (0.368, 0.11), (0.345, 0.12), (0.30, 0.118), (0.262, 0.105)]
+    cap_p = [(0.262, 0.105), (0.255, 0.096), (0.232, 0.086), (0.205, 0.074), (0.12, 0.08), (0.075, 0.088), (0.058, 0.098), (0.0, 0.101)]
+    back_p = [(0.262, -0.105), (0.24, -0.07), (0.0, -0.07)]
+    N = 56
+    bm = bmesh.new()
+    def lathe(prof, mi):
+        rings = []
+        for k in range(N):
+            f = 2 * math.pi * k / N
+            # Blender: axle along y (engine z); outer face toward engine z * side -> Blender y = -side * a
+            rings.append([bm.verts.new(Vector((r * math.cos(f), -side * a, r * math.sin(f)))) if r > 1e-6 else None for (r, a) in prof])
+        for k in range(N):
+            r0, r1 = rings[k], rings[(k + 1) % N]
+            for i in range(len(prof) - 1):
+                q = [v for v in (r0[i], r1[i], r1[i + 1], r0[i + 1]) if v is not None]
+                if len(q) >= 3:
+                    try: bm.faces.new(q).material_index = mi
+                    except ValueError: pass
+    # the hub centre is a single vertex shared by the cap's last ring
+    lathe(tyre_p, 0)
+    centre_o = bm.verts.new(Vector((0, -side * 0.101, 0))); centre_i = bm.verts.new(Vector((0, side * 0.07, 0)))
+    def lathe_to(prof, mi, centre):
+        rings = []
+        for k in range(N):
+            f = 2 * math.pi * k / N
+            rings.append([bm.verts.new(Vector((r * math.cos(f), -side * a, r * math.sin(f)))) for (r, a) in prof[:-1]])
+        for k in range(N):
+            r0, r1 = rings[k], rings[(k + 1) % N]
+            for i in range(len(prof) - 2):
+                bm.faces.new([r0[i], r1[i], r1[i + 1], r0[i + 1]]).material_index = mi
+            bm.faces.new([r0[-1], r1[-1], centre]).material_index = mi
+    lathe_to(cap_p, 1, centre_o)
+    lathe_to(back_p, 1, centre_i)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = mesh_obj(name, bm, [tyre, cap], sharp=50)
+    parts = [ob]
+    # ventilation slots, wheel nuts and the badge on the hubcap
+    for k in range(8):
+        f = 2 * math.pi * (k + 0.5) / 8; r = 0.16
+        s = slab(f"{name}_slot{k}", (0, 0, 0), (0.07, 0.03, 0.01), slot, bevel=0.0)
+        s.location = Vector((r * math.cos(f), -side * 0.082, r * math.sin(f))); s.rotation_euler = (0, -f, 0)
+        parts.append(s)
+    for k in range(5):
+        f = 2 * math.pi * k / 5; r = 0.088
+        n = disc(f"{name}_nut{k}", (0, 0, 0), 0.014, 0.02, steel, axis="z", seg=6)
+        n.location = Vector((r * math.cos(f), -side * 0.094, r * math.sin(f))); parts.append(n)
+    b = disc(f"{name}_badge", (0, 0, 0), 0.04, 0.012, badge, axis="z", seg=20)
+    b.location = Vector((0, -side * 0.104, 0)); parts.append(b)
+    bpy.ops.object.select_all(action="DESELECT")
+    for p in parts: p.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    for p in parts[1:]:
+        for md in list(p.modifiers):
+            bpy.context.view_layer.objects.active = p
+            try: bpy.ops.object.modifier_apply(modifier=md.name)
+            except Exception: p.modifiers.remove(md)
+    bpy.context.view_layer.objects.active = ob
+    for p in parts: p.select_set(True)
+    bpy.ops.object.join()
+    ob.name = name; ob.location = E(*at)
+    return ob
+
+
 def build_van():
-    paint = col_mat("van_paint", srgb("#f4f1ea"), 0.32)
-    dark = col_mat("van_trim", srgb("#2a2d33"), 0.7)
-    orange = col_mat("van_stripe", srgb("#f08a24"), 0.4)
-    glass = col_mat("van_glass", srgb("#1e2a36"), 0.06, alpha=0.32)
-    head = col_mat("lens_head", srgb("#fff6dc"), 0.2)
-    tail = col_mat("lens_tail", srgb("#d8262a"), 0.25)
+    paint = col_mat("van_paint", srgb("#f3efe6"), 0.3)
+    trim = col_mat("van_trim", srgb("#2b2e34"), 0.7)
+    cab = col_mat("van_cab", srgb("#3a3e46"), 0.85)
+    rubber = col_mat("van_rubber", srgb("#1f2126"), 0.8)
+    orange = col_mat("van_stripe", srgb("#ec8a2c"), 0.45)
+    orange2 = col_mat("van_stripe2", srgb("#f6b25a"), 0.45)
+    orange3 = col_mat("van_stripe3", srgb("#c8661c"), 0.45)
+    navy = col_mat("van_logo", srgb("#1f3a5f"), 0.45)
+    glass = col_mat("van_glass", srgb("#2a3b4c"), 0.05, alpha=0.38)
+    dglass = col_mat("van_glass_dark", srgb("#24313f"), 0.08)
+    chrome = col_mat("van_chrome", srgb("#c9ced6"), 0.25, 0.6)
+    head = col_mat("lens_head", srgb("#f4f1e8"), 0.15)
+    tail = col_mat("lens_tail", srgb("#d22a2a"), 0.25)
+    amber = col_mat("van_amber", srgb("#f39a1e"), 0.25)
+    white = col_mat("van_plate", srgb("#f7f6f2"), 0.5)
+    fabric = col_mat("van_seat", srgb("#3c414b"), 0.9)
+    tyre = col_mat("tyre", srgb("#232529"), 0.92)
+    cap = col_mat("van_hubcap", srgb("#c3c8d0"), 0.35, 0.4)
+    slotm = col_mat("van_slot", srgb("#2a2d33"), 0.6)
+    badge = col_mat("van_badge", srgb("#ec8a2c"), 0.4)
     W = 2.0
-    pts = [(-2.6, 0.42), (-2.6, 2.48), (-2.48, 2.62), (0.92, 2.62), (1.18, 2.56), (1.95, 1.55), (2.48, 1.36), (2.66, 1.16), (2.7, 0.62), (2.6, 0.42)]
-    body = profile_solid("van_body", pts, W, paint, bevel=0.06)
+
+    # ---- body: loft, arches, the cab cavity, window openings
+    body = loft("van_body", VAN_ST, paint)
     def cut(c):
-        md = body.modifiers.new(c.name, "BOOLEAN"); md.operation = "DIFFERENCE"; md.object = c; md.solver = "EXACT"; c.hide_render = True; c.display_type = "WIRE"; c["cutter"] = 1
-    for x in (-1.75, 1.7):  # wheel arches
-        c = cyl(f"arch{x}", 0.47, W + 0.4, (x, 0.38, 0), dark); c.rotation_euler = (math.pi / 2, 0, 0); c.location = E(x, 0.38, -(W + 0.4) / 2); cut(c)
-    # the cab: a cavity with 7 cm walls; its front top corner opens the windscreen, two cutters open the side windows
-    cav = profile_solid("cab_cavity", [(0.32, 0.78), (0.32, 2.52), (0.95, 2.52), (1.32, 2.6), (2.2, 1.45), (2.2, 0.78)], W - 0.14, paint, bevel=0)
-    cut(cav)
+        md = body.modifiers.new(c.name, "BOOLEAN"); md.operation = "DIFFERENCE"; md.object = c; md.solver = "EXACT"
+        c.hide_render = True; c.display_type = "WIRE"; c["cutter"] = 1
+    for x in (-1.75, 1.7):
+        c = disc(f"arch{x}", (x, 0.40, 0), 0.475, W + 0.6, trim, axis="z", seg=48); cut(c)
+    cav_st = []
+    for x in (0.32, 0.6, 0.8, 1.0, 1.15, 1.3, 1.6, 1.9, 2.05, 2.25):
+        _, y0, y1, hw, rt, rb, tb, yb = van_station(x)
+        cav_st.append((x, 0.92, y1 - 0.07, hw - 0.07, max(0.05, rt - 0.05), 0.04, tb, yb))
+    cav = loft("cab_cavity", cav_st, cab); cut(cav)
+    # windscreen opening: a band over the sloped top between the roof curve and the cowl
+    ws_x0, ws_x1, ws_z = 1.335, 1.875, 0.80
+    ws_st = [(x, van_top_y(x, 0) - 0.32, van_top_y(x, 0) + 0.3, ws_z, 0.0, 0.0, 0.0, 0.0) for x in (ws_x0, (ws_x0 + ws_x1) / 2, ws_x1)]
+    bm = bmesh.new(); rings = []
+    for (x, y0, y1, hw, *_r) in ws_st:
+        rings.append([bm.verts.new(E(x, y, z)) for (z, y) in ((-hw, y0), (hw, y0), (hw, y1), (-hw, y1))])
+    for a, b2 in zip(rings, rings[1:]):
+        for i in range(4):
+            j = (i + 1) % 4; bm.faces.new([a[i], a[j], b2[j], b2[i]])
+    bm.faces.new(rings[0][::-1]); bm.faces.new(rings[-1]); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    cut(mesh_obj("ws_cut", bm, [cab], smooth=False))
+    # side windows (front doors): the rear edge is the B-pillar, the front edge runs parallel to the A-pillar
+    win = [(0.94, 1.42), (1.88, 1.42), (1.25, 2.30), (0.94, 2.30)]
     for sz in (-1, 1):
-        cw = box(f"cab_win{sz}", 0.62, 0.7, 0.4, (1.28, 1.6, sz * W / 2), dark, bevel=0.0); cut(cw)
-    fabric = col_mat("van_seat", srgb("#3a3f48"), 0.85)
+        bm = bmesh.new()
+        a = [bm.verts.new(E(x, y, sz * 0.80)) for (x, y) in win]; b2 = [bm.verts.new(E(x, y, sz * 1.25)) for (x, y) in win]
+        bm.faces.new(a); bm.faces.new(b2[::-1])
+        for i in range(4):
+            j = (i + 1) % 4; bm.faces.new([a[i], a[j], b2[j], b2[i]])
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        cut(mesh_obj(f"win_cut{sz}", bm, [cab], smooth=False))
+
+    # ---- glass: the windscreen follows the roof's curve, the side windows lean with the side
+    bm = bmesh.new(); NX, NZ = 8, 18; grid = []
+    for i in range(NX + 1):
+        x = ws_x0 - 0.01 + (ws_x1 - ws_x0 + 0.02) * i / NX; row = []
+        for k in range(NZ + 1):
+            z = -(ws_z + 0.01) + 2 * (ws_z + 0.01) * k / NZ
+            row.append(bm.verts.new(E(x, van_top_y(x, z) - 0.02, z)))
+        grid.append(row)
+    for i in range(NX):
+        for k in range(NZ): bm.faces.new([grid[i][k], grid[i + 1][k], grid[i + 1][k + 1], grid[i][k + 1]])
+    mesh_obj("van_screen", bm, [glass])
     for sz in (-1, 1):
-        box(f"van_seat{sz}", 0.5, 0.14, 0.52, (0.92, 0.88, sz * 0.45), fabric, bevel=0.04)
-        box(f"van_seatb{sz}", 0.14, 0.72, 0.5, (0.62, 0.95, sz * 0.45), fabric, bevel=0.04)
-    box("van_dash", 0.5, 0.36, W - 0.2, (1.95, 1.02, 0), dark, bevel=0.05)
-    me = bpy.data.meshes.new("van_steer"); bm = bmesh.new(); bmesh.ops.create_circle(bm, cap_ends=False, segments=24, radius=0.19)
-    bm.to_mesh(me); bm.free(); sw = link(bpy.data.objects.new("van_steer", me)); me.materials.append(dark)
-    md = sw.modifiers.new("t", "SKIN") if False else None
-    sw.location = E(1.55, 1.42, -0.45); sw.rotation_euler = (0, math.radians(62), 0)
-    mds = sw.modifiers.new("sol", "SOLIDIFY"); mds.thickness = 0.03
-    md2 = sw.modifiers.new("w", "WIREFRAME") if False else None
-    box("van_bumperF", 0.22, 0.34, W + 0.06, (2.68, 0.36, 0), dark, bevel=0.04)
-    box("van_bumperR", 0.18, 0.3, W + 0.06, (-2.64, 0.36, 0), dark, bevel=0.04)
-    box("van_grille", 0.06, 0.26, 1.1, (2.7, 0.76, 0), dark, bevel=0.02)
-    box("van_sill", 4.0, 0.12, W + 0.04, (0.1, 0.4, 0), dark, bevel=0.03)
+        bm = bmesh.new()
+        bm.faces.new([bm.verts.new(E(x, y, sz * (van_side_z(x, y) - 0.025))) for (x, y) in (win if sz > 0 else win[::-1])])
+        mesh_obj(f"van_sidewin{sz}", bm, [glass], smooth=False)
+        # rubber seal round the opening (mitred corners)
+        n = len(win); fr = []
+        for i in range(n + 1):
+            p = win[i % n]; pa = win[(i - 1) % n]; pb = win[(i + 1) % n]
+            def nrm(u, v):
+                dx, dy = v[0] - u[0], v[1] - u[1]; L = math.hypot(dx, dy); return (dy / L, -dx / L)
+            n1, n2 = nrm(pa, p), nrm(p, pb); m = (n1[0] + n2[0], n1[1] + n2[1]); L = math.hypot(*m); m = (m[0] / L, m[1] / L)
+            k = 1.0 / max(0.3, m[0] * n1[0] + m[1] * n1[1])
+            fr.append((E(p[0], p[1], sz * (van_side_z(p[0], p[1]) - 0.004)), edir(0, 0, sz), edir(m[0] * k, m[1] * k, 0)))
+        sweep(f"van_seal{sz}", [(-0.012, -0.012), (0.01, -0.012), (0.012, 0.004), (0.006, 0.032), (-0.012, 0.032)], fr, rubber, cap=False)
+    # windscreen seal: four strips on the surface
+    def surf(x, z): return E(x, van_top_y(x, z), z)
+    def snorm(x, z):
+        dx = surf(x + 0.01, z) - surf(x - 0.01, z); dz = surf(x, z + 0.01) - surf(x, z - 0.01); n = dx.cross(dz).normalized()
+        return n if n.z > 0 else -n
+    for nm, pts, outdir in (("t", [(ws_x0, -ws_z + k * 2 * ws_z / 16) for k in range(17)], "x-"), ("b", [(ws_x1, -ws_z + k * 2 * ws_z / 16) for k in range(17)], "x+"),
+                            ("l", [(ws_x0 + k * (ws_x1 - ws_x0) / 8, -ws_z) for k in range(9)], "z-"), ("r", [(ws_x0 + k * (ws_x1 - ws_x0) / 8, ws_z) for k in range(9)], "z+")):
+        fr = []
+        for (x, z) in pts:
+            N_ = snorm(x, z)
+            if outdir[0] == "x": t = (surf(x + 0.01, z) - surf(x - 0.01, z)).normalized() * (1 if outdir[1] == "+" else -1)
+            else: t = (surf(x, z + 0.01) - surf(x, z - 0.01)).normalized() * (1 if outdir[1] == "+" else -1)
+            fr.append((surf(x, z) - N_ * 0.004, N_, t))
+        sweep(f"van_wseal{nm}", [(-0.012, -0.014), (0.012, -0.014), (0.012, 0.03), (-0.012, 0.03)], fr, rubber)
+
+    # ---- arches: flared plastic lips
+    for x in (-1.75, 1.7):
+        for sz in (-1, 1):
+            fr = []
+            for k in range(29):
+                th = math.radians(-6 + 192 * k / 28)
+                P = E(x + 0.49 * math.cos(th), 0.40 + 0.49 * math.sin(th), sz * 0.995)
+                fr.append((P, edir(math.cos(th), math.sin(th), 0), edir(0, 0, sz)))
+            sweep(f"van_flare{x}{sz}", [(-0.02, -0.01), (0.07, -0.01), (0.09, 0.015), (0.075, 0.042), (-0.02, 0.046)], fr, trim)
+
+    # ---- bumpers (wrap round the corners), rub strips
+    def plan_path(xf, zc, rr, xs, sgn):
+        """a plan-view path round a bumper: sides from x = xs to the corner, a corner arc of radius rr, the face at xf"""
+        pts = []
+        xc = xf - sgn * rr
+        for z in (-zc - rr,):
+            pts += [((xs + (xc - xs) * t), -zc - rr, (0, -1)) for t in (0.0, 0.5)]
+        for k in range(9):
+            a = -math.pi / 2 + (math.pi / 2) * k / 8 if sgn > 0 else -math.pi / 2 - (math.pi / 2) * k / 8
+            pts.append((xc + rr * math.cos(a), -zc + rr * math.sin(a), (math.cos(a), math.sin(a))))
+        for k in range(1, 6):
+            z = -zc + 2 * zc * k / 6; pts.append((xf, z, (sgn, 0)))
+        for k in range(9):
+            a = (0.0 if sgn > 0 else math.pi) + (math.pi / 2 if sgn > 0 else -math.pi / 2) * k / 8
+            pts.append((xc + rr * math.cos(a), zc + rr * math.sin(a), (math.cos(a), math.sin(a))))
+        pts += [((xc + (xs - xc) * t), zc + rr, (0, 1)) for t in (0.5, 1.0)]
+        return pts
+    for nm, xf, zc, rr, xs, sgn, yc, prof in (
+            ("F", 2.79, 0.74, 0.24, 2.22, 1, 0.47, [(-0.08, -0.19), (0.02, -0.19), (0.055, -0.16), (0.065, -0.06), (0.065, 0.1), (0.045, 0.17), (0.0, 0.19), (-0.08, 0.19)]),
+            ("R", -2.69, 0.74, 0.24, -2.24, -1, 0.46, [(-0.08, -0.16), (0.02, -0.16), (0.05, -0.13), (0.06, 0.06), (0.11, 0.13), (0.11, 0.16), (-0.08, 0.16)])):
+        fr = [(E(x, yc, z), edir(nx, 0, nz), edir(0, 1, 0)) for (x, z, (nx, nz)) in plan_path(xf, zc, rr, xs, sgn)]
+        sweep(f"van_bumper{nm}", prof, fr, trim)
     for sz in (-1, 1):
-        box(f"van_stripe{sz}", 4.6, 0.22, 0.012, (-0.25, 1.18, sz * (W / 2 + 0.006)), orange, bevel=0.0)
-        box(f"van_lensH{sz}", 0.05, 0.16, 0.34, (2.67, 1.0, sz * 0.72), head, bevel=0.02)
-        box(f"van_lensT{sz}", 0.05, 0.5, 0.16, (-2.62, 1.05, sz * 0.86), tail, bevel=0.02)
-        box(f"van_sidewin{sz}", 0.62, 0.7, 0.01, (1.28, 1.6, sz * (W / 2 - 0.03)), glass, bevel=0.0)
-        box(f"van_mirror{sz}", 0.1, 0.24, 0.16, (1.78, 1.62, sz * (W / 2 + 0.16)), dark, bevel=0.03)
-        box(f"van_doorseam{sz}", 0.02, 1.9, 0.01, (0.75, 0.5, sz * (W / 2 + 0.006)), dark, bevel=0.0)
-        box(f"van_doorseam2{sz}", 0.02, 1.9, 0.01, (-0.55, 0.5, sz * (W / 2 + 0.006)), dark, bevel=0.0)
-        box(f"van_handle{sz}", 0.2, 0.04, 0.03, (0.55, 1.42, sz * (W / 2 + 0.02)), dark, bevel=0.01)
-        t = text_mesh(f"van_logo{sz}", "SWIFT PARCEL", 0.26, (-0.8, 1.86, sz * (W / 2 + 0.008)), col_mat(f"van_logo_m{sz}", srgb("#1f3a5f"), 0.4), depth=0.004)
-        t.rotation_euler = (math.pi / 2, 0, 0 if sz > 0 else math.pi)
-    # windscreen: a slanted pane on the profile's sloped edge
-    me = bpy.data.meshes.new("van_screen"); bm = bmesh.new()
-    q = [(1.22, 2.5), (1.92, 1.58)]
-    vs = [bm.verts.new(Vector((x, zz, y))) for (x, y) in q for zz in (0.93, -0.93)]
-    bm.faces.new([vs[0], vs[2], vs[3], vs[1]]); bm.to_mesh(me); bm.free()
-    so = link(bpy.data.objects.new("van_screen", me)); me.materials.append(glass); so.location = E(-0.02, 0.0, 0)
-    box("van_reardoorseam", 0.01, 1.95, 0.02, (-2.605, 0.5, 0), dark, bevel=0.0)
-    for name, x, z in (("WHEEL_FL", 1.7, 0.86), ("WHEEL_FR", 1.7, -0.86), ("WHEEL_RL", -1.75, 0.86), ("WHEEL_RR", -1.75, -0.86)):
-        wheel(name, (x, 0.38, z))
-    NOTES["vehicle"] = {"length": 5.4, "width": 2.0, "height": 2.62, "wheelR": 0.38, "wheelBase": 3.45,
+        for x0, x1 in ((-1.20, 1.14), (-2.55, -2.28), (2.21, 2.30)):
+            fr = [(E(x, 0.70, sz * 0.998), edir(0, 0, sz), edir(0, 1, 0)) for x in (x0, x1)]
+            sweep(f"van_rub{x0}{sz}", [(-0.01, -0.055), (0.018, -0.055), (0.028, -0.03), (0.028, 0.03), (0.018, 0.055), (-0.01, 0.055)], fr, trim)
+        # mud flaps
+        for x in (1.17, -2.28):
+            slab(f"van_flap{x}{sz}", (x, 0.27, sz * 0.93), (0.02, 0.26, 0.22), rubber, bevel=0.004)
+
+    # ---- front: headlights, grille, badge, lower grille, fog lights, plate, wipers
+    tilt = math.atan(0.153)
+    def fascia_x(y): return 2.69 + (1.18 - y) * 0.153
+    for sz in (-1, 1):
+        y = 1.06; x = fascia_x(y)
+        slab(f"van_hlhouse{sz}", (x + 0.005, y, sz * 0.62), (0.05, 0.22, 0.38), trim, bevel=0.02, tilt=tilt, yaw=sz * 0.12)
+        slab(f"van_hl{sz}", (x + 0.025, y, sz * 0.62), (0.02, 0.18, 0.34), head, bevel=0.012, tilt=tilt, yaw=sz * 0.12)
+        for k, dz in enumerate((-0.08, 0.06)):
+            disc(f"van_hlp{sz}{k}", (x + 0.04, y + 0.01, sz * (0.62 + dz)), 0.045, 0.02, chrome, axis="x", seg=20)
+        slab(f"van_drl{sz}", (x + 0.042, y - 0.07, sz * 0.62), (0.008, 0.018, 0.30), white, bevel=0.0, tilt=tilt, yaw=sz * 0.12)
+        disc(f"van_fog{sz}", (2.86, 0.40, sz * 0.66), 0.05, 0.03, head, axis="x", seg=20)
+        disc(f"van_fogr{sz}", (2.85, 0.40, sz * 0.66), 0.065, 0.02, chrome, axis="x", seg=20)
+    y = 0.82; x = fascia_x(y)
+    slab("van_grille", (x + 0.01, y, 0), (0.04, 0.32, 0.84), trim, bevel=0.02, tilt=tilt)
+    for k in range(4):
+        yy = 0.70 + k * 0.075
+        slab(f"van_slat{k}", (fascia_x(yy) + 0.035, yy, 0), (0.02, 0.022, 0.76), cab, bevel=0.006, tilt=tilt)
+    disc("van_badge_f", (fascia_x(0.86) + 0.05, 0.86, 0), 0.06, 0.016, badge, axis="x", seg=24)
+    slab("van_lowgrille", (2.85, 0.37, 0), (0.02, 0.1, 0.9), cab, bevel=0.01)
+    slab("van_plateF", (2.86, 0.52, 0), (0.012, 0.12, 0.5), white, bevel=0.006)
+    t = text_mesh("van_plateFt", "SP 214", 0.085, (2.868, 0.52, 0), col_mat("van_platetext", srgb("#1c1e22"), 0.5), depth=0.002)
+    t.rotation_euler = (math.pi / 2, 0, math.pi / 2)
+    for k, z0 in enumerate((-0.72, 0.02)):
+        fr = []
+        for i in range(2):
+            zz = z0 + 0.62 * i; xx = ws_x1 - 0.06
+            fr.append((E(xx, van_top_y(xx, zz) + 0.012, zz), edir(0, 1, 0), edir(1, 0, 0)))
+        sweep(f"van_wiper{k}", [(-0.006, -0.012), (0.01, -0.012), (0.01, 0.012), (-0.006, 0.012)], fr, rubber)
+
+    # ---- mirrors, handles, seams, markers, rail
+    for sz in (-1, 1):
+        slab(f"van_mirarm{sz}", (1.86, 1.50, sz * 1.06), (0.05, 0.04, 0.2), trim, bevel=0.01)
+        slab(f"van_mirror{sz}", (1.83, 1.62, sz * 1.18), (0.1, 0.34, 0.2), trim, bevel=0.035)
+        slab(f"van_mirglass{sz}", (1.775, 1.62, sz * 1.18), (0.01, 0.28, 0.16), dglass, bevel=0.0)
+        slab(f"van_mirind{sz}", (1.86, 1.50, sz * 1.24), (0.05, 0.03, 0.06), amber, bevel=0.008)
+        for x in (1.02, 0.66):
+            slab(f"van_handle{x}{sz}", (x, 1.27, sz * 1.008), (0.2, 0.045, 0.03), trim, bevel=0.012)
+        slab(f"van_marker{sz}", (2.30, 0.80, sz * 0.99), (0.09, 0.04, 0.02), amber, bevel=0.008)
+        # seams: grooves drawn as thin dark strips that follow the side
+        def vseam(x, y0, y1, nm):
+            fr = [(E(x, y0 + (y1 - y0) * k / 6, sz * (van_side_z(x, y0 + (y1 - y0) * k / 6) + 0.001)), edir(0, 0, sz), edir(1, 0, 0)) for k in range(7)]
+            sweep(nm, [(-0.002, -0.005), (0.003, -0.005), (0.003, 0.005), (-0.002, 0.005)], fr, rubber)
+        def hseam(y, x0, x1, nm):
+            fr = [(E(x0 + (x1 - x0) * k / 8, y, sz * (van_side_z(x0 + (x1 - x0) * k / 8, y) + 0.001)), edir(0, 0, sz), edir(0, 1, 0)) for k in range(9)]
+            sweep(nm, [(-0.002, -0.005), (0.003, -0.005), (0.003, 0.005), (-0.002, 0.005)], fr, rubber)
+        vseam(0.89, 0.44, 2.38, f"van_seamA{sz}"); vseam(0.80, 0.44, 2.38, f"van_seamB{sz}"); vseam(-0.80, 0.44, 2.38, f"van_seamC{sz}")
+        vseam(1.99, 0.44, 1.40, f"van_seamD{sz}"); hseam(2.38, -0.80, 0.80, f"van_seamE{sz}")
+        fr = [(E(x, 1.98, sz * (van_side_z(x, 1.98) - 0.002)), edir(0, 0, sz), edir(0, 1, 0)) for x in (-2.48, -0.82)]
+        sweep(f"van_rail{sz}", [(-0.01, -0.025), (0.016, -0.025), (0.02, 0.0), (0.016, 0.025), (-0.01, 0.025)], fr, trim)
+
+    # ---- livery: the stripe, the name, a parcel mark on the sliding door
+    for sz in (-1, 1):
+        rot = (math.pi / 2, 0, 0 if sz > 0 else math.pi)
+        slab(f"van_stripe{sz}", (-0.27, 1.15, sz * 1.002), (4.56, 0.18, 0.004), orange, bevel=0.0)
+        slab(f"van_stripeL{sz}", (-0.27, 1.265, sz * 1.002), (4.56, 0.03, 0.004), navy, bevel=0.0)
+        t = text_mesh(f"van_logo{sz}", "SWIFT PARCEL", 0.25, (-1.62, 1.74, sz * (van_side_z(-1.62, 1.74) + 0.006)), navy, depth=0.004)
+        t.rotation_euler = rot
+        t = text_mesh(f"van_tag{sz}", "same-day delivery", 0.11, (-1.62, 1.53, sz * (van_side_z(-1.62, 1.53) + 0.006)), orange3, depth=0.003)
+        t.rotation_euler = rot
+        # isometric parcel: three rhombi
+        cx, cy, s = 0.0, 1.78, 0.2
+        zz = sz * (van_side_z(cx, cy) + 0.004)
+        for nm, pts, m in (("top", [(0, s * 0.5), (s * 0.87, s * 0.0), (0, -s * 0.5), (-s * 0.87, 0)], orange2),
+                           ("left", [(-s * 0.87, 0), (0, -s * 0.5), (0, -s * 1.5), (-s * 0.87, -s)], orange),
+                           ("right", [(0, -s * 0.5), (s * 0.87, 0), (s * 0.87, -s), (0, -s * 1.5)], orange3)):
+            bm = bmesh.new()
+            vs = [bm.verts.new(E(cx + u * (1 if sz > 0 else -1), cy + v, zz)) for (u, v) in pts]
+            bm.faces.new(vs if sz > 0 else vs[::-1]); mesh_obj(f"van_mark{nm}{sz}", bm, [m], smooth=False)
+
+    # ---- rear: doors, windows, lights, handles, plate, step
+    xr = -2.662
+    slab("van_rearseam", (xr - 0.001, 1.49, 0), (0.004, 1.92, 0.01), rubber, bevel=0.0)
+    for sz in (-1, 1):
+        slab(f"van_rwinf{sz}", (xr - 0.002, 1.95, sz * 0.40), (0.006, 0.56, 0.6), rubber, bevel=0.0)
+        slab(f"van_rwin{sz}", (xr - 0.005, 1.95, sz * 0.40), (0.006, 0.5, 0.54), dglass, bevel=0.0)
+        slab(f"van_tlh{sz}", (xr - 0.004, 1.02, sz * 0.78), (0.03, 0.74, 0.16), trim, bevel=0.01)
+        slab(f"van_tl{sz}", (xr - 0.018, 1.16, sz * 0.78), (0.015, 0.40, 0.13), tail, bevel=0.006)
+        slab(f"van_tla{sz}", (xr - 0.018, 0.86, sz * 0.78), (0.015, 0.14, 0.13), amber, bevel=0.006)
+        slab(f"van_tlw{sz}", (xr - 0.018, 0.73, sz * 0.78), (0.015, 0.09, 0.13), white, bevel=0.006)
+        slab(f"van_rhandle{sz}", (xr - 0.01, 1.22, sz * 0.09), (0.03, 0.045, 0.16), trim, bevel=0.01)
+    slab("van_brake3", (xr + 0.004, 2.44, 0), (0.03, 0.04, 0.3), tail, bevel=0.008)
+    slab("van_plateR", (xr - 0.012, 0.70, 0), (0.012, 0.12, 0.5), white, bevel=0.006)
+    t = text_mesh("van_plateRt", "SP 214", 0.085, (xr - 0.02, 0.70, 0), bpy.data.materials["van_platetext"], depth=0.002)
+    t.rotation_euler = (math.pi / 2, 0, -math.pi / 2)
+    t = text_mesh("van_rearlogo", "SWIFT PARCEL", 0.12, (xr - 0.006, 1.55, -0.40), navy, depth=0.003)
+    t.rotation_euler = (math.pi / 2, 0, -math.pi / 2)
+
+    # ---- cab interior
+    for sz in (-1, 1):
+        slab(f"van_seat{sz}", (0.92, 0.98, sz * 0.45), (0.5, 0.14, 0.5), fabric, bevel=0.05)
+        slab(f"van_seatb{sz}", (0.66, 1.36, sz * 0.45), (0.14, 0.72, 0.48), fabric, bevel=0.05, tilt=-0.18)
+        slab(f"van_head{sz}", (0.60, 1.82, sz * 0.45), (0.12, 0.2, 0.3), fabric, bevel=0.04, tilt=-0.18)
+    slab("van_dash", (1.98, 1.16, 0), (0.46, 0.3, 1.82), cab, bevel=0.06, tilt=0.25)
+    fr = []
+    for k in range(32):
+        a = 2 * math.pi * k / 32
+        fr.append((Vector((0, 0.19 * math.cos(a), 0.19 * math.sin(a))), Vector((0, math.cos(a), math.sin(a))), Vector((1, 0, 0))))
+    sw = sweep("van_steer", [(0.022 * math.cos(2 * math.pi * k / 10), 0.022 * math.sin(2 * math.pi * k / 10)) for k in range(10)], fr, rubber, closed=True)
+    sw.location = E(1.52, 1.42, -0.45); sw.rotation_euler = (0, math.radians(50), 0)
+    disc("van_column", (1.65, 1.27, -0.45), 0.035, 0.36, rubber, axis="x", seg=12).rotation_euler = (0, math.radians(140), 0)
+
+    # ---- wheels
+    for name, x, z in (("WHEEL_FL", 1.7, 0.865), ("WHEEL_FR", 1.7, -0.865), ("WHEEL_RL", -1.75, 0.865), ("WHEEL_RR", -1.75, -0.865)):
+        van_wheel(name, (x, 0.382, z), 1 if z > 0 else -1, (tyre, chrome, cap, slotm, badge))
+    NOTES["vehicle"] = {"length": 5.55, "width": 2.0, "height": 2.62, "wheelR": 0.382, "wheelBase": 3.45,
                         "seats": {"driver": {"pos": [0.95, 0.42, -0.45], "pose": "sit"}, "passenger": {"pos": [0.95, 0.42, 0.45], "pose": "sit"}}}
 
 
-ASSET = {"van"}
-BUILD = {"home": build_home, "van": build_van, "office": build_office, "depot": build_depot}
+def van_preview(out):
+    """three Cycles stills of the van (three-quarter front, side, rear) for look-dev"""
+    w = bpy.data.worlds.new("pv"); SC.world = w; w.use_nodes = True; w.node_tree.nodes["Background"].inputs["Color"].default_value = (0.8, 0.85, 0.9, 1)
+    w.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.8
+    sun = bpy.data.lights.new("pvsun", "SUN"); sun.energy = 3.0; so = link(bpy.data.objects.new("pvsun", sun)); so.rotation_euler = (math.radians(40), 0, math.radians(30))
+    fl = plane("pv_floor", 30, 30, (0, 0, 0), col_mat("pv_floor_m", srgb("#9a9a96"), 0.8))
+    cam = bpy.data.cameras.new("pvcam"); cam.lens = 40; co = link(bpy.data.objects.new("pvcam", cam)); SC.camera = co
+    SC.render.engine = "CYCLES"; SC.cycles.samples = 64; SC.render.resolution_x = 960; SC.render.resolution_y = 640
+    for nm, pos in (("front", (7.0, 2.4, 5.0)), ("side", (0.2, 1.6, 8.0)), ("rear", (-6.5, 2.6, -4.5))):
+        co.location = E(*pos); d = (E(0.3, 1.1, 0) - co.location); co.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
+        SC.render.filepath = os.path.join(out, f"van_{nm}.png"); bpy.ops.render.render(write_still=True)
+    bpy.data.objects.remove(fl); bpy.data.objects.remove(co); bpy.data.objects.remove(so)
+
+
+# ------------------------------------------------------------------------------------------------ hero props (1.11.1)
+# Small hero objects for a board, exported one GLB each (no lightmap: the engine cel-shades and inks them like its own
+# world, so they carry detail without standing out). Origin at the base centre unless noted. Engine axes.
+
+def mat_once(name, fn):
+    return bpy.data.materials[name] if name in bpy.data.materials else fn()
+
+
+def coir_image(name):
+    def fn(u, v, np):
+        h = np.sin(u * 900.0) * 0.5 + 0.5
+        n = np.sin(u * 2300.0 + v * 37.0) * 0.5 + 0.5
+        base = np.array([0.62, 0.42, 0.22]) * (0.82 + 0.18 * h[..., None] * n[..., None])
+        edge = (u < 0.06) | (u > 0.94) | (v < 0.1) | (v > 0.9)
+        base[edge] *= 0.55
+        return base
+    return gen_image(name, 512, 256, fn)
+
+
+def build_porch():
+    """a front door unit for a house wall (back at z = 0, out toward +z): panelled blue door with a fanlight, white
+    frame and cornice, a tiled canopy on brackets, a lantern, a doorbell, brass number, letterbox and knocker, a stone
+    step, two planters with clipped shrubs and a coir WELCOME mat"""
+    blue = col_mat("door_blue", srgb("#3d6b8a"), 0.45)
+    blue2 = col_mat("door_blue2", srgb("#355f7c"), 0.5)
+    white = col_mat("door_trim", srgb("#f4efe6"), 0.5)
+    brass = col_mat("door_brass", srgb("#d6a94a"), 0.3, 0.5)
+    glass = col_mat("door_glass", srgb("#2c3e52"), 0.08)
+    stone = col_mat("door_step", srgb("#b9b3a8"), 0.8)
+    roof = col_mat("door_roof", srgb("#a8553c"), 0.7)
+    black = col_mat("door_black", srgb("#24262b"), 0.5)
+    warm = col_mat("lamp_glow", srgb("#ffe2a0"), 0.3, emit=srgb("#ffd890"), emit_k=2.0)
+    pot = col_mat("door_pot", srgb("#4a5260"), 0.6)
+    leaf = col_mat("door_leaf", srgb("#4f8a3a"), 0.85)
+    DW, DH = 1.0, 2.1
+    # frame: jambs, head, cornice
+    for sx in (-1, 1):
+        slab(f"pj{sx}", (sx * (DW / 2 + 0.07), (DH + 0.5) / 2, 0.06), (0.14, DH + 0.5, 0.12), white, bevel=0.01)
+    slab("phead", (0, DH + 0.5 + 0.06, 0.08), (DW + 0.4, 0.12, 0.16), white, bevel=0.015)
+    slab("pcornice", (0, DH + 0.5 + 0.15, 0.11), (DW + 0.52, 0.06, 0.22), white, bevel=0.012)
+    # fanlight (transom) with glazing bars
+    slab("pfan", (0, DH + 0.25, 0.02), (DW, 0.44, 0.02), glass, bevel=0.0)
+    for k in range(1, 4):
+        slab(f"pfanbar{k}", (-DW / 2 + k * DW / 4, DH + 0.25, 0.035), (0.03, 0.44, 0.03), white, bevel=0.004)
+    slab("pfansill", (0, DH + 0.02, 0.05), (DW + 0.02, 0.05, 0.08), white, bevel=0.008)
+    # the door: slab, raised panels, a small window, hardware
+    slab("pdoor", (0, DH / 2, 0.03), (DW, DH, 0.05), blue, bevel=0.008)
+    for (px, py, pw, ph) in ((-0.22, 0.45, 0.34, 0.6), (0.22, 0.45, 0.34, 0.6), (-0.22, 1.22, 0.34, 0.62), (0.22, 1.22, 0.34, 0.62)):
+        slab(f"ppanel{px}{py}", (px, py, 0.06), (pw, ph, 0.02), blue2, bevel=0.012)
+    slab("pwinframe", (0, 1.78, 0.058), (0.72, 0.36, 0.016), blue2, bevel=0.006)
+    slab("pwin", (0, 1.78, 0.066), (0.64, 0.28, 0.006), glass, bevel=0.0)
+    slab("pwinbar", (0, 1.78, 0.07), (0.025, 0.28, 0.01), blue, bevel=0.0)
+    slab("pletter", (0, 0.92, 0.062), (0.3, 0.08, 0.012), brass, bevel=0.004)
+    slab("pletslot", (0, 0.92, 0.069), (0.24, 0.02, 0.004), black, bevel=0.0)
+    disc("pknob", (0.4, 1.02, 0.08), 0.035, 0.03, brass, axis="z", seg=20)
+    slab("pplate", (0.4, 1.02, 0.058), (0.06, 0.22, 0.012), brass, bevel=0.004)
+    disc("pknock", (0, 1.52, 0.075), 0.06, 0.016, brass, axis="z", seg=24)
+    t = text_mesh("pnum", "14", 0.16, (0, 1.36, 0.064), brass, depth=0.006); t.rotation_euler = (math.pi / 2, 0, 0)
+    # doorbell with a camera ring, lantern
+    slab("pbell", (DW / 2 + 0.22, 1.25, 0.03), (0.06, 0.14, 0.03), black, bevel=0.008)
+    disc("pbellbtn", (DW / 2 + 0.22, 1.21, 0.05), 0.016, 0.01, brass, axis="z", seg=16)
+    slab("plantern_b", (-(DW / 2 + 0.38), 1.95, 0.05), (0.08, 0.16, 0.1), black, bevel=0.008)
+    slab("plantern_a", (-(DW / 2 + 0.38), 1.95, 0.13), (0.03, 0.03, 0.12), black, bevel=0.004)
+    slab("plantern_g", (-(DW / 2 + 0.38), 1.86, 0.2), (0.14, 0.24, 0.14), warm, bevel=0.01)
+    for sx in (-1, 1):
+        for sz2 in (-1, 1):
+            slab(f"plantern_f{sx}{sz2}", (-(DW / 2 + 0.38) + sx * 0.072, 1.86, 0.2 + sz2 * 0.072), (0.015, 0.26, 0.015), black, bevel=0.0)
+    slab("plantern_t", (-(DW / 2 + 0.38), 2.0, 0.2), (0.18, 0.03, 0.18), black, bevel=0.006)
+    disc("plantern_cap", (-(DW / 2 + 0.38), 2.04, 0.2), 0.09, 0.06, black, axis="y", seg=4, r2=0.01)
+    # canopy: two brackets, a pitched tiled roof with a white fascia
+    for sx in (-1, 1):
+        slab(f"pbracket{sx}", (sx * 0.78, 2.72, 0.32), (0.08, 0.08, 0.62), white, bevel=0.01)
+        b = slab(f"pbrace{sx}", (sx * 0.78, 2.55, 0.2), (0.06, 0.06, 0.45), white, bevel=0.008); b.rotation_euler = (math.radians(-40), 0, 0)
+    for sx in (-1, 1):
+        r = slab(f"proof{sx}", (sx * 0.47, 3.0, 0.42), (0.98, 0.05, 0.86), roof, bevel=0.01)
+        r.rotation_euler = (0, -sx * math.radians(-24), 0)
+        for k in range(5):  # tile courses
+            xa = 0.1 + k * 0.17
+            tr = slab(f"ptile{sx}{k}", (sx * xa, 3.2 + 0.035 - math.tan(math.radians(24)) * xa, 0.42), (0.03, 0.025, 0.86), roof, bevel=0.006)
+            tr.rotation_euler = (0, -sx * math.radians(-24), 0)
+    slab("pfascia", (0, 2.78, 0.86), (1.86, 0.1, 0.03), white, bevel=0.006)
+    slab("pridge", (0, 3.2, 0.42), (0.06, 0.06, 0.88), roof, bevel=0.01)
+    # step and planters
+    slab("pstep", (0, 0.07, 0.24), (DW + 0.5, 0.14, 0.46), stone, bevel=0.015)
+    slab("pstep2", (0, 0.145, 0.24), (DW + 0.54, 0.015, 0.48), stone, bevel=0.005)
+    import random
+    rr = random.Random(4)
+    for sx in (-1, 1):
+        slab(f"ppot{sx}", (sx * 0.98, 0.22, 0.3), (0.42, 0.44, 0.42), pot, bevel=0.02)
+        slab(f"ppotrim{sx}", (sx * 0.98, 0.45, 0.3), (0.46, 0.04, 0.46), pot, bevel=0.01)
+        me = bpy.data.meshes.new(f"pshrub{sx}"); bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=3, radius=0.3)
+        for v in bm.verts:
+            n = v.co.normalized(); v.co = v.co * (1.0 + 0.06 * math.sin(v.co.x * 41 + v.co.y * 23) + 0.05 * rr.uniform(-1, 1))
+        bm.to_mesh(me); bm.free()
+        sh = link(bpy.data.objects.new(f"pshrub{sx}", me)); me.materials.append(leaf); sh.location = E(sx * 0.98, 0.76, 0.3)
+        for p in me.polygons: p.use_smooth = True
+    # doormat: coir with a dark border and WELCOME
+    coir = bpy.data.materials.new("mat_coir"); coir.use_nodes = True
+    nt = coir.node_tree; b = nt.nodes["Principled BSDF"]; tx = nt.nodes.new("ShaderNodeTexImage"); tx.image = coir_image("coir")
+    nt.links.new(tx.outputs["Color"], b.inputs["Base Color"]); b.inputs["Roughness"].default_value = 0.95
+    me = bpy.data.meshes.new("pmat"); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=0.5, calc_uvs=True)
+    bm.to_mesh(me); bm.free(); mo = link(bpy.data.objects.new("pmat", me)); me.materials.append(coir)
+    mo.scale = (1.0, 0.62, 1.0); mo.location = E(0, 0.026, 0.95)
+    slab("pmatbase", (0, 0.012, 0.95), (1.0, 0.024, 0.62), col_mat("mat_back", srgb("#6b4426"), 0.9), bevel=0.006)
+    t = text_mesh("pmattext", "WELCOME", 0.13, (0, 0.03, 0.97), col_mat("mat_text", srgb("#3a2414"), 0.9), depth=0.003)
+    t.rotation_euler = (0, 0, 0)
+    NOTES["prop"] = {"door": [0, 0, 0.3], "mat": [0, 0.03, 0.95], "lamp": [-(DW / 2 + 0.38), 1.86, 0.2], "bell": [DW / 2 + 0.22, 1.25, 0.05], "width": 2.4, "height": 3.25}
+
+
+def build_parcel():
+    """a 0.42 x 0.28 x 0.32 m cardboard parcel: tape over the top and down the ends, a shipping label with a barcode,
+    a Swift Parcel sticker, flap seams"""
+    card = col_mat("parcel_card", srgb("#c8935a"), 0.85)
+    card2 = col_mat("parcel_card2", srgb("#b98250"), 0.85)
+    tape = col_mat("parcel_tape", srgb("#e9cf96"), 0.35)
+    paper = col_mat("parcel_label", srgb("#f7f5ef"), 0.6)
+    ink = col_mat("parcel_ink", srgb("#1c1e22"), 0.6)
+    orange = col_mat("parcel_orange", srgb("#ec8a2c"), 0.5)
+    navy = col_mat("parcel_navy", srgb("#1f3a5f"), 0.5)
+    W, H, D = 0.42, 0.28, 0.32
+    slab("pbox", (0, H / 2, 0), (W, H, D), card, bevel=0.01)
+    slab("pseam", (0, H + 0.001, 0), (W - 0.02, 0.002, 0.004), card2, bevel=0.0)
+    slab("ptape", (0, H + 0.002, 0), (W + 0.004, 0.003, 0.06), tape, bevel=0.0)
+    for sx in (-1, 1):
+        slab(f"ptapeE{sx}", (sx * (W / 2 + 0.0015), H - 0.06, 0), (0.003, 0.12, 0.06), tape, bevel=0.0)
+    # label on top (beside the tape) and on the front
+    for nm, c, size, rot in (("top", (0.11, H + 0.003, 0.0), (0.12, 0.002, 0.16), "top"), ("front", (-0.08, 0.14, D / 2 + 0.002), (0.16, 0.12, 0.002), "front")):
+        slab(f"plabel{nm}", c, size, paper, bevel=0.0)
+        if rot == "top":
+            for k in range(9):
+                slab(f"pbar{nm}{k}", (c[0] - 0.045 + k * 0.011, c[1] + 0.0016, c[2] + 0.04), (0.004 + (k % 3) * 0.002, 0.001, 0.05), ink, bevel=0.0)
+            slab(f"plogo{nm}", (c[0], c[1] + 0.0016, c[2] - 0.045), (0.09, 0.001, 0.025), orange, bevel=0.0)
+            for k in range(3):
+                slab(f"pline{nm}{k}", (c[0], c[1] + 0.0016, c[2] - 0.005 + k * 0.012), (0.08, 0.001, 0.004), navy, bevel=0.0)
+        else:
+            for k in range(9):
+                slab(f"pbar{nm}{k}", (c[0] - 0.05 + k * 0.012, c[1] - 0.025, c[2] + 0.0012), (0.004 + (k % 3) * 0.002, 0.04, 0.001), ink, bevel=0.0)
+            slab(f"plogo{nm}", (c[0], c[1] + 0.035, c[2] + 0.0012), (0.12, 0.022, 0.001), orange, bevel=0.0)
+            for k in range(2):
+                slab(f"pline{nm}{k}", (c[0] - 0.01, c[1] + 0.008 - k * 0.012, c[2] + 0.0012), (0.1, 0.004, 0.001), navy, bevel=0.0)
+    # "this way up" arrows on the right end
+    for k, dz in enumerate((-0.04, 0.04)):
+        slab(f"parrow{k}", (W / 2 + 0.002, 0.2, dz), (0.001, 0.05, 0.012), ink, bevel=0.0)
+    NOTES["prop"] = {"size": [W, H, D]}
+
+
+def build_scanner():
+    """the handheld delivery scanner at insert scale (body 0.62 x 0.95 x 0.08 m, centred at the origin): rugged body
+    with orange rubber corners, a black screen well (the engine draws the screen on it at z 0.041), three keys, a pistol
+    grip with a trigger, and a camera module named RT_camera (hidden by the board until the scanners get a camera)"""
+    body = col_mat("scan_body", srgb("#2b2f3a"), 0.55)
+    body2 = col_mat("scan_body2", srgb("#3a3f4c"), 0.6)
+    rubber = col_mat("scan_rubber", srgb("#ec8a2c"), 0.75)
+    screen = col_mat("scan_screen", srgb("#11141a"), 0.1)
+    keyg = col_mat("scan_keyg", srgb("#3fae5a"), 0.4)
+    keyr = col_mat("scan_keyr", srgb("#d8463a"), 0.4)
+    keyo = col_mat("scan_keyo", srgb("#f6b25a"), 0.4)
+    lensm = col_mat("scan_lens", srgb("#0d0f14"), 0.05)
+    chrome = col_mat("scan_chrome", srgb("#c9ced6"), 0.25, 0.5)
+    flash = col_mat("scan_flash", srgb("#fff6dc"), 0.2)
+    W, H, D = 0.62, 0.95, 0.08
+    slab("sbody", (0, 0, 0), (W, H, D), body, bevel=0.03)
+    slab("sback", (0, 0, -D / 2 - 0.01), (W - 0.08, H - 0.12, 0.03), body2, bevel=0.02)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            c = slab(f"scorner{sx}{sy}", (sx * (W / 2 - 0.04), sy * (H / 2 - 0.04), 0), (0.13, 0.13, D + 0.024), rubber, bevel=0.035)
+    for sx in (-1, 1):
+        slab(f"sside{sx}", (sx * (W / 2 + 0.004), 0, 0), (0.02, H - 0.3, D - 0.02), rubber, bevel=0.008)
+    slab("sbezel", (0, 0.11, D / 2 - 0.007), (0.58, 0.58, 0.012), screen, bevel=0.006)
+    # keys under the screen
+    for k, (x, m) in enumerate(((-0.17, keyr), (0.0, keyo), (0.17, keyg))):
+        slab(f"skey{k}", (x, -0.3, D / 2 + 0.006), (0.12, 0.07, 0.02), m, bevel=0.012)
+    for r in range(2):
+        for k in range(4):
+            slab(f"spad{r}{k}", (-0.18 + k * 0.12, -0.39 + r * 0.0, D / 2 + 0.003), (0.08, 0.035, 0.012), body2, bevel=0.008)
+    # top: scan window
+    slab("swindow", (0, H / 2 + 0.005, 0.0), (0.3, 0.02, 0.05), keyr, bevel=0.006)
+    # grip and trigger
+    g = slab("sgrip", (0, -H / 2 - 0.18, -0.03), (0.22, 0.42, 0.11), body, bevel=0.04); g.rotation_euler = (math.radians(-12), 0, 0)
+    slab("sgripr", (0, -H / 2 - 0.2, -0.03), (0.236, 0.3, 0.06), rubber, bevel=0.02).rotation_euler = (math.radians(-12), 0, 0)
+    t = slab("strigger", (0, -H / 2 - 0.06, 0.06), (0.08, 0.12, 0.04), body2, bevel=0.015); t.rotation_euler = (math.radians(20), 0, 0)
+    # camera module on the front, top right: housing, lens, ring, flash (one object family named RT_camera*)
+    parts = [slab("RT_camera", (0.17, 0.43, D / 2 + 0.012), (0.18, 0.09, 0.03), body2, bevel=0.012),
+             disc("RT_camera_ring", (0.13, 0.43, D / 2 + 0.03), 0.034, 0.012, chrome, axis="z", seg=24),
+             disc("RT_camera_lens", (0.13, 0.43, D / 2 + 0.036), 0.024, 0.008, lensm, axis="z", seg=24),
+             slab("RT_camera_flash", (0.215, 0.43, D / 2 + 0.03), (0.05, 0.035, 0.008), flash, bevel=0.004)]
+    bpy.ops.object.select_all(action="DESELECT")
+    for p in parts:
+        bpy.context.view_layer.objects.active = p
+        for md in list(p.modifiers):
+            try: bpy.ops.object.modifier_apply(modifier=md.name)
+            except Exception: p.modifiers.remove(md)
+    for p in parts: p.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]; bpy.ops.object.join(); parts[0].name = "RT_camera"
+    NOTES["prop"] = {"screen": [0, 0.11, 0.041], "screenSize": [0.54, 0.54], "camera": [0.13, 0.43, 0.08]}
+
+
+def asset_preview(out, name, target, dist):
+    """Cycles stills of an asset from three sides (look-dev)"""
+    w = bpy.data.worlds.new("pv"); SC.world = w; w.use_nodes = True; w.node_tree.nodes["Background"].inputs["Color"].default_value = (0.8, 0.85, 0.9, 1)
+    w.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.8
+    sun = bpy.data.lights.new("pvsun", "SUN"); sun.energy = 3.0; so = link(bpy.data.objects.new("pvsun", sun)); so.rotation_euler = (math.radians(40), 0, math.radians(30))
+    fl = plane("pv_floor", 30, 30, (0, -0.001, 0), col_mat("pv_floor_m", srgb("#9a9a96"), 0.8))
+    cam = bpy.data.cameras.new("pvcam"); cam.lens = 40; co = link(bpy.data.objects.new("pvcam", cam)); SC.camera = co
+    SC.render.engine = "CYCLES"; SC.cycles.samples = 64; SC.render.resolution_x = 800; SC.render.resolution_y = 800
+    for nm, d in (("a", (0.7, 0.35, 1.0)), ("b", (-0.8, 0.5, 0.7)), ("c", (0.0, 0.25, 1.0))):
+        dv = Vector(d).normalized() * dist
+        co.location = E(target[0] + dv.x, target[1] + dv.y, target[2] + dv.z); dd = E(*target) - co.location
+        co.rotation_euler = dd.to_track_quat("-Z", "Y").to_euler()
+        SC.render.filepath = os.path.join(out, f"{name}_{nm}.png"); bpy.ops.render.render(write_still=True)
+    bpy.data.objects.remove(fl); bpy.data.objects.remove(co); bpy.data.objects.remove(so)
+
+
+ASSET = {"van", "porch", "parcel", "scanner"}
+BUILD = {"home": build_home, "van": build_van, "office": build_office, "depot": build_depot, "porch": build_porch, "parcel": build_parcel, "scanner": build_scanner}
+PREVIEW = {"van": lambda: van_preview(OUT), "porch": lambda: asset_preview(OUT, "porch", (0, 1.4, 0.4), 5.5),
+           "parcel": lambda: asset_preview(OUT, "parcel", (0, 0.14, 0), 1.2), "scanner": lambda: asset_preview(OUT, "scanner", (0, -0.1, 0), 2.4)}
 
 
 # ------------------------------------------------------------------------------------------------ light
@@ -1103,12 +1738,13 @@ def preview():
 
 if A["set"] in ASSET:
     BUILD[A["set"]]()
+    if A.get("preview"): PREVIEW[A["set"]]()
     prepare()
     for ob in list(SC.objects):
         if ob.get("cutter"): bpy.data.objects.remove(ob)
     join_by_material()
     SC.cycles.samples = 64 if FAST else 256
-    aos = bake_all("AO", texel=160)
+    aos = bake_all("AO", texel=160) if A["set"] == "van" else {}  # props are cel-shaded in the engine: no AO
     import numpy as np
     aomaps = {}
     for name, im in aos.items():
@@ -1116,9 +1752,9 @@ if A["set"] in ASSET:
         o = bpy.data.images.new(f"AOOUT_{name}", w, h, alpha=False); o.colorspace_settings.name = "Non-Color"
         full = np.ones((w * h, 4), dtype=np.float32); full[:, :3] = np.clip(px.reshape(-1, 4)[:, :3], 0, 1); o.pixels.foreach_set(full.ravel())
         path = os.path.join(OUT, "lm", f"{name}.png"); o.filepath_raw = path; o.file_format = "PNG"; o.save(); aomaps[name] = f"lm/{name}.png"
-    NOTES.setdefault("vehicle", {})["ao"] = aomaps
+    if aomaps: NOTES.setdefault("vehicle", {})["ao"] = aomaps
     bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, A["set"] + ".glb"), export_format="GLB", export_apply=True, export_yup=True, export_lights=False, export_cameras=False)
-    json.dump(NOTES.get("vehicle", {}), open(os.path.join(OUT, A["set"] + ".json"), "w"), indent=1)
+    json.dump(NOTES.get("vehicle") or NOTES.get("prop") or {}, open(os.path.join(OUT, A["set"] + ".json"), "w"), indent=1)
     print(f"[asset] {A['set']} -> {OUT}", flush=True)
     sys.exit(0)
 BUILD[A["set"]]()

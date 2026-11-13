@@ -7,7 +7,7 @@ import { LIGHT_KEYS, LightKey } from "../../lib/three/lightplan";
 import HOME0 from "../../../public/sets/home/set.json";
 import VAN from "../../../public/sets/van/van.json";
 
-const W = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen"];
+const W = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty", "twentyone"];
 const words = W.flatMap((w, i) => [0, 1, 2, 3].map((k) => ({ word: k === 0 ? w : "and", start: i * 2 + k * 0.5, end: i * 2 + k * 0.5 + 0.4 })));
 const HOME = HOME0 as unknown as BakedManifest;
 const mk = (M: BakedManifest, k: string) => M.marks[k] as [number, number, number];
@@ -32,6 +32,11 @@ const beats: Beat[] = [
   { at: "thirteen", id: "officeM", shot: { size: "medium", on: "bigsby", angle: 16, side: 0.12 } },
   { at: "fifteen", id: "depot", place: "depot", key: LIGHT_KEYS.office, shot: { size: "wide" }, act: { dex: { hide: false, at: "center", pose: "idle", expr: "worried", view: "three", facing: -1 }, bigsby: { hide: true } } },
   { at: "sixteen", id: "depotM", shot: { size: "medium", on: "dex", angle: -14, side: -0.15 } },
+  // the Blender van in an engine street, cel-shaded and inked like the world
+  { at: "seventeen", id: "road", place: "road", key: LIGHT_KEYS.day, shot: { size: "wide" }, act: { dex: { hide: true } } },
+  { at: "nineteen", id: "roadF", shot: { size: "full", on: [0.4, 0, -1.8], h: 3.4, angle: -38 } },
+  { at: "twenty", id: "roadS", shot: { size: "full", on: [0.2, 0, -1.8], h: 3.0, angle: 8 } },
+  { at: "twentyone", id: "roadR", shot: { size: "full", on: [0.4, 0, -1.8], h: 3.4, angle: 150 } },
 ];
 const board: Board = { id: "bakedtest", title: "baked set test", words, brand: BRANDS.ours, voOffset: 0, tail: 0.4,
   cast: { vex: castEntry("vex"), dex: castEntry("courier"), bigsby: castEntry("bigsby") },
@@ -45,6 +50,7 @@ const board: Board = { id: "bakedtest", title: "baked set test", words, brand: B
       { model: "cardboard_box_01", at: [2.55, 0, -0.55], height: 0.5, ry: 0.3 },
       { model: "cardboard_box_01", at: [2.5, 0.5, -0.5], height: 0.38, ry: -0.2 },
       { model: "planter_box_01", at: [-1.3, 0, -2.95], height: 0.45 } ] },
+    road: { set: "street", opts: { era: "modern" }, vehicles: { van2: { kind: "glb", opts: { url: "sets/van/van.glb", ...VAN }, path: [[-14, 0, -1.8], [0.4, 0, -1.8]], from: "road", to: "roadF", ease: "stop" } } },
     depot: { set: "workshop", opts: { garage: true }, dress: [
       ...shelfOfBoxes(0.9, -3.4, 1), ...shelfOfBoxes(2.1, -3.4, 2), ...shelfOfBoxes(3.3, -3.4, 3),
       { model: "cardboard_box_01", at: [0.6, 0, -2.5], height: 0.55, ry: 0.2 },

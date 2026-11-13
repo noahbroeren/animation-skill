@@ -103,7 +103,9 @@ export type Beat = {
   /** caption height (fraction of the frame) from this beat on */
   caption?: number;
 };
-export type BoardVehicle = { kind: "car" | "bus" | "truck" | "carriage" | "bicycle" | "glb"; opts?: Record<string, unknown>; path: Mark[]; from?: string; to?: string; ease?: "linear" | "stop" | "start"; lights?: boolean };
+export type BoardVehicle = { kind: "car" | "bus" | "truck" | "carriage" | "bicycle" | "glb"; opts?: Record<string, unknown>; path: Mark[]; from?: string; to?: string; ease?: "linear" | "stop" | "start"; lights?: boolean;
+  /** 1.11.1: more drives after the first (arrive, park, leave): each runs from its `from` beat to its `to` beat along its own path */
+  then?: { path: Mark[]; from: string; to: string; ease?: "linear" | "stop" | "start" }[] };
 export type BoardPlace = { set: SetName | "baked"; opts?: SetOpts;
   /** set: "baked": a set built and lit in Blender (tools/blender/build_set.py, lib/three/baked.ts) */
   baked?: BakedOpts;
@@ -256,15 +258,19 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     const v = sets[a]?.marks[c]; if (!v) throw new Error(`board "${b.id}": no mark "${c}" in place "${a}" (${Object.keys(sets[a]?.marks ?? {}).join(", ")})`);
     return v;
   };
+  const glbSpec = (o: GlbVehicleSpec): GlbVehicleSpec => { if ((o.look ?? "toon") !== "toon") return o; const mo: ModelOpts = {}; lateToon.push(mo); return { ...o, toonRef: mo }; };
   for (const id of placeIds) for (const d of b.places[id].dress ?? []) {
     const g = model(d.model, { height: d.height, recolor: d.recolor, toon: d.toon }), w = mark(d.at, id), o = sets[id].group.position;
     g.position.set(w[0] - o.x, w[1] - o.y + (d.dy ?? 0), w[2] - o.z); if (d.ry) g.rotation.y = d.ry; if (d.scale) g.scale.setScalar(d.scale); sets[id].group.add(g); }
   // vehicles
   const vehicles: Record<string, { v: Vehicle; def: BoardVehicle; place: string; path: V3[] }> = {};
-  for (const pid of placeIds) for (const [vid, def] of Object.entries(b.places[pid].vehicles ?? {})) { const v = def.kind === "glb" ? glbVehicle(ctx, def.opts as unknown as GlbVehicleSpec) : VEH[def.kind](def.opts); scene.add(v.group); vehicles[vid] = { v, def, place: pid, path: def.path.map((m) => mark(m, pid)) }; }
+  for (const pid of placeIds) for (const [vid, def] of Object.entries(b.places[pid].vehicles ?? {})) { const v = def.kind === "glb" ? glbVehicle(ctx, glbSpec(def.opts as unknown as GlbVehicleSpec)) : VEH[def.kind](def.opts); scene.add(v.group); vehicles[vid] = { v, def, place: pid, path: def.path.map((m) => mark(m, pid)) }; }
+  const easeV = (e: string | undefined, u: number) => e === "stop" ? ease.outCubic(u) : e === "start" ? ease.inCubic(u) : u;
   const vehU = (vid: string, f: number) => { const { def } = vehicles[vid], f0 = def.from ? P.T[def.from] : 0, f1 = def.to ? P.T[def.to] : P.total, u = clamp((f - f0) / Math.max(1, f1 - f0));
-    return def.ease === "stop" ? ease.outCubic(u) : def.ease === "start" ? ease.inCubic(u) : u; };
-  const placeVehicle = (vid: string, f: number) => { const x = vehicles[vid]; drive(x.v, x.path, vehU(vid, f)); x.v.group.updateMatrixWorld(true); };
+    return easeV(def.ease, u); };
+  const placeVehicle = (vid: string, f: number) => { const x = vehicles[vid]; let path = x.path, u = vehU(vid, f);
+    for (const m of x.def.then ?? []) if (f >= P.T[m.from]) { path = m.path.map((q) => mark(q, x.place)); u = easeV(m.ease, clamp((f - P.T[m.from]) / Math.max(1, P.T[m.to] - P.T[m.from]))); }
+    drive(x.v, path, u); x.v.group.updateMatrixWorld(true); };
   // actors: where everybody is, beat by beat
   const cast = Object.fromEntries(Object.entries(b.cast).map(([id, c]) => { const spec = { ...specOf(c.spec), id, ...(b.brand && !specOf(c.spec).brand ? { brand: b.brand } : {}) }, h = (c.height ?? 1.72);
     const card = new CharacterCard(spec, h * bobbleScale(spec), c.tex ?? 1500, L.sun, undefined, { top: 0.45, x: 0.6 }); card.group.visible = false; scene.add(card.group);

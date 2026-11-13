@@ -621,14 +621,27 @@ Targets and reasons: `references/craft/` (one sheet per area). What changed in t
   roughness maps for the builder.
 - The GLBs, lightmaps and textures are not in the repository (`.gitignore`); the `set.json` manifests are. Rebuild a
   set with the command above after a fresh clone.
-- **The mix (default): bake the hero exterior, dress the rooms.** A baked set is not inked and reads as a real place;
-  the engine's own sets are inked and cel-shaded like the cast. Bake the one place the story keeps returning to (the
-  street, the hero vehicle) and keep the other rooms as engine sets dressed with real models:
-  `places: { depot: { set: "workshop", opts: { garage: true }, dress: [{ model: "Shelf_01", at: [0.9, 0, -3.4], height: 2.3 }, ...] } }`
-  (`BoardPlace.dress`, `BoardDress`). `model` is a Poly Haven id (fetched with `fetch-assets.mjs get --type models --id
-  <id>`, loaded as `assets/polyhaven/models/<id>/<id>_1k.gltf`) or a public-relative glTF/GLB; `height` normalises its
-  size, `at` is a mark or a place-relative point (y lifts it onto a shelf), `ry` turns it, `toon: false` keeps the PBR
-  look. Dressed models take the light plan's cel shading and the ink like the set around them. Board props can load
-  models the same way with `api.model(url, { height })`. Example: `src/projects/bakedtest` (baked street + van, dressed
-  office and depot).
+- **The mix (default since 1.11.1): the world in the engine's style, the story's hero objects from Blender.** The
+  user's rule: the important things in the clip are modelled in Blender with real detail, the rest stays the normal
+  inked style, and the Blender things must blend in, not stick out. So a hero model is drawn with the light plan's cel
+  shading and the ink, in flat brand colours (no photo textures, no lightmap), and placed in an engine set:
+  - **hero props** (`build_set.py --set porch|parcel|scanner --out engine/public/sets/props`): a front door unit
+    (panelled door, fanlight, frame and cornice, tiled canopy, lantern, doorbell, number, letterbox, step, planters,
+    coir WELCOME mat), the Swift Parcel box (tape, label, barcode), a rugged scanner (screen well for an engine-drawn
+    screen at z 0.041, keys, grip, a camera module named `RT_camera` a board can hide). `--preview` writes Cycles
+    look-dev stills next to the GLB.
+  - **in a set:** `places: { street: { set: "street", dress: [{ model: "sets/props/porch.glb", at: [18, 0.16, -7.7] },
+    { model: "garden_gnome", at: [...], height: 0.55 }] } }` (`BoardPlace.dress`, `BoardDress`): `model` is a Poly
+    Haven id (`assets/polyhaven/models/<id>/<id>_1k.gltf`, fetched with `fetch-assets.mjs get --type models`) or a
+    public-relative glTF/GLB; `height` normalises it, `at` is a mark or a place-relative point (y lifts it onto a
+    shelf), `ry` turns it, `toon: false` keeps the PBR look.
+  - **as a prop:** `props: { parcel: (api) => api.model("sets/props/parcel.glb") }`; `api.model(url, { height,
+    groundAlign })` returns a group that is cel-shaded once loaded; find named parts with `getObjectByName` in `update`.
+  - **vehicles:** `kind: "glb"` vehicles are toon-shaded and inked by default (`opts.look: "pbr"` for baked sets).
+    `BoardVehicle.then` adds more drives after the first (arrive, park, leave, come back): each runs from its `from`
+    beat to its `to` beat along its own path.
+  - Baked sets (above) stay for a place that should read as real; they are not inked, so do not cut between a baked
+    place and inked places in one film unless that contrast is the point.
+  Example: `src/projects/doorphoto` (engine street, shop and depot; Blender van, porch, parcel, scanner; Poly Haven
+  gnome, shelving, hand truck); look-dev: `src/projects/bakedtest`.
 

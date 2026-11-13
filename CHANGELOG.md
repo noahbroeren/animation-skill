@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.11.1 - 2026-11-13
+- **The mix, as meant: hero objects from Blender, the world in the engine's style.** Blender models are now
+  cel-shaded and inked like the world by default, so they carry detail without standing out: `kind: "glb"` vehicles
+  (`look: "toon"`, `"pbr"` for baked sets), `BoardPlace.dress` and `api.model` (toon on load).
+- **A new Blender van:** a lofted body with a rounded roof, raked fascia and rounded corners, a hollow cab with
+  window openings and rubber seals, flared arches, lathe-turned tyres with dished hubcaps and nuts, wrap-around
+  bumpers, headlights, grille, fog lights, mirrors, wipers, seams, handles, rail, tail lights and the Swift Parcel
+  livery (`--set van --preview` writes three look-dev stills).
+- **Blender hero props:** `--set porch` (front door unit with canopy, lantern, planters, coir WELCOME mat),
+  `--set parcel` (taped box with label and barcode), `--set scanner` (rugged handheld with a screen well and an
+  `RT_camera` module).
+- `BoardVehicle.then`: more drives after the first (arrive, park, leave, come back).
+- Demo `doorphoto` remade on script v2 (the driver's last box; ElevenLabs narration): engine street, shop and depot
+  with the Blender van, porch, parcel and scanner and Poly Haven gnome and shelving.
+
 ## 1.11.0 - 2026-11-13
 - **Worlds built in Blender, light baked with Cycles.** `tools/blender/build_set.py` models a set from code (houses,
   porches, gardens, rooms, furniture, Poly Haven CC0 textures and models), lights it and bakes direct + indirect
