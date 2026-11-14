@@ -217,6 +217,8 @@ const BESIDE = mk(HOME, "porchL", [0.25, 0, -0.1]); // the driver beside the mat
 const VAN_Z = mk(HOME, "vanStop")[2] + 0.2, VAN_X = mk(HOME, "vanStop")[0];
 const DESK = mk(OFFICE, "desk"), DESKTOP = mk(OFFICE, "deskTop");
 const BIGSBY = mk(OFFICE, "desk", [-0.55, 0, 0.45]); // beside the desk, facing the room
+const EXIT0 = mk(HOME, "porchL", [0.25, 0, 0.42]); // the driver at the door in the last shot
+const FLASH: [number, number, number] = [EXIT0[0] + 0.5, EXIT0[1] + 1.53 - 1, EXIT0[2] + 0.02]; // the scanner's flash (fx adds 1 m)
 
 /** a sky with soft clouds all round the street (equirectangular canvas on an inside-out sphere, unlit, no ink) */
 const skyDome = (api: BoardApi) => {
@@ -325,7 +327,7 @@ const beats: Beat[] = [
     act: { dex: { at: mk(DEPOT, "benchFront", [-0.7, 0, 0.5]), pose: { limbs: { handR: [0.3, 0.3] }, expr: "exhausted" }, hold: null, face: mk(DEPOT, "bench") } },
     gag: { prop: "scannerRack", id: "rack", at: mk(DEPOT, "bench"), in: "none" } },
   { at: "scanner#2", id: "scannerW", shot: { size: "insert", on: [mk(DEPOT, "bench")[0], 1.2, mk(DEPOT, "bench")[2]], h: 0.8, angle: 0, move: "push", amount: 0.26 }, act: { dex: { pose: scan(0, "confused") } } },
-  { at: "camera", id: "camera", act: { dex: { pose: scan(0.9, "amazed"), face: [0, 0, 30] } }, gag: { fx: "sparkle", on: "dex", size: 0.6, dy: -0.35 }, sfx: [{ name: "shutter", lu: -6, on_word: true }], event: [0, 4, 8, 12] },
+  { at: "camera", id: "camera", act: { dex: { pose: scan(0.9, "amazed"), face: [0, 0, 30] } }, sfx: [{ name: "shutter", lu: -6, on_word: true }], event: [0, 4, 8, 12] },
   // ---- the mystery, on his face
   { at: "why", id: "why", place: "street", key: KDAY, shot: { size: "medium", on: "vexg", angle: 0, move: "push", amount: 0.26 },
     act: { vexg: { hide: false, at: IN_DOOR, pose: phoneUp("smug"), face: [IN_DOOR[0], 0, IN_DOOR[2] + 5] }, dex: { hide: true } }, gag: { fx: "question", on: "vexg", size: 0.8 } },
@@ -360,8 +362,8 @@ const beats: Beat[] = [
   { at: "boxes#2", id: "boxes2", off: 0.1 },
   // ---- the payoff: the photo of the door, then back into the van
   { at: "and#8", id: "and8", place: "street", key: KDUSK, shot: { size: "full", on: [MAT[0] - 0.4, MAT[1], MAT[2] + 0.5], h: 2.2, angle: 14, move: "push", amount: 0.26 },
-    act: { dex: { at: mk(HOME, "porchL", [0.25, 0, 0.42]), pose: scan(0, "focused"), face: DOOR } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
-  { at: "photographs", id: "photographs", act: { dex: { pose: scan(0.9, "focused"), lead: 1 } }, gag: { fx: "sparkle", on: "dex", size: 0.5, dy: -0.4 }, sfx: [{ name: "shutter", lu: -4, on_word: true }], event: [0, 4] },
+    act: { dex: { at: EXIT0, pose: scan(0, "focused"), face: DOOR } }, gag: { prop: "parcel", id: "box3", at: MAT, ry: -0.2, in: "none" } },
+  { at: "photographs", id: "photographs", act: { dex: { pose: scan(0.9, "focused"), lead: 1 } }, gag: { fx: "sparkle", on: FLASH, size: 0.32, dy: 0 }, sfx: [{ name: "shutter", lu: -4, on_word: true }], event: [0, 4] },
   { at: "climbing", id: "climbing", act: { dex: { walk: mk(HOME, "porchL", [-2.0, 0, 0.42]), speed: 2.4, pose: { expr: "happy" }, hold: null, lead: 0 } }, sfx: [{ name: "car", lu: -12, df: 10 }] },
 ];
 

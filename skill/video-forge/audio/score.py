@@ -175,7 +175,11 @@ def main():
     places = tl.get("places") or [{"f": 0, "set": "street", "interior": False}]
     inside = env_from([(p["f"] / fps, 1.0 if p["interior"] else 0.0) for p in places], n)
     room = read(os.path.join(synth_dir, "roomtone.wav"))
-    amb += loop_to(room, n) * (inside * 10 ** (-6 / 20))[:, None]
+    # 1.11.4: room tone is a soft low air, not hiss: low-passed at 1.6 kHz and 20 dB under the street bed (at -6 dB it sat
+    # ~16 dB under the voice and read as noise in every interior scene)
+    from scipy.signal import butter, sosfilt
+    room = sosfilt(butter(4, 1600, "lp", fs=SR, output="sos"), room, axis=0)
+    amb += loop_to(room, n) * (inside * 10 ** (-20 / 20))[:, None]
     st = real("street_day")
     street = read(st) if st else read(os.path.join(synth_dir, "wind.wav")) * 0.35
     amb += loop_to(street, n) * ((1 - inside) * 10 ** (0 / 20))[:, None]
@@ -186,7 +190,7 @@ def main():
         amb += loop_to(rain, n) * (env_from([(0, 0.0)] + rain_marks, n, 0.5) * 10 ** (8 / 20))[:, None]
     pk = np.abs(amb).max() or 1.0
     write(os.path.join(pub, "ambience.wav"), amb / pk * 0.5)
-    tracks.append({"file": "ambience.wav", "start": 0, "role": "ambience", "naive_lu": -24})
+    tracks.append({"file": "ambience.wav", "start": 0, "role": "ambience", "naive_lu": -27})  # 1.11.4: was -24
 
     # ---- music
     marks = [(m["f"] / fps, m["mode"]) for m in tl.get("music", [])] or [(0.0, "build")]

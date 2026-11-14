@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.4 - 2026-11-14
+- **No hiss in interiors:** `audio/score.py` low-passes the room tone at 1.6 kHz and plays it 20 dB under the street
+  bed (it sat ~16 dB under the voice and read as noise in every interior scene); the ambience bed is levelled at -27 LU
+  (was -24). The doorphoto bed now sits 21-33 dB under the voice (median 27).
+- doorphoto: the photo sparkles sit round the scanner's flash, not on the driver's cap; the depot's camera beat relies
+  on the rack's own flashes.
+
 ## 1.11.3 - 2026-11-14
 - Street set: the houses form a terrace (no sky between them), the front gable triangles are gone (side gables and side
   walls close each house), two more houses each side.
