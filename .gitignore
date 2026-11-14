@@ -53,3 +53,6 @@ skill/video-forge/engine/public/*/v1/
 skill/video-forge/engine/public/*/vo_t.wav
 skill/video-forge/engine/public/*/words_t.json
 skill/video-forge/engine/public/sets/*/*.png
+
+# channel art: rendered backgrounds (the channel texts live in a props file outside the repository)
+skill/video-forge/engine/public/art/

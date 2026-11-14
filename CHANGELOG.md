@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.5 - 2026-11-14
+- **Channel art** (`--project channelart`): a YouTube profile picture (square, read as a circle down to 98 px: one big
+  host face, a colour field, a question mark) and a 2560x1440 banner (host, name, tagline and @handle inside the
+  1546x423 strip that phones, desktops and TVs all show; a rendered world around it). The texts come from
+  `render.mjs --props FILE.json`, so a channel's name never enters the repository. The host is a bobble in BRANDS.ours.
+- `doorphotobanner`: a wide, text-free view of the street for the banner background.
+
 ## 1.11.4 - 2026-11-14
 - **No hiss in interiors:** `audio/score.py` low-passes the room tone at 1.6 kHz and plays it 20 dB under the street
   bed (it sat ~16 dB under the voice and read as noise in every interior scene); the ambience bed is levelled at -27 LU

@@ -404,3 +404,13 @@ export const doorphotoThumbBoard: Board = { ...board, id: "doorphotothumb", titl
     gag: [{ prop: "skyDome", id: "sky", at: [0, 0, 0], in: "none" }, { prop: "parcel", id: "box", at: MAT, ry: 0.15, in: "none" }] }],
 };
 export const doorphotoThumb = boardProject(doorphotoThumbBoard);
+
+/** A wide, text-free view of the street for channel art (banner background): the van parked, the driver on the path. */
+export const doorphotoBannerBoard: Board = { ...board, id: "doorphotobanner", title: "street banner",
+  words: [{ word: "banner", start: 0, end: 0.4 }, { word: "end", start: 1.2, end: 1.6 }], tail: 0.4,
+  places: { street: { set: "baked", baked: { dir: "sets/home", manifest: HOME } } },
+  beats: [{ at: 0, id: "banner", place: "street", key: KDAY, shot: { size: "full", on: [-0.4, 0.6, -4.2], h: 10.5, angle: 6, move: "push", amount: 0.01 },
+    act: { dex: { at: mk(HOME, "path", [0.1, 0, 0.3]), pose: carry("happy"), face: DOOR } },
+    gag: [{ prop: "skyDome", id: "sky", at: [0, 0, 0], in: "none" }, { prop: "parcel", id: "box", at: MAT, ry: 0.15, in: "none" }] }],
+};
+export const doorphotoBanner = boardProject(doorphotoBannerBoard);
