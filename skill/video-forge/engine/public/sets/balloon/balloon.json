@@ -1,0 +1,45 @@
+{
+ "length": 1.4,
+ "width": 1.4,
+ "height": 27.52,
+ "wheelR": 0.01,
+ "wheelBase": 1,
+ "seats": {
+  "pilot": {
+   "pos": [
+    -0.31,
+    0.055,
+    0.06
+   ],
+   "pose": "idle"
+  },
+  "passenger": {
+   "pos": [
+    0.31,
+    0.055,
+    0.06
+   ],
+   "pose": "idle"
+  }
+ },
+ "burner": [
+  0.0,
+  2.66,
+  0.0
+ ],
+ "mouth": [
+  0.0,
+  5.2,
+  0.0
+ ],
+ "envelope": {
+  "width": 18.3,
+  "bottom": 5.2,
+  "top": 27.52
+ },
+ "recolor": [
+  "env_a",
+  "env_b"
+ ],
+ "flame": "lens_flame"
+}

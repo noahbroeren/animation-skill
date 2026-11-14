@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.11.6 - 2026-11-14
+- **A big world:** `build_set.py --set valley` (a 3 km valley at dawn and noon: spires, poplars, orchards, a river, a
+  colourful terraced village, a pink-orange-blue sunrise sky) and `--set balloon` (a detailed hero balloon with seats).
+- Engine: `Board.placeSpacing`, `BoardVehicle.heading`, vehicles named `vehicle:<id>`, `BoardApi.renderer`; baked sets
+  draw `RT_sky*` as a camera-centred unlit dome and `RT_mist*` as soft haze.
+- `audio/tighten.py`: word starts stay in order when an aligner start falls inside a removed silence.
+- balloons short ("Why hot air balloons fly at sunrise"): the test balloon on a string in the pilot's free hand, the
+  calm air shown as a layer riding under the basket, the 4:30 clock inside the frame, and a text-free cover
+  (`--project balloonsthumb`).
+
 ## 1.11.5 - 2026-11-14
 - **Channel art** (`--project channelart`): a YouTube profile picture (square, read as a circle down to 98 px: one big
   host face, a colour field, a question mark) and a 2560x1440 banner (host, name, tagline and @handle inside the

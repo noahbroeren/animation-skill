@@ -72,6 +72,15 @@ export function bakedSet(ctx: StageCtx, o: BakedOpts, origin: V3 = [0, 0, 0]): S
         if (m.tonemap === "agx") { b.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace("void main() {", AGX + "void main() {").replace("#include <opaque_fragment>", "outgoingLight = bakedAgX( outgoingLight );\n#include <opaque_fragment>"); }; b.customProgramCacheKey = () => "bakedAgx"; }
         mesh.material = b; basics.push(b);
         mesh.castShadow = false; mesh.receiveShadow = false;
+      } else if (name.startsWith("RT_sky")) { // 1.11.6: a painted sky dome from Blender: unlit, no fog, behind everything, centred on the camera
+        const emap = (std as THREE.MeshStandardMaterial).emissiveMap ?? std.map ?? null;
+        const b = new THREE.MeshBasicMaterial({ map: emap, color: emap ? new THREE.Color(1, 1, 1) : (std.emissive ?? std.color), fog: false, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+        if (m.tonemap === "agx") { b.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace("void main() {", AGX + "void main() {").replace("#include <opaque_fragment>", "outgoingLight = bakedAgX( outgoingLight * 1.6 );" + String.fromCharCode(10) + "#include <opaque_fragment>"); }; b.customProgramCacheKey = () => "bakedSky"; }
+        mesh.material = b; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = -5; mesh.frustumCulled = false; mesh.userData.auditIgnore = true;
+        mesh.onBeforeRender = (_r, _s, cam) => { const p = (cam as THREE.Camera).position.clone(); mesh.parent?.worldToLocal(p); mesh.position.copy(p); mesh.updateMatrixWorld(); };
+      } else if (name.startsWith("RT_mist")) { // soft transparent mist layers: unlit, no shadows, no depth write
+        const b = new THREE.MeshBasicMaterial({ map: std.map ?? null, alphaMap: (std as THREE.MeshStandardMaterial).alphaMap ?? null, color: std.color ?? new THREE.Color(1, 1, 1), transparent: true, opacity: std.opacity ?? 0.5, depthWrite: false, fog: true, side: THREE.DoubleSide });
+        mesh.material = b; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = 2; mesh.userData.auditIgnore = true;
       } else { mesh.castShadow = true; mesh.receiveShadow = true; }
       if (!o.ink) mesh.layers.set(NOINK); /* the baked look carries its own contact shading: no screen-space ink or AO */
       if (name.startsWith("FLOOR_")) floors.push(mesh);

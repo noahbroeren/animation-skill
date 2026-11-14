@@ -1,0 +1,394 @@
+{
+ "set": "valley_dawn",
+ "glb": "set.glb",
+ "lmScale": 7.0917,
+ "tonemap": "agx",
+ "lightmaps": {
+  "FLOOR_S_field0": "lm/FLOOR_S_field0.png",
+  "FLOOR_S_field1": "lm/FLOOR_S_field1.png",
+  "FLOOR_S_field2": "lm/FLOOR_S_field2.png",
+  "FLOOR_S_field3": "lm/FLOOR_S_field3.png",
+  "S_t_grass_n": "lm/S_t_grass_n.png",
+  "S_t_flood": "lm/S_t_flood.png",
+  "S_t_vine": "lm/S_t_vine.png",
+  "S_t_grass_m": "lm/S_t_grass_m.png",
+  "S_t_rock_m": "lm/S_t_rock_m.png",
+  "S_t_far": "lm/S_t_far.png",
+  "S_t_rock_f": "lm/S_t_rock_f.png",
+  "S_t_snow": "lm/S_t_snow.png",
+  "S_t_farm_a": "lm/S_t_farm_a.png",
+  "S_t_farm_b": "lm/S_t_farm_b.png",
+  "S_t_farm_c": "lm/S_t_farm_c.png",
+  "S_t_grass_n2": "lm/S_t_grass_n2.png",
+  "S_t_grass_m2": "lm/S_t_grass_m2.png",
+  "FLOOR_S_road_dirt": "lm/FLOOR_S_road_dirt.png",
+  "S_bridge_stone": "lm/S_bridge_stone.png",
+  "S_river_water": "lm/S_river_water.png",
+  "S_tuff_o": "lm/S_tuff_o.png",
+  "S_tuff_n": "lm/S_tuff_n.png",
+  "S_tuff_m": "lm/S_tuff_m.png",
+  "S_basalt_cap": "lm/S_basalt_cap.png",
+  "S_tuff_castle": "lm/S_tuff_castle.png",
+  "S_tuff_cliff": "lm/S_tuff_cliff.png",
+  "cave_windows": "lm/cave_windows.png",
+  "S_painted_2": "lm/S_painted_2.png",
+  "S_roof_earth": "lm/S_roof_earth.png",
+  "S_win_glow": "lm/S_win_glow.png",
+  "S_trim_stone": "lm/S_trim_stone.png",
+  "S_win_dark": "lm/S_win_dark.png",
+  "S_door_red": "lm/S_door_red.png",
+  "S_roof_tank": "lm/S_roof_tank.png",
+  "S_cord_dark": "lm/S_cord_dark.png",
+  "S_cloth_green": "lm/S_cloth_green.png",
+  "S_cloth_pink": "lm/S_cloth_pink.png",
+  "S_cloth_white": "lm/S_cloth_white.png",
+  "S_cloth_yellow": "lm/S_cloth_yellow.png",
+  "S_pot_terracotta": "lm/S_pot_terracotta.png",
+  "S_pot_leaf": "lm/S_pot_leaf.png",
+  "S_bloom_red": "lm/S_bloom_red.png",
+  "S_kilim_c": "lm/S_kilim_c.png",
+  "S_painted_3": "lm/S_painted_3.png",
+  "S_door_wood": "lm/S_door_wood.png",
+  "S_bloom_pink": "lm/S_bloom_pink.png",
+  "S_plaster_2": "lm/S_plaster_2.png",
+  "S_frame_blue": "lm/S_frame_blue.png",
+  "S_bloom_white": "lm/S_bloom_white.png",
+  "S_plaster_3": "lm/S_plaster_3.png",
+  "S_frame_white": "lm/S_frame_white.png",
+  "S_plaster_0": "lm/S_plaster_0.png",
+  "S_painted_0": "lm/S_painted_0.png",
+  "S_door_blue": "lm/S_door_blue.png",
+  "S_cloth_blue": "lm/S_cloth_blue.png",
+  "S_painted_4": "lm/S_painted_4.png",
+  "S_painted_5": "lm/S_painted_5.png",
+  "S_door_green": "lm/S_door_green.png",
+  "S_plaster_1": "lm/S_plaster_1.png",
+  "S_door_teal": "lm/S_door_teal.png",
+  "S_cloth_red": "lm/S_cloth_red.png",
+  "S_kilim_a": "lm/S_kilim_a.png",
+  "S_frame_teal": "lm/S_frame_teal.png",
+  "S_painted_1": "lm/S_painted_1.png",
+  "S_kilim_b": "lm/S_kilim_b.png",
+  "S_lead_grey": "lm/S_lead_grey.png",
+  "S_cart_wood": "lm/S_cart_wood.png",
+  "S_melon_green": "lm/S_melon_green.png",
+  "S_melon": "lm/S_melon.png",
+  "S_kilim_flat0": "lm/S_kilim_flat0.png",
+  "S_kilim_flat1": "lm/S_kilim_flat1.png",
+  "S_kilim_flat2": "lm/S_kilim_flat2.png",
+  "S_leaf_pop_g1": "lm/S_leaf_pop_g1.png",
+  "S_leaf_pop_g2": "lm/S_leaf_pop_g2.png",
+  "S_leaf_pop_gold": "lm/S_leaf_pop_gold.png",
+  "S_leaf_fr_g1": "lm/S_leaf_fr_g1.png",
+  "S_leaf_fr_g2": "lm/S_leaf_fr_g2.png",
+  "S_leaf_fr_y": "lm/S_leaf_fr_y.png",
+  "S_leaf_fr_o": "lm/S_leaf_fr_o.png",
+  "S_leaf_shrub": "lm/S_leaf_shrub.png",
+  "S_leaf_shrub_n": "lm/S_leaf_shrub_n.png",
+  "S_leaf_vine": "lm/S_leaf_vine.png",
+  "S_bark": "lm/S_bark.png",
+  "S_truck_trim": "lm/S_truck_trim.png",
+  "S_truck_paint": "lm/S_truck_paint.png",
+  "S_truck_glass": "lm/S_truck_glass.png",
+  "S_lens_lamp_v": "lm/S_lens_lamp_v.png",
+  "S_tyre_v": "lm/S_tyre_v.png",
+  "S_rim_v": "lm/S_rim_v.png",
+  "S_fence_wood": "lm/S_fence_wood.png",
+  "S_cyl_steel": "lm/S_cyl_steel.png",
+  "S_cyl_cover": "lm/S_cyl_cover.png",
+  "S_cyl_brass": "lm/S_cyl_brass.png",
+  "S_fan_frame": "lm/S_fan_frame.png",
+  "S_fan_black": "lm/S_fan_black.png",
+  "fold_env": "lm/fold_env.png",
+  "S_fold_strap": "lm/S_fold_strap.png",
+  "S_basket_wicker": "lm/S_basket_wicker.png",
+  "S_basket_pad": "lm/S_basket_pad.png",
+  "S_sock_orange": "lm/S_sock_orange.png",
+  "S_sock_white": "lm/S_sock_white.png",
+  "S_pole_wood": "lm/S_pole_wood.png",
+  "S_insulator": "lm/S_insulator.png",
+  "S_xfmr": "lm/S_xfmr.png",
+  "S_wire": "lm/S_wire.png",
+  "FLOOR_S_tyre_track": "lm/FLOOR_S_tyre_track.png",
+  "S_table_top": "lm/S_table_top.png",
+  "S_table_alu": "lm/S_table_alu.png",
+  "S_urn_red": "lm/S_urn_red.png",
+  "S_cup_white": "lm/S_cup_white.png",
+  "S_crate_wood": "lm/S_crate_wood.png",
+  "S_rope_coil": "lm/S_rope_coil.png",
+  "S_tarp_grey": "lm/S_tarp_grey.png",
+  "S_grass_blade": "lm/S_grass_blade.png",
+  "S_field_rock": "lm/S_field_rock.png",
+  "S_flower_red": "lm/S_flower_red.png",
+  "S_flower_yellow": "lm/S_flower_yellow.png",
+  "S_flower_purple": "lm/S_flower_purple.png",
+  "S_flower_white": "lm/S_flower_white.png",
+  "S_flower_orange": "lm/S_flower_orange.png",
+  "S_flower_pink": "lm/S_flower_pink.png",
+  "S_flower_stem": "lm/S_flower_stem.png",
+  "FLOOR_S_path_dirt": "lm/FLOOR_S_path_dirt.png",
+  "lyenv0": "lm/lyenv0.png",
+  "lyenv1": "lm/lyenv1.png",
+  "lyenv2": "lm/lyenv2.png",
+  "lyenv3": "lm/lyenv3.png",
+  "lyenv4": "lm/lyenv4.png",
+  "cave_windows_001": "lm/cave_windows_001.png",
+  "cave_windows_002": "lm/cave_windows_002.png",
+  "fold_env_001": "lm/fold_env_001.png",
+  "fold_env_002": "lm/fold_env_002.png",
+  "lyenv0_001": "lm/lyenv0_001.png",
+  "lyenv1_001": "lm/lyenv1_001.png",
+  "lyenv2_001": "lm/lyenv2_001.png",
+  "lyenv3_001": "lm/lyenv3_001.png",
+  "lyenv4_001": "lm/lyenv4_001.png"
+ },
+ "marks": {
+  "bridge": [
+   43.488,
+   -32.184,
+   -166.049
+  ],
+  "castle": [
+   -122.0,
+   81.201,
+   -446.0
+  ],
+  "cliffs": [
+   -170.0,
+   0.071,
+   -40.0
+  ],
+  "village": [
+   -112.0,
+   -21.989,
+   -344.05
+  ],
+  "minaret": [
+   -96.0,
+   2.262,
+   -333.674
+  ],
+  "cart": [
+   -83.0,
+   -24.217,
+   -324.674
+  ],
+  "vineyard": [
+   110.0,
+   -2.661,
+   -105.0
+  ],
+  "truck": [
+   15.5,
+   0.008,
+   15.0
+  ],
+  "cylinders": [
+   11.8,
+   0.0,
+   19.1
+  ],
+  "fan": [
+   -7.2,
+   0.0,
+   2.6
+  ],
+  "envelope2": [
+   -15.0,
+   0.0,
+   -10.0
+  ],
+  "windsock": [
+   9.0,
+   0.0,
+   -22.0
+  ],
+  "powerline": [
+   33.0,
+   -0.029,
+   -6.0
+  ],
+  "field": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "center": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "pilot": [
+   -1.9,
+   0.007,
+   0.9
+  ],
+  "tourist": [
+   1.9,
+   0.014,
+   0.9
+  ],
+  "river": [
+   35.0,
+   -33.7,
+   -165.587
+  ],
+  "spires": [
+   -92.0,
+   -1.418,
+   -168.0
+  ],
+  "road": [
+   24.0,
+   -0.13,
+   10.0
+  ],
+  "bluff": [
+   10.0,
+   -0.797,
+   -75.0
+  ]
+ },
+ "floors": [
+  "FLOOR_S_field0",
+  "FLOOR_S_field1",
+  "FLOOR_S_field2",
+  "FLOOR_S_field3",
+  "FLOOR_S_path_dirt",
+  "FLOOR_S_road_dirt",
+  "FLOOR_S_tyre_track"
+ ],
+ "realtime": [
+  "RT_mist0",
+  "RT_mist1",
+  "RT_mist2",
+  "RT_mist3",
+  "RT_mist4",
+  "RT_sky"
+ ],
+ "time": "dawn",
+ "powerline": {
+  "poles": [
+   [
+    31.0,
+    -0.06,
+    66.0
+   ],
+   [
+    32.0,
+    -0.02,
+    18.0
+   ],
+   [
+    34.0,
+    -0.0,
+    -30.0
+   ],
+   [
+    56.0,
+    -0.51,
+    -70.0
+   ],
+   [
+    92.0,
+    -1.33,
+    -94.0
+   ],
+   [
+    112.0,
+    -10.23,
+    -132.0
+   ]
+  ],
+  "wireY": [
+   8.77,
+   9.37
+  ],
+  "sag": 0.022
+ },
+ "fieldBalloons": [
+  [
+   -112.0,
+   -0.24,
+   38.0
+  ],
+  [
+   128.0,
+   -0.33,
+   70.0
+  ],
+  [
+   -58.0,
+   0.22,
+   168.0
+  ],
+  [
+   96.0,
+   0.35,
+   205.0
+  ],
+  [
+   182.0,
+   -0.3,
+   -18.0
+  ]
+ ],
+ "wide": {
+  "pos": [
+   14.0,
+   24.0,
+   52.0
+  ],
+  "look": [
+   -22.0,
+   -14.0,
+   -240.0
+  ],
+  "fov": 50
+ },
+ "camBox": {
+  "min": [
+   -330,
+   -30,
+   -520
+  ],
+  "max": [
+   330,
+   200,
+   260
+  ]
+ },
+ "interior": false,
+ "radius": 90,
+ "light": "valley",
+ "water": {
+  "y": -33.7,
+  "mesh": "RIVER_water (emissive painted reflection)"
+ },
+ "sun": {
+  "dir": [
+   0.97,
+   0.167,
+   0.177
+  ],
+  "color": "#ffad62",
+  "energy": 7.5
+ },
+ "sky": {
+  "top": "#5876b4",
+  "horizon": "#ebc4ba",
+  "bottom": "#cdb0b4",
+  "sunGlow": 1.0,
+  "formula": "lib/three/world.ts sky()",
+  "mesh": "RT_sky",
+  "radius": 1100.0,
+  "image": "tex/sky_dawn.png (embedded in set.glb)",
+  "draw": "unlit (its emissive map), fog off, depthWrite off, drawn first, centred on the camera; hide the engine's own sky dome"
+ },
+ "fog": {
+  "color": "#c9bccb",
+  "near": 100,
+  "far": 3200,
+  "kind": "THREE.Fog (smoothstep near..far)"
+ }
+}

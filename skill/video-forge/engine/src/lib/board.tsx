@@ -113,7 +113,9 @@ export type Beat = {
 };
 export type BoardVehicle = { kind: "car" | "bus" | "truck" | "carriage" | "bicycle" | "glb"; opts?: Record<string, unknown>; path: Mark[]; from?: string; to?: string; ease?: "linear" | "stop" | "start"; lights?: boolean;
   /** 1.11.1: more drives after the first (arrive, park, leave): each runs from its `from` beat to its `to` beat along its own path */
-  then?: { path: Mark[]; from: string; to: string; ease?: "linear" | "stop" | "start" }[] };
+  then?: { path: Mark[]; from: string; to: string; ease?: "linear" | "stop" | "start" }[];
+  /** 1.11.6: a fixed yaw in radians (a balloon does not turn its basket to the path); default: face along the path */
+  heading?: number };
 export type BoardPlace = { set: SetName | "baked"; opts?: SetOpts;
   /** set: "baked": a set built and lit in Blender (tools/blender/build_set.py, lib/three/baked.ts) */
   baked?: BakedOpts;
@@ -126,7 +128,7 @@ export type BoardPlace = { set: SetName | "baked"; opts?: SetOpts;
 /** a model in a set: `model` is a Poly Haven id ("garden_gnome" -> assets/polyhaven/models/garden_gnome/garden_gnome_1k.gltf)
  *  or a public-relative path; `height` normalises its bounding box (m); `toon: false` keeps its PBR look (default: cel-shaded) */
 export type BoardDress = { model: string; at: Mark; ry?: number; height?: number; scale?: number; dy?: number; recolor?: Record<string, string>; toon?: boolean; /** ink hull width in px (default 2.2; 0 = the screen-space ink) */ outline?: number };
-export type BoardApi = { T: Record<string, number>; fps: number; /** width / height of the frame: a prop laid out for 9:16 can re-arrange itself for 16:9 */ aspect: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene;
+export type BoardApi = { T: Record<string, number>; fps: number; /** width / height of the frame: a prop laid out for 9:16 can re-arrange itself for 16:9 */ aspect: number; sets: Record<string, SetInstance>; mark: (m: Mark, place?: string) => V3; actorPos: (id: string, f: number) => V3 | null; scene: THREE.Scene; renderer: THREE.WebGLRenderer;
   /** load a model (Poly Haven id or public path) for a prop; it is cel-shaded with the world's light plan once loaded */
   model: (url: string, o?: Omit<ModelOpts, "toon"> & { toon?: boolean; outline?: number }) => THREE.Group };
 export type BoardProp = THREE.Object3D | { group: THREE.Object3D; update?: (f: number, fps: number, api: BoardApi) => void };
@@ -149,6 +151,8 @@ export type Board = {
   rig?: { handheld?: number; push?: number };
   /** 1.11.2: walk cadence in steps per second (default 2.7; the reference's newest short steps about every 4-5 frames at 30 fps) */
   walkRate?: number;
+  /** 1.11.6: metres between places along x (default 160); big baked worlds (a valley) need several km so they never overlap */
+  placeSpacing?: number;
   /** 1.11.3: how much a walking card leans into the step (1 = the cycle's lean, 0 = upright) */
   walkLean?: number;
   /** frames of cross-dissolve on every `via: "cut"` (default 4: a soft cut; 0 = hard cuts) */
@@ -248,7 +252,7 @@ type Seg = { f: number; f1: number; from: V3 | null; to: V3; place: string; hide
 
 function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   const { scene, fps } = ctx, aspect = ctx.width / ctx.height;
-  const placeIds = Object.keys(b.places), origin = (id: string): V3 => [placeIds.indexOf(id) * 160, 0, 0];
+  const placeIds = Object.keys(b.places), origin = (id: string): V3 => [placeIds.indexOf(id) * (b.placeSpacing ?? 160), 0, 0];
   // light plan from the beats' keys
   // a key change is an edit: on a cut it switches on the frame, on a dissolve it fades with the dissolve, inside a shot it fades over 14 frames
   const lpKeys: [number, string | LightKey, number][] = []; { let last: unknown; for (const bt of P.beats) if (bt.i === 0 || (bt.key && bt.key !== last)) { const sh = bt.i > 0 && (bt.shot || bt.newPlace), via = P.viaOf(bt);
@@ -277,13 +281,13 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
     g.position.set(w[0] - o.x, w[1] - o.y + (d.dy ?? 0), w[2] - o.z); if (d.ry) g.rotation.y = d.ry; if (d.scale) g.scale.setScalar(d.scale); sets[id].group.add(g); }
   // vehicles
   const vehicles: Record<string, { v: Vehicle; def: BoardVehicle; place: string; path: V3[] }> = {};
-  for (const pid of placeIds) for (const [vid, def] of Object.entries(b.places[pid].vehicles ?? {})) { const v = def.kind === "glb" ? glbVehicle(ctx, glbSpec(def.opts as unknown as GlbVehicleSpec)) : VEH[def.kind](def.opts); scene.add(v.group); vehicles[vid] = { v, def, place: pid, path: def.path.map((m) => mark(m, pid)) }; }
+  for (const pid of placeIds) for (const [vid, def] of Object.entries(b.places[pid].vehicles ?? {})) { const v = def.kind === "glb" ? glbVehicle(ctx, glbSpec(def.opts as unknown as GlbVehicleSpec)) : VEH[def.kind](def.opts); v.group.name = `vehicle:${vid}`; scene.add(v.group); vehicles[vid] = { v, def, place: pid, path: def.path.map((m) => mark(m, pid)) }; }
   const easeV = (e: string | undefined, u: number) => e === "stop" ? ease.outCubic(u) : e === "start" ? ease.inCubic(u) : u;
   const vehU = (vid: string, f: number) => { const { def } = vehicles[vid], f0 = def.from ? P.T[def.from] : 0, f1 = def.to ? P.T[def.to] : P.total, u = clamp((f - f0) / Math.max(1, f1 - f0));
     return easeV(def.ease, u); };
   const placeVehicle = (vid: string, f: number) => { const x = vehicles[vid]; let path = x.path, u = vehU(vid, f);
     for (const m of x.def.then ?? []) if (f >= P.T[m.from]) { path = m.path.map((q) => mark(q, x.place)); u = easeV(m.ease, clamp((f - P.T[m.from]) / Math.max(1, P.T[m.to] - P.T[m.from]))); }
-    drive(x.v, path, u); x.v.group.updateMatrixWorld(true); };
+    drive(x.v, path, u); if (x.def.heading !== undefined) x.v.group.rotation.y = x.def.heading; x.v.group.updateMatrixWorld(true); };
   // actors: where everybody is, beat by beat
   const cast = Object.fromEntries(Object.entries(b.cast).map(([id, c]) => { const spec = { ...specOf(c.spec), id, ...(b.brand && !specOf(c.spec).brand ? { brand: b.brand } : {}) }, h = (c.height ?? 1.72);
     const card = new CharacterCard(spec, h * bobbleScale(spec), c.tex ?? 1500, L.sun, undefined, { top: 0.45, x: 0.6 }); card.group.visible = false; scene.add(card.group);
@@ -323,7 +327,7 @@ function makeWorld(b: Board, P: BoardPlan, ctx: StageCtx) {
   };
   const actorPos = (id: string, f: number) => actorState(id, f)?.pos ?? null;
   // props (gags)
-  const api: BoardApi = { T: P.T, fps, aspect, sets, mark, actorPos, scene, model };
+  const api: BoardApi = { T: P.T, fps, aspect, sets, mark, actorPos, scene, model, renderer: ctx.renderer };
   const props: { id: string; obj: THREE.Object3D; upd?: (f: number, fps: number, api: BoardApi) => void; f0: number; f1: number; mode: string; scale: number; at: V3; center: boolean }[] = [];
   for (const bt of P.beats) for (const g of gagsOf(bt)) if ("prop" in g) {
     const made: BoardProp = b.props?.[g.prop] ? b.props[g.prop](api) : PROPS[g.prop] ? PROPS[g.prop](g.opts) : (() => { throw new Error(`board "${b.id}": unknown prop "${g.prop}" (${[...Object.keys(b.props ?? {}), ...Object.keys(PROPS)].join(", ")})`); })();

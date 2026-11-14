@@ -75,14 +75,14 @@ def tighten(x: np.ndarray, sr: int, words: list[dict], sentence_cap=0.08, comma_
     lead_end = max(0.0, words[0]["start"] - 0.02)
     nx = max(2, int(xf * sr))
     segs, pos, removed = [], int(lead_end * sr), lead_end
-    shifts = [(lead_end, removed)]
+    spans = [(0.0, lead_end, 0.0)]  # (cut start, cut end, removed before this cut)
     for c0, c1 in cuts:
         i0, i1 = int(c0 * sr), int(c1 * sr)
         if i0 - nx // 2 <= pos:
             continue
         segs.append(x[pos:i0 + nx // 2]); pos = i1 - nx // 2
+        spans.append((c0, c1, removed))
         removed += (i1 - i0) / sr
-        shifts.append((c1, removed))
     segs.append(x[pos:])
     y = segs[0]
     t = np.linspace(0, np.pi / 2, nx)
@@ -93,11 +93,13 @@ def tighten(x: np.ndarray, sr: int, words: list[dict], sentence_cap=0.08, comma_
         y = np.concatenate([y[:-nx], y[-nx:] * fo + s[:nx] * fi, s[nx:]])
 
     def shift(tt: float) -> float:
-        s = 0.0
-        for at, rm in shifts:
-            if tt >= at - 1e-6:
-                s = rm
-        return max(0.0, tt - s)
+        # a time inside a removed span lands on the span's start (an aligner start in the silence), never after the next word
+        out = tt
+        for c0, c1, before in spans:
+            if tt >= c1 - 1e-6: out = tt - (before + (c1 - c0))
+            elif tt > c0: out = c0 - before; break
+            else: break
+        return max(0.0, out)
     nw = [{**w, "start": round(shift(w["start"]), 3), "end": round(shift(w["end"]), 3)} for w in words]
     y = y[:int(min(len(y), (nw[-1]["end"] + 0.4) * sr))]
     return y, nw, len(cuts)

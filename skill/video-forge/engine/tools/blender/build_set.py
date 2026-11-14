@@ -2563,10 +2563,1939 @@ def asset_preview(out, name, target, dist):
     bpy.data.objects.remove(fl); bpy.data.objects.remove(co); bpy.data.objects.remove(so)
 
 
-ASSET = {"van", "porch", "parcel", "scanner"}
-BUILD = {"home": build_home, "van": build_van, "office": build_office, "depot": build_depot, "porch": build_porch, "parcel": build_parcel, "scanner": build_scanner}
+# ------------------------------------------------------------------------------------------------ VALLEY (1.12): the balloon short's world
+# A Cappadocia-like valley, one builder for two lights (--time dawn | noon: the same geometry and marks, two bakes).
+# Engine axes: the launch field is centred on the origin (y 0) on a plateau; the valley opens toward -z (the default
+# camera looks down it): a bluff drops to the river (water y -33.7) that meanders 165-290 m out (its bend toward the
+# field is the "river" mark), the village and its castle rock climb the far slope under the far rim cliffs, a tuff
+# escarpment with cave windows runs along the left (it faces the low dawn sun, which comes from the right), vineyards
+# around a hairpin road on the right, orchards and poplars on the floodplain, fairy chimneys in groups, mesas, ridges
+# and a snowy volcano on the rim (650-1400 m from the field; the engine camera's far plane is 1500 m).
+# Lightmaps: one map per terrain class (the field: four 64 m quadrants at 2048 = 32 texels/m; near terrain ~3/m,
+# far < 1/m via per-material lm_max); the dawn mist is RT_ (transparent planes: unbaked, they cast no shadow).
+VTIME = str(A.get("time", "dawn"))
+VL = {
+    "dawn": {"sun": (0.93, 0.16, 0.17), "sunCol": "#ffad62", "sunE": 7.5, "skyK": 0.42, "top": "#5876b4", "horizon": "#ebc4ba", "bottom": "#cdb0b4",
+             "glow": 1.0, "fog": "#c9bccb", "fogNF": [100, 3200], "mist": True, "winK": 7.0},
+    "noon": {"sun": (0.34, 0.9, 0.27), "sunCol": "#fff4e6", "sunE": 5.2, "skyK": 0.7, "top": "#6a9bd6", "horizon": "#dbe5ec", "bottom": "#cdd6dc",
+             "glow": 0.35, "fog": "#d8e0e6", "fogNF": [80, 2600], "mist": False, "winK": 0.0},
+}[VTIME]
+_VG = {}
+PREVIEW_FOG = {}
+PREVIEW_VIEWS = []
+
+
+def _hash2(np, ix, iz, seed):
+    M = np.uint64(0xffffffff)
+    h = (ix.astype(np.int64).astype(np.uint64) * np.uint64(0x9E3779B1)) ^ (iz.astype(np.int64).astype(np.uint64) * np.uint64(0x85EBCA77)) ^ np.uint64((seed * 0xC2B2AE3D) & 0xffffffff)
+    h = h & M
+    h = h ^ (h >> np.uint64(15)); h = (h * np.uint64(0x2C1B3C6D)) & M
+    h = h ^ (h >> np.uint64(12)); h = (h * np.uint64(0x297A2D39)) & M
+    h = h ^ (h >> np.uint64(15))
+    return (h & np.uint64(0xffffff)).astype(np.float64) / 16777215.0
+
+
+def vnoise(np, x, z, seed=0):
+    """value noise in [-1, 1] (vectorised; integer lattice)"""
+    x = np.asarray(x, dtype=np.float64); z = np.asarray(z, dtype=np.float64)
+    x0 = np.floor(x); z0 = np.floor(z); fx = x - x0; fz = z - z0
+    ix = x0.astype(np.int64); iz = z0.astype(np.int64)
+    u = fx * fx * (3 - 2 * fx); w = fz * fz * (3 - 2 * fz)
+    a = _hash2(np, ix, iz, seed); b = _hash2(np, ix + 1, iz, seed); c = _hash2(np, ix, iz + 1, seed); d = _hash2(np, ix + 1, iz + 1, seed)
+    return (a + (b - a) * u + (c - a) * w + (a - b - c + d) * u * w) * 2.0 - 1.0
+
+
+def fbm(np, x, z, seed=0, octaves=4):
+    s, amp, f, nrm = 0.0, 1.0, 1.0, 0.0
+    for k in range(octaves):
+        s = s + amp * vnoise(np, x * f, z * f, seed + 31 * k); nrm += amp; amp *= 0.5; f *= 2.03
+    return s / nrm
+
+
+def sstep(np, a, b, x):
+    t = np.clip((x - a) / (b - a), 0.0, 1.0); return t * t * (3 - 2 * t)
+
+
+def river_z(np, x):
+    """the river's centre line (engine z) along x: a bend toward the field at x ~ 35, an S further left"""
+    return -228 + 48 * np.exp(-((x - 35) / 62.0) ** 2) - 30 * np.exp(-((x + 120) / 70.0) ** 2) + 12 * np.sin(x / 97.0 + 1.3) + 20 * np.sin(x / 260.0)
+
+
+def bluff_edge(np, x):
+    return 100 + 24 * fbm(np, x / 95.0, np.zeros_like(x) + 7.3, 7, 3)
+
+
+def rim_d(np, x):
+    return 236 + 34 * fbm(np, x / 95.0, np.zeros_like(x) + 3.1, 11, 4) + 9 * np.sin(x / 23.0) * np.sin(x / 61.0 + 1.0)
+
+
+def esc_x(np, z):
+    return -185 + 14 * np.sin(z / 60.0) + 6 * np.sin(z / 21.0 + 1.0)
+
+
+def valley_base(np, x, z):
+    """the terrain height before the field and the road are levelled into it"""
+    x = np.asarray(x, dtype=np.float64); z = np.asarray(z, dtype=np.float64)
+    zr = river_z(np, x); d = z - zr
+    n1 = fbm(np, x / 160.0, z / 160.0, 3, 4); n2 = fbm(np, x / 38.0, z / 38.0, 5, 4); n3 = fbm(np, x / 9.0, z / 9.0, 8, 3)
+    tn = sstep(np, 16, bluff_edge(np, x), d) ** 0.85
+    tf = sstep(np, 14, 175, -d) ** 1.15
+    rim = rim_d(np, x)
+    near = d >= 0
+    rh = (30 + 22 * fbm(np, x / 55.0, np.zeros_like(x) + 5.5, 12, 3)) * (1 - 0.75 * np.exp(-((x + 60) / 14.0) ** 2) - 0.6 * np.exp(-((x - 140) / 18.0) ** 2)
+                                                                       - 0.7 * np.exp(-((x - 330) / 12.0) ** 2) - 0.6 * np.exp(-((x + 280) / 16.0) ** 2))
+    y = np.where(near, -32.8 + 32.8 * tn, -32.8 + 46 * tf + rh * sstep(np, rim - 3, rim + 4, -d) + 7 * n1 * sstep(np, rim, rim + 80, -d))
+    t = np.where(near, tn, tf)
+    slope = 4 * t * (1 - t)
+    rid = 1 - np.abs(vnoise(np, x / 15.0 + 2.2 * n2, z / 46.0, 13))
+    y = y - 6.5 * slope * rid ** 2 + 2.2 * n2 * slope + 0.5 * n3 * slope
+    y = y + (0.45 * n2 + 0.1 * n3) * (1 - slope) * np.where(near & (t > 0.98), 2.5, 1.0)
+    y = y + 26 * sstep(np, 160, 700, z) * (0.65 + 0.35 * n1)                                   # hills behind the field
+    y = y + 34 * sstep(np, 170, 430, x) * (0.6 + 0.4 * n1) * (0.75 + 0.25 * rid)              # pink ridges on the right
+    xc = esc_x(np, z)
+    cf = sstep(np, zr + 45, zr + 125, z)
+    top = 28 + 2.5 * n1 + 0.6 * n2
+    esc = sstep(np, xc + 0.5, xc - 4.5, x) * cf                                                 # the left escarpment
+    y = y + (np.maximum(y, top) - y) * esc
+    r = np.hypot(x, z + 200)
+    y = y + sstep(np, 0.08, 0.2, fbm(np, x / 430.0, z / 430.0, 21, 3)) * (70 + 40 * n1) * sstep(np, 560, 800, r)   # mesas
+    y = y + 45 * sstep(np, 620, 1400, r) * (0.7 + 0.3 * n1)
+    dv = np.hypot(x + 650, z + 1150)
+    y = y + 135 * np.clip(1 - dv / 680.0, 0, 1) ** 1.3 - 9 * np.exp(-(dv / 40.0) ** 2)           # the volcano
+    ad = np.abs(d)
+    y = np.where(ad < 14, np.minimum(y, -35.6 + 2.7 * (ad / 8.0) ** 2), y)                      # the river channel
+    return y
+
+
+ROAD_CP = [(44, 560), (38, 320), (30, 150), (25, 62), (24, 10), (26, -38), (40, -62), (70, -80), (98, -96), (100, -112), (80, -124), (56, -136),
+           (46, -152), (42, -170), (38, -188), (26, -208), (0, -236), (-34, -266), (-66, -296), (-92, -322), (-110, -348), (-122, -378)]
+
+
+def road_prep(np):
+    """the road's centre line resampled every ~2 m and its smoothed height (levelled onto the bridge over the river)"""
+    cp = np.array(ROAD_CP, dtype=np.float64); pts = []
+    for i in range(len(cp) - 1):
+        p0, p1, p2, p3 = cp[max(0, i - 1)], cp[i], cp[i + 1], cp[min(len(cp) - 1, i + 2)]
+        n = max(2, int(np.hypot(*(p2 - p1)) / 2.0))
+        for k in range(n):
+            t = k / n
+            pts.append(0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3))
+    pts.append(cp[-1]); P = np.array(pts)
+    yb = valley_base(np, P[:, 0], P[:, 1])
+    k = 9; ys = np.convolve(np.pad(yb, k, mode="edge"), np.ones(2 * k + 1) / (2 * k + 1), mode="valid")
+    d = P[:, 1] - river_z(np, P[:, 0]); br = np.abs(d) < 15
+    if br.any():
+        i0, i1 = np.where(br)[0][[0, -1]]
+        ys[i0:i1 + 1] = np.maximum(-31.4, np.linspace(ys[max(0, i0 - 1)], ys[min(len(ys) - 1, i1 + 1)], i1 - i0 + 1))
+    near = np.hypot(P[:, 0], P[:, 1]) < 70
+    ys[near] = np.minimum(ys[near], 0.0)
+    _VG["road"] = (P, ys, br)
+    return P, ys, br
+
+
+def road_near(np, x, z):
+    """distance to the road's centre line and the road height there (vectorised)"""
+    P, ys, _ = _VG["road"]
+    bd = np.full(x.shape, 1e9); bh = np.zeros(x.shape)
+    for i in range(0, len(P) - 2, 2):
+        a, b = P[i], P[i + 2]; ab = b - a; L2 = float(ab @ ab) + 1e-9
+        t = np.clip(((x - a[0]) * ab[0] + (z - a[1]) * ab[1]) / L2, 0, 1)
+        dd = np.hypot(x - a[0] - t * ab[0], z - a[1] - t * ab[1])
+        m = dd < bd
+        bd = np.where(m, dd, bd); bh = np.where(m, ys[i] + t * (ys[i + 2] - ys[i]), bh)
+    return bd, bh
+
+
+def valley_h(np, x, z):
+    y = valley_base(np, x, z)
+    dr = np.hypot(np.maximum(np.abs(x) - 44, 0), np.maximum(np.abs(z) - 44, 0))
+    wf = 1 - sstep(np, 6, 50, dr)
+    y = y * (1 - wf) + (0.06 * fbm(np, x / 11.0, z / 11.0, 17, 3) + 0.03 * fbm(np, x / 2.5, z / 2.5, 19, 2)) * wf
+    rd, rh = road_near(np, x, z)
+    w = 1 - sstep(np, 3.0, 10.0, rd)
+    return y * (1 - w) + (rh - 0.13) * w
+
+
+def vgh(x, z):
+    """terrain height (engine y) at engine (x, z): bilinear on the built grid (arrays or scalars)"""
+    import numpy as np
+    xs, zs, Y = _VG["xs"], _VG["zs"], _VG["Y"]
+    x = np.asarray(x, dtype=np.float64); z = np.asarray(z, dtype=np.float64)
+    i = np.clip(np.searchsorted(xs, x) - 1, 0, len(xs) - 2); j = np.clip(np.searchsorted(zs, z) - 1, 0, len(zs) - 2)
+    fx = np.clip((x - xs[i]) / (xs[i + 1] - xs[i]), 0, 1); fz = np.clip((z - zs[j]) / (zs[j + 1] - zs[j]), 0, 1)
+    y = Y[i, j] * (1 - fx) * (1 - fz) + Y[i + 1, j] * fx * (1 - fz) + Y[i, j + 1] * (1 - fx) * fz + Y[i + 1, j + 1] * fx * fz
+    return float(y) if np.ndim(y) == 0 else y
+
+
+def axis_pts(lo, hi, step):
+    out, v = [0.0], 0.0
+    while v < hi - 1e-6: v = min(hi, v + step(v)); out.append(v)
+    v, neg = 0.0, []
+    while v > lo + 1e-6: v = max(lo, v - step(v)); neg.append(v)
+    return sorted(neg) + out
+
+
+def mat_lm(m, cap=None, k=None):
+    """lightmap budget on a material: cap = the largest lightmap side, k = a texel-density factor (see bake_all)"""
+    if cap: m["lm_max"] = cap
+    if k: m["texel_k"] = k
+    return m
+
+
+def mesh_np(name, V, F, mat, smooth=True, normals=None):
+    """a mesh from engine-space vertices V (n, 3) and faces F (tuples); normals: per-vertex custom normals"""
+    me = bpy.data.meshes.new(name)
+    me.from_pydata([tuple(E(*v)) for v in V], [], F)
+    me.update(); me.materials.append(mat)
+    if smooth: me.shade_smooth()
+    if normals is not None:
+        try: me.normals_split_custom_set_from_vertices([tuple(edir(*n)) for n in normals])
+        except Exception as e: print("[valley] custom normals:", e)
+    return link(bpy.data.objects.new(name, me))
+
+
+def tuff_mat(name, cols, seed, size=14.0, nb=9, rough=0.9, cap=None):
+    """volcanic tuff: soft horizontal strata in a warm palette (warped band edges), weathering streaks, speckle"""
+    def fn(u, v, np):
+        vv = v + 0.006 * tnoise(np, u, v, seed, (1, 3), (1, 2), 12) + 0.003 * tnoise(np, u, v, seed + 1, (3, 9), (1, 3), 20)
+        bi = np.floor(vv * nb); fb = vv * nb - bi
+        pal = np.array([hx(c) for c in cols])
+        idx = (np.abs(np.sin(bi * 12.9898 + seed * 1.7) * 43758.5453) % 1.0 * len(cols)).astype(np.int64) % len(cols)
+        nxt = (np.abs(np.sin((bi + 1) * 12.9898 + seed * 1.7) * 43758.5453) % 1.0 * len(cols)).astype(np.int64) % len(cols)
+        k = np.clip((fb - 0.5) / 0.5, 0, 1)[..., None] ** 1.5
+        col = pal[idx] * (1 - k) + pal[nxt] * k
+        speck = tnoise(np, u, v, seed + 2, (40, 140), (40, 140), 40, 0.3)
+        streak = tnoise(np, u, v, seed + 3, (24, 70), (0, 2), 30, 0.4)
+        blot = tnoise(np, u, v, seed + 4, (2, 8), (2, 8), 16)
+        t = 1 + 0.04 * speck + 0.025 * streak + 0.07 * blot
+        t = np.where(fb < 0.025, t * 0.93, t)
+        return col * t[..., None]
+    m = img_mat(name, 1024, 1024, fn, rough, 0.0, size)
+    return mat_lm(m, cap)
+
+
+def leaf_mat(name, base, seed, size=1.6):
+    def fn(u, v, np):
+        c = np.array(hx(base))
+        n1 = tnoise(np, u, v, seed, (8, 30), (8, 30), 40, 0.5); n2 = tnoise(np, u, v, seed + 1, (1, 4), (1, 4), 10)
+        g = tnoise(np, u, v, seed + 2, (24, 70), (24, 70), 50, 0.2)
+        t = 0.8 + 0.16 * n1 + 0.1 * n2 + 0.08 * g
+        t = np.where(g < -0.9, t * 0.5, t)
+        return c[None, None, :] * t[..., None]
+    return img_mat(name, 512, 512, fn, 0.85, 0.0, size)
+
+
+def rgba_image(name, w, h, fn):
+    import numpy as np
+    os.makedirs(os.path.join(OUT, "tex"), exist_ok=True)
+    v, u = np.mgrid[0:h, 0:w].astype(np.float32); u /= (w - 1); v /= (h - 1)
+    px = np.clip(fn(u, v, np), 0, 1).astype(np.float32)
+    im = bpy.data.images.new(name, w, h, alpha=True); im.pixels.foreach_set(px.ravel())
+    path = os.path.join(OUT, "tex", name + ".png"); im.filepath_raw = path; im.file_format = "PNG"; im.save()
+    return bpy.data.images.load(path, check_existing=True)
+
+
+# ---- terrain
+TCLS = ["field0", "field1", "field2", "field3", "grass_n", "rock_n", "flood", "vine", "grass_m", "rock_m", "far", "rock_f", "snow", "farm_a", "farm_b", "farm_c", "grass_n2", "grass_m2"]
+VINE_BOX = (58, 168, -150, -60)
+
+
+def terrain_mats():
+    M = {}
+    for k in range(4):
+        M[f"field{k}"] = tex_mat(f"field{k}", "aerial_grass_rock", 14.0, paint="#b4a574", pk=0.75, disp=True)
+    M["grass_n"] = mat_lm(tex_mat("t_grass_n", "aerial_grass_rock", 14.0, paint="#b4a574", pk=0.75, disp=True), 2048)
+    M["grass_n2"] = mat_lm(tex_mat("t_grass_n2", "aerial_grass_rock", 19.0, paint="#a3a068", pk=0.7, disp=True), 2048)
+    M["grass_m2"] = mat_lm(tex_mat("t_grass_m2", "aerial_grass_rock", 33.0, paint="#a6a06c", pk=0.6, disp=True), 2048)
+    M["rock_n"] = mat_lm(tex_mat("t_rock_n", "worn_rock_natural_01", 7.0, paint="#d7b49a", pk=0.65, disp=True), 2048)
+    M["flood"] = mat_lm(tex_mat("t_flood", "forrest_ground_01", 7.0, paint="#8f9152", pk=0.6, disp=True), 2048)
+    M["vine"] = mat_lm(tex_mat("t_vine", "dry_ground_01", 4.0, paint="#a7835f", pk=0.55, disp=True), 2048)
+    M["grass_m"] = mat_lm(tex_mat("t_grass_m", "aerial_grass_rock", 26.0, paint="#b4a376", pk=0.65, disp=True), 2048)
+    M["rock_m"] = mat_lm(tex_mat("t_rock_m", "worn_rock_natural_01", 14.0, paint="#d4ac94", pk=0.6, disp=True), 2048)
+    M["far"] = mat_lm(tex_mat("t_far", "aerial_grass_rock", 70.0, paint="#9f9078", pk=0.45, disp=True), 1024)
+    M["rock_f"] = mat_lm(tex_mat("t_rock_f", "aerial_rocks_02", 60.0, paint="#ab9184", pk=0.5, disp=True), 1024)
+    M["snow"] = mat_lm(col_mat("t_snow", srgb("#eef0f4"), 0.55), 512)
+    M["farm_a"] = mat_lm(tex_mat("t_farm_a", "dry_ground_01", 6.0, paint="#b48c62", pk=0.5, disp=True), 1024)
+    M["farm_b"] = mat_lm(tex_mat("t_farm_b", "sparse_grass", 5.0, paint="#8c9150", pk=0.55, disp=True), 1024)
+    M["farm_c"] = mat_lm(tex_mat("t_farm_c", "leafy_grass", 5.0, paint="#c6ad79", pk=0.5, disp=True), 1024)
+    return M
+
+
+def build_terrain():
+    import numpy as np
+    sx = lambda v: 1.0 if abs(v) < 64 - 1e-6 else (2.5 if abs(v) < 320 else 2.5 + (abs(v) - 320) * 0.04)
+    sz = lambda v: 1.0 if -64 + 1e-6 < v < 64 - 1e-6 else (2.5 if -540 < v < 230 else 2.5 + max(-540 - v, v - 230, 0) * 0.04)
+    xs = np.array(axis_pts(-1450, 1450, sx)); zs = np.array(axis_pts(-1500, 1100, sz))
+    road_prep(np)
+    X, Z = np.meshgrid(xs, zs, indexing="ij")
+    Y = valley_h(np, X, Z)
+    _VG.update(xs=xs, zs=zs, Y=Y)
+    gx = np.gradient(Y, xs, axis=0); gz = np.gradient(Y, zs, axis=1)
+    Nrm = np.stack([-gx, np.ones_like(Y), -gz], -1); Nrm /= np.linalg.norm(Nrm, axis=-1, keepdims=True)
+    nx, nz = len(xs), len(zs)
+    print(f"[valley] terrain grid {nx} x {nz}", flush=True)
+    xc = (X[:-1, :-1] + X[1:, 1:]) / 2; zc = (Z[:-1, :-1] + Z[1:, 1:]) / 2
+    yc = (Y[:-1, :-1] + Y[1:, :-1] + Y[:-1, 1:] + Y[1:, 1:]) / 4
+    ny = (Nrm[:-1, :-1, 1] + Nrm[1:, :-1, 1] + Nrm[:-1, 1:, 1] + Nrm[1:, 1:, 1]) / 4
+    r = np.hypot(xc, zc); d = zc - river_z(np, xc)
+    C = np.full(xc.shape, TCLS.index("far"))
+    farm = (zc > 95) & (r < 950) & (ny > 0.9)
+    u_ = (xc * 0.94 + zc * 0.34) / 52.0; v_ = (-xc * 0.34 + zc * 0.94) / 34.0
+    pid = np.floor(_hash2(np, np.floor(u_).astype(np.int64), np.floor(v_).astype(np.int64), 77) * 4.0)
+    C = np.where(farm & (pid == 0), TCLS.index("farm_a"), C); C = np.where(farm & (pid == 1), TCLS.index("farm_b"), C)
+    C = np.where(farm & (pid == 2), TCLS.index("farm_c"), C)
+    C = np.where(~farm & (r < 800), TCLS.index("grass_m"), C)
+    jf = fbm(np, xc / 18.0, zc / 18.0, 95, 3)
+    C = np.where(~farm & (r < 800) & (np.abs(d) < 70) & (yc < -26 + 2.5 * jf), TCLS.index("flood"), C)
+    C = np.where((r < 380) & ~farm, TCLS.index("grass_n"), C)
+    C = np.where((r < 380) & (np.abs(d) < 70) & (yc < -27 + 2.5 * jf), TCLS.index("flood"), C)
+    pg = fbm(np, xc / 55.0, zc / 55.0, 97, 3) + 0.3 * fbm(np, xc / 12.0, zc / 12.0, 98, 2)
+    C = np.where((C == TCLS.index("grass_n")) & (pg > 0.06), TCLS.index("grass_n2"), C)
+    C = np.where((C == TCLS.index("grass_m")) & (pg > 0.06), TCLS.index("grass_m2"), C)
+    for vb in VINE_BOXES:
+        C = np.where((xc > vb[0]) & (xc < vb[1]) & (zc > vb[2]) & (zc < vb[3]) & (ny > 0.88), TCLS.index("vine"), C)
+    jit = fbm(np, xc / 14.0, zc / 14.0, 91, 3)
+    steep = ny < 0.7 + 0.09 * jit
+    C = np.where(steep & (r >= 380), np.where(r < 800, TCLS.index("rock_m"), TCLS.index("rock_f")), C)
+    C = np.where((yc > 142 + 12 * jit + 6 * fbm(np, xc / 40.0, zc / 40.0, 93, 2)) & (np.hypot(xc + 650, zc + 1150) < 300), TCLS.index("snow"), C)
+    fld = (np.abs(xc) < 64) & (np.abs(zc) < 64) & (np.hypot(xc, zc) < 55 + 8 * fbm(np, xc / 18.0, zc / 18.0, 99, 3))
+    C = np.where(fld, (xc > 0).astype(np.int64) + 2 * (zc > 0).astype(np.int64), C)
+    M = terrain_mats()
+    Vall = np.stack([X, Y, Z], -1).reshape(-1, 3); Nall = Nrm.reshape(-1, 3)
+    I, J = np.meshgrid(np.arange(nx - 1), np.arange(nz - 1), indexing="ij")
+    for ci, cname in enumerate(TCLS):
+        sel = C == ci
+        if not sel.any(): continue
+        i, j = I[sel], J[sel]
+        quads = np.stack([i * nz + j, i * nz + j + 1, (i + 1) * nz + j + 1, (i + 1) * nz + j], -1)
+        used, inv = np.unique(quads.ravel(), return_inverse=True)
+        F = [tuple(q) for q in inv.reshape(-1, 4).tolist()]
+        nm_ = ("FLOOR_" if cname.startswith("field") else "") + "terrain_" + cname
+        mesh_np(nm_, Vall[used], F, M[cname], normals=Nall[used])
+    return M
+
+
+# ---- road, bridge, river
+def build_road():
+    import numpy as np
+    P, ys, br = _VG["road"]
+    road = tex_mat("road_dirt", "dirt", 4.0, paint="#c8ae8a", pk=0.7, disp=True)
+    stone = tex_mat("bridge_stone", "worn_rock_natural_01", 2.5, paint="#cdb39a", pk=0.6, disp=True)
+    T = np.gradient(P, axis=0); T /= np.linalg.norm(T, axis=1, keepdims=True); Nn = np.stack([-T[:, 1], T[:, 0]], 1)
+    prof = [(-2.7, -0.16), (-2.05, 0.03), (0.0, 0.06), (2.05, 0.03), (2.7, -0.16)]
+    st = {"piece": 0, "V": [], "F": [], "seg": 0}
+    np_ = len(prof)
+    def flush():
+        if st["F"]: mesh_np(f"FLOOR_road{st['piece']}", np.array(st["V"]), st["F"], road); st["piece"] += 1
+        st["V"], st["F"], st["seg"] = [], [], 0
+    def add_row(i):
+        base = len(st["V"])
+        for (o, dy) in prof:
+            x, z = P[i] + Nn[i] * o; st["V"].append((x, ys[i] + dy, z))
+        if st["seg"] > 0:
+            for k in range(np_ - 1): st["F"].append((base - np_ + k, base - np_ + k + 1, base + k + 1, base + k))
+        st["seg"] += 1
+    for i in range(len(P)):
+        if br[i]: flush(); continue
+        add_row(i)
+        if st["seg"] >= 7:  # pieces of ~12 m: each its own lightmap island (one long strip would waste the atlas)
+            flush(); add_row(i)
+    flush()
+    idx = np.where(br)[0]
+    if len(idx):  # the bridge: deck, parapets with copings, three stone piers
+        a, b = P[max(0, idx[0] - 2)], P[min(len(P) - 1, idx[-1] + 2)]
+        c = (a + b) / 2; L = float(np.hypot(*(b - a))) + 2; yaw = math.atan2(-(b - a)[1], (b - a)[0])
+        yd = float(max(ys[max(0, idx[0] - 2)], ys[min(len(P) - 1, idx[-1] + 2)])) + 0.06
+        with Grp() as g:
+            slab("bridge_deck", (0, -0.35, 0), (L, 0.7, 4.8), stone, bevel=0.06)
+            for sz in (-1, 1):
+                slab(f"bridge_par{sz}", (0, 0.4, sz * 2.25), (L, 0.8, 0.35), stone, bevel=0.05)
+                for k in range(-3, 4): slab(f"bridge_cap{sz}{k}", (k * L / 7.5, 0.84, sz * 2.25), (0.5, 0.12, 0.45), stone, bevel=0.03)
+            for k in (-1, 0, 1):
+                slab(f"bridge_pier{k}", (k * L / 3.6, -3.6, 0), (1.6, 6.2, 5.0), stone, bevel=0.08)
+        g.place((float(c[0]), yd, float(c[1])), yaw)
+        mark("bridge", (float(c[0]), yd, float(c[1])))
+
+
+def build_river():
+    """the water: a ribbon along the river line just under the banks, emissive (a painted sky reflection that reads the
+    same in the engine's albedo-only draw), ripples along the flow"""
+    import numpy as np
+    xs = np.arange(-1440, 1440, 4.0); zr = river_z(np, xs)
+    T = np.stack([np.gradient(xs), np.gradient(zr)], 1); T /= np.linalg.norm(T, axis=1, keepdims=True)
+    wl = -33.7
+    top_c, mid_c = ("#efc9a6", "#9a93b4") if VTIME == "dawn" else ("#d3e2ec", "#7f9fb8")
+    def fn(u, v, np):
+        across = np.abs(v - 0.5) * 2
+        rip = tnoise(np, u, v, 81, (1, 5), (14, 40), 40, 0.4)  # streaks along the flow
+        sheen = np.clip(tnoise(np, u, v, 82, (1, 3), (2, 6), 12) * 0.5 + 0.5, 0, 1)
+        base = np.array(hx(mid_c))[None, None, :] * (1 - sstep(np, 0.82, 1.0, across)[..., None] * 0.35) + np.array(hx(top_c))[None, None, :] * (sheen * 0.22)[..., None]
+        return base * (1 + 0.03 * rip)[..., None]
+    m = img_mat("river_water", 1024, 128, fn, rough=0.9, emit=0.3)
+    m["tex_size"] = 0
+    V, F = [], []
+    for i, x in enumerate(xs):
+        nx_, nz_ = -T[i, 1], T[i, 0]
+        for o in (-8.5, 0.0, 8.5): V.append((x + nx_ * o, wl, zr[i] + nz_ * o))
+        if i:
+            for k in range(2): F.append((3 * (i - 1) + k, 3 * (i - 1) + k + 1, 3 * i + k + 1, 3 * i + k))
+    ob = mesh_np("RIVER_water", np.array(V), F, m, smooth=False)
+    me = ob.data; uvl = me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        for li in poly.loop_indices:
+            i, k = divmod(me.loops[li].vertex_index, 3); uvl.data[li].uv = (xs[i] / 60.0, k / 2.0)
+    return ob
+
+
+# ---- rock forms: fairy chimneys, the castle rock, cliff walls with cave windows
+def arch_win(bm, c, n, w, h, mi=0, rim=True):
+    """a carved opening: an arched dark face (rectangle + half disc) just proud of a surface with outward normal n
+    (engine), framed by a slightly larger face of darker stone (material 2) so it reads as cut into the rock"""
+    n = Vector(n).normalized(); t = Vector((0, 1, 0)).cross(n).normalized(); up = n.cross(t).normalized()
+    def shape(w_, h_, off):
+        pts = [Vector(c) - t * w_ / 2 - up * h_ / 2, Vector(c) + t * w_ / 2 - up * h_ / 2]
+        hr = h_ - w_ / 2
+        for k in range(9):
+            a = math.pi * k / 8
+            pts.append(Vector(c) - up * h_ / 2 + up * hr + t * (w_ / 2) * math.cos(a) + up * (w_ / 2) * math.sin(a))
+        return [bm.verts.new(E(*(p + n * off))) for p in pts]
+    if rim: bm.faces.new(shape(w + 0.28, h + 0.17, 0.035)).material_index = 2
+    f = bm.faces.new(shape(w, h, 0.05)); f.material_index = mi
+    return f
+
+
+def bm_v(bm, x, y, z):
+    return bm.verts.new(E(x, y, z))
+
+
+def spire(bm, bmc, bmw, at, h, r0, seed, lean=0.0, cap=True, wins=0, glow=0.0, shape="cone", amp=1.0, lod=1.0):
+    """a fairy chimney into bmesh bm (body), bmc (basalt cap), bmw (windows: 0 dark, 1 lit, 2 carved rim): a tapering
+    cone on a soft apron that flows into the ground, sculpted by noise, cut by vertical erosion grooves and stepped by
+    horizontal strata ledges, a neck under a darker basalt hat; base 3 m underground"""
+    rr = _random.Random(seed)
+    NA, NV = max(14, int(40 * lod)), max(16, int(60 * lod))
+    ph = [rr.uniform(0, 6.283) for _ in range(8)]
+    la = rr.uniform(0, 6.283)
+    nfl = rr.randint(8, 14); fdep = rr.uniform(0.05, 0.09); band = rr.uniform(1.4, 2.6); belly = rr.uniform(0.0, 0.14)
+    def prof_r(tt):
+        q = max(0.0, tt)
+        if shape == "column": r = r0 * (1 - 0.35 * q ** 2.5) * (1 + 0.3 * math.exp(-q * 5))
+        else: r = r0 * (1 - 0.76 * q ** 1.3) * (1 + belly * math.sin(math.pi * min(1.0, q * 1.3)))
+        r *= 1 + (0.1 if shape == "column" else 0.5) * math.exp(-q * 10.0)   # a soft apron flowing into the valley floor
+        if tt < 0 and shape != "column": r *= 1 + 0.2 * min(1.0, -tt * h / 3.0)
+        return r * (1 - 0.34 * (tt - 0.86) / 0.14) if tt > 0.86 else r
+    def surf(a, tt, y):
+        nn = 0.055 * math.sin(3 * a + ph[0] + tt * 2.1) + 0.04 * math.sin(5 * a + ph[1] + tt * 4) + 0.03 * math.sin(9 * a + ph[2] + tt * 7) + 0.02 * math.sin(13 * a + ph[5] + tt * 11)
+        if amp > 1: nn += 0.06 * math.sin(2 * a + ph[4] + tt * 9) + 0.04 * math.sin(4 * a + ph[5] + tt * 13) * math.sin(tt * 7 + ph[0])
+        mid = math.sin(math.pi * min(1.0, max(0.0, tt) * 1.05))
+        g = 1 - abs(math.sin(nfl * a / 2 + ph[3] + 0.7 * math.sin(tt * 4 + ph[6])))
+        groove = fdep * (0.3 + 0.7 * mid) * g ** 5                 # vertical erosion grooves
+        s_ = (y / band + 0.12 * math.sin(2 * a + ph[7])) % 1.0
+        ledge = 0.045 * s_ ** 3                                   # horizontal strata ledges
+        return prof_r(tt) * (1 + amp * nn - groove + ledge)
+    def axis(tt):
+        q = max(0.0, tt); return at[0] + lean * h * q * q * math.cos(la), at[2] + lean * h * q * q * math.sin(la)
+    rows = []
+    for j in range(NV + 1):
+        t = j / NV; y = at[1] - 3 + (h + 3) * t; tt = (y - at[1]) / h
+        cx, cz = axis(tt)
+        rows.append(([bm.verts.new(E(cx + surf(a, tt, y) * math.cos(a), y, cz + surf(a, tt, y) * math.sin(a))) for a in [2 * math.pi * k / NA for k in range(NA)]], cx, y, cz))
+    for (a_, *_r), (b_, *_s) in zip(rows, rows[1:]):
+        for k in range(NA): bm.faces.new([a_[k], b_[k], b_[(k + 1) % NA], a_[(k + 1) % NA]])
+    ring, cx, ytop, cz = rows[-1]
+    tv = bm.verts.new(E(cx, ytop + 0.2, cz))
+    for k in range(NA): bm.faces.new([ring[k], tv, ring[(k + 1) % NA]])
+    rt = prof_r(1.0)
+    if cap:  # a darker basalt hat, much wider than the neck, undercut, slightly tilted
+        R = rt * rr.uniform(2.0, 2.7) + 0.45; Hc = max(1.0, h * rr.uniform(0.1, 0.15)); tilt = rr.uniform(-0.14, 0.14)
+        prof = [(0.0, -0.12), (0.55, -0.08), (0.92, 0.02), (1.0, 0.16), (0.98, 0.38), (0.84, 0.66), (0.58, 0.88), (0.28, 0.99), (0.0, 1.03)]
+        NC = 24; crs = []
+        for (pr, py) in prof:
+            if pr == 0: crs.append(bm_v(bmc, cx, ytop - 0.5 + py * Hc, cz)); continue
+            rg = []
+            for k in range(NC):
+                a = 2 * math.pi * k / NC; rad = R * pr * (1 + 0.09 * math.sin(3 * a + ph[4]) + 0.06 * math.sin(7 * a + ph[5]) + 0.03 * math.sin(13 * a + ph[6]))
+                px, pz = rad * math.cos(a), rad * math.sin(a)
+                rg.append(bm_v(bmc, cx + px, ytop - 0.5 + py * Hc + tilt * px, cz + pz))
+            crs.append(rg)
+        for a_, b_ in zip(crs, crs[1:]):
+            if isinstance(a_, list) and isinstance(b_, list):
+                for k in range(NC): bmc.faces.new([a_[k], b_[k], b_[(k + 1) % NC], a_[(k + 1) % NC]])
+            elif isinstance(a_, list):
+                for k in range(NC): bmc.faces.new([a_[k], b_, a_[(k + 1) % NC]])
+            else:
+                for k in range(NC): bmc.faces.new([a_, b_[k], b_[(k + 1) % NC]])
+    for w_ in range(wins):  # a door at the foot, carved windows above, on the sides the camera sees most (+z, +x)
+        a = rr.uniform(-0.3, 1.9); tt = rr.uniform(0.1, 0.55) if w_ else 0.0
+        hh = 2.0 if not w_ else rr.uniform(0.9, 1.4); ww = 1.1 if not w_ else rr.uniform(0.6, 0.95)
+        tt_c = tt + (hh / 2 + 0.05) / h if not w_ else tt
+        y_c = at[1] + tt_c * h; cx_, cz_ = axis(tt_c); rad = surf(a, tt_c, y_c)
+        arch_win(bmw, (cx_ + rad * math.cos(a), y_c, cz_ + rad * math.sin(a)), (math.cos(a), 0, math.sin(a)), ww, hh, 1 if rr.random() < glow else 0)
+    return (cx, ytop, cz)
+
+
+def cliff_wall(name, mat, bmw, along, us, foot, top, outward, seed, wins=0, glow=0.0, dove=0):
+    """a tuff cliff along a line: along(u) -> (x, z), outward(u) -> the face normal (x, z); rows from the foot (2 m
+    underground) to the top: strata ledges and flutes push the face in and out, the top lip rolls back over the plateau"""
+    import numpy as np
+    rr = _random.Random(seed)
+    rows = []
+    bm = bmesh.new()
+    NV = 34
+    for u in us:
+        x0, z0 = along(u); ox, oz = outward(u)
+        y0, y1 = foot(u) - 2.0, top(u)
+        col = []
+        for j in range(NV + 3):
+            if j <= NV:
+                t = j / NV; y = y0 + (y1 - y0) * t
+                saw = ((y / 4.6 + 0.25 * math.sin(u / 23.0)) % 1.0)
+                ind = 1.6 + 1.2 * float(vnoise(np, u / 13.0, y / 6.0, seed)) + 1.1 * (saw ** 3) + 0.6 * abs(math.sin(u / 3.3 + 1.7 * float(vnoise(np, u / 30.0, y / 20.0, seed + 1)))) ** 3
+                ind = max(0.25, ind) * (0.4 + 0.6 * min(1.0, (y - y0) / 4.0))
+            else:
+                k = j - NV; y = y1 + 0.25 * k; ind = -2.5 * k  # the lip rolls back over the top
+            col.append(bm.verts.new(E(x0 + ox * ind, y, z0 + oz * ind)))
+        rows.append(col)
+    for a_, b_ in zip(rows, rows[1:]):
+        for j in range(len(a_) - 1): bm.faces.new([a_[j], b_[j], b_[j + 1], a_[j + 1]])
+    (ax0, az0), (ax1, az1) = along(us[0]), along(us[1]); ox, oz = outward(us[0])
+    if -(az1 - az0) * ox + (ax1 - ax0) * oz < 0:  # (along x up) . outward < 0: the faces look into the rock
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    me.shade_smooth(); me.materials.append(mat)
+    ob = link(bpy.data.objects.new(name, me))
+    for w_ in range(wins):  # cave windows and doors
+        u = rr.uniform(us[0] + 5, us[-1] - 5); x0, z0 = along(u); ox, oz = outward(u)
+        y0, y1 = foot(u), top(u)
+        if y1 - y0 < 7: continue
+        y = rr.uniform(y0 + 2.5, y1 - 3.0)
+        arch_win(bmw, (x0 + ox * 0.3, y, z0 + oz * 0.3), (ox, 0, oz), rr.uniform(0.7, 1.2), rr.uniform(1.0, 2.0), 1 if rr.random() < glow else 0)
+    for dv in range(dove):  # dovecote rows: small square holes in a line
+        u = rr.uniform(us[0] + 8, us[-1] - 8); x0, z0 = along(u); ox, oz = outward(u)
+        y0, y1 = foot(u), top(u)
+        if y1 - y0 < 9: continue
+        y = rr.uniform(y0 + 5, y1 - 3); tx, tz = -oz, ox
+        for k in range(rr.randint(4, 8)):
+            arch_win(bmw, (x0 + ox * 0.3 + tx * (k - 3) * 0.75, y, z0 + oz * 0.3 + tz * (k - 3) * 0.75), (ox, 0, oz), 0.32, 0.42, 0)
+    return ob
+
+
+def build_rocks():
+    import numpy as np
+    tn_ = tuff_mat("tuff_n", ["#f2dcc2", "#e9b7a0", "#dfac74", "#d59a85", "#f5e7d3", "#e6a88c", "#eccaa8"], 3, 16.0, nb=8)
+    tm_ = tuff_mat("tuff_m", ["#efd8bd", "#e4b49c", "#dcad7a", "#d39b88", "#f2e2cc"], 5, 20.0, nb=8, cap=2048)
+    tc_ = tuff_mat("tuff_cliff", ["#f0d8bc", "#e6b39a", "#ddb07a", "#d49c86", "#f3e3cc", "#e2b292"], 7, 24.0, nb=10)
+    tk_ = tuff_mat("tuff_castle", ["#e8c9aa", "#dcae92", "#e9cfb2", "#d2a083", "#e0b48c"], 9, 18.0, nb=7)
+    capm = mat_lm(img_mat("basalt_cap", 512, 512, lambda u, v, np: np.array(hx("#5c4a40"))[None, None, :] * (1 + 0.09 * tnoise(np, u, v, 21, (20, 80), (20, 80), 40, 0.3) + 0.1 * tnoise(np, u, v, 22, (2, 6), (2, 6), 12))[..., None], 0.85, 0.0, 6.0), 2048)
+    dark = col_mat("cave_dark", srgb("#24180f"), 0.95)
+    rimm = col_mat("cave_rim", srgb("#b3856a"), 0.9)
+    glowm = col_mat("win_glow", srgb("#3a2618"), 0.6, emit=srgb("#ffb066") if VL["winK"] > 0 else None, emit_k=VL["winK"])
+    bms = {k: bmesh.new() for k in ("n", "m", "c_n", "c_m", "w")}
+    rr = _random.Random(11)
+    P = _VG["road"][0]
+    def clear(x, z, r):
+        zr = float(river_z(np, np.array(x)))
+        if abs(z - zr) < 12 + r: return False
+        if float(np.min(np.hypot(P[:, 0] - x, P[:, 1] - z))) < 7 + r: return False
+        if -205 < x < -25 and zr - 175 < z < zr - 20: return False  # the village
+        if abs(x - float(esc_x(np, np.array(z)))) < 10 + r: return False
+        if abs(z - (zr - float(rim_d(np, np.array(x))))) < 12 + r: return False
+        return not (abs(x) < 80 and z > -75)
+    def group(cx, cz, n, hmin, hmax, rad, seed, key, wins=0, glow=0.0):
+        rg = _random.Random(seed)
+        for k in range(n):
+            a = rg.uniform(0, 6.283); dd = rad * math.sqrt(rg.random())
+            x, z = cx + dd * math.cos(a), cz + dd * math.sin(a)
+            h = rg.uniform(hmin, hmax) * (1.25 if rg.random() < 0.2 else 1.0); r0 = h * rg.uniform(0.16, 0.25)
+            if not clear(x, z, 0): continue
+            y = float(np.min(vgh(np.array([x - r0, x + r0, x, x]), np.array([z, z, z - r0, z + r0]))))
+            lod = 1.0 if key == "n" else 0.6
+            spire(bms[key], bms["c_" + key], bms["w"], (x, y, z), h, r0, seed * 100 + k, lean=rg.uniform(0, 0.08), cap=rg.random() < 0.85, wins=wins, glow=glow, lod=lod)
+            if rg.random() < 0.35:  # a twin grown from the same base
+                aa = rg.uniform(0, 6.283); h2 = h * rg.uniform(0.45, 0.75)
+                spire(bms[key], bms["c_" + key], bms["w"], (x + 0.55 * r0 * math.cos(aa), y, z + 0.55 * r0 * math.sin(aa)), h2, h2 * rg.uniform(0.18, 0.26), seed * 100 + k + 50, lean=rg.uniform(0.02, 0.1), cap=rg.random() < 0.8, lod=lod)
+    group(-92, -168, 11, 12, 34, 28, 1, "n", wins=2)             # the hero group ("spires") on the bluff slope
+    group(128, -170, 7, 10, 26, 20, 2, "n", wins=1)              # by the vineyards and the river bend
+    group(-150, -95, 6, 12, 22, 22, 3, "n")                      # eroded pillars at the escarpment's foot
+    group(10, -300, 7, 10, 22, 30, 4, "n", wins=3, glow=0.25 if VL["winK"] > 0 else 0.0)  # cave houses on the far slope
+    group(-235, -235, 5, 14, 26, 18, 5, "m", wins=2)             # a multi-headed cluster by the river
+    group(205, -300, 6, 12, 28, 30, 6, "m")
+    group(-300, -120, 5, 12, 25, 25, 7, "m")
+    for k, xg in enumerate((-250.0, -20.0, 165.0, 300.0)):                # on the far rim's plateau: silhouettes on the skyline
+        zg = float(river_z(np, np.array(xg)) - rim_d(np, np.array(xg))) - 34
+        group(xg, zg, 5, 10, 22, 22, 60 + k, "m")
+    for k in range(48):                                           # singles over the valley
+        x, z = rr.uniform(-560, 560), rr.uniform(-600, -90)
+        h = rr.uniform(8, 24)
+        if not clear(x, z, h * 0.3): continue
+        key = "m" if math.hypot(x, z) > 260 else "n"
+        spire(bms[key], bms["c_" + key], bms["w"], (x, vgh(x, z), z), h, h * rr.uniform(0.2, 0.3), 900 + k, lean=rr.uniform(0, 0.1), cap=rr.random() < 0.7, lod=1.0 if key == "n" else 0.6)
+    # the castle rock above the village: merged towers riddled with windows (some lit at dawn)
+    ck = bmesh.new()
+    for k, (dx, dz, h, r0) in enumerate(((0, 0, 68, 22), (-20, 9, 46, 17), (18, 7, 52, 15), (-7, 21, 34, 17), (26, -9, 38, 13), (-28, -8, 40, 14), (7, -17, 57, 15), (-40, 14, 24, 13), (40, 4, 26, 12))):
+        x, z = -122 + dx, -446 + dz; y = vgh(x, z)
+        spire(ck, bms["c_n"], bms["w"], (x, y, z), h, r0, 500 + k, lean=0.05, cap=False, wins=12, glow=0.3 if VL["winK"] > 0 else 0.0, shape="column", amp=2.2)
+    mark("castle", (-122, vgh(-122, -446) + 68, -446))
+    to_ = tuff_mat("tuff_o", ["#dcc2a4", "#d2b496", "#e2caae", "#cdb08e"], 13, 9.0, nb=5)
+    bo = bmesh.new(); ro = _random.Random(31)
+    cand = [(ro.uniform(-330, 330), ro.uniform(-420, -40)) for _ in range(9000)]
+    ex_ = np.array([c[0] for c in cand]); ez_ = np.array([c[1] for c in cand])
+    gx_ = (vgh(ex_ + 1.5, ez_) - vgh(ex_ - 1.5, ez_)) / 3.0; gz_ = (vgh(ex_, ez_ + 1.5) - vgh(ex_, ez_ - 1.5)) / 3.0
+    nyv = 1 / np.sqrt(1 + gx_ ** 2 + gz_ ** 2)
+    edge_z = river_z(np, ex_) + bluff_edge(np, ex_)
+    n_out = 0
+    for k in range(len(cand)):
+        x, z = float(ex_[k]), float(ez_[k])
+        lip = abs(z - (float(edge_z[k]) - 5.0)) < 3.0 and ro.random() < 0.35
+        lip = lip and ro.random() < 0.5
+        if not (nyv[k] < 0.82 and ro.random() < 0.11) and not lip: continue
+        if not clear(x, z, 2) or math.hypot(x, z) < 70: continue
+        n = Vector((-float(gx_[k]), 1.0, -float(gz_[k]))).normalized(); t1 = n.cross(Vector((0, 0, 1))).normalized(); t2 = t1.cross(n).normalized()
+        a, b, c = ro.uniform(2.2, 5.0), ro.uniform(1.2, 2.6), ro.uniform(2.0, 4.0)
+        M = Matrix((tuple(edir(*(t1 * a))) + (0,), tuple(edir(*(n * b))) + (0,), tuple(edir(*(t2 * c))) + (0,), (0, 0, 0, 1))).transposed()
+        M.translation = E(x, vgh(x, z) - 0.25 * b, z)
+        res = bmesh.ops.create_icosphere(bo, subdivisions=2, radius=1.0, matrix=M)
+        for v in res["verts"]: v.co = M.translation + (v.co - M.translation) * (1 + ro.uniform(-0.2, 0.16))
+        n_out += 1
+    bmesh.ops.recalc_face_normals(bo, faces=bo.faces)
+    me = bpy.data.meshes.new("outcrops"); bo.to_mesh(me); bo.free(); me.materials.append(to_); me.shade_smooth(); link(bpy.data.objects.new("outcrops", me))
+    print(f"[valley] outcrops: {n_out}", flush=True)
+    for key, mat in (("n", tn_), ("m", tm_), ("c_n", capm), ("c_m", capm)):
+        bm = bms[key]; bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        me = bpy.data.meshes.new(f"spires_{key}"); bm.to_mesh(me); bm.free(); me.materials.append(mat); me.shade_smooth()
+        link(bpy.data.objects.new(f"spires_{key}", me))
+    bmesh.ops.recalc_face_normals(ck, faces=ck.faces)
+    me = bpy.data.meshes.new("castle"); ck.to_mesh(me); ck.free(); me.materials.append(tk_); me.shade_smooth(); link(bpy.data.objects.new("castle", me))
+    # the left escarpment (faces +x: lit by the low sun from the right) and the far rim cliffs (face +z)
+    zs_ = list(np.arange(float(river_z(np, np.array(-185.0))) + 52, 262, 1.6))
+    ex = lambda u: float(esc_x(np, np.array(u)))
+    cliff_wall("cliff_left", tc_, bms["w"], lambda u: (ex(u) + 0.8, u), zs_, lambda u: vgh(ex(u) + 7, u), lambda u: vgh(ex(u) - 9, u),
+               lambda u: (1.0, 0.0), 41, wins=90, dove=10)
+    def rim_line(u):
+        return (u, float(river_z(np, np.array(u)) - rim_d(np, np.array(u))) + 3.6)
+    cliff_wall("cliff_rim", tc_, bms["w"], rim_line, list(np.arange(-470, 470, 2.0)), lambda u: vgh(u, rim_line(u)[1] + 7), lambda u: vgh(u, rim_line(u)[1] - 9),
+               lambda u: (0.0, 1.0), 43, wins=110, glow=0.06 if VL["winK"] > 0 else 0.0, dove=14)
+    mark("cliffs", (-170.0, vgh(-170.0, -40.0), -40.0))
+    bm = bms["w"]; me = bpy.data.meshes.new("cave_windows"); bm.to_mesh(me); bm.free(); me.materials.append(dark); me.materials.append(glowm); me.materials.append(rimm)
+    link(bpy.data.objects.new("cave_windows", me))
+
+
+# ---- the village: flat-roofed houses in plaster tones on the far slope, a mosque and its minaret
+def kilim_mat(name, cols, seed, fit=1):
+    """a woven rug: banded field with diamonds, a border (stretched over the object: fit 1 hangs, fit 2 lies flat)"""
+    def fn(u, v, np):
+        C = [np.array(hx(c)) for c in cols]
+        out = np.zeros(u.shape + (3,)) + C[0]
+        band = np.floor(v * 9); fv = v * 9 - band
+        out = np.where(((band % 3) == 1)[..., None], C[1], out)
+        dd = np.abs(((u * 3) % 1.0) - 0.5) + np.abs(fv - 0.5)
+        out = np.where(((dd < 0.32) & ((band % 3) == 0))[..., None], C[2], out)
+        out = np.where(((dd < 0.14) & ((band % 3) == 0))[..., None], C[3], out)
+        brd = (u < 0.07) | (u > 0.93) | (v < 0.03) | (v > 0.97)
+        out = np.where(brd[..., None], C[1], out)
+        return out * (1 + 0.05 * tnoise(np, u, v, seed, (20, 60), (20, 60), 20, 0.4))[..., None]
+    return img_mat(name, 128, 256, fn, 0.95, 0.0, fit=fit)
+
+
+def blob_obj(name, c, r, mat, sub=2, sy=1.0, seed=0, lump=0.2):
+    bm = bmesh.new(); lumpy_into(bm, c, r, seed, sub=sub, lump=lump, sy=sy)
+    return mesh_obj(name, bm, [mat], sharp=80)
+
+
+def vhouse(p, x, z, w, d, h, yaw, rr, wall, M):
+    """a flat-roofed village house (front toward +z): plastered or painted walls, a roof with parapets, windows with
+    sills (some lit at dawn, some with painted frames), a coloured door, and life: water tank, chimney, laundry on the
+    roof, potted plants on the parapet, a rug hung over it"""
+    import numpy as np
+    gy = vgh(np.array([x - w / 2, x + w / 2, x - w / 2, x + w / 2, x]), np.array([z - d / 2, z - d / 2, z + d / 2, z + d / 2, z]))
+    y = float(gy.min()); drop = float(gy.max() - gy.min()) + 0.6
+    frame = rr.choice(M["frames"]) if rr.random() < 0.35 else None
+    with Grp() as g:
+        box(f"{p}_w", w, h + drop, d, (0, -drop, 0), wall, bevel=0.05)
+        box(f"{p}_roof", w + 0.2, 0.22, d + 0.2, (0, h, 0), M["roof"], bevel=0.04)
+        for (px, pz, pw, pd) in ((0, d / 2 + 0.05, w + 0.2, 0.22), (0, -d / 2 - 0.05, w + 0.2, 0.22), (w / 2 + 0.05, 0, 0.22, d + 0.2), (-w / 2 - 0.05, 0, 0.22, d + 0.2)):
+            box(f"{p}_par{px:.1f}{pz:.1f}", pw, 0.45, pd, (px, h + 0.2, pz), wall, bevel=0.04)
+        floors = 2 if h > 5 else 1
+        for fl in range(floors):
+            nwin = max(1, int(w / 2.6))
+            for k in range(nwin):
+                wx = -w / 2 + (k + 0.5) * w / nwin
+                if fl == 0 and k == nwin // 2: continue
+                m = M["glow"] if rr.random() < 0.3 and VL["winK"] > 0 else M["dark"]
+                box(f"{p}_win{fl}{k}", 0.85, 1.05, 0.08, (wx, 0.9 + fl * 3.0, d / 2 + 0.02), m, bevel=0.0)
+                if frame: box(f"{p}_frm{fl}{k}", 1.05, 1.25, 0.05, (wx, 0.8 + fl * 3.0, d / 2 + 0.005), frame, bevel=0.0)
+                box(f"{p}_sill{fl}{k}", 1.05, 0.08, 0.16, (wx, 0.82 + fl * 3.0, d / 2 + 0.06), M["trim"], bevel=0.0)
+            if rr.random() < 0.5:
+                box(f"{p}_swin{fl}", 0.8, 1.0, 0.08, (w / 2 + 0.02, 0.95 + fl * 3.0, rr.uniform(-d / 4, d / 4)), M["dark"], bevel=0.0, rot_y=math.pi / 2)
+        box(f"{p}_door", 1.0, 2.05, 0.08, (0.0, 0.0, d / 2 + 0.03), rr.choice(M["doors"]), bevel=0.01)
+        box(f"{p}_lintel", 1.4, 0.18, 0.2, (0.0, 2.12, d / 2 + 0.06), M["trim"], bevel=0.0)
+        if rr.random() < 0.6: cyl(f"{p}_tank", 0.45, 1.0, (rr.uniform(-w / 4, w / 4), h + 0.22, rr.uniform(-d / 4, d / 4)), M["tank"], seg=14)
+        if rr.random() < 0.5: box(f"{p}_chim", 0.45, 0.9, 0.45, (w / 2 - 0.6, h + 0.2, -d / 2 + 0.6), wall, bevel=0.03)
+        if rr.random() < 0.38:  # laundry on the roof
+            lz = rr.uniform(-d / 4, d / 5); lx = w * 0.32
+            for sx in (-1, 1): tube_path(f"{p}_lpole{sx}", [(sx * lx, h + 0.2, lz), (sx * lx, h + 1.75, lz)], 0.03, M["trim"], seg=5)
+            tube_path(f"{p}_lcord", [(-lx, h + 1.7, lz), (0, h + 1.6, lz), (lx, h + 1.7, lz)], 0.01, M["cord"], seg=4)
+            n = rr.randint(3, 6)
+            for k in range(n):
+                cw, ch = rr.uniform(0.4, 0.75), rr.uniform(0.45, 0.85)
+                cx_ = -lx + (k + 0.5) * 2 * lx / n
+                slab(f"{p}_cloth{k}", (cx_, h + 1.62 - ch / 2, lz), (cw, ch, 0.012), rr.choice(M["cloth"]), bevel=0.0, yaw=rr.uniform(-0.15, 0.15))
+        if rr.random() < 0.55:  # potted plants on the front parapet
+            for k in range(rr.randint(1, 3)):
+                px = rr.uniform(-w / 2 + 0.4, w / 2 - 0.4)
+                cyl(f"{p}_pot{k}", 0.16, 0.28, (px, h + 0.65, d / 2 + 0.05), M["pot"], seg=10, r2=0.2)
+                blob_obj(f"{p}_plant{k}", (px, h + 1.05, d / 2 + 0.05), 0.24, M["leaf"], sub=2, seed=hash(p) % 997 + k)
+                if rr.random() < 0.5: blob_obj(f"{p}_bloom{k}", (px + 0.08, h + 1.22, d / 2 + 0.12), 0.09, rr.choice(M["bloom"]), sub=1, seed=k)
+        if rr.random() < 0.16:  # a rug hung over the parapet
+            box(f"{p}_rug", 1.15, 1.6, 0.03, (rr.uniform(-w / 4, w / 4), h - 1.0, d / 2 + 0.12), rr.choice(M["kilims"]), bevel=0.0)
+    g.place((x, y, z), yaw)
+
+
+def build_village():
+    import numpy as np
+    pl = [tex_mat(f"plaster_{k}", "clay_plaster", 2.6, paint=c, pk=0.55, disp=True) for k, c in enumerate(("#ead8bf", "#dcc09f", "#d1ae8d", "#e4cdb0"))]
+    painted = [tex_mat(f"painted_{k}", "clay_plaster", 2.6, paint=c, pk=0.4, disp=True) for k, c in enumerate(("#86abc8", "#e3a7a0", "#e5b55e", "#a3cbaa", "#f3ece1", "#d98f6a"))]
+    wglow = bpy.data.materials.get("win_glow") or col_mat("win_glow", srgb("#3a2618"), 0.6, emit=srgb("#ffb066") if VL["winK"] > 0 else None, emit_k=VL["winK"])
+    M = {"roof": tex_mat("roof_earth", "dirt", 3.0, paint="#b39a80", pk=0.5, disp=True), "dark": col_mat("win_dark", srgb("#2a211c"), 0.35), "glow": wglow,
+         "trim": col_mat("trim_stone", srgb("#c8b296"), 0.8), "tank": col_mat("roof_tank", srgb("#d8d6d0"), 0.4), "cord": col_mat("cord_dark", srgb("#3a3430"), 0.7),
+         "doors": [wood_mat("door_wood", "#7a5536", "#4f3622", size=1.0, seed=31, boards=5), col_mat("door_teal", srgb("#3d7a80"), 0.5), col_mat("door_blue", srgb("#3e6aa8"), 0.5),
+                   col_mat("door_red", srgb("#b4442f"), 0.5), col_mat("door_green", srgb("#4f8a4c"), 0.5)],
+         "frames": [col_mat("frame_blue", srgb("#4d7fb3"), 0.5), col_mat("frame_teal", srgb("#3f8a88"), 0.5), col_mat("frame_white", srgb("#f1ece2"), 0.5)],
+         "cloth": [col_mat(f"cloth_{n}", srgb(c), 0.85) for n, c in (("red", "#cc3e2e"), ("blue", "#3f74b0"), ("yellow", "#f1c34a"), ("white", "#f3efe6"), ("pink", "#e79aa8"), ("green", "#5f9e5c"))],
+         "pot": col_mat("pot_terracotta", srgb("#b8623b"), 0.8), "leaf": leaf_mat("pot_leaf", "#5f8f3c", 41, size=0.6),
+         "bloom": [col_mat("bloom_red", srgb("#d93a3a"), 0.6), col_mat("bloom_pink", srgb("#e77fa8"), 0.6), col_mat("bloom_white", srgb("#f6f1e8"), 0.6)],
+         "kilims": [kilim_mat("kilim_a", ("#b8322a", "#1f3a66", "#e8a23a", "#f0e2c4"), 51), kilim_mat("kilim_b", ("#2f5d8a", "#c8402e", "#f2c14e", "#efe4cf"), 52),
+                    kilim_mat("kilim_c", ("#7a2e4a", "#e0a43a", "#2f6f6a", "#f3e6d0"), 53)]}
+    lead = col_mat("lead_grey", srgb("#8d8f93"), 0.5)
+    rr = _random.Random(23)
+    placed = []
+    P = _VG["road"][0]
+    n = 0
+    for row in range(11):
+        dd = 32 + row * 12.5
+        x = -195 + rr.uniform(0, 8)
+        while x < -38:
+            w, dp, h = rr.uniform(5.5, 9.0), rr.uniform(5.0, 7.5), rr.choice((3.4, 3.6, 6.4, 6.8))
+            x_ = x + w / 2
+            z = float(river_z(np, np.array(x_))) - dd + rr.uniform(-2.5, 2.5)
+            ok = all(math.hypot(x_ - px, z - pz) > (w + pw) / 2 + 1.2 for (px, pz, pw) in placed)
+            if math.hypot(x_ + 122, z + 446) < 42 or float(np.min(np.hypot(P[:, 0] - x_, P[:, 1] - z))) < w / 2 + 3.5: ok = False
+            if math.hypot(x_ + 96, z - float(river_z(np, np.array(-96.0))) + 76) < 16: ok = False
+            if ok and rr.random() < 0.82:
+                wall = painted[rr.randrange(len(painted))] if rr.random() < 0.4 else pl[n % 4]
+                vhouse(f"vh{n}", x_, z, w, dp, h, rr.uniform(-0.35, 0.35) + (math.pi / 4 if rr.random() < 0.3 else 0), rr, wall, M)
+                placed.append((x_, z, w)); n += 1
+            x += w + rr.uniform(2.0, 9.0)
+    mx = -96.0; mz = float(river_z(np, np.array(mx))) - 76
+    my = float(np.min(vgh(np.array([mx - 7, mx + 7, mx, mx]), np.array([mz, mz, mz - 7, mz + 7]))))
+    with Grp() as g:
+        box("mosque_body", 13, 10.5, 13, (0, -3, 0), pl[0], bevel=0.06)
+        me = bpy.data.meshes.new("mosque_dome"); bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=16, radius=5.2)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < -0.01], context="VERTS"); bm.to_mesh(me); bm.free()
+        d_ = link(bpy.data.objects.new("mosque_dome", me)); me.materials.append(lead); d_.location = E(0, 7.5, 0); me.shade_smooth()
+        cyl("minaret", 1.25, 24, (7.5, -2, 6), pl[0], seg=24, r2=1.1)
+        cyl("minaret_bal", 1.8, 0.5, (7.5, 17.5, 6), M["trim"], seg=24)
+        cyl("minaret_top", 1.15, 6.5, (7.5, 22, 6), lead, seg=24, r2=0.05)
+        for k in range(4): box(f"mosque_win{k}", 1.2, 2.2, 0.1, (-4.5 + k * 3, 2.5, 6.52), wglow if k == 1 and VL["winK"] > 0 else M["dark"], bevel=0.0)
+    g.place((mx, my, mz), 0.2)
+    # the square by the mosque: a cart with crates and melons, rugs laid out for sale
+    cwood = wood_mat("cart_wood", "#8a6440", "#5a4028", size=0.8, seed=57, boards=4)
+    melon = col_mat("melon", srgb("#e0902e"), 0.5); melon2 = col_mat("melon_green", srgb("#6f8f3c"), 0.5)
+    cx_, cz_ = mx + 13.0, mz + 9.0
+    with Grp() as cg:
+        slab("cart_bed", (0, 0.8, 0), (2.4, 0.1, 1.3), cwood, bevel=0.02)
+        for sz in (-1, 1):
+            slab(f"cart_side{sz}", (0, 1.05, sz * 0.62), (2.4, 0.4, 0.06), cwood, bevel=0.015)
+            disc(f"cart_wheel{sz}", (0.1, 0.62, sz * 0.78), 0.62, 0.09, cwood, axis="z", seg=24)
+            disc(f"cart_hub{sz}", (0.1, 0.62, sz * 0.84), 0.12, 0.08, M["cord"], axis="z", seg=12)
+            slab(f"cart_shaft{sz}", (1.9, 0.7, sz * 0.42), (1.8, 0.07, 0.07), cwood, bevel=0.01, tilt=-0.12)
+        for k in range(2): slab(f"cart_crate{k}", (-0.6 + k * 0.62, 1.1, 0.2), (0.55, 0.45, 0.5), cwood, bevel=0.015)
+        rm = _random.Random(9)
+        for k in range(9):
+            blob_obj(f"cart_melon{k}", (0.45 + rm.uniform(-0.4, 0.4), 1.05 + rm.uniform(0, 0.15), rm.uniform(-0.45, 0.45)), rm.uniform(0.14, 0.2), melon if k % 3 else melon2, sub=2, seed=k, lump=0.06)
+    cg.place((cx_, vgh(cx_, cz_), cz_), 0.6)
+    for k in range(3):
+        rx, rz = cx_ - 4 + k * 2.4, cz_ + 3.5
+        box(f"rug_flat{k}", 1.6, 0.025, 2.3, (rx, vgh(rx, rz) + 0.03, rz), kilim_mat(f"kilim_flat{k}", [("#b8322a", "#1f3a66", "#e8a23a", "#f0e2c4"), ("#2f5d8a", "#c8402e", "#f2c14e", "#efe4cf"), ("#7a2e4a", "#e0a43a", "#2f6f6a", "#f3e6d0")][k], 60 + k, fit=2), bevel=0.0, rot_y=0.6)
+    vz = float(river_z(np, np.array(-112.0))) - 80
+    mark("village", (-112.0, vgh(-112.0, vz), vz)); mark("minaret", (mx, my + 28, mz)); mark("cart", (cx_, vgh(cx_, cz_), cz_))
+    print(f"[valley] village: {n} houses", flush=True)
+
+
+# ---- vegetation: poplars, orchards, vineyards, shrubs (bmesh blobs, one object per material)
+def blob_into(bm, c, r, sy=1.0, sub=1, seed=0, jit=0.13):
+    rr = _random.Random(seed); C = E(*c)
+    res = bmesh.ops.create_icosphere(bm, subdivisions=sub, radius=r, matrix=Matrix.Translation(C))
+    for v in res["verts"]:
+        d = v.co - C; d.z *= sy; v.co = C + d * (1 + rr.uniform(-jit, jit))
+    return res
+
+
+def lumpy_into(bm, c, r, seed, sub=2, lump=0.22, sy=1.0):
+    """a leafy cluster: an icosphere puffed into lobes (a stylised, cauliflower-like crown part)"""
+    rr = _random.Random(seed); C = E(*c)
+    p = [rr.uniform(0, 6.283) for _ in range(6)]; f = rr.uniform(3.6, 5.4)
+    res = bmesh.ops.create_icosphere(bm, subdivisions=sub, radius=r, matrix=Matrix.Translation(C))
+    for v in res["verts"]:
+        d = v.co - C; n = d.normalized()
+        k = 1 + lump * (0.55 * math.sin(f * n.x + p[0]) * math.sin(f * n.y + p[1]) * math.sin(f * n.z + p[2])
+                        + 0.3 * math.sin(2.1 * f * n.x + p[3]) * math.sin(2.1 * f * n.z + p[4]) + 0.15 * math.sin(4.3 * f * n.y + p[5]))
+        d = d * k; d.z *= sy; v.co = C + d
+    return res
+
+
+def tube_into(bm, pts, r0, r1, seg=6):
+    """a tapering tube through engine points (trunks, branches)"""
+    rings = []
+    for i, p in enumerate(pts):
+        a, b = Vector(pts[max(0, i - 1)]), Vector(pts[min(len(pts) - 1, i + 1)])
+        t = (b - a).normalized(); up = Vector((0, 1, 0)) if abs(t.y) < 0.9 else Vector((1, 0, 0))
+        A = t.cross(up).normalized(); Bv = A.cross(t).normalized()
+        r = r0 + (r1 - r0) * i / max(1, len(pts) - 1)
+        rings.append([bm.verts.new(E(*(Vector(p) + (A * math.cos(2 * math.pi * k / seg) + Bv * math.sin(2 * math.pi * k / seg)) * r))) for k in range(seg)])
+    for r0_, r1_ in zip(rings, rings[1:]):
+        for k in range(seg): bm.faces.new([r0_[k], r0_[(k + 1) % seg], r1_[(k + 1) % seg], r1_[k]])
+
+
+def trunk_into(bm, at, r, h):
+    tube_into(bm, [(at[0], at[1] - 0.3, at[2]), (at[0], at[1] + h, at[2])], r, r * 0.6, seg=7)
+
+
+def poplar_into(B, at, h, rr, key, sub):
+    """a Lombardy poplar: a straight trunk and upswept limbs inside a tall narrow column of leafy lobes"""
+    x, y, z = at
+    tube_into(B["bark"], [(x, y - 0.3, z), (x + rr.uniform(-0.1, 0.1), y + h * 0.3, z), (x, y + h * 0.7, z)], 0.3, 0.12, seg=6)
+    for k in range(3):
+        a = rr.uniform(0, 6.283); y0 = y + h * rr.uniform(0.18, 0.3)
+        tube_into(B["bark"], [(x, y0, z), (x + 0.5 * math.cos(a), y0 + h * 0.25, z + 0.5 * math.sin(a))], 0.09, 0.04, seg=5)
+    n = 8
+    for j in range(n):
+        t = 0.2 + 0.78 * j / (n - 1)
+        wdt = (0.6 + 0.4 * math.sin(math.pi * min(1.0, t * 1.2))) * (1 - 0.65 * max(0.0, t - 0.72) / 0.28)
+        lumpy_into(B[key], (x + rr.uniform(-0.3, 0.3), y + h * t, z + rr.uniform(-0.3, 0.3)), h * 0.085 * wdt + 0.35, rr.randrange(10 ** 6), sub=sub, lump=0.26, sy=1.45)
+
+
+def fruit_into(B, at, h, rr, key, sub):
+    """an apricot / fruit tree: a short trunk forking into four or five limbs, a rounded crown of leafy clusters"""
+    x, y, z = at
+    top = (x + rr.uniform(-0.2, 0.2), y + h * 0.36, z + rr.uniform(-0.2, 0.2))
+    tube_into(B["bark"], [(x, y - 0.3, z), ((x + top[0]) / 2, y + h * 0.18, (z + top[2]) / 2), top], 0.045 * h, 0.03 * h, seg=6)
+    tips = []
+    nb = rr.randint(4, 5)
+    for k in range(nb):
+        a = 2 * math.pi * k / nb + rr.uniform(-0.35, 0.35); out = rr.uniform(0.26, 0.4) * h; up = rr.uniform(0.28, 0.46) * h
+        mid = (top[0] + math.cos(a) * out * 0.5, top[1] + up * 0.6, top[2] + math.sin(a) * out * 0.5)
+        tip = (top[0] + math.cos(a) * out, top[1] + up, top[2] + math.sin(a) * out)
+        tube_into(B["bark"], [top, mid, tip], 0.022 * h, 0.009 * h, seg=5)
+        tips.append(tip)
+    for k, tip in enumerate(tips):
+        lumpy_into(B[key], tip, rr.uniform(0.27, 0.34) * h, rr.randrange(10 ** 6), sub=sub, lump=0.24, sy=0.82)
+    lumpy_into(B[key], (top[0], top[1] + h * 0.52, top[2]), 0.3 * h, rr.randrange(10 ** 6), sub=sub, lump=0.24, sy=0.8)
+
+
+VINE_BOXES = [VINE_BOX, (-300, -228, -240, -208)]
+
+
+def build_vegetation():
+    import numpy as np
+    leaf = {"pop_g1": "#6f9a3c", "pop_g2": "#8aaa45", "pop_gold": "#ddb33e", "fr_g1": "#6a8d35", "fr_g2": "#8aa443", "fr_y": "#e3b53a", "fr_o": "#de7b2e",
+            "shrub": "#8b8a4f", "shrub_n": "#8e8c52", "vine": "#86a03f"}
+    mats = {k: leaf_mat(f"leaf_{k}", c, 3 + i) for i, (k, c) in enumerate(leaf.items())}
+    bark = col_mat("bark", srgb("#6b5545"), 0.85)
+    B = {k: bmesh.new() for k in list(mats) + ["bark"]}
+    rr = _random.Random(5)
+    P = _VG["road"][0]
+    def road_d(x, z): return float(np.min(np.hypot(P[:, 0] - x, P[:, 1] - z)))
+    def ok_spot(x, z, clear=4.0):
+        if abs(x) < 70 and abs(z) < 70: return False
+        zr = float(river_z(np, np.array(x)))
+        if -205 < x < -25 and zr - 175 < z < zr - 25: return False
+        return road_d(x, z) >= clear
+    n_pop = 0
+    for side in (1, -1):  # poplars in rows along both banks, a second row on some stretches, gaps here and there
+        for row, dd in ((0, 13.5), (1, 19.5)):
+            x = -330.0 + rr.uniform(0, 4)
+            while x < 340:
+                gap = float(vnoise(np, x / 55.0, side * 3.0 + row * 7.0, 71))
+                if (row == 0 and gap > -0.35) or (row == 1 and gap > 0.25):
+                    z = float(river_z(np, np.array(x))) + side * (dd + rr.uniform(-0.8, 0.8))
+                    if ok_spot(x, z, 5):
+                        key = "pop_gold" if rr.random() < 0.3 else rr.choice(("pop_g1", "pop_g2"))
+                        poplar_into(B, (x, vgh(x, z), z), rr.uniform(15, 22), rr, key, 3 if abs(x - 35) < 150 else 2); n_pop += 1
+                x += rr.uniform(4.8, 6.2)
+    for xw in (-140.0, 80.0, 232.0):  # windbreaks across the floodplain
+        for k in range(7):
+            zr = float(river_z(np, np.array(xw))); z = zr + 22 + k * 6.0; x = xw + rr.uniform(-0.6, 0.6)
+            if ok_spot(x, z, 5) and z < zr + 70:
+                poplar_into(B, (x, vgh(x, z), z), rr.uniform(14, 20), rr, rr.choice(("pop_g1", "pop_g2", "pop_gold")), 2); n_pop += 1
+    n_fr = 0
+    for (ox, odd, nxr, nzr) in ((-30, 22, 9, 4), (120, 30, 7, 4), (-205, 30, 8, 3), (250, -40, 8, 4), (-330, -35, 7, 3), (175, 24, 6, 3)):  # orchards on the floodplain
+        for i in range(nxr):
+            for j in range(nzr):
+                x = ox + i * 7.0 + rr.uniform(-0.6, 0.6); z = float(river_z(np, np.array(x))) + odd + (j * 7.0 if odd > 0 else -j * 7.0) + rr.uniform(-0.6, 0.6)
+                if not ok_spot(x, z, 4.5) or rr.random() < 0.08: continue
+                q = rr.random(); key = "fr_o" if q < 0.12 else "fr_y" if q < 0.32 else rr.choice(("fr_g1", "fr_g2"))
+                fruit_into(B, (x, vgh(x, z), z), rr.uniform(4.0, 5.6), rr, key, 3 if math.hypot(x, z) < 330 else 2); n_fr += 1
+    prof = [(0.42 * math.cos(2 * math.pi * k / 8), 0.42 * math.sin(2 * math.pi * k / 8) * 1.25 + 0.42) for k in range(8)]
+    for vb in VINE_BOXES:  # vineyard rows along the contour (lumpy hedges of bush vines), broken where the road passes
+        for j, z0 in enumerate(np.arange(vb[2] + 2, vb[3] - 2, 2.7)):
+            pts = []
+            def flush_row():
+                if len(pts) > 3:
+                    rings = []
+                    for i, p in enumerate(pts):
+                        a, b = Vector(pts[max(0, i - 1)]), Vector(pts[min(len(pts) - 1, i + 1)])
+                        t = (b - a).normalized(); A_ = edir(*t.cross(Vector((0, 1, 0))).normalized()); Bb = edir(0, 1, 0)
+                        s_ = 0.8 + 0.25 * math.sin(i * 1.9 + j) + 0.12 * rr.uniform(-1, 1)
+                        rings.append([B["vine"].verts.new(E(*p) + A_ * a_ * s_ + Bb * b_ * s_) for (a_, b_) in prof])
+                    for r0, r1 in zip(rings, rings[1:]):
+                        for k in range(8): B["vine"].faces.new([r0[k], r0[(k + 1) % 8], r1[(k + 1) % 8], r1[k]])
+                    for r_ in (rings[0], rings[-1]): B["vine"].faces.new(r_)
+                pts.clear()
+            for x in np.arange(vb[0] + 2, vb[1] - 2, 1.2):
+                z = z0 + 1.2 * math.sin(x / 17.0 + j)
+                if road_d(x, z) < 4.5 or abs(z - float(river_z(np, np.array(x)))) < 12: flush_row(); continue
+                pts.append((float(x), vgh(x, z) - 0.05, float(z)))
+            flush_row()
+    mark("vineyard", (110, vgh(110, -105), -105))
+    for k in range(70):  # a dense near ring of shrubs around the field (foreground layer)
+        a = rr.uniform(0, 6.283); dd = rr.uniform(56, 92); x, z = dd * math.cos(a), dd * math.sin(a)
+        if road_d(x, z) < 4 or (z < -60 and abs(x) < 50): continue
+        y = vgh(x, z); r = rr.uniform(0.5, 1.15)
+        for b_ in range(3):
+            lumpy_into(B["shrub_n"], (x + rr.uniform(-0.5, 0.5), y + r * 0.45, z + rr.uniform(-0.5, 0.5)), r * rr.uniform(0.7, 1.0), 4000 + k * 3 + b_, sub=3, lump=0.2, sy=0.72)
+    sx_ = np.array([rr.uniform(-520, 520) for _ in range(1900)]); sz_ = np.array([rr.uniform(-560, 260) for _ in range(1900)])
+    sy_ = vgh(sx_, sz_)
+    for k in range(len(sx_)):  # sparse shrubs over the slopes
+        x, z, y = float(sx_[k]), float(sz_[k]), float(sy_[k])
+        if not ok_spot(x, z, 3.5) or abs(z - float(river_z(np, np.array(x)))) < 9 or rr.random() < 0.35: continue
+        r = rr.uniform(0.6, 1.5)
+        for b_ in range(rr.randint(1, 3)):
+            lumpy_into(B["shrub"], (x + rr.uniform(-0.8, 0.8), y + r * 0.35, z + rr.uniform(-0.8, 0.8)), r * rr.uniform(0.6, 1.0), 7000 + k * 3 + b_, sub=2, lump=0.2, sy=0.75)
+    for key, bm in B.items():
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        me = bpy.data.meshes.new(f"veg_{key}"); bm.to_mesh(me); bm.free()
+        me.materials.append(bark if key == "bark" else mats[key]); me.shade_smooth()
+        link(bpy.data.objects.new(f"veg_{key}", me))
+    print(f"[valley] trees: {n_pop} poplars, {n_fr} fruit trees", flush=True)
+
+
+# ---- colour and life: wildflower drifts, footpaths, half-inflated balloons on the fields (dawn)
+def build_flowers():
+    import numpy as np
+    cols = (("red", "#d8352b", 0.34), ("yellow", "#f1c232", 0.24), ("purple", "#9b5bc6", 0.14), ("white", "#f3efe7", 0.16), ("orange", "#ee8a2c", 0.06), ("pink", "#e57fa0", 0.06))
+    mats = {n: mat_lm(col_mat(f"flower_{n}", srgb(c), 0.55), 512) for n, c, _ in cols}
+    mats["stem"] = mat_lm(col_mat("flower_stem", srgb("#6d8c3a"), 0.7), 512)
+    B = {n: bmesh.new() for n in mats}
+    rr = _random.Random(77)
+    def pick():
+        q = rr.random()
+        for n, c, w in cols:
+            q -= w
+            if q < 0: return n
+        return "white"
+    drifts = []
+    for k in range(60):  # around the launch field (kept off the launch spot, the truck corner, the road)
+        a = rr.uniform(0, 6.283); dd = rr.uniform(12, 85); x, z = dd * math.cos(a), dd * math.sin(a)
+        if 16 < x < 28 or math.hypot(x - 12, z - 19) < 7 or math.hypot(x + 15, z + 9) < 7: continue
+        drifts.append((x, z, rr.uniform(1.5, 3.5), rr.randint(30, 60), 0.09))
+    P = _VG["road"][0]
+    for k in range(0, len(P), 9):  # verges of the road
+        x, z = P[k]
+        if abs(z) > 160 or rr.random() < 0.4: continue
+        side = rr.choice((-1, 1)); drifts.append((x + side * 3.8, z, 1.2, 25, 0.09))
+    for k in range(26):  # meadows on the floodplain (seen from the balloon: bigger heads, bigger drifts)
+        x = rr.uniform(-200, 260); zr = float(river_z(np, np.array(x))); z = zr + rr.choice((1, -1)) * rr.uniform(22, 60)
+        if -205 < x < -25 and z < zr - 20: continue
+        drifts.append((x, z, rr.uniform(4, 8), rr.randint(90, 150), 0.2))
+    for (x0, z0, R, n, hs) in drifts:
+        main = pick()
+        for k in range(n):
+            x, z = x0 + rr.gauss(0, R * 0.45), z0 + rr.gauss(0, R * 0.45)
+            c = main if rr.random() < 0.8 else pick()
+            r = hs * rr.uniform(0.55, 1.0); gy = vgh(x, z); hh = rr.uniform(0.18, 0.42) * (1.4 if hs > 0.15 else 1.0)
+            la = rr.uniform(0, 6.283); lx, lz = 0.08 * hh * math.cos(la), 0.08 * hh * math.sin(la)
+            tx_, tz_ = -math.sin(la) * 0.012, math.cos(la) * 0.012
+            B["stem"].faces.new([B["stem"].verts.new(E(x - tx_, gy - 0.02, z - tz_)), B["stem"].verts.new(E(x + tx_, gy - 0.02, z + tz_)), B["stem"].verts.new(E(x + lx, gy + hh, z + lz))])
+            C_ = E(x + lx, gy + hh + r * 0.3, z + lz)
+            res = bmesh.ops.create_icosphere(B[c], subdivisions=2, radius=r, matrix=Matrix.Translation(C_))
+            for v in res["verts"]: v.co.z = C_.z + (v.co.z - C_.z) * 0.42
+    for n_, bm in B.items():
+        me = bpy.data.meshes.new(f"flowers_{n_}"); bm.to_mesh(me); bm.free(); me.materials.append(mats[n_]); link(bpy.data.objects.new(f"flowers_{n_}", me))
+
+
+PATHS = [[(6, -40), (10, -58), (4, -76), (-8, -88)], [(60, -64), (110, -62), (165, -66)]]
+
+
+def build_paths():
+    """footpaths: narrow dirt ribbons draped on the terrain (pieces of ~10 m: lightmap islands)"""
+    import numpy as np
+    mat = tex_mat("path_dirt", "dirt", 2.5, paint="#d8c09b", pk=0.55, disp=True)
+    xs = np.arange(-250, 230, 6.0)
+    paths = PATHS + [[(float(x), float(river_z(np, np.array(x)) + 33 + 4 * math.sin(x / 37.0))) for x in xs]]
+    xs2 = np.arange(-170, 10, 6.0)
+    paths.append([(float(x), float(river_z(np, np.array(x)) - 14 - 3 * math.sin(x / 29.0))) for x in xs2])
+    P = _VG["road"][0]
+    for pi, cps in enumerate(paths):
+        cp = [Vector((a, b)) for a, b in cps]; pts = []
+        for i in range(len(cp) - 1):
+            p0, p1, p2, p3 = cp[max(0, i - 1)], cp[i], cp[i + 1], cp[min(len(cp) - 1, i + 2)]
+            n = max(2, int((p2 - p1).length / 1.5))
+            for k in range(n):
+                t = k / n; pts.append(0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3))
+        pts.append(cp[-1])
+        V, F, piece = [], [], 0
+        def flush():
+            nonlocal V, F, piece
+            if F: mesh_np(f"FLOOR_path{pi}_{piece}", np.array(V), F, mat); piece += 1
+            V, F = [], []
+        for i, p in enumerate(pts):
+            if float(np.min(np.hypot(P[:, 0] - p.x, P[:, 1] - p.y))) < 3.2: flush(); continue
+            a, b = pts[max(0, i - 1)], pts[min(len(pts) - 1, i + 1)]
+            t = (b - a).normalized(); nrm = Vector((-t.y, t.x))
+            for o in (-0.8, 0.8):
+                q = p + nrm * o; V.append((q.x, vgh(q.x, q.y) + 0.07, q.y))
+            if len(V) >= 4: F.append((len(V) - 4, len(V) - 3, len(V) - 1, len(V) - 2))
+            if len(V) >= 16:
+                last = V[-2:]; flush(); V = list(last)
+        flush()
+
+
+def build_lying_balloons():
+    """dawn: crews cold-inflating balloons on the neighbouring fields: half-filled envelopes lying on their sides (gores
+    in two bright colours), the basket on its side at the mouth, an inflator fan behind it"""
+    import numpy as np
+    pairs = [("#d63c2c", "#f4c24a"), ("#2f6db0", "#f1ece2"), ("#3e9a5a", "#f08a2c"), ("#8a4bb0", "#f29ab4"), ("#1f8a8a", "#f2d04a")]
+    spots = [(-112.0, 38.0, 0.6), (128.0, 70.0, -0.4), (-58.0, 168.0, 1.9), (96.0, 205.0, 2.6), (182.0, -18.0, -1.2)]
+    cm = {}
+    def cmat(c):
+        if c not in cm: cm[c] = col_mat(f"lyb_{c[1:]}", srgb(c), 0.5)
+        return cm[c]
+    wick = bpy.data.materials.get("basket_wicker") or wicker_img("basket_wicker")
+    pad = bpy.data.materials.get("basket_pad") or leather_mat("basket_pad", "#5e3c24", seed=3, size=0.5, rough=0.62)
+    fanr = bpy.data.materials.get("fan_frame") or col_mat("fan_frame", srgb("#c4472c"), 0.45)
+    fanb = bpy.data.materials.get("fan_black") or col_mat("fan_black", srgb("#1e1f22"), 0.5)
+    G, S, NT, L = 24, 4, 34, 19.0
+    for k, ((x, z, yaw), (ca, cb)) in enumerate(zip(spots, pairs)):
+        with Grp() as g:
+            bm = bmesh.new(); rings = []
+            NA = G * S
+            for i in range(NT + 1):
+                t = i / NT; xl = t * L
+                r = env_r(t) * 0.52 * (0.45 + 0.55 * min(1.0, t * 4.0))
+                ring = []
+                for kk in range(NA):
+                    th = 2 * math.pi * kk / NA
+                    sg = (th * G / (2 * math.pi)) % 1.0
+                    rb = r * (1 + 0.05 * math.sin(math.pi * sg)) * (1 + 0.045 * math.sin(xl * 1.1 + th * 3 + k))
+                    yy = max(0.05 + 0.03 * math.sin(th * 7 + xl), rb * (0.5 + 0.72 * math.sin(th)))
+                    ring.append(bm.verts.new(E(xl, yy, rb * math.cos(th) * 1.18)))
+                rings.append(ring)
+            for i in range(NT):
+                for kk in range(NA):
+                    f = bm.faces.new([rings[i][kk], rings[i][(kk + 1) % NA], rings[i + 1][(kk + 1) % NA], rings[i + 1][kk]]); f.material_index = (kk // S) % 2
+            tip = bm.verts.new(E(L + 0.2, 0.6, 0))
+            for kk in range(NA): bm.faces.new([rings[-1][kk], tip, rings[-1][(kk + 1) % NA]])
+            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+            mesh_obj(f"lyenv{k}", bm, [cmat(ca), cmat(cb)], sharp=70)
+            slab(f"lybask{k}", (-1.5, 0.6, 0), (1.15, 1.15, 1.15), wick, bevel=0.08)
+            slab(f"lybrim{k}", (-0.9, 0.6, 0), (0.1, 1.22, 1.22), pad, bevel=0.04)
+            for sy_ in (-1, 1):
+                for sz in (-1, 1): tube_path(f"lyup{k}{sy_}{sz}", [(-0.95, 0.6 + sy_ * 0.45, sz * 0.45), (0.1, 0.6 + sy_ * 0.38, sz * 0.38)], 0.03, pad, seg=6)
+            fr = [(E(-4.2, 0.95 + 0.8 * math.sin(a), 0.8 * math.cos(a)), edir(0, math.sin(a), math.cos(a)), edir(1, 0, 0)) for a in [2 * math.pi * q / 32 for q in range(32)]]
+            sweep(f"lyfan{k}", [(0.05 * math.cos(2 * math.pi * q / 8), 0.05 * math.sin(2 * math.pi * q / 8)) for q in range(8)], fr, fanr, closed=True)
+            slab(f"lyfanm{k}", (-4.7, 0.62, 0), (0.55, 0.45, 0.48), fanb, bevel=0.03)
+        g.place((x, vgh(x, z), z), yaw)
+    NOTES["fieldBalloons"] = [[x, round(vgh(x, z), 2), z] for (x, z, _y) in spots]
+
+
+def build_sky_dome(disp):
+    """the painted sky as geometry the engine shows: RT_sky, a sphere (radius 1100, inward, equirect UVs) with the sky
+    image as base colour and emission; hidden in the Cycles stills (the world shows the same image there)"""
+    import numpy as np
+    H, W, _ = disp.shape
+    im = bpy.data.images.new(f"sky_{VTIME}", W, H, alpha=False)
+    px = np.ones((H, W, 4), dtype=np.float32); px[..., :3] = disp; im.pixels.foreach_set(px.ravel())
+    os.makedirs(os.path.join(OUT, "tex"), exist_ok=True)
+    path = os.path.join(OUT, "tex", f"sky_{VTIME}.png"); im.filepath_raw = path; im.file_format = "PNG"; im.save()
+    m = bpy.data.materials.new("sky_dome"); m.use_nodes = True; nt = m.node_tree; b = nt.nodes["Principled BSDF"]
+    t = nt.nodes.new("ShaderNodeTexImage"); t.image = im
+    nt.links.new(t.outputs["Color"], b.inputs["Base Color"]); nt.links.new(t.outputs["Color"], b.inputs["Emission Color"]); b.inputs["Emission Strength"].default_value = 1.0
+    b.inputs["Roughness"].default_value = 1.0
+    m["tex_size"] = 0; m["mist"] = 1  # (keep its UVs; no preview haze)
+    NU, NV, R = 96, 48, 1100.0
+    verts, uvs = [], []
+    for j in range(NV + 1):
+        v = j / NV; el = (v - 0.5) * math.pi
+        for i in range(NU + 1):
+            u = i / NU; az = (u - 0.5) * 2 * math.pi
+            verts.append((R * math.cos(el) * math.cos(az), R * math.cos(el) * math.sin(az), R * math.sin(el))); uvs.append((u, v))
+    faces = [((j + 1) * (NU + 1) + i, (j + 1) * (NU + 1) + i + 1, j * (NU + 1) + i + 1, j * (NU + 1) + i) for j in range(NV) for i in range(NU)]
+    me = bpy.data.meshes.new("RT_sky"); me.from_pydata(verts, [], faces); me.update(); me.materials.append(m)
+    uvl = me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        for li in poly.loop_indices: uvl.data[li].uv = uvs[me.loops[li].vertex_index]
+    ob = link(bpy.data.objects.new("RT_sky", me)); ob.hide_render = True; ghost(ob)
+    NOTES["sky"].update({"mesh": "RT_sky", "radius": R, "image": f"tex/sky_{VTIME}.png (embedded in set.glb)",
+                         "draw": "unlit (its emissive map), fog off, depthWrite off, drawn first, centred on the camera; hide the engine's own sky dome"})
+
+
+# ---- the launch field: pickup and trailer, inflator fan, spare cylinders, a packed second balloon, windsock, fence,
+# the power line, tyre tracks, worn patches, rocks and boulders
+def pickup(p, paint, trim, glass, tyre, rim, lamp):
+    """a pickup (forward = +x, base at y 0): bed, cab with glass, hood, grille, lamps, bumpers, wheels, roof rack"""
+    with Grp() as g:
+        slab(f"{p}_bedfloor", (-1.55, 0.78, 0), (2.1, 0.08, 1.62), trim, bevel=0.02)
+        for sz in (-1, 1): slab(f"{p}_bedside{sz}", (-1.55, 1.0, sz * 0.86), (2.1, 0.5, 0.08), paint, bevel=0.03)
+        slab(f"{p}_tailgate", (-2.62, 1.0, 0), (0.08, 0.5, 1.8), paint, bevel=0.03)
+        slab(f"{p}_bedfront", (-0.48, 1.0, 0), (0.08, 0.5, 1.8), paint, bevel=0.03)
+        slab(f"{p}_lower", (0.5, 0.82, 0), (2.0, 0.62, 1.84), paint, bevel=0.08)
+        slab(f"{p}_cab", (0.12, 1.5, 0), (1.25, 0.72, 1.72), paint, bevel=0.1)
+        slab(f"{p}_ws", (0.82, 1.48, 0), (0.06, 0.6, 1.56), glass, bevel=0.02, tilt=0.55)
+        for sz in (-1, 1):
+            slab(f"{p}_sidewin{sz}", (0.15, 1.52, sz * 0.865), (1.05, 0.48, 0.02), glass, bevel=0.01)
+            slab(f"{p}_mirror{sz}", (0.72, 1.4, sz * 1.0), (0.08, 0.16, 0.12), trim, bevel=0.02)
+            slab(f"{p}_handle{sz}", (0.2, 1.12, sz * 0.925), (0.16, 0.03, 0.02), trim, bevel=0.008)
+        slab(f"{p}_rearwin", (-0.5, 1.55, 0), (0.02, 0.38, 1.3), glass, bevel=0.01)
+        slab(f"{p}_hood", (1.85, 1.0, 0), (1.3, 0.34, 1.8), paint, bevel=0.1, tilt=-0.05)
+        slab(f"{p}_grille", (2.51, 0.86, 0), (0.06, 0.32, 1.3), trim, bevel=0.02)
+        for sz in (-1, 1): slab(f"{p}_lamp{sz}", (2.5, 0.98, sz * 0.7), (0.06, 0.14, 0.26), lamp, bevel=0.02)
+        slab(f"{p}_bumperF", (2.58, 0.55, 0), (0.16, 0.18, 1.86), trim, bevel=0.04)
+        slab(f"{p}_bumperR", (-2.68, 0.58, 0), (0.12, 0.14, 1.8), trim, bevel=0.03)
+        for (x, sz) in ((1.55, 1), (1.55, -1), (-1.65, 1), (-1.65, -1)):
+            disc(f"{p}_tyre{x}{sz}", (x, 0.39, sz * 0.82), 0.39, 0.27, tyre, axis="z", seg=28)
+            disc(f"{p}_rim{x}{sz}", (x, 0.39, sz * 0.96), 0.22, 0.02, rim, axis="z", seg=20)
+            slab(f"{p}_arch{x}{sz}", (x, 0.82, sz * 0.9), (1.0, 0.08, 0.1), trim, bevel=0.03)
+        slab(f"{p}_rack", (0.12, 1.9, 0), (1.0, 0.06, 1.5), trim, bevel=0.02)
+    return g
+
+
+def gas_cyl(p, mat, cover, brass):
+    with Grp() as g:
+        lathe(f"{p}_body", [(0.0, 0.0), (0.15, 0.0), (0.16, 0.03), (0.16, 0.74), (0.14, 0.8), (0.09, 0.83), (0.0, 0.84)], (0, 0, 0), mat, seg=24)
+        lathe(f"{p}_cover", [(0.0, 0.06), (0.168, 0.06), (0.168, 0.6), (0.0, 0.6)], (0, 0, 0), cover, seg=24)
+        lathe(f"{p}_collar", [(0.0, 0.8), (0.1, 0.8), (0.1, 0.92), (0.085, 0.92), (0.085, 0.84), (0.0, 0.84)], (0, 0, 0), mat, seg=20)
+        disc(f"{p}_valve", (0, 0.88, 0), 0.026, 0.06, brass, axis="y", seg=12)
+    return g
+
+
+def build_field():
+    import numpy as np
+    rr = _random.Random(17)
+    paint = col_mat("truck_paint", srgb("#ebe5d8"), 0.38)
+    trim = col_mat("truck_trim", srgb("#2c2d30"), 0.6)
+    glass = col_mat("truck_glass", srgb("#1f2a33"), 0.1)
+    tyre = col_mat("tyre_v", srgb("#222326"), 0.92)
+    rim = col_mat("rim_v", srgb("#b9bec6"), 0.35, 0.6)
+    lamp = col_mat("lens_lamp_v", srgb("#f2eee2"), 0.2)
+    steel = brushed_mat("cyl_steel", "#d4d7db", metal=0.7, rough=0.3, seed=12)
+    cover = leather_mat("cyl_cover", "#7a3a2a", seed=13, size=0.4, rough=0.7)
+    brass = col_mat("cyl_brass", srgb("#c8963e"), 0.32, 0.7)
+    wood = wood_mat("fence_wood", "#8a7458", "#5e4c3a", size=1.0, seed=14, amp=1.3)
+    pole_w = wood_mat("pole_wood", "#6e5640", "#4a3828", size=1.4, seed=15, amp=1.2)
+    wire = col_mat("wire", srgb("#26282b"), 0.5)
+    insul = col_mat("insulator", srgb("#cfd6d2"), 0.25)
+    fanr = col_mat("fan_frame", srgb("#c4472c"), 0.45)
+    fanb = col_mat("fan_black", srgb("#1e1f22"), 0.5)
+    sock_o = col_mat("sock_orange", srgb("#e8682a"), 0.6); sock_w = col_mat("sock_white", srgb("#efe9df"), 0.6)
+    wick = bpy.data.materials.get("basket_wicker") or wicker_img("basket_wicker")
+    pad = bpy.data.materials.get("basket_pad") or leather_mat("basket_pad", "#5e3c24", seed=3, size=0.5, rough=0.62)
+    folds = [col_mat("fold_a", srgb("#2f6d8f"), 0.5), col_mat("fold_b", srgb("#efe6d2"), 0.5), col_mat("fold_c", srgb("#cf4a33"), 0.5)]
+    strap = col_mat("fold_strap", srgb("#2a2b2e"), 0.7)
+    track = tex_mat("tyre_track", "dirt", 1.6, paint="#a8916f", pk=0.6, disp=True)
+    patch = tex_mat("worn_patch", "dirt", 2.5, paint="#bda783", pk=0.5, disp=True)
+    # pickup + trailer by the field entrance, nose toward the valley
+    tx, tz, trot = 15.5, 15.0, math.pi / 2 + 0.12
+    pickup("truck", paint, trim, glass, tyre, rim, lamp).place((tx, vgh(tx, tz), tz), trot)
+    fx, fz = math.cos(trot), -math.sin(trot)
+    with Grp() as tg:
+        slab("trl_bed", (0, 0.62, 0), (3.2, 0.1, 1.7), trim, bevel=0.02)
+        for sz in (-1, 1): slab(f"trl_side{sz}", (0, 0.86, sz * 0.84), (3.2, 0.4, 0.05), wood, bevel=0.015)
+        slab("trl_front", (1.58, 0.86, 0), (0.05, 0.4, 1.7), wood, bevel=0.015)
+        slab("trl_bar", (2.4, 0.45, 0), (1.7, 0.08, 0.08), trim, bevel=0.015)
+        for sz in (-1, 1):
+            disc(f"trl_tyre{sz}", (0, 0.33, sz * 0.98), 0.33, 0.2, tyre, axis="z", seg=24)
+            disc(f"trl_rim{sz}", (0, 0.33, sz * 1.09), 0.18, 0.02, rim, axis="z", seg=18)
+            slab(f"trl_guard{sz}", (0, 0.72, sz * 0.98), (0.8, 0.04, 0.28), trim, bevel=0.01)
+        for k in range(2):
+            gas_cyl(f"trl_cyl{k}", steel, cover, brass).place((-0.5 + k * 0.38, 0.85, -0.2), 0.0, pre=Matrix.Rotation(math.pi / 2, 4, "Y"))
+        slab("trl_crate", (0.9, 0.95, 0.35), (0.7, 0.55, 0.6), wood, bevel=0.02)
+    tlx, tlz = tx - fx * 6.2, tz - fz * 6.2
+    tg.place((tlx, vgh(tlx, tlz), tlz), trot)
+    mark("truck", (tx, vgh(tx, tz), tz))
+    for k, (x, z) in enumerate(((11.6, 18.9), (12.0, 19.3), (11.3, 19.4), (12.4, 18.8))):  # spare cylinders, one on its side
+        gas_cyl(f"gcyl{k}", steel, cover, brass).place((x, vgh(x, z), z), rr.uniform(0, 6.28))
+    gas_cyl("gcyl_lie", steel, cover, brass).place((10.6, vgh(10.6, 18.2) + 0.168, 18.2), 0.4, pre=Matrix.Rotation(math.pi / 2, 4, "X"))
+    mark("cylinders", (11.8, 0, 19.1))
+    with Grp() as fg:  # inflator fan, idle, aimed at the basket spot
+        fr = [(E(0, 0.95 + 0.82 * math.sin(a), 0.82 * math.cos(a)), edir(0, math.sin(a), math.cos(a)), edir(1, 0, 0)) for a in [2 * math.pi * k / 48 for k in range(48)]]
+        sweep("fan_ring", [(0.05 * math.cos(2 * math.pi * k / 10), 0.05 * math.sin(2 * math.pi * k / 10)) for k in range(10)], fr, fanr, closed=True)
+        for k in range(8):
+            a = 2 * math.pi * k / 8
+            tube_path(f"fan_guard{k}", [(0.18, 0.95, 0), (0.18, 0.95 + 0.8 * math.sin(a), 0.8 * math.cos(a))], 0.008, fanb, seg=5)
+        for k in range(5):
+            th = 2 * math.pi * k / 5
+            slab(f"fan_blade{k}", (0.05, 0.95 + 0.34 * math.sin(th), 0.34 * math.cos(th)), (0.02, 0.5, 0.2), fanb, bevel=0.01).rotation_euler = (math.pi / 2 - th, 0, 0)
+        disc("fan_hub", (0.06, 0.95, 0), 0.1, 0.16, fanb, axis="x", seg=16)
+        slab("fan_motor", (-0.42, 0.62, 0), (0.55, 0.45, 0.48), fanr, bevel=0.04)
+        slab("fan_tank", (-0.42, 0.92, 0), (0.42, 0.16, 0.34), fanb, bevel=0.04)
+        for sz in (-1, 1):
+            tube_path(f"fan_leg{sz}", [(0.0, 0.14, sz * 0.6), (0.0, 0.95, sz * 0.84)], 0.025, fanr, seg=8)
+            disc(f"fan_wheel{sz}", (-0.55, 0.14, sz * 0.4), 0.14, 0.07, tyre, axis="z", seg=16)
+        slab("fan_frame", (-0.25, 0.14, 0), (1.0, 0.05, 1.2), fanr, bevel=0.02)
+    fg.place((-7.2, vgh(-7.2, 2.6), 2.6), -0.25)
+    mark("fan", (-7.2, 0, 2.6))
+    # the second balloon, packed: a long roll of envelope (stripes along it), straps every ~2 m, its basket on its side
+    path = [(-9.5 - 1.05 * k, 0.0, -7.5 - 0.42 * k + 0.35 * math.sin(k * 0.6)) for k in range(14)]
+    prof = 18
+    bm = bmesh.new(); rings = []
+    for i, p in enumerate(path):
+        a, b = Vector(path[max(0, i - 1)]), Vector(path[min(len(path) - 1, i + 1)])
+        t = (b - a).normalized(); A_ = t.cross(Vector((0, 1, 0))).normalized()
+        taper = 1.0 if i < len(path) - 3 else 0.6 + 0.4 * (len(path) - 1 - i) / 3
+        w_, h_ = 0.78 * taper * (1 + 0.08 * math.sin(i * 2.3)), 0.36 * taper * (1 + 0.1 * math.cos(i * 1.7))
+        gy = vgh(p[0], p[2])
+        ring = []
+        for k in range(prof):
+            ang = 2 * math.pi * k / prof
+            q = Vector(p) + A_ * (w_ * math.cos(ang) * (1 + 0.04 * math.sin(5 * ang + i))) + Vector((0, gy + h_ * (1 + math.sin(ang)) * (1 + 0.05 * math.sin(3 * ang + i)) + 0.02, 0))
+            ring.append(bm.verts.new(E(*q)))
+        rings.append(ring)
+    for r0, r1 in zip(rings, rings[1:]):
+        for k in range(prof): bm.faces.new([r0[k], r0[(k + 1) % prof], r1[(k + 1) % prof], r1[k]]).material_index = (k // 3) % 3
+    bm.faces.new(rings[0][::-1]); bm.faces.new(rings[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh_obj("fold_env", bm, folds, sharp=70)
+    for i in range(1, len(path) - 1, 2):
+        p = path[i]
+        slab(f"fold_strap{i}", (p[0], vgh(p[0], p[2]) + 0.4, p[2]), (0.07, 0.84, 1.7), strap, bevel=0.02, yaw=math.atan2(-(path[i + 1][2] - path[i - 1][2]), path[i + 1][0] - path[i - 1][0]))
+    with Grp() as bg:
+        slab("fbasket", (0, 0.575, 0), (1.15, 1.15, 1.15), wick, bevel=0.1)
+        slab("fbasket_rim", (0, 1.16, 0), (1.22, 0.1, 1.22), pad, bevel=0.05)
+        for sx in (-1, 1):
+            for sz in (-1, 1): tube_path(f"fbasket_up{sx}{sz}", [(sx * 0.48, 1.0, sz * 0.48), (sx * 0.4, 2.0, sz * 0.4)], 0.032, pad, seg=8)
+        ring_tube("fbasket_frame", rrect(0.42, 0.42, 0.05, 3), 2.0, 0.02, steel)
+    bg.place((-6.6, vgh(-6.6, -6.9) + 0.6, -6.9), 0.4, pre=Matrix.Rotation(-math.pi / 2, 4, "Y"))
+    mark("envelope2", (-15.0, 0, -10.0))
+    # windsock on a pole
+    tube_path("sock_pole", [(9.0, vgh(9.0, -22.0) - 0.2, -22.0), (9.0, vgh(9.0, -22.0) + 6.45, -22.0)], 0.045, steel, seg=10)
+    with Grp() as sg:
+        for k in range(4):
+            lathe(f"sock{k}", [(0.0, k * 0.5), (0.3 - 0.04 * k, k * 0.5), (0.3 - 0.04 * (k + 1), (k + 1) * 0.5), (0.0, (k + 1) * 0.5)], (0, 0, 0), sock_o if k % 2 == 0 else sock_w, seg=16)
+        ring_tube("sock_ring", [(0.31 * math.cos(a), 0.31 * math.sin(a)) for a in [2 * math.pi * i / 16 for i in range(16)]], 0.0, 0.015, steel)
+    sg.place((9.0, vgh(9.0, -22.0) + 6.3, -22.0), 0.5, pre=Matrix.Rotation(math.radians(112), 4, "Y"))
+    mark("windsock", (9.0, 0, -22.0))
+    # fence along the road (between the road and the field), a gap at the entrance
+    zz = 62.0
+    fx_ = lambda z: 20.6 + 0.0004 * z * z
+    while zz > -46:
+        if not (4.0 < zz < 17.0):
+            x = fx_(zz); y = vgh(x, zz)
+            box(f"fpost{zz:.1f}", 0.13, 1.25, 0.13, (x, y - 0.1, zz), wood, bevel=0.02, rot_y=rr.uniform(-0.1, 0.1))
+            z2 = zz - 2.4
+            if not (4.0 < z2 < 17.0) and z2 > -46:
+                for ry in (0.45, 0.92):
+                    tube_path(f"frail{zz:.1f}{ry}", [(x + 0.07, y + ry, zz), (fx_(z2) + 0.07, vgh(fx_(z2), z2) + ry, z2)], 0.045, wood, seg=6)
+        zz -= 2.4
+    # the power line: wooden poles along the road on the field's right, three sagging conductors
+    poles = [(31.0, 66.0), (32.0, 18.0), (34.0, -30.0), (56.0, -70.0), (92.0, -94.0), (112.0, -132.0)]
+    tops = []
+    for k, (x, z) in enumerate(poles):
+        a = Vector(poles[max(0, k - 1)]); b = Vector(poles[min(len(poles) - 1, k + 1)])
+        dv = (b - a).normalized(); yaw = math.atan2(-dv.y, dv.x)  # the arm (local z) across the line
+        y = vgh(x, z)
+        with Grp() as pg:
+            cyl(f"pole{k}", 0.15, 10.2, (0, -1.0, 0), pole_w, seg=14, r2=0.11)
+            box(f"pole_arm{k}", 0.11, 0.12, 2.3, (0, 8.45, 0), pole_w, bevel=0.015)
+            for sz in (-1, 1): tube_path(f"pole_brace{k}{sz}", [(0, 7.6, 0.0), (0, 8.42, sz * 0.75)], 0.03, pole_w, seg=6)
+            for sz in (-1.0, 0.0, 1.0):
+                lathe(f"pole_ins{k}{sz}", [(0.0, 0.0), (0.04, 0.0), (0.07, 0.04), (0.04, 0.07), (0.07, 0.11), (0.04, 0.14), (0.06, 0.17), (0.03, 0.2), (0.0, 0.2)], (0, 8.57 if sz else 9.17, sz * 0.95), insul, seg=12)
+            if k == 1:
+                xm = col_mat("xfmr", srgb("#8a8f94"), 0.45, 0.4)
+                cyl("pole_xfmr", 0.3, 0.85, (0.34, 6.3, 0), xm, seg=18); cyl("pole_xfmr_lid", 0.32, 0.06, (0.34, 7.15, 0), xm, seg=18)
+        pg.place((x, y, z), yaw)
+        s_, c_ = math.sin(yaw), math.cos(yaw)  # local +z -> engine (sin yaw, cos yaw)
+        tops.append([Vector((x + s_ * o, y + hy, z + c_ * o)) for (o, hy) in ((-0.95, 8.77), (0.0, 9.37), (0.95, 8.77))])
+    for k in range(len(poles) - 1):
+        for c in range(3):
+            a, b = tops[k][c], tops[k + 1][c]; sag = 0.022 * (b - a).length
+            tube_path(f"cable{k}{c}", [tuple(a.lerp(b, t) - Vector((0, sag * 4 * t * (1 - t), 0))) for t in [i / 28 for i in range(29)]], 0.013, wire, seg=6)
+    mid = (tops[1][1] + tops[2][1]) / 2
+    mark("powerline", (float(mid.x), vgh(float(mid.x), float(mid.z)), float(mid.z)))
+    NOTES["powerline"] = {"poles": [[p[0], round(vgh(*p), 2), p[1]] for p in poles], "wireY": [8.77, 9.37], "sag": 0.022}
+    # tyre tracks and worn patches: thin decals on the field
+    def strip(name, pts, w, mat, lift=0.018):
+        V, F = [], []
+        for i, (x, z) in enumerate(pts):
+            a, b = pts[max(0, i - 1)], pts[min(len(pts) - 1, i + 1)]
+            ttx, ttz = b[0] - a[0], b[1] - a[1]; L = math.hypot(ttx, ttz) + 1e-9; nx_, nz_ = -ttz / L, ttx / L
+            for o in (-w / 2, w / 2):
+                px, pz = x + nx_ * o, z + nz_ * o; V.append((px, vgh(px, pz) + lift, pz))
+            if i: F.append((2 * i - 2, 2 * i - 1, 2 * i + 1, 2 * i))
+        return mesh_np(name, np.array(V), F, mat)
+    def bez(p0, p1, p2, p3, n):
+        return [tuple((1 - t) ** 3 * Vector(p0) + 3 * (1 - t) ** 2 * t * Vector(p1) + 3 * (1 - t) * t * t * Vector(p2) + t ** 3 * Vector(p3)) for t in [i / n for i in range(n + 1)]]
+    curves = [((23, 11), (12, 11), (4, 18), (-14, 30)), ((23, 9), (14, 6), (13, 4), (15.5, 12.0)), ((22, -20), (4, -14), (-12, 6), (-30, 4)), ((-40, 40), (-14, 18), (10, 30), (40, 44))]
+    for k, cps in enumerate(curves):
+        c = bez(*cps, 70)
+        for o in (-0.8, 0.8):
+            pts = []
+            for i, (x, z) in enumerate(c):
+                a, b = c[max(0, i - 1)], c[min(len(c) - 1, i + 1)]
+                ttx, ttz = b[0] - a[0], b[1] - a[1]; L = math.hypot(ttx, ttz) + 1e-9
+                pts.append((x - ttz / L * o, z + ttx / L * o))
+            strip(f"FLOOR_track{k}_{int(o > 0)}", pts, 0.34, track, lift=0.006)
+    for k, (cx, cz, R) in enumerate(()):  # (1.12: no worn-patch decals: their edges read as cut-outs at eye level)
+        V = [(cx, vgh(cx, cz) + 0.012, cz)]; F = []
+        n = 40
+        for i in range(n):
+            a = 2 * math.pi * i / n; rad = R * (1 + 0.22 * math.sin(3 * a + k) + 0.12 * math.sin(7 * a + 2 * k) + 0.06 * math.sin(13 * a))
+            x, z = cx + rad * math.cos(a), cz + rad * math.sin(a); V.append((x, vgh(x, z) + 0.012, z))
+        for i in range(n): F.append((0, 1 + (i + 1) % n, 1 + i))
+        mesh_np(f"FLOOR_patch{k}", np.array(V), F, patch)
+    # the crew's corner by the truck: a folding table with a coffee urn and cups, stacked crates, a rope coil, a ground tarp
+    tablew = wood_mat("table_top", "#b58e62", "#7d5d3e", size=0.8, seed=16, boards=4)
+    alu = col_mat("table_alu", srgb("#b8bcc2"), 0.35, 0.55)
+    urn = col_mat("urn_red", srgb("#b8402e"), 0.4)
+    cupm = col_mat("cup_white", srgb("#f1ece2"), 0.4)
+    crate = wood_mat("crate_wood", "#a8865c", "#6f5536", size=0.6, seed=18, boards=3, amp=1.2)
+    ropem = fabric_mat("rope_coil", "#cdb487", seed=19, size=0.15)
+    tarp = fabric_mat("tarp_grey", "#5d6c78", seed=20, size=0.6)
+    with Grp() as cg:
+        slab("tbl_top", (0, 0.74, 0), (1.8, 0.04, 0.74), tablew, bevel=0.012)
+        for sx in (-1, 1):
+            for sz in (-1, 1): tube_path(f"tbl_leg{sx}{sz}", [(sx * 0.8, 0.0, sz * 0.3), (sx * 0.8, 0.72, sz * 0.3)], 0.016, alu, seg=6)
+        lathe("tbl_urn", [(0.0, 0.0), (0.12, 0.0), (0.13, 0.04), (0.13, 0.36), (0.1, 0.4), (0.03, 0.42), (0.0, 0.43)], (-0.5, 0.76, 0.05), urn, seg=20)
+        for k in range(6):
+            lathe(f"tbl_cup{k}", [(0.0, 0.0), (0.03, 0.0), (0.04, 0.09), (0.036, 0.09), (0.026, 0.008), (0.0, 0.008)], (0.05 + (k % 3) * 0.12, 0.76, -0.12 + (k // 3) * 0.14), cupm, seg=12)
+        slab("tbl_box", (0.6, 0.86, 0.1), (0.36, 0.22, 0.28), crate, bevel=0.01)
+    cg.place((7.6, vgh(7.6, 21.0), 21.0), 0.3)
+    for k, (x, y, z, r) in enumerate(((9.6, 0, 23.0, 0.1), (10.25, 0, 23.1, -0.05), (9.9, 0.5, 23.05, 0.2))):
+        slab(f"crate{k}", (x, vgh(x, z) + y + 0.25, z), (0.6, 0.5, 0.45), crate, bevel=0.015, yaw=r)
+    for k in range(5):
+        ring_tube(f"rope{k}", [(4.6 + (0.34 - 0.03 * k) * math.cos(a), 19.2 + (0.34 - 0.03 * k) * math.sin(a)) for a in [2 * math.pi * i / 24 for i in range(24)]], vgh(4.6, 19.2) + 0.02 + 0.025 * k, 0.018, ropem, seg=6)
+    with Grp() as tpg:
+        slab("tarp", (0, 0.012, 0), (4.6, 0.024, 3.0), tarp, bevel=0.01)
+        for k in range(3): slab(f"tarp_fold{k}", (1.6 - k * 0.12, 0.045 + k * 0.02, 0), (1.1, 0.03, 3.0), tarp, bevel=0.012)
+    tpg.place((-13.5, vgh(-13.5, -4.0), -4.0), 0.4)
+    # grass tufts: blades in clumps over the field (not on the launch spot, the truck corner, the packed balloon, the fan)
+    blade = leaf_mat("grass_blade", "#c6b276", 7, size=0.4)
+    bmg = bmesh.new()
+    for k in range(2600):
+        a = rr.uniform(0, 6.283); dd = 5.0 + 72 * math.sqrt(rr.random()); x, z = dd * math.cos(a), dd * math.sin(a)
+        if 17 < x < 27 or math.hypot(x - 15.5, z - 17.5) < 6.5 or math.hypot(x + 15, z + 9) < 6 or math.hypot(x + 7.2, z - 2.6) < 1.6 or math.hypot(x - 8.5, z - 21.5) < 2.5: continue
+        y = vgh(x, z); n = rr.randint(6, 12); hgt = rr.uniform(0.18, 0.5)
+        for b_ in range(n):
+            ba = rr.uniform(0, 6.283); lean = rr.uniform(0.15, 0.6); hh = hgt * rr.uniform(0.6, 1.1)
+            bx, bz = x + 0.05 * math.cos(ba), z + 0.05 * math.sin(ba); tx_, tz_ = -math.sin(ba) * 0.018, math.cos(ba) * 0.018
+            tip = (bx + math.cos(ba) * lean * hh, y + hh, bz + math.sin(ba) * lean * hh)
+            bmg.faces.new([bmg.verts.new(E(bx - tx_, y - 0.02, bz - tz_)), bmg.verts.new(E(bx + tx_, y - 0.02, bz + tz_)), bmg.verts.new(E(*tip))])
+    me = bpy.data.meshes.new("grass_tufts"); bmg.to_mesh(me); bmg.free(); me.materials.append(blade); link(bpy.data.objects.new("grass_tufts", me))
+    # rocks and boulders around the field edges
+    rk = tex_mat("field_rock", "worn_rock_natural_01", 1.6, paint="#cbb09a", pk=0.6, disp=True)
+    bmr = bmesh.new()
+    for k in range(70):
+        a = rr.uniform(0, 6.283); dd = rr.uniform(14, 80); x, z = dd * math.cos(a), dd * math.sin(a)
+        if (abs(x) < 9 and abs(z) < 9) or (17 < x < 27 and -50 < z < 70): continue
+        r = rr.uniform(0.12, 0.45) if rr.random() < 0.8 else rr.uniform(0.6, 1.1)
+        blob_into(bmr, (x, vgh(x, z) + r * 0.15, z), r, sy=0.6, sub=2, seed=100 + k, jit=0.22)
+    bmesh.ops.recalc_face_normals(bmr, faces=bmr.faces)
+    me = bpy.data.meshes.new("field_rocks"); bmr.to_mesh(me); bmr.free(); me.materials.append(rk); me.shade_smooth(); link(bpy.data.objects.new("field_rocks", me))
+    bmb = bmesh.new()
+    for k in range(16):
+        a = rr.uniform(0, 6.283); dd = rr.uniform(44, 88); x, z = dd * math.cos(a), dd * math.sin(a)
+        if 15 < x < 30: continue
+        r = rr.uniform(0.6, 1.4)
+        blob_into(bmb, (x, vgh(x, z) + r * 0.2, z), r, sy=0.7, sub=2, seed=300 + k, jit=0.26)
+        if rr.random() < 0.6: blob_into(bmb, (x + r * 1.1, vgh(x + r * 1.1, z) + r * 0.1, z + r * 0.4), r * 0.45, sy=0.7, sub=1, seed=400 + k, jit=0.3)
+    bmesh.ops.recalc_face_normals(bmb, faces=bmb.faces)
+    me = bpy.data.meshes.new("boulders"); bmb.to_mesh(me); bmb.free(); me.materials.append(rk); link(bpy.data.objects.new("boulders", me))
+
+
+def build_mist():
+    """dawn ground mist: stacked transparent emissive planes over the valley (RT_: unbaked, no shadows), their alpha from
+    the terrain (thick where the ground is well below the plane, gone where it rises through it, so intersections stay
+    soft), stronger near the river, broken into cloud banks; one high layer pools in the far valleys between the mesas"""
+    import numpy as np
+    for k, (yp, amax, (x0, x1, z0, z1)) in enumerate(((-30.5, 0.52, (-520, 520, -560, -90)), (-26.0, 0.42, (-560, 560, -600, -80)), (-20.0, 0.3, (-600, 600, -650, -70)),
+                                                    (-12.0, 0.22, (-700, 700, -720, -60)), (14.0, 0.34, (-1400, 1400, -1500, -560)))):
+        W_, H_ = 1024, max(256, int(1024 * (z1 - z0) / (x1 - x0)))
+        def fn(u, v, np, yp=yp, amax=amax, x0=x0, x1=x1, z0=z0, z1=z1, k=k):
+            x = x0 + u * (x1 - x0); z = z1 - v * (z1 - z0)
+            a = sstep(np, 0.0, 6.0 if k < 4 else 25.0, yp - vgh(x, z))
+            a = a * (0.45 + 0.55 * np.exp(-((z - river_z(np, x)) / 140.0) ** 2))
+            cl = sstep(np, -0.3, 0.45, fbm(np, x / 75.0, z / 55.0, 60 + k, 4) + 0.35 * fbm(np, x / 20.0, z / 16.0, 70 + k, 3))
+            ed = sstep(np, 0, 0.08, u) * sstep(np, 1, 0.92, u) * sstep(np, 0, 0.08, v) * sstep(np, 1, 0.92, v)
+            warm = sstep(np, -200, 500, x)[..., None]
+            out = np.ones(u.shape + (4,))
+            out[..., :3] = np.array(hx("#d9c6dc"))[None, None, :] * (1 - warm) + np.array(hx("#f6d9c4"))[None, None, :] * warm
+            out[..., 3] = amax * a * cl * ed
+            return out
+        im = rgba_image(f"mist{k}", W_, H_, fn)
+        m = bpy.data.materials.new(f"mist{k}"); m.use_nodes = True; nt = m.node_tree; b = nt.nodes["Principled BSDF"]
+        t = nt.nodes.new("ShaderNodeTexImage"); t.image = im
+        nt.links.new(t.outputs["Color"], b.inputs["Base Color"]); nt.links.new(t.outputs["Alpha"], b.inputs["Alpha"])
+        nt.links.new(t.outputs["Color"], b.inputs["Emission Color"]); b.inputs["Emission Strength"].default_value = 0.55
+        b.inputs["Roughness"].default_value = 1.0
+        try: b.inputs["Specular IOR Level"].default_value = 0.0
+        except Exception: pass
+        m["fit_uv"] = 2; m["mist"] = 1
+        me = bpy.data.meshes.new(f"RT_mist{k}"); bm = bmesh.new()
+        bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=0.5)
+        for v in bm.verts: v.co = Vector(((x0 + x1) / 2 + v.co.x * (x1 - x0), -((z0 + z1) / 2) + v.co.y * (z1 - z0), yp))
+        bm.to_mesh(me); bm.free(); me.materials.append(m)
+        ghost(link(bpy.data.objects.new(f"RT_mist{k}", me)))
+
+
+def strip_unlit_maps():
+    """before the export: the engine draws baked meshes as albedo x lightmap (MeshBasicMaterial), so normal and roughness
+    maps (already in the bake) would only add megabytes to the GLB"""
+    for m in bpy.data.materials:
+        if not m.node_tree or m.get("mist"): continue
+        for n in m.node_tree.nodes:
+            if n.type != "BSDF_PRINCIPLED": continue
+            for sock in ("Normal", "Roughness", "Metallic"):
+                for l in list(n.inputs[sock].links): m.node_tree.links.remove(l)
+
+
+def build_valley():
+    import numpy as np
+    PRE_EXPORT.append(strip_unlit_maps)
+    NOTES["set"] = f"valley_{VTIME}"; NOTES["time"] = VTIME
+    build_terrain(); print("[valley] terrain", flush=True)
+    build_road(); build_river(); build_rocks(); print("[valley] rocks", flush=True)
+    build_village()
+    build_vegetation(); print("[valley] vegetation", flush=True)
+    build_field(); print("[valley] field", flush=True)
+    build_flowers(); build_paths()
+    if VL["mist"]: build_mist(); build_lying_balloons()
+    zr35 = float(river_z(np, np.array(35.0)))
+    mark("field", (0, 0, 0)); mark("center", (0, 0, 0))
+    mark("pilot", (-1.9, vgh(-1.9, 0.9), 0.9)); mark("tourist", (1.9, vgh(1.9, 0.9), 0.9))
+    mark("river", (35.0, -33.7, zr35))
+    mark("spires", (-92.0, vgh(-92.0, -168.0), -168.0))
+    mark("road", (24.0, vgh(24.0, 10.0), 10.0)); mark("bluff", (10.0, vgh(10.0, -75.0), -75.0))
+    NOTES["wide"] = {"pos": [14.0, 24.0, 52.0], "look": [-22.0, -14.0, -240.0], "fov": 50}
+    NOTES["camBox"] = {"min": [-330, -30, -520], "max": [330, 200, 260]}
+    NOTES["interior"] = False; NOTES["radius"] = 90
+    NOTES["light"] = "valley"
+    NOTES["water"] = {"y": -33.7, "mesh": "RIVER_water (emissive painted reflection)"}
+    PREVIEW_VIEWS[:] = ["3.5,1.7,9.0,0,1.2,0,42", "10,125,70,-15,-25,-300,50", "12,2.2,10.0,32,6.0,14,55", "30,70,-70,35,-33,-168,50", "-70,30,-235,0,2,0,48", "60,6,-12,-120,10,-330,40"]
+
+
+def _agx(c):
+    """the engine's AgX fit (lib/three/baked.ts): scene-linear rgb -> display-linear rgb"""
+    import numpy as np
+    ins = np.array([[0.856627153315983, 0.137318972929847, 0.11189821299995], [0.0951212405381588, 0.761241990602591, 0.0767994186031903], [0.0482516061458583, 0.101439036467562, 0.811302368396859]]).T
+    outs = np.array([[1.1271005818144368, -0.1413297634984383, -0.14132976349843826], [-0.11060664309660323, 1.157823702216272, -0.11060664309660294], [-0.016493938717834573, -0.016493938717834257, 1.2519364065950405]]).T
+    c = ins @ c; c = np.log2(np.maximum(c, 1e-10)); c = np.clip((c + 12.47393) / (4.026069 + 12.47393), 0, 1)
+    x2 = c * c; x4 = x2 * x2
+    c = 15.5 * x4 * x2 - 40.14 * x4 * c + 31.96 * x4 - 6.868 * x2 * c + 0.4298 * x2 + 0.1191 * c - 0.00232
+    c = outs @ c; return np.clip(np.maximum(c, 0) ** 2.2, 0, 1)
+
+
+def sky_paint(bd, W=2048, H=1024):
+    """the valley's sky as a display-referred equirect image (u = atan2(y, x) / 2pi + 0.5, v = asin(z) / pi + 0.5, Blender
+    axes): dawn: deep blue zenith through lilac and pink to a peach / orange glow on the horizon around the sun disc and
+    its halo, a pink Belt of Venus opposite, scattered clouds lit pink-gold from below; noon: a clean blue sky with white
+    cumulus"""
+    import numpy as np
+    j, i = np.mgrid[0:H, 0:W].astype(np.float64); u = (i + 0.5) / W; v = (j + 0.5) / H
+    az = (u - 0.5) * 2 * math.pi; el = (v - 0.5) * math.pi; eld = np.degrees(el)
+    dx, dy, dz = np.cos(el) * np.cos(az), np.cos(el) * np.sin(az), np.sin(el)
+    sd = np.clip(dx * bd.x + dy * bd.y + dz * bd.z, -1, 1); ang = np.degrees(np.arccos(sd))
+    L_ = lambda h: np.array(srgb(h))
+    def ramp(stops):
+        out = np.zeros(eld.shape + (3,))
+        for (e0, c0), (e1, c1) in zip(stops, stops[1:]):
+            m = (eld >= e0) & (eld <= e1)
+            t = np.clip((eld - e0) / (e1 - e0), 0, 1)[..., None]
+            c0 = c0 if np.ndim(c0) == 3 else np.asarray(c0)[None, None, :]; c1 = c1 if np.ndim(c1) == 3 else np.asarray(c1)[None, None, :]
+            out = np.where(m[..., None], c0 * (1 - t) + c1 * t, out)
+        return out
+    def mixw(a, b, w): return L_(a)[None, None, :] * (1 - w[..., None]) + L_(b)[None, None, :] * w[..., None]
+    if VTIME == "dawn":
+        warm = sstep(np, -0.35, 1.0, sd) ** 1.6
+        sky = ramp([(-90, L_("#6e6478")), (-4, L_("#b9949f")), (0, mixw("#e6b9ae", "#f8ad6e", warm)), (3, mixw("#ddb4b6", "#f7bd8c", warm)), (9, mixw("#cdacc2", "#efb5a0", warm)),
+                    (18, mixw("#a9a6ca", "#c9a9be", warm * 0.6)), (32, L_("#8090c6")), (55, L_("#5572b0")), (90, L_("#33508f"))])
+        belt = np.exp(-((eld - 6) / 5.0) ** 2) * sstep(np, 0.2, -0.7, sd)  # the Belt of Venus opposite the sun
+        sky = sky + belt[..., None] * (L_("#e8b2c0") - sky) * 0.35
+        glow = 0.9 * np.exp(-ang / 0.9) + 0.5 * np.exp(-ang / 4.5) + 0.3 * np.exp(-ang / 15.0) + 0.22 * np.exp(-ang / 45.0) * np.exp(-np.abs(eld) / 10.0) + 0.3 * np.exp(-ang / 75.0) * np.exp(-np.abs(eld) / 7.0)
+        sky = sky + glow[..., None] * L_("#ffc98e")[None, None, :]
+        sky = np.where((ang < 0.55)[..., None], L_("#fff6e2")[None, None, :] * 1.0, sky)
+        n1 = tnoise(np, u, v, 501, (4, 16), (14, 40), 40, 0.6); n2 = tnoise(np, u, v, 502, (18, 60), (40, 120), 40, 0.5)
+        dv = 1.4 / 180.0
+        n1u = tnoise(np, u, v + dv, 501, (4, 16), (14, 40), 40, 0.6); n2u = tnoise(np, u, v + dv, 502, (18, 60), (40, 120), 40, 0.5)
+        band = sstep(np, 1.5, 5.0, eld) * sstep(np, 36.0, 16.0, eld)
+        den = sstep(np, 0.6, 1.7, n1 + 0.45 * n2) * band; den_up = sstep(np, 0.6, 1.7, n1u + 0.45 * n2u) * band
+        lit = np.clip(0.15 + np.clip(0.5 + (den_up - den) * 3.5, 0, 1) * (0.7 + 0.3 * warm), 0, 1)
+        litc = mixw("#f4bcc2", "#ffc286", warm) * (1 + 0.3 * warm[..., None])
+        shad = mixw("#aaa3c5", "#b89aaf", warm)
+        cc = shad * (1 - lit[..., None]) + litc * lit[..., None]
+        sky = sky * (1 - 0.92 * den[..., None]) + cc * 0.92 * den[..., None]
+    else:
+        sky = ramp([(-90, L_("#8c96a0")), (-4, L_("#c7d0d6")), (0, L_("#e1eaef")), (6, L_("#cbdcea")), (18, L_("#a6c5e4")), (40, L_("#72a1d7")), (90, L_("#3d71c0"))])
+        glow = 0.9 * np.exp(-ang / 0.5) + 0.35 * np.exp(-ang / 3.0) + 0.12 * np.exp(-ang / 14.0)
+        sky = sky + glow[..., None] * L_("#fff8ec")[None, None, :]
+        # fair-weather cumulus: discrete clouds of Gaussian puffs with flat, grey-blue bases and white sunlit tops
+        den = np.zeros(eld.shape); top = np.zeros(eld.shape)
+        rc = _random.Random(611); azd = np.degrees(az)
+        for c in range(80):
+            az0 = rc.uniform(-180, 180); el0 = 2.5 + 26 * rc.random() ** 1.7; sz = (2.2 + 4.5 * rc.random()) * (1.15 - el0 / 60.0)
+            puffs = [(max(-1.3 * sz, min(1.3 * sz, rc.gauss(0, sz * 0.7))), min(0.45 * sz, abs(rc.gauss(0, sz * 0.25))), sz * rc.uniform(0.34, 0.62)) for _ in range(rc.randint(6, 12))]
+            ext = sz * 2.4 + 2
+            j0 = max(0, int((el0 - 2 + 90) / 180 * H)); j1 = min(H, int((el0 + ext + 90) / 180 * H) + 1)
+            for (ox, oy, r) in puffs:
+                cw = max(0.2, math.cos(math.radians(el0)))
+                i0 = int(((az0 + ox - r * 3 / cw + 180) / 360) * W); i1 = int(((az0 + ox + r * 3 / cw + 180) / 360) * W) + 1
+                cols = np.arange(i0, i1) % W
+                sub_e = eld[j0:j1][:, cols]; sub_a = azd[j0:j1][:, cols]
+                daz = ((sub_a - (az0 + ox) + 180) % 360) - 180
+                dd = ((daz * cw) ** 2 + (sub_e - (el0 + oy)) ** 2) / (r * r)
+                puff = sstep(np, 1.0, 0.6, dd) * sstep(np, el0 - 0.2, el0 + 0.5, sub_e)
+                cur = den[j0:j1][:, cols]
+                lit_here = 0.55 * sstep(np, el0, el0 + sz * 0.7, sub_e) + 0.45 * sstep(np, el0 + oy - r * 0.7, el0 + oy + r * 0.5, sub_e)
+                upd = puff > cur
+                top[j0:j1, cols] = np.where(upd, lit_here, top[j0:j1][:, cols])
+                den[j0:j1, cols] = np.maximum(cur, puff)
+        den = np.clip(den, 0, 1)
+        lit = 0.4 + 0.6 * top
+        cc = L_("#aab6c9")[None, None, :] * (1 - lit[..., None]) + L_("#fdfdfc")[None, None, :] * lit[..., None]
+        sky = sky * (1 - 0.95 * den[..., None]) + cc * 0.95 * den[..., None]
+    sky = np.clip(sky, 0, 1)
+    return np.where(sky <= 0.0031308, sky * 12.92, 1.055 * np.power(sky, 1 / 2.4) - 0.055).astype(np.float32)  # display sRGB
+
+
+def sky_cam_image(disp):
+    """the painted sky run back through AgX per pixel: what the Cycles world shows to camera rays"""
+    import numpy as np
+    H, W, _ = disp.shape
+    tgt = np.clip(disp.reshape(-1, 3).astype(np.float64), 1e-4, 0.995) ** 2.2; sc = tgt * 0.8
+    ins = np.array([[0.856627153315983, 0.137318972929847, 0.11189821299995], [0.0951212405381588, 0.761241990602591, 0.0767994186031903], [0.0482516061458583, 0.101439036467562, 0.811302368396859]])
+    outs = np.array([[1.1271005818144368, -0.1413297634984383, -0.14132976349843826], [-0.11060664309660323, 1.157823702216272, -0.11060664309660294], [-0.016493938717834573, -0.016493938717834257, 1.2519364065950405]])
+    def agx(cc):
+        cc = cc @ ins; cc = np.log2(np.maximum(cc, 1e-10)); cc = np.clip((cc + 12.47393) / (4.026069 + 12.47393), 0, 1)
+        x2 = cc * cc; x4 = x2 * x2
+        cc = 15.5 * x4 * x2 - 40.14 * x4 * cc + 31.96 * x4 - 6.868 * x2 * cc + 0.4298 * x2 + 0.1191 * cc - 0.00232
+        return np.clip(np.maximum(cc @ outs, 0) ** 2.2, 0, 1)
+    for _ in range(45): sc = np.minimum(sc * (tgt / np.maximum(agx(sc), 1e-5)) ** 0.6, 60.0)
+    im = bpy.data.images.new("sky_cam", W, H, float_buffer=True, alpha=False)
+    px = np.ones((H * W, 4), dtype=np.float32); px[:, :3] = sc; im.pixels.foreach_set(px.ravel())
+    return im
+
+
+def agx_gain(hexcol):
+    """the factor k that makes AgX(k * linear(hexcol)) as bright as hexcol"""
+    import numpy as np
+    w = np.array([0.2126, 0.7152, 0.0722]); tgt = float(w @ (np.array(hx(hexcol)) ** 2.2)); c = np.array(srgb(hexcol)); k = 1.0
+    for _ in range(60): k *= (tgt / max(1e-5, float(w @ _agx(c * k)))) ** 0.7
+    return k
+
+
+def inv_agx(hexcol):
+    """the scene-linear colour that Blender's AgX view (approximated by the engine's fit) displays as hexcol"""
+    import numpy as np
+    agx = _agx
+    tgt = np.array(hx(hexcol)) ** 2.2
+    s = np.array(srgb(hexcol)) * 0.6 + 1e-4
+    for _ in range(80):
+        s = s * (np.maximum(tgt, 1e-4) / np.maximum(agx(s), 1e-4)) ** 0.6
+    return tuple(float(v) for v in s)
+
+
+def light_valley():
+    """a sky built on the engine's sky dome formula (camera rays: compensated for AgX so the preview shows the hex colours
+    handed to the engine in set.json "sky"), a lighting sky (the same gradient, scene-linear) and the sun"""
+    L = VL
+    w = bpy.data.worlds.new("world"); SC.world = w; w.use_nodes = True
+    nt = w.node_tree; N_, K_ = nt.nodes, nt.links
+    out = N_["World Output"]; bgL = N_["Background"]
+    d = Vector(L["sun"]).normalized(); bd = Vector((d.x, -d.z, d.y))
+    tc = N_.new("ShaderNodeTexCoord"); nrm = N_.new("ShaderNodeVectorMath"); nrm.operation = "NORMALIZE"; K_.new(tc.outputs["Generated"], nrm.inputs[0])
+    sep = N_.new("ShaderNodeSeparateXYZ"); K_.new(nrm.outputs["Vector"], sep.inputs[0]); h = sep.outputs["Z"]
+    def mr(v, a, b):
+        m = N_.new("ShaderNodeMapRange"); m.interpolation_type = "SMOOTHSTEP"; K_.new(v, m.inputs["Value"])
+        m.inputs["From Min"].default_value = a; m.inputs["From Max"].default_value = b; return m.outputs["Result"]
+    def mth(op, a, b=None):
+        m = N_.new("ShaderNodeMath"); m.operation = op
+        for i_, x in enumerate((a, b)):
+            if x is None: continue
+            if isinstance(x, (int, float)): m.inputs[i_].default_value = x
+            else: K_.new(x, m.inputs[i_])
+        return m.outputs[0]
+    def mix(fac, a, b):
+        m = N_.new("ShaderNodeMix"); m.data_type = "RGBA"; K_.new(fac, m.inputs[0])
+        for i_, x in ((6, a), (7, b)):
+            if isinstance(x, tuple): m.inputs[i_].default_value = (*x, 1)
+            else: K_.new(x, m.inputs[i_])
+        return m.outputs[2]
+    t_up = mth("POWER", mr(h, 0.0, 0.85), 0.7); t_dn = mr(h, 0.0, -0.2)
+    hor_f = mr(mth("SUBTRACT", 1.0, mth("ABSOLUTE", h)), -0.1, 0.25)
+    dot = N_.new("ShaderNodeVectorMath"); dot.operation = "DOT_PRODUCT"; K_.new(nrm.outputs["Vector"], dot.inputs[0]); dot.inputs[1].default_value = tuple(bd)
+    sd = mth("MAXIMUM", dot.outputs["Value"], 0.0)
+    halo = mth("ADD", mth("MULTIPLY", mth("POWER", sd, 24.0), 0.3), mth("MULTIPLY", mth("MULTIPLY", mth("POWER", sd, 4.0), hor_f), 0.12))
+    disc_ = mth("MULTIPLY", mth("POWER", sd, 220.0), 0.55)
+    up_ = mth("GREATER_THAN", h, 0.0)
+    def sky(top, hor, bot, sunc, glow, with_disc):
+        c = mix(up_, mix(t_dn, hor, bot), mix(t_up, hor, top))
+        g = mth("MULTIPLY", mth("ADD", halo, disc_) if with_disc else halo, glow)
+        add = N_.new("ShaderNodeMix"); add.data_type = "RGBA"; add.blend_type = "ADD"; K_.new(g, add.inputs[0]); K_.new(c, add.inputs[6]); add.inputs[7].default_value = (*sunc, 1)
+        return add.outputs[2]
+    k = L["skyK"]
+    lin = lambda hexc, s=1.0: tuple(v * s for v in srgb(hexc))
+    c_light = sky(lin(L["top"], k), lin(L["horizon"], k), lin(L["bottom"], k * 0.6), lin(L["sunCol"], k), L["glow"] * 0.6, False)
+    # camera rays: the engine's sky (display-linear mix of the hex colours + the sun glow) painted into an equirect image
+    # with AgX inverted per pixel, so the preview shows the sky the engine will draw
+    sep2 = N_.new("ShaderNodeSeparateXYZ"); K_.new(nrm.outputs["Vector"], sep2.inputs[0])
+    uu = mth("ADD", mth("DIVIDE", mth("ARCTAN2", sep2.outputs["Y"], sep2.outputs["X"]), 2 * math.pi), 0.5)
+    vv = mth("ADD", mth("DIVIDE", mth("ARCSINE", sep2.outputs["Z"]), math.pi), 0.5)
+    cxyz = N_.new("ShaderNodeCombineXYZ"); K_.new(uu, cxyz.inputs[0]); K_.new(vv, cxyz.inputs[1])
+    disp = sky_paint(bd)
+    ti = N_.new("ShaderNodeTexImage"); ti.image = sky_cam_image(disp); ti.extension = "EXTEND"; K_.new(cxyz.outputs[0], ti.inputs["Vector"])
+    bgC = N_.new("ShaderNodeBackground"); K_.new(ti.outputs["Color"], bgC.inputs["Color"]); bgC.inputs["Strength"].default_value = 1.0
+    K_.new(c_light, bgL.inputs["Color"]); bgL.inputs["Strength"].default_value = 1.0
+    lp = N_.new("ShaderNodeLightPath"); ms = N_.new("ShaderNodeMixShader")
+    K_.new(lp.outputs["Is Camera Ray"], ms.inputs[0]); K_.new(bgL.outputs[0], ms.inputs[1]); K_.new(bgC.outputs[0], ms.inputs[2]); K_.new(ms.outputs[0], out.inputs["Surface"])
+    sun = bpy.data.lights.new("sun", "SUN"); sun.energy = L["sunE"]; sun.angle = math.radians(1.2); sun.color = srgb(L["sunCol"])
+    so = link(bpy.data.objects.new("sun", sun)); so.rotation_euler = bd.to_track_quat("Z", "Y").to_euler()
+    NOTES["sun"] = {"dir": [round(v, 3) for v in d], "color": L["sunCol"], "energy": L["sunE"]}
+    NOTES["sky"] = {"top": L["top"], "horizon": L["horizon"], "bottom": L["bottom"], "sunGlow": L["glow"], "formula": "lib/three/world.ts sky()"}
+    NOTES["fog"] = {"color": L["fog"], "near": L["fogNF"][0], "far": L["fogNF"][1], "kind": "THREE.Fog (smoothstep near..far)"}
+    PREVIEW_FOG.update(color=L["fog"], near=L["fogNF"][0], far=L["fogNF"][1])
+    build_sky_dome(disp)
+
+
+def haze_inject(cfg):
+    """preview only: the engine's THREE.Fog (smoothstep over view depth) mixed into every material, so the Cycles still
+    predicts the engine's aerial perspective; returns a function that removes it again (before the bake)"""
+    col = inv_agx(cfg["color"]); undo = []
+    for m in bpy.data.materials:
+        if not m.use_nodes or m.get("mist"): continue
+        nt = m.node_tree
+        out = next((n for n in nt.nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output), None)
+        if out is None or not out.inputs["Surface"].is_linked: continue
+        src = out.inputs["Surface"].links[0].from_socket
+        cd = nt.nodes.new("ShaderNodeCameraData"); mr = nt.nodes.new("ShaderNodeMapRange"); mr.interpolation_type = "SMOOTHSTEP"
+        nt.links.new(cd.outputs["View Z Depth"], mr.inputs["Value"]); mr.inputs["From Min"].default_value = cfg["near"]; mr.inputs["From Max"].default_value = cfg["far"]
+        em = nt.nodes.new("ShaderNodeEmission"); em.inputs["Color"].default_value = (*col, 1); em.inputs["Strength"].default_value = 1.0
+        mx = nt.nodes.new("ShaderNodeMixShader"); nt.links.new(mr.outputs["Result"], mx.inputs[0]); nt.links.new(src, mx.inputs[1]); nt.links.new(em.outputs[0], mx.inputs[2])
+        nt.links.new(mx.outputs[0], out.inputs["Surface"])
+        undo.append((nt, out, src, [cd, mr, em, mx]))
+    def restore():
+        for nt, out, src, nodes in undo:
+            nt.links.new(src, out.inputs["Surface"])
+            for n in nodes: nt.nodes.remove(n)
+    return restore
+
+
+# ------------------------------------------------------------------------------------------------ BALLOON (1.12: an asset, like the van)
+# A hot air balloon at real scale: a natural-shape envelope of 24 gores (alternating env_a / env_b, so the engine can
+# recolour every balloon), load tapes (env_tape), a crown, a Nomex mouth band and skirt, flying wires to a stainless
+# burner frame with two coil burners and their pilot flames (lens_flame), and a 1.4 m wicker basket with a padded rim,
+# rope handles, step holes, skids and four fuel cylinders inside. Origin at the basket floor centre, engine axes.
+BAL = {"mouth": 5.2, "H": 22.0, "gores": 24, "sub": 10, "frame": 2.36, "bw": 1.4, "bh": 1.15}
+ENV_PTS = [(0.0, 2.30), (0.04, 2.78), (0.10, 3.72), (0.20, 5.28), (0.32, 6.86), (0.45, 8.06), (0.58, 8.80), (0.68, 9.00),
+           (0.77, 8.86), (0.85, 8.26), (0.91, 7.18), (0.955, 5.45), (0.985, 3.15), (1.0, 1.32)]
+
+
+def env_r(t):
+    """the envelope's radius (at the load tapes) at height fraction t (Catmull-Rom through ENV_PTS)"""
+    P = ENV_PTS
+    if t <= 0: return P[0][1]
+    if t >= 1: return P[-1][1]
+    k = max(i for i in range(len(P) - 1) if P[i][0] <= t)
+    p0, p1, p2, p3 = P[max(0, k - 1)], P[k], P[k + 1], P[min(len(P) - 1, k + 2)]
+    s = (t - p1[0]) / (p2[0] - p1[0])
+    m1 = (p2[1] - p0[1]) / max(1e-6, p2[0] - p0[0]) * (p2[0] - p1[0])
+    m2 = (p3[1] - p1[1]) / max(1e-6, p3[0] - p1[0]) * (p2[0] - p1[0])
+    h00, h10, h01, h11 = 2 * s ** 3 - 3 * s ** 2 + 1, s ** 3 - 2 * s ** 2 + s, -2 * s ** 3 + 3 * s ** 2, s ** 3 - s ** 2
+    return h00 * p1[1] + h10 * m1 + h01 * p2[1] + h11 * m2
+
+
+def env_pt(t, th, off=0.0):
+    """a point on the envelope (engine coords) at height fraction t and angle th, the fabric bulging between the vertical
+    load tapes (which sit at th = k * 2pi / gores); off pushes it out along the radius"""
+    G = BAL["gores"]
+    s = (th * G / (2 * math.pi)) % 1.0
+    bul = 1.0 + 0.032 * math.sin(math.pi * s) * math.sin(math.pi * min(1.0, max(0.0, t))) ** 0.6
+    r = env_r(t) * 0.985 * bul + off
+    return E(r * math.cos(th), BAL["mouth"] + BAL["H"] * t, r * math.sin(th))
+
+
+def wicker_img(name):
+    """basket weave: horizontal weavers over / under vertical stakes, a tone per strand, dark gaps (+ a height for bump)"""
+    def height(u, v, np):
+        rows, cols = 36, 9
+        ri = np.floor(v * rows); fv = v * rows - ri
+        ci = np.floor(u * cols + (ri % 2) * 0.5); fu = u * cols + (ri % 2) * 0.5 - ci
+        over = ((ri + ci) % 2) == 0
+        weaver = np.sin(np.pi * fv) ** 0.7 * (0.82 + 0.18 * np.sin(np.pi * fu))
+        stake = np.clip(1 - np.abs(fu - 0.5) * 7, 0, 1) ** 0.6
+        return np.where(over, weaver, np.maximum(weaver * 0.55, stake)), ri, ci
+    def fn(u, v, np):
+        h, ri, ci = height(u, v, np)
+        tone = 0.9 + 0.2 * np.modf(np.sin(ri * 12.9898 + ci * 3.1) * 43758.5453)[0]
+        grain = 1 + 0.06 * tnoise(np, u, v, 9, (40, 120), (1, 4), 30, 0.4)
+        c = np.array(hx("#c79a5e"))[None, None, :] * (tone * grain)[..., None]
+        dark = np.array(hx("#3b2614"))[None, None, :]
+        k = np.clip(h, 0, 1)[..., None] ** 0.8
+        return dark * (1 - k) + c * k
+    m = img_mat(name, 1024, 1024, fn, rough=0.78, size=0.32)
+    nt = m.node_tree; b = nt.nodes["Principled BSDF"]
+    def nfn(u, v, np):  # a tangent-space normal map from the weave height (exported to glTF, unlike a bump node)
+        h = height(u, v, np)[0]
+        du = (np.roll(h, -1, 1) - np.roll(h, 1, 1)) * 3.0; dv = (np.roll(h, -1, 0) - np.roll(h, 1, 0)) * 3.0
+        n = np.stack([-du, -dv, np.ones_like(h)], -1); n /= np.linalg.norm(n, axis=-1, keepdims=True)
+        return n * 0.5 + 0.5
+    nim = gen_image(name + "_n", 1024, 1024, nfn); nim.colorspace_settings.name = "Non-Color"
+    ti = nt.nodes.new("ShaderNodeTexImage"); ti.image = nim
+    nmap = nt.nodes.new("ShaderNodeNormalMap"); nmap.inputs["Strength"].default_value = 1.0
+    nt.links.new(ti.outputs["Color"], nmap.inputs["Color"]); nt.links.new(nmap.outputs["Normal"], b.inputs["Normal"])
+    return m
+
+
+def rrect(hw, hd, r, n=6):
+    """a rounded rectangle (engine x, z), counter-clockwise seen from above"""
+    pts = []
+    for (cx, cz, a0) in ((hw - r, hd - r, 0.0), (-(hw - r), hd - r, 0.5 * math.pi), (-(hw - r), -(hd - r), math.pi), (hw - r, -(hd - r), 1.5 * math.pi)):
+        for k in range(n + 1):
+            a = a0 + 0.5 * math.pi * k / n; pts.append((cx + r * math.cos(a), cz + r * math.sin(a)))
+    return pts
+
+
+def ring_tube(name, path, y, rad, mat, seg=10, closed=True):
+    """a tube of radius rad along a closed path [(x, z)] at height y"""
+    fr = []
+    n = len(path)
+    for i, (x, z) in enumerate(path):
+        a, b = path[i - 1], path[(i + 1) % n]
+        t = Vector((b[0] - a[0], 0, b[1] - a[1])).normalized(); out = Vector((t.z, 0, -t.x))
+        fr.append((E(x, y, z), edir(out.x, 0, out.z), edir(0, 1, 0)))
+    prof = [(rad * math.cos(2 * math.pi * k / seg), rad * math.sin(2 * math.pi * k / seg)) for k in range(seg)]
+    return sweep(name, prof, fr, mat, closed=closed)
+
+
+def tube_path(name, pts, rad, mat, seg=8):
+    """a tube of radius rad through engine points (cables, hoses, coils)"""
+    fr = []
+    for i, p in enumerate(pts):
+        a, b = Vector(pts[max(0, i - 1)]), Vector(pts[min(len(pts) - 1, i + 1)])
+        t = (b - a).normalized(); up = Vector((0, 1, 0)) if abs(t.y) < 0.9 else Vector((1, 0, 0))
+        A = t.cross(up).normalized(); B = A.cross(t).normalized()
+        fr.append((E(*p), edir(*A), edir(*B)))
+    prof = [(rad * math.cos(2 * math.pi * k / seg), rad * math.sin(2 * math.pi * k / seg)) for k in range(seg)]
+    return sweep(name, prof, fr, mat)
+
+
+def lathe(name, prof, at, mat, seg=32, sharp=40):
+    """a solid of revolution about engine y: prof = [(r, y)] from bottom to top (r 0 at the ends closes them)"""
+    bm = bmesh.new(); rings = []
+    for (r, y) in prof:
+        if r <= 1e-6: rings.append(bm.verts.new(E(at[0], at[1] + y, at[2]))); continue
+        rings.append([bm.verts.new(E(at[0] + r * math.cos(2 * math.pi * k / seg), at[1] + y, at[2] + r * math.sin(2 * math.pi * k / seg))) for k in range(seg)])
+    for a, b in zip(rings, rings[1:]):
+        if isinstance(a, list) and isinstance(b, list):
+            for k in range(seg): bm.faces.new([a[k], a[(k + 1) % seg], b[(k + 1) % seg], b[k]])
+        elif isinstance(a, list): [bm.faces.new([a[k], a[(k + 1) % seg], b]) for k in range(seg)]
+        else: [bm.faces.new([a, b[(k + 1) % seg], b[k]]) for k in range(seg)]
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return mesh_obj(name, bm, [mat], sharp=sharp)
+
+
+def build_balloon():
+    M = BAL; G, S = M["gores"], M["sub"]; Y0, H = M["mouth"], M["H"]
+    env_a = col_mat("env_a", srgb("#d63c2c"), 0.48)
+    env_b = col_mat("env_b", srgb("#f4c24a"), 0.48)
+    tape = col_mat("env_tape", srgb("#e9dfca"), 0.6)
+    nomex = col_mat("env_nomex", srgb("#b59b74"), 0.8)
+    skirt = col_mat("env_skirt", srgb("#3f3936"), 0.85)
+    for m in (env_a, env_b):
+        b = m.node_tree.nodes["Principled BSDF"]; b.inputs["Sheen Weight"].default_value = 0.25  # ripstop nylon: a soft sheen at grazing angles
+    flame = col_mat("lens_flame", srgb("#ffae4a"), 0.5, emit=srgb("#ff9a3a"), emit_k=9.0)
+    steel = brushed_mat("burner_steel", "#c9ccd0", metal=0.85, rough=0.28)
+    dsteel = col_mat("burner_dark", srgb("#3a3c40"), 0.45, 0.6)
+    brass = col_mat("burner_brass", srgb("#c8963e"), 0.32, 0.7)
+    hose = col_mat("hose", srgb("#1d1d20"), 0.7)
+    wicker = wicker_img("basket_wicker")
+    pad = leather_mat("basket_pad", "#5e3c24", seed=3, size=0.5, rough=0.62)
+    rope = fabric_mat("basket_rope", "#bfa178", seed=4, size=0.2, rough=0.9)
+    floor = col_mat("basket_floor", srgb("#2a2624"), 0.9)
+    skid = wood_mat("basket_skid", "#8a6440", "#5a3e26", size=0.6, seed=5)
+    cyl_m = brushed_mat("fuel_cyl", "#d9dce0", metal=0.7, rough=0.3, seed=6)
+    red = col_mat("fuel_wheel", srgb("#b22a22"), 0.45)
+    gauge = col_mat("fuel_gauge", srgb("#f2efe6"), 0.3)
+    # ---- envelope: rings from the mouth to the crown, faces alternating env_a / env_b by gore (a band near the
+    # equator swaps them: a checker band), the first panel row in Nomex
+    ts = [k / 110 for k in range(111)]
+    NA = G * S
+    bm = bmesh.new(); rings = []
+    for t in ts:
+        rings.append([bm.verts.new(env_pt(t, 2 * math.pi * k / NA)) for k in range(NA)])
+    for i in range(len(ts) - 1):
+        tm = (ts[i] + ts[i + 1]) / 2
+        for k in range(NA):
+            f = bm.faces.new([rings[i][k], rings[i][(k + 1) % NA], rings[i + 1][(k + 1) % NA], rings[i + 1][k]])
+            g = k // S; flip = 1 if 0.47 < tm < 0.6 else 0
+            f.material_index = 2 if tm < 0.035 else (g + flip) % 2
+    top = bm.verts.new(E(0, Y0 + H + 0.32, 0))
+    for k in range(NA): bm.faces.new([rings[-1][k], rings[-1][(k + 1) % NA], top]).material_index = 0
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    envo = mesh_obj("env", bm, [env_a, env_b, nomex], sharp=60)
+    # vertical load tapes (on the gore seams) and horizontal tapes
+    w = 0.042
+    for g in range(G):
+        th = 2 * math.pi * g / G
+        bm = bmesh.new(); L, R = [], []
+        for t in ts:
+            r = env_r(t) * 0.985; dth = w / 2 / max(0.5, r)
+            L.append(bm.verts.new(env_pt(t, th - dth, 0.012))); R.append(bm.verts.new(env_pt(t, th + dth, 0.012)))
+        for i in range(len(ts) - 1): bm.faces.new([L[i], R[i], R[i + 1], L[i + 1]])
+        mesh_obj(f"env_vt{g}", bm, [tape], sharp=60)
+    for tt in (0.035, 0.16, 0.33, 0.5, 0.66, 0.8, 0.92):
+        bm = bmesh.new(); dt = 0.026 / H
+        A_ = [bm.verts.new(env_pt(tt - dt, 2 * math.pi * k / NA, 0.013)) for k in range(NA)]
+        B_ = [bm.verts.new(env_pt(tt + dt, 2 * math.pi * k / NA, 0.013)) for k in range(NA)]
+        for k in range(NA): bm.faces.new([A_[k], A_[(k + 1) % NA], B_[(k + 1) % NA], B_[k]])
+        mesh_obj(f"env_ht{tt}", bm, [tape], sharp=60)
+    # crown ring + parachute vent edge, two turning vents (dark slits edged with tape)
+    ring_tube("env_crown", [(env_r(0.995) * 0.985 * math.cos(a), env_r(0.995) * 0.985 * math.sin(a)) for a in [2 * math.pi * k / 64 for k in range(64)]], Y0 + H * 0.995 + 0.05, 0.05, tape)
+    for sgn in (-1, 1):
+        th0 = math.pi / 2 * sgn
+        bm = bmesh.new(); L, R = [], []
+        for t in [0.5 + 0.12 * k / 12 for k in range(13)]:
+            r = env_r(t); d = 0.09 / r
+            L.append(bm.verts.new(env_pt(t, th0 + 0.5 * math.pi / G - d, 0.008))); R.append(bm.verts.new(env_pt(t, th0 + 0.5 * math.pi / G + d, 0.008)))
+        for i in range(12): bm.faces.new([L[i], R[i], R[i + 1], L[i + 1]])
+        mesh_obj(f"env_vent{sgn}", bm, [skirt], sharp=60)
+    # mouth: a cable ring, the skirt (scoop) flaring below it
+    r0 = env_r(0.0) * 0.985
+    ring_tube("env_mouthring", [(r0 * math.cos(a), r0 * math.sin(a)) for a in [2 * math.pi * k / 72 for k in range(72)]], Y0, 0.03, dsteel)
+    bm = bmesh.new(); sk = []
+    for j, (yy, rr) in enumerate(((Y0 + 0.02, r0 + 0.01), (Y0 - 0.45, r0 + 0.07), (Y0 - 0.95, r0 + 0.15), (Y0 - 1.45, r0 + 0.26), (Y0 - 1.75, r0 + 0.34))):
+        sk.append([bm.verts.new(E((rr + 0.02 * math.sin(7 * a + j)) * math.cos(a), yy, (rr + 0.02 * math.sin(7 * a + j)) * math.sin(a))) for a in [2 * math.pi * k / 96 for k in range(96)]])
+    for a_, b_ in zip(sk, sk[1:]):
+        for k in range(96): bm.faces.new([a_[k], a_[(k + 1) % 96], b_[(k + 1) % 96], b_[k]])
+    mesh_obj("env_skirt", bm, [skirt], sharp=60)
+    # ---- burner frame (stainless square at y frame), two coil burners, valves, pilot flames
+    FY, fh = M["frame"], 0.47
+    fr_pts = rrect(fh, fh, 0.06, 4)
+    ring_tube("burner_frame", fr_pts, FY, 0.022, steel)
+    ring_tube("burner_frame2", rrect(fh, fh, 0.06, 4), FY + 0.26, 0.018, steel)
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            tube_path(f"burner_post{sx}{sz}", [(sx * (fh - 0.02), FY - 0.02, sz * (fh - 0.02)), (sx * (fh - 0.02), FY + 0.28, sz * (fh - 0.02))], 0.016, steel)
+    tube_path("burner_bar", [(0, FY + 0.12, -fh), (0, FY + 0.12, fh)], 0.016, steel)
+    for k, bx in enumerate((-0.21, 0.21)):
+        # the coil: a helix of tube around a jet block
+        pts = [(bx + 0.13 * math.cos(a), FY + 0.04 + 0.27 * a / (12 * math.pi), 0.13 * math.sin(a)) for a in [i * 12 * math.pi / 180 for i in range(181)]]
+        tube_path(f"burner_coil{k}", pts, 0.017, steel, seg=8)
+        lathe(f"burner_jet{k}", [(0.0, 0.0), (0.07, 0.0), (0.07, 0.05), (0.055, 0.07), (0.045, 0.24), (0.0, 0.24)], (bx, FY - 0.03, 0), dsteel, seg=24)
+        lathe(f"burner_can{k}", [(0.0, 0.0), (0.09, 0.0), (0.1, 0.03), (0.1, 0.1), (0.0, 0.1)], (bx, FY - 0.13, 0), steel, seg=24)
+        slab(f"burner_valve{k}", (bx, FY - 0.16, 0.13), (0.09, 0.07, 0.07), brass, bevel=0.01)
+        b = slab(f"burner_handle{k}", (bx + 0.04, FY - 0.2, 0.2), (0.03, 0.03, 0.17), hose, bevel=0.008)
+        disc(f"burner_gauge{k}", (bx - 0.05, FY - 0.15, 0.17), 0.028, 0.02, gauge, axis="z", seg=16)
+        lathe(f"pilot_flame{k}", [(0.0, 0.0), (0.008, 0.006), (0.014, 0.022), (0.017, 0.04), (0.013, 0.065), (0.006, 0.09), (0.0, 0.11)], (bx, FY + 0.21, 0), flame, seg=16)  # sunk into the coil: the tip glows above it
+    # flying wires: from the 24 tape ends at the mouth to the frame corners (6 per corner)
+    for g in range(G):
+        th = 2 * math.pi * (g + 0.5) / G
+        a = (r0 * math.cos(2 * math.pi * g / G), Y0, r0 * math.sin(2 * math.pi * g / G))
+        corner = (math.copysign(fh * 0.98, math.cos(th)), FY + 0.27, math.copysign(fh * 0.98, math.sin(th)))
+        tube_path(f"wire{g}", [a, corner], 0.006, dsteel, seg=5)
+    # ---- the basket: rounded wicker walls, padded rim, leather base trim, skids, rope handles, step holes
+    BW, BH = M["bw"], M["bh"]; hw = BW / 2
+    bm = bmesh.new()
+    outer_b, outer_t = rrect(hw - 0.02, hw - 0.02, 0.12, 6), rrect(hw, hw, 0.13, 6)
+    inner_t, inner_b = rrect(hw - 0.045, hw - 0.045, 0.09, 6), rrect(hw - 0.065, hw - 0.065, 0.08, 6)
+    rs = [[bm.verts.new(E(x, y, z)) for (x, z) in pts] for (pts, y) in ((outer_b, 0.0), (outer_t, BH), (inner_t, BH), (inner_b, 0.035))]
+    n = len(outer_b)
+    for a_, b_ in zip(rs, rs[1:]):
+        for k in range(n): bm.faces.new([a_[k], a_[(k + 1) % n], b_[(k + 1) % n], b_[k]])
+    bm.faces.new(rs[0][::-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh_obj("basket_walls", bm, [wicker], sharp=50)
+    ring_tube("basket_rim", rrect(hw - 0.02, hw - 0.02, 0.12, 8), BH + 0.035, 0.062, pad, seg=14)
+    ring_tube("basket_base", rrect(hw - 0.012, hw - 0.012, 0.12, 8), 0.05, 0.035, pad, seg=10)
+    for sx in (-1, 1):
+        for sz in (-1, 1):  # leather corner guards
+            slab(f"basket_guard{sx}{sz}", (sx * (hw - 0.05), BH / 2, sz * (hw - 0.05)), (0.13, BH - 0.06, 0.13), pad, bevel=0.05, yaw=math.pi / 4)
+    slab("basket_floor", (0, 0.045, 0), (BW - 0.14, 0.02, BW - 0.14), floor, bevel=0.01)
+    for sz in (-0.45, 0.45):
+        slab(f"basket_skid{sz}", (0, -0.035, sz), (BW - 0.06, 0.07, 0.09), skid, bevel=0.015)
+    for side in range(4):  # rope handles (two per side) and a step hole
+        ang = side * math.pi / 2
+        ca, sa = math.cos(ang), math.sin(ang)
+        for off in (-0.38, 0.38):
+            pts = []
+            for k in range(13):
+                a = math.pi * k / 12
+                u_, d_ = off + 0.1 * math.cos(a), hw + 0.012 + 0.07 * math.sin(a)
+                pts.append((ca * d_ - sa * u_, 0.97 - 0.09 * math.sin(a), sa * d_ + ca * u_))
+            tube_path(f"basket_rope{side}{off}", pts, 0.016, rope, seg=8)
+        if side in (1, 3):
+            u_, d_ = 0.0, hw + 0.002
+            slab(f"basket_stepr{side}", (ca * d_ - sa * u_, 0.36, sa * d_ + ca * u_), (0.27, 0.16, 0.03), pad, bevel=0.07, yaw=-ang + math.pi / 2)
+            slab(f"basket_step{side}", (ca * (d_ + 0.004) - sa * u_, 0.36, sa * (d_ + 0.004) + ca * u_), (0.2, 0.09, 0.03), floor, bevel=0.04, yaw=-ang + math.pi / 2)
+    # uprights: suede-sleeved rods from the basket corners to the burner frame
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            a = (sx * (hw - 0.08), BH - 0.25, sz * (hw - 0.08)); b = (sx * (fh - 0.01), FY - 0.01, sz * (fh - 0.01))
+            tube_path(f"upright{sx}{sz}", [a, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2), b], 0.036, pad, seg=10)
+    # fuel cylinders in the four corners, padded covers, valves; two hoses up to the burners
+    for k, (sx, sz) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
+        cx, cz = sx * 0.43, sz * 0.43
+        lathe(f"fuel{k}", [(0.0, 0.05), (0.13, 0.05), (0.15, 0.08), (0.15, 0.7), (0.135, 0.77), (0.09, 0.81), (0.0, 0.82)], (cx, 0, cz), cyl_m, seg=28)
+        lathe(f"fuel_cover{k}", [(0.0, 0.07), (0.158, 0.07), (0.16, 0.1), (0.16, 0.6), (0.152, 0.63), (0.0, 0.63)], (cx, 0, cz), pad, seg=28)
+        lathe(f"fuel_collar{k}", [(0.0, 0.8), (0.1, 0.8), (0.1, 0.9), (0.085, 0.9), (0.085, 0.82), (0.0, 0.82)], (cx, 0, cz), cyl_m, seg=24)
+        disc(f"fuel_valve{k}", (cx, 0.86, cz), 0.025, 0.05, brass, axis="y", seg=12)
+        disc(f"fuel_wheel{k}", (cx, 0.9, cz), 0.04, 0.012, red, axis="y", seg=16)
+        disc(f"fuel_gauge{k}", (cx + 0.035 * sx, 0.84, cz), 0.022, 0.012, gauge, axis="y", seg=14)
+        if k < 2:
+            a = (cx, 0.9, cz); b = (-0.2 if sx < 0 else 0.2, FY - 0.16, 0.12)
+            pts = [a, (cx * 0.9, 1.3, cz * 0.9), (sx * (hw - 0.12), 1.75, sz * (hw - 0.14)), (sx * 0.4, 2.1, 0.0), b]
+            tube_path(f"hose{k}", pts, 0.013, hose, seg=8)
+    # the parachute-vent line: a red cord from the crown down through the envelope to the burner frame
+    tube_path("vent_line", [(0.06, Y0 + H - 0.3, 0.05), (0.08, Y0 + H * 0.5, 0.06), (0.1, Y0, 0.08), (0.12, FY + 0.3, 0.1)], 0.008, col_mat("vent_line_red", srgb("#c8302a"), 0.6), seg=6)
+    # an instrument pack strapped inside the front wall
+    slab("basket_instr", (0.0, 0.92, hw - 0.08), (0.2, 0.13, 0.05), hose, bevel=0.012)
+    slab("basket_instr_s", (0.0, 0.93, hw - 0.107), (0.15, 0.08, 0.004), col_mat("instr_screen", srgb("#9fb79a"), 0.2), bevel=0.0)
+    top_y = Y0 + H + 0.32
+    NOTES["vehicle"] = {"length": BW, "width": BW, "height": round(top_y, 2), "wheelR": 0.01, "wheelBase": 1,
+                        "seats": {"pilot": {"pos": [-0.31, 0.055, 0.06], "pose": "idle"}, "passenger": {"pos": [0.31, 0.055, 0.06], "pose": "idle"}},
+                        "burner": [0.0, round(FY + 0.3, 3), 0.0], "mouth": [0.0, Y0, 0.0], "envelope": {"width": round(2 * env_r(0.68) * 0.985 * 1.032, 2), "bottom": Y0, "top": round(top_y, 2)},
+                        "recolor": ["env_a", "env_b"], "flame": "lens_flame"}
+
+
+def balloon_preview(out):
+    """look-dev stills of the balloon: the whole balloon (two sides), the basket and burner close, into the basket"""
+    w = bpy.data.worlds.new("pv"); SC.world = w; w.use_nodes = True
+    N_, L_ = w.node_tree.nodes, w.node_tree.links
+    tc = N_.new("ShaderNodeTexCoord"); sep = N_.new("ShaderNodeSeparateXYZ"); L_.new(tc.outputs["Generated"], sep.inputs[0])
+    ramp = N_.new("ShaderNodeValToRGB"); L_.new(sep.outputs["Z"], ramp.inputs["Fac"])
+    ramp.color_ramp.elements[0].position = 0.0; ramp.color_ramp.elements[0].color = (*srgb("#b9a58c"), 1)
+    ramp.color_ramp.elements[1].position = 0.6; ramp.color_ramp.elements[1].color = (*srgb("#3f6db0"), 1)
+    e = ramp.color_ramp.elements.new(0.5); e.color = (*srgb("#e8eef3"), 1)
+    L_.new(ramp.outputs["Color"], N_["Background"].inputs["Color"]); N_["Background"].inputs["Strength"].default_value = 1.0
+    sun = bpy.data.lights.new("pvsun", "SUN"); sun.energy = 4.0; sun.angle = math.radians(1.5); sun.color = srgb("#fff1dc")
+    so = link(bpy.data.objects.new("pvsun", sun)); d = Vector((0.6, 0.62, 0.5)).normalized(); so.rotation_euler = Vector((d.x, -d.z, d.y)).to_track_quat("Z", "Y").to_euler()
+    fl = plane("pv_floor", 120, 120, (0, -0.075, 0), col_mat("pv_floor_m", srgb("#a89a84"), 0.9))
+    cam = bpy.data.cameras.new("pvcam"); co = link(bpy.data.objects.new("pvcam", cam)); SC.camera = co
+    SC.render.engine = "CYCLES"; SC.cycles.samples = 96
+    for nm_, pos, look, lens, res in (("full", (34, 6, 42), (0, 14.5, 0), 30, (800, 1000)), ("full_b", (-40, 22, 26), (0, 14, 0), 30, (800, 1000)),
+                                      ("basket", (3.4, 2.6, 4.2), (0, 1.25, 0), 35, (1000, 800)), ("inside", (1.3, 4.3, 1.9), (0, 0.4, 0), 30, (1000, 800)),
+                                      ("burner", (1.4, 2.6, 1.7), (0, 2.45, 0), 45, (1000, 800)), ("up", (0.6, 1.6, 0.4), (0, 20, 0), 14, (800, 1000))):
+        cam.lens = lens; SC.render.resolution_x, SC.render.resolution_y = res
+        co.location = E(*pos); co.rotation_euler = (E(*look) - co.location).to_track_quat("-Z", "Y").to_euler()
+        SC.render.filepath = os.path.join(out, f"balloon_{nm_}.png"); bpy.ops.render.render(write_still=True)
+    bpy.data.objects.remove(fl); bpy.data.objects.remove(co); bpy.data.objects.remove(so)
+
+
+ASSET = {"van", "porch", "parcel", "scanner", "balloon"}
+PRE_EXPORT = []  # (1.12) callables run after the bake, before the export
+BUILD = {"home": build_home, "van": build_van, "office": build_office, "depot": build_depot, "porch": build_porch, "parcel": build_parcel, "scanner": build_scanner,
+         "balloon": build_balloon, "valley": build_valley}
 PREVIEW = {"van": lambda: van_preview(OUT), "porch": lambda: asset_preview(OUT, "porch", (0, 1.4, 0.4), 5.5),
-           "parcel": lambda: asset_preview(OUT, "parcel", (0, 0.14, 0), 1.2), "scanner": lambda: asset_preview(OUT, "scanner", (0, -0.1, 0), 2.4)}
+           "parcel": lambda: asset_preview(OUT, "parcel", (0, 0.14, 0), 1.2), "scanner": lambda: asset_preview(OUT, "scanner", (0, -0.1, 0), 2.4),
+           "balloon": lambda: balloon_preview(OUT)}
 
 
 # ------------------------------------------------------------------------------------------------ light
@@ -2693,9 +4622,10 @@ def bake_all(kind="DIFFUSE", texel=None):
         bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
         bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.012, area_weight=0.0, scale_to_bounds=False)
         bpy.ops.object.mode_set(mode="OBJECT")
-        side = int(min(2048, max(64, 2 ** round(math.log2(max(1.0, math.sqrt(area(ob)) * texel))))))
-        im = bpy.data.images.new(f"LM_{ob.name}", side, side, float_buffer=True)
         mats = [m for m in me.materials if m]
+        tk = max([float(m.get("texel_k", 1.0)) for m in mats] or [1.0]); cap = int(min([m.get("lm_max", 2048) for m in mats] or [2048]))  # (1.12: per-material budget)
+        side = int(min(cap, max(64, 2 ** round(math.log2(max(1.0, math.sqrt(area(ob)) * texel * tk))))))
+        im = bpy.data.images.new(f"LM_{ob.name}", side, side, float_buffer=True)
         spec = kind != "AO" and any(m.get("spec_bake") for m in mats)
         for m in mats:
             b = next((n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None) if m.use_nodes else None
@@ -2800,16 +4730,20 @@ def preview():
     co.rotation_euler = (look - co.location).to_track_quat("-Z", "Y").to_euler()
     cam.sensor_fit = "VERTICAL"; cam.angle_y = math.radians(w["fov"])
     SC.camera = co; SC.render.resolution_x, SC.render.resolution_y = 720, 1280
+    cam.clip_end = 3000.0
+    undo = haze_inject(PREVIEW_FOG) if PREVIEW_FOG else None  # (1.12: the engine's fog, so the still predicts its aerial perspective)
     SC.render.filepath = os.path.join(OUT, "preview.png"); bpy.ops.render.render(write_still=True)
-    for k, v in enumerate(str(A.get("views", "")).split(";") if A.get("views") else []):  # extra look-dev stills: "px,py,pz,lx,ly,lz,fov;..."
+    for k, v in enumerate(str(A.get("views", "")).split(";") if A.get("views") else PREVIEW_VIEWS):  # extra look-dev stills: "px,py,pz,lx,ly,lz,fov;..."
         p = [float(t) for t in v.split(",")]
         co.location = E(*p[:3]); co.rotation_euler = (E(*p[3:6]) - co.location).to_track_quat("-Z", "Y").to_euler(); cam.angle_y = math.radians(p[6])
         SC.render.filepath = os.path.join(OUT, f"view{k}.png"); bpy.ops.render.render(write_still=True)
+    if undo: undo()
 
 
 if A["set"] in ASSET:
     BUILD[A["set"]]()
     if A["set"] == "van": van_gradient()  # before the preview too (the stills rendered black without it)
+    if A["set"] == "balloon": prepare()  # (the wicker and leather need their world UVs in the look-dev stills)
     if A.get("preview"): PREVIEW[A["set"]]()
     prepare()
     for ob in list(SC.objects):
@@ -2831,7 +4765,7 @@ if A["set"] in ASSET:
     print(f"[asset] {A['set']} -> {OUT}", flush=True)
     sys.exit(0)
 BUILD[A["set"]]()
-light_interior() if NOTES.get("light") == "interior" else light_day()
+light_interior() if NOTES.get("light") == "interior" else light_valley() if NOTES.get("light") == "valley" else light_day()
 prepare()
 clamp_metals()
 join_by_material()
@@ -2839,4 +4773,5 @@ if A.get("preview"): preview()
 if A.get("lookdev"): sys.exit(0)  # (--preview --lookdev: the Cycles still only, no bake or export, while iterating on a set)
 baked = bake_all()
 S, lms = save_lightmaps(baked)
+for f in PRE_EXPORT: f()
 export(S, lms)

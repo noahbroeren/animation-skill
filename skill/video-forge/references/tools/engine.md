@@ -677,3 +677,24 @@ See `references/research/newest-reference-short-2026-11.md` for the measurements
   real silence with 50 ms tail and 40 ms attack guards, 25 ms equal-power fades; defaults 0.08 / 0.05 / 0.04 s kept
   after sentences / commas / words). `audio/score.py --music-lu` default -17.
 
+
+## Added in 1.11.6 (a big world: the valley and the balloon)
+
+- **Kilometre-size baked worlds:** `tools/blender/build_set.py --set valley --time dawn|noon` (a 3 km valley: fairy-chimney
+  spires with mushroom caps and banded tuff, poplar rows, orchards, a river, a terraced village with lit windows) and
+  `--set balloon` (a hero balloon: gores `env_a` / `env_b` that `recolor` can change, a wicker basket with padded rim,
+  burners, flame lens; seats `pilot` / `passenger` and the `burner` point in `balloon.json`).
+- **`Board.placeSpacing`** (default 160 m): places sit this far apart along x; a valley needs several km (balloons: 6000).
+- **Sky and haze in a baked set:** `RT_sky*` is an unlit dome that follows the camera (never clipped by the far plane,
+  no fog, drawn first) and keeps the baked sunrise colours; `RT_mist*` are transparent valley-haze planes with no
+  shadows. Give a big valley its own fog range on the light key (`fog: [140, 3200]`).
+- **`BoardVehicle.heading`:** a fixed yaw (radians) instead of facing along the path: a balloon basket does not turn to
+  its drift. Vehicles are named `vehicle:<id>` in the scene, so a prop can find them (`api.scene.getObjectByName`).
+- **`BoardApi.renderer`** for props that need it (e.g. `horizonEnv(api.renderer)` on loaded models).
+- **Which hand is where:** a card that faces the camera has its RIGHT hand on the screen's LEFT. Put a gesture or a held
+  string on the free side of the frame (`handL` when the space is on the right), never across the face.
+- **Props that ride:** a prop can follow a vehicle every frame (`getWorldPosition` of `vehicle:<id>` plus an offset,
+  written into an inner group via `worldToLocal`), so a following camera keeps it in view (balloons: the calm wind
+  layers under the climbing basket).
+- `audio/tighten.py`: a word time that falls inside a removed silence maps to the cut's start, so word starts stay in
+  order after tightening.
